@@ -1,4 +1,5 @@
-﻿using System;
+﻿using Docms.Uploader.FileWatch;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -13,7 +14,7 @@ using System.Windows.Media.Imaging;
 using System.Windows.Navigation;
 using System.Windows.Shapes;
 
-namespace Docms.Uploader
+namespace Docms.Uploader.Views
 {
     /// <summary>
     /// MainWindow.xaml の相互作用ロジック
@@ -23,6 +24,9 @@ namespace Docms.Uploader
         public MainWindow()
         {
             InitializeComponent();
+            var vm = new MediaFileListViewModel("C:\\Temp\\Images");
+            vm.Startwatch();
+            DataContext = vm;
         }
     }
 }
