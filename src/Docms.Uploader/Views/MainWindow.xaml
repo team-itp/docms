@@ -10,6 +10,21 @@
     Height="350"
     mc:Ignorable="d">
     <Grid>
-        <local:MediaFileListView />
+        <Grid.ColumnDefinitions>
+            <ColumnDefinition Width="320" MinWidth="320" />
+            <ColumnDefinition Width="Auto" />
+            <ColumnDefinition Width="*" />
+        </Grid.ColumnDefinitions>
+
+        <local:UploaderView DataContext="{Binding Uploader}" Grid.Column="0" />
+        <local:MediaFileListView DataContext="{Binding MediaFileList}" Grid.Column="2" />
+        <GridSplitter
+            Grid.Column="1"
+            Width="3"
+            HorizontalAlignment="Stretch"
+            VerticalAlignment="Stretch"
+            Background="LightGray"
+            ResizeDirection="Columns"
+            ShowsPreview="True" />
     </Grid>
 </Window>
