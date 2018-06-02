@@ -1,7 +1,7 @@
 using System;
 using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
+using IdentityServer4.Models;
+using IdentityServer4.Test;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.SpaServices.Webpack;
@@ -23,6 +23,14 @@ namespace Docms.Web
         // This method gets called by the runtime. Use this method to add services to the container.
         public void ConfigureServices(IServiceCollection services)
         {
+            // configure identity server with in-memory stores, keys, clients and scopes
+            services.AddIdentityServer()
+                .AddDeveloperSigningCredential()
+                .AddInMemoryIdentityResources(Config.GetIdentityResources())
+                .AddInMemoryApiResources(Config.GetApiResources())
+                .AddInMemoryClients(Config.GetClients())
+                .AddTestUsers(Config.GetUsers());
+
             services.AddMvc();
 
             services.AddSwaggerGen(c =>
@@ -55,6 +63,10 @@ namespace Docms.Web
             }
 
             app.UseStaticFiles();
+
+            app.UseIdentityServer();
+
+            app.UseMvcWithDefaultRoute();
 
             // Enable middleware to serve generated Swagger as a JSON endpoint.
             app.UseSwagger();
