@@ -22,13 +22,6 @@
     <Content Remove="ClientApp\**" />
   </ItemGroup>
 
-  <ItemGroup>
-    <Content Remove="Views\Account\_Layout.cshtml" />
-    <Content Remove="Views\Consent\_Layout.cshtml" />
-    <Content Remove="Views\Diagnostics\_Layout.cshtml" />
-    <Content Remove="Views\Grants\_Layout.cshtml" />
-  </ItemGroup>
-
   <Target Name="DebugRunWebpack" BeforeTargets="Build" Condition=" '$(Configuration)' == 'Debug' And !Exists('wwwroot\dist') ">
     <!-- Ensure Node.js is installed -->
     <Exec Command="node --version" ContinueOnError="true">

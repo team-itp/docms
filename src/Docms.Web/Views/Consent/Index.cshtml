@@ -1,5 +1,4 @@
 @model Docms.Web.IdentityServer.ConsentViewModel
-
 @{
     ViewData["Title"] = "承認する";
 }
@@ -17,16 +16,13 @@
             </h1>
         </div>
     </div>
-
     <div class="row">
         <div class="col-sm-8">
             @Html.Partial("_ValidationSummary")
-
             <form asp-action="Index" class="consent-form">
                 <input type="hidden" asp-for="ReturnUrl" />
-
                 <div>承認したくないパーミッションのチェックを外してください。</div>
-                
+
                 @if (Model.IdentityScopes.Any())
                 {
                     <div class="panel panel-default consent-buttons">
@@ -42,7 +38,6 @@
                         </ul>
                     </div>
                 }
-
                 @if (Model.ResourceScopes.Any())
                 {
                     <div class="panel panel-default">
@@ -58,7 +53,6 @@
                         </ul>
                     </div>
                 }
-
                 @if (Model.AllowRememberConsent)
                 {
                     <div class="consent-remember">
@@ -68,7 +62,6 @@
                         </label>
                     </div>
                 }
-
                 <div class="consent-buttons">
                     <button name="button" value="yes" class="btn btn-primary" autofocus>はい、許可します</button>
                     <button name="button" value="no" class="btn">いいえ、拒否します</button>
