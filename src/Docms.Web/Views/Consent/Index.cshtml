@@ -1,4 +1,8 @@
-﻿@model Docms.Web.IdentityServer.ConsentViewModel
+@model Docms.Web.IdentityServer.ConsentViewModel
+
+@{
+    ViewData["Title"] = "承認する";
+}
 
 <div class="page-consent">
     <div class="row page-header">
@@ -9,7 +13,7 @@
             }
             <h1>
                 @Model.ClientName
-                <small>is requesting your permission</small>
+                <small>が許可を求めています。</small>
             </h1>
         </div>
     </div>
@@ -21,7 +25,7 @@
             <form asp-action="Index" class="consent-form">
                 <input type="hidden" asp-for="ReturnUrl" />
 
-                <div>Uncheck the permissions you do not wish to grant.</div>
+                <div>承認したくないパーミッションのチェックを外してください。</div>
                 
                 @if (Model.IdentityScopes.Any())
                 {
@@ -60,14 +64,14 @@
                     <div class="consent-remember">
                         <label>
                             <input class="consent-scopecheck" asp-for="RememberConsent" />
-                            <strong>Remember My Decision</strong>
+                            <strong>決定を覚えておく</strong>
                         </label>
                     </div>
                 }
 
                 <div class="consent-buttons">
-                    <button name="button" value="yes" class="btn btn-primary" autofocus>Yes, Allow</button>
-                    <button name="button" value="no" class="btn">No, Do Not Allow</button>
+                    <button name="button" value="yes" class="btn btn-primary" autofocus>はい、許可します</button>
+                    <button name="button" value="no" class="btn">いいえ、拒否します</button>
                     @if (Model.ClientUrl != null)
                     {
                         <a class="pull-right btn btn-default" target="_blank" href="@Model.ClientUrl">
