@@ -1,7 +1,3 @@
-using System;
-using System.Collections.Generic;
-using IdentityServer4.Models;
-using IdentityServer4.Test;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.SpaServices.Webpack;
@@ -23,6 +19,17 @@ namespace Docms.Web
         // This method gets called by the runtime. Use this method to add services to the container.
         public void ConfigureServices(IServiceCollection services)
         {
+            services.AddAuthentication()
+                .AddCookie(options => {
+                    options.LoginPath = "/account/login/";
+                    options.AccessDeniedPath = "/account/forbidden/";
+                })
+                .AddJwtBearer(options => {
+                    options.Audience = "http://localhost:52239/";
+                    options.Authority = "http://localhost:52239/";
+                    options.RequireHttpsMetadata = false;
+                }); 
+
             // configure identity server with in-memory stores, keys, clients and scopes
             services.AddIdentityServer()
                 .AddDeveloperSigningCredential()
