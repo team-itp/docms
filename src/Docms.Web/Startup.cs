@@ -4,6 +4,7 @@ using Microsoft.AspNetCore.SpaServices.Webpack;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Swashbuckle.AspNetCore.Swagger;
+using System.Collections.Generic;
 
 namespace Docms.Web
 {
@@ -20,15 +21,15 @@ namespace Docms.Web
         public void ConfigureServices(IServiceCollection services)
         {
             services.AddAuthentication()
-                .AddCookie(options => {
-                    options.LoginPath = "/account/login/";
-                    options.AccessDeniedPath = "/account/forbidden/";
+                .AddCookie(options =>
+                {
+                    options.LoginPath = "/account/login";
                 })
-                .AddJwtBearer(options => {
-                    options.Audience = "http://localhost:52239/";
+                .AddJwtBearer(options =>
+                {
                     options.Authority = "http://localhost:52239/";
                     options.RequireHttpsMetadata = false;
-                }); 
+                });
 
             // configure identity server with in-memory stores, keys, clients and scopes
             services.AddIdentityServer()
@@ -49,6 +50,19 @@ namespace Docms.Web
                     Description = "Document Management System for small companies Web API",
                     TermsOfService = "None"
                 });
+
+                c.AddSecurityDefinition("Bearer", new OAuth2Scheme()
+                {
+                    Description = "OAuth2 クライアント認可フロー",
+                    Flow = "implicit",
+                    Scopes = new Dictionary<string, string>() {
+                        { "docmsapi", "try out the api" }
+                    },
+                    TokenUrl = "/connect/token",
+                    AuthorizationUrl = "/connect/authorize",
+                });
+
+                c.DocumentFilter<SecurityRequirementsDocumentFilter>();
             });
         }
 
@@ -82,7 +96,9 @@ namespace Docms.Web
             // specifying the Swagger JSON endpoint.
             app.UseSwaggerUI(c =>
             {
-                c.SwaggerEndpoint("/swagger/v1/swagger.json", "My API V1");
+                c.SwaggerEndpoint("/swagger/v1/swagger.json", "DocMS API v1");
+                c.OAuthClientId("swagger");
+                c.OAuthClientSecret("swagger-client-secret");
             });
 
             app.UseMvc(routes =>
