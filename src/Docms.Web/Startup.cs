@@ -27,7 +27,8 @@ namespace Docms.Web
                 })
                 .AddJwtBearer(options =>
                 {
-                    options.Authority = "http://localhost:52239/";
+                    options.Audience = "docmsapi";
+                    options.Authority = "http://localhost:5000/";
                     options.RequireHttpsMetadata = false;
                 });
 
@@ -53,7 +54,7 @@ namespace Docms.Web
 
                 c.AddSecurityDefinition("Bearer", new OAuth2Scheme()
                 {
-                    Description = "OAuth2 クライアント認可フロー",
+                    Description = "OAuth2 繧ｯ繝ｩ繧､繧｢繝ｳ繝郁ｪ榊庄繝輔Ο繝ｼ",
                     Flow = "implicit",
                     Scopes = new Dictionary<string, string>() {
                         { "docmsapi", "try out the api" }

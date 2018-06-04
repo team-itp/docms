@@ -12,7 +12,7 @@ namespace Docms.Web
         {
             return new List<ApiResource>()
             {
-                new ApiResource()
+                new ApiResource("docmsapi", "文書管理システム API")
                 {
                     Scopes = new List<Scope>() {
                         new Scope("docmsapi", "文書管理システム API")
@@ -35,7 +35,7 @@ namespace Docms.Web
                     AllowedScopes = { "docmsapi" },
                     RedirectUris = new List<string>()
                     {
-                        "http://localhost:52239/swagger/oauth2-redirect.html"
+                        "http://localhost:5000/swagger/oauth2-redirect.html"
                     },
                     AllowedGrantTypes = GrantTypes.Implicit,
                     AllowAccessTokensViaBrowser = true,

@@ -11,7 +11,6 @@ namespace Docms.Web.Docs
     [Authorize(AuthenticationSchemes = JwtBearerDefaults.AuthenticationScheme)]
     [Route("api/[controller]")]
     [Produces("application/json")]
-    [ApiController]
     public class DocumentsController : ControllerBase
     {
         /// <summary>
