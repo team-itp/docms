@@ -32,3 +32,18 @@ body {
         border-radius: 4px;
     }
 }
+
+/* ログインページ */
+.login-title {
+    text-align: center;
+    margin: 1em;
+}
+.login-remember {
+    font-size: 90%;
+}
+
+/* ログアウトページ */
+.logout-title {
+    text-align: center;
+    margin: 1em;
+}

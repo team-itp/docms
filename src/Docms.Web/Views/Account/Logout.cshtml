@@ -5,18 +5,18 @@
 }
 
 <div class="logout-page">
-    <div class="page-header">
-        <h1>ログアウト</h1>
-    </div>
+    <h1 class="logout-title">ログアウトしてよろしいですか？</h1>
 
     <div class="row">
-        <div class="col-sm-6">
-            <p>ログアウトしてよろしいですか？</p>
+        <div class="col-sm-push-4 col-sm-4">
             <form asp-action="Logout">
                 <input type="hidden" name="logoutId" value="@Model.LogoutId"  />
                 <fieldset>
                     <div class="form-group">
-                        <button class="btn btn-primary">はい</button>
+                        <button class="btn btn-primary btn-block">
+                            <span class="glyphicon glyphicon-log-out"></span>
+                            はい
+                        </button>
                     </div>
                 </fieldset>
             </form>
