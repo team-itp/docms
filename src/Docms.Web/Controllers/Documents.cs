@@ -1,11 +1,11 @@
 using Newtonsoft.Json;
 
-namespace Docms.Web.Docs
+namespace Docms.Web.Controllers
 {
     /// <summary>
     /// ドキュメント
     /// </summary>
-    public class Document
+    public class DocumentResponse
     {
         /// <summary>
         /// ドキュメントID
@@ -41,7 +41,7 @@ namespace Docms.Web.Docs
         /// タグリスト
         /// </summary>
         [JsonProperty("tags")]
-        public Tag[] Tags { get; set; }
+        public TagResponse[] Tags { get; set; }
 
         /// <summary>
         /// リンク
@@ -53,7 +53,7 @@ namespace Docms.Web.Docs
     /// <summary>
     /// アップロード文書
     /// </summary>
-    public class UploadDocument
+    public class UploadDocumentRequest
     {
         /// <summary>
         /// MIME タイプ
@@ -89,11 +89,11 @@ namespace Docms.Web.Docs
         /// タグリスト
         /// </summary>
         [JsonProperty("tags")]
-        public Tag[] Tags { get; set; }
+        public TagResponse[] Tags { get; set; }
     }
 
     /// <summary>
-    /// ドキュメントのリンク
+    /// ドキュメントのリンクs
     /// </summary>
     public class DocumentLinks : Links
     {

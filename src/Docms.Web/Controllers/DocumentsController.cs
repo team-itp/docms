@@ -6,7 +6,7 @@ using System.Collections.Generic;
 using System.Net;
 using System.Net.Mime;
 
-namespace Docms.Web.Docs
+namespace Docms.Web.Controllers
 {
     [Authorize(AuthenticationSchemes = JwtBearerDefaults.AuthenticationScheme)]
     [Route("api/[controller]")]
@@ -18,18 +18,18 @@ namespace Docms.Web.Docs
         /// </summary>
         /// <returns>ドキュメント情報の一覧</returns>
         [HttpGet]
-        [ProducesResponseType((int)HttpStatusCode.OK, Type = typeof(IEnumerable<Document>))]
-        public IEnumerable<Document> Get()
+        [ProducesResponseType((int)HttpStatusCode.OK, Type = typeof(IEnumerable<DocumentResponse>))]
+        public IEnumerable<DocumentResponse> Get()
         {
-            return new Document[] {
-                new Document()
+            return new[] {
+                new DocumentResponse()
                 {
                     Id = 1,
                     MediaType = MediaTypeNames.Image.Jpeg,
                     Size = 4520,
                     Name = "何とか現場の写真.jpg",
                     Path = "何とか現場の写真.jpg",
-                    Tags = new Tag[0],
+                    Tags = new TagResponse[0],
                     Links = new DocumentLinks()
                     {
                         Self = new Link()
@@ -51,18 +51,18 @@ namespace Docms.Web.Docs
         /// <param name="id">ドキュメントID</param>
         /// <returns>ドキュメント情報</returns>
         [HttpGet("{id}")]
-        [ProducesResponseType((int)HttpStatusCode.OK, Type = typeof(Document))]
+        [ProducesResponseType((int)HttpStatusCode.OK, Type = typeof(DocumentResponse))]
         [ProducesResponseType((int)HttpStatusCode.NotFound)]
-        public Document Get(int id)
+        public IActionResult Get(int id)
         {
-            return new Document()
+            return Ok(new DocumentResponse()
             {
                 Id = 1,
                 MediaType = MediaTypeNames.Image.Jpeg,
                 Size = 4520,
                 Name = "何とか現場の写真.jpg",
                 Path = "何とか現場の写真.jpg",
-                Tags = new Tag[0],
+                Tags = new TagResponse[0],
                 Links = new DocumentLinks()
                 {
                     Self = new Link()
@@ -74,7 +74,7 @@ namespace Docms.Web.Docs
                         Href = "http://www.google.com/"
                     }
                 }
-            };
+            });
         }
 
         /// <summary>
@@ -82,9 +82,9 @@ namespace Docms.Web.Docs
         /// </summary>
         /// <param name="document">ドキュメント情報</param>
         [HttpPost]
-        [ProducesResponseType((int)HttpStatusCode.Created)]
+        [ProducesResponseType((int)HttpStatusCode.NoContent)]
         [ProducesResponseType((int)HttpStatusCode.BadRequest)]
-        public IActionResult Post([FromBody] UploadDocument document)
+        public IActionResult Post([FromBody] UploadDocumentRequest document)
         {
             var id = new Random().Next();
             return RedirectToAction(nameof(Get), new { id });
@@ -99,7 +99,7 @@ namespace Docms.Web.Docs
         [ProducesResponseType((int)HttpStatusCode.NoContent)]
         [ProducesResponseType((int)HttpStatusCode.NotFound)]
         [ProducesResponseType((int)HttpStatusCode.BadRequest)]
-        public IActionResult Put(int id, [FromBody] UploadDocument document)
+        public IActionResult Put(int id, [FromBody] UploadDocumentRequest document)
         {
             return RedirectToAction(nameof(Get), new { id });
         }
@@ -109,10 +109,11 @@ namespace Docms.Web.Docs
         /// </summary>
         /// <param name="id">ドキュメント ID</param>
         [HttpDelete("{id}")]
-        [ProducesResponseType((int)HttpStatusCode.NoContent)]
+        [ProducesResponseType((int)HttpStatusCode.OK)]
         [ProducesResponseType((int)HttpStatusCode.NotFound)]
-        public void Delete(int id)
+        public IActionResult Delete(int id)
         {
+            return Ok();
         }
     }
 }

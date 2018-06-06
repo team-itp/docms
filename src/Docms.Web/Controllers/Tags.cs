@@ -1,8 +1,8 @@
 using Newtonsoft.Json;
 
-namespace Docms.Web.Docs
+namespace Docms.Web.Controllers
 {
-    public class Tag
+    public class TagResponse
     {
         [JsonProperty("id")]
         public int Id { get; set; }
