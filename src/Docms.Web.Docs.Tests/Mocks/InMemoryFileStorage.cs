@@ -5,7 +5,7 @@ using System.Threading.Tasks;
 
 namespace Docms.Web.Docs.Mocks
 {
-    public class InMemoryFileStorage : IFileStorage
+    class InMemoryFileStorage : IFileStorage
     {
         public Dictionary<string, byte[]> Storage { get; } = new Dictionary<string, byte[]>();
         public Dictionary<string, DocumentFileInfo> FileInfoMap { get; } = new Dictionary<string, DocumentFileInfo>();

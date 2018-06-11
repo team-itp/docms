@@ -31,7 +31,7 @@ namespace Docms.Web.Docs
         /// <summary>
         /// ファイルサイズ
         /// </summary>
-        public int Size { get; set; }
+        public long Size { get; set; }
 
         /// <summary>
         /// 作成日時
