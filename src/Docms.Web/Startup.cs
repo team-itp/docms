@@ -1,3 +1,5 @@
+using Docms.Web.Docs;
+using Docms.Web.Infrastructure;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.SpaServices.Webpack;
@@ -39,6 +41,11 @@ namespace Docms.Web
                 .AddInMemoryApiResources(Config.GetApiResources())
                 .AddInMemoryClients(Config.GetClients())
                 .AddTestUsers(Config.GetUsers());
+
+            // アプリケーション用DIの設定
+            services.AddSingleton<IFileStorage, LocalFileStorage>();
+            services.AddSingleton<IDocumentsRepository, DocmsContextDocumentsRepository>();
+            services.AddSingleton<ITagsRepository, DocmsContextTagsRepository>();
 
             services.AddMvc();
 

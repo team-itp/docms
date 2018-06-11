@@ -1,4 +1,5 @@
 ﻿using System.Collections.Generic;
+using System.Linq;
 using System.Threading.Tasks;
 
 namespace Docms.Web.Docs.Mocks
@@ -32,6 +33,11 @@ namespace Docms.Web.Docs.Mocks
                 tag.Id = ++_maxId;
             }
             return Task.CompletedTask;
+        }
+
+        public Task<IEnumerable<Tag>> GetAllAsync()
+        {
+            return Task.FromResult(_tags.AsEnumerable());
         }
     }
 }
