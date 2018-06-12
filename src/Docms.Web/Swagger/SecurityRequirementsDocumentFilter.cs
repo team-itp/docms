@@ -2,7 +2,7 @@
 using Swashbuckle.AspNetCore.SwaggerGen;
 using System.Collections.Generic;
 
-namespace Docms.Web
+namespace Docms.Web.Swagger
 {
     internal class SecurityRequirementsDocumentFilter : IDocumentFilter
     {

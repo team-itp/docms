@@ -1,12 +1,11 @@
 using Docms.Web.Docs;
 using Docms.Web.Infrastructure;
+using Docms.Web.Swagger;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.SpaServices.Webpack;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
-using Swashbuckle.AspNetCore.Swagger;
-using System.Collections.Generic;
 
 namespace Docms.Web
 {
@@ -22,6 +21,15 @@ namespace Docms.Web
         // This method gets called by the runtime. Use this method to add services to the container.
         public void ConfigureServices(IServiceCollection services)
         {
+            // configure identity server with in-memory stores, keys, clients and scopes
+            services.AddIdentityServer()
+                .AddDeveloperSigningCredential()
+                .AddInMemoryIdentityResources(Config.GetIdentityResources())
+                .AddInMemoryApiResources(Config.GetApiResources())
+                .AddInMemoryClients(Config.GetClients())
+                .AddTestUsers(Config.GetUsers());
+            services.AddSwashbuckle();
+
             services.AddAuthentication()
                 .AddCookie(options =>
                 {
@@ -34,44 +42,12 @@ namespace Docms.Web
                     options.RequireHttpsMetadata = false;
                 });
 
-            // configure identity server with in-memory stores, keys, clients and scopes
-            services.AddIdentityServer()
-                .AddDeveloperSigningCredential()
-                .AddInMemoryIdentityResources(Config.GetIdentityResources())
-                .AddInMemoryApiResources(Config.GetApiResources())
-                .AddInMemoryClients(Config.GetClients())
-                .AddTestUsers(Config.GetUsers());
-
             // アプリケーション用DIの設定
             services.AddSingleton<IFileStorage, LocalFileStorage>();
             services.AddSingleton<IDocumentsRepository, DocmsContextDocumentsRepository>();
             services.AddSingleton<ITagsRepository, DocmsContextTagsRepository>();
 
             services.AddMvc();
-
-            services.AddSwaggerGen(c =>
-            {
-                c.SwaggerDoc("v1", new Info
-                {
-                    Version = "v1",
-                    Title = "DocMS API",
-                    Description = "Document Management System for small companies Web API",
-                    TermsOfService = "None"
-                });
-
-                c.AddSecurityDefinition("Bearer", new OAuth2Scheme()
-                {
-                    Description = "OAuth2 クライアント認可フロー",
-                    Flow = "implicit",
-                    Scopes = new Dictionary<string, string>() {
-                        { "docmsapi", "try out the api" }
-                    },
-                    TokenUrl = "/connect/token",
-                    AuthorizationUrl = "/connect/authorize",
-                });
-
-                c.DocumentFilter<SecurityRequirementsDocumentFilter>();
-            });
         }
 
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.
@@ -94,20 +70,7 @@ namespace Docms.Web
             app.UseStaticFiles();
 
             app.UseIdentityServer();
-
-            app.UseMvcWithDefaultRoute();
-
-            // Enable middleware to serve generated Swagger as a JSON endpoint.
-            app.UseSwagger();
-
-            // Enable middleware to serve swagger-ui (HTML, JS, CSS, etc.), 
-            // specifying the Swagger JSON endpoint.
-            app.UseSwaggerUI(c =>
-            {
-                c.SwaggerEndpoint("/swagger/v1/swagger.json", "DocMS API v1");
-                c.OAuthClientId("swagger");
-                c.OAuthClientSecret("swagger-client-secret");
-            });
+            app.UseSwashbuckle();
 
             app.UseMvc(routes =>
             {
