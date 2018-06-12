@@ -15,9 +15,18 @@ namespace Docms.Web.Docs
             _docs = docs;
             _tags = tags;
         }
-        public async Task CreateAsync(string path, Stream fileData, Tag[] tags, UserInfo user)
+
+        public async Task CreateAsync(string path, Stream fileData, Stream thumbnailData, Tag[] tags, UserInfo user)
         {
             var docInfo = await _storage.SaveAsync(path, fileData);
+            if (thumbnailData != null)
+            {
+                var thumbnailPath = Path.Combine(
+                    "thumbnails",
+                    Path.GetDirectoryName(path),
+                    Path.GetFileNameWithoutExtension(path) + ".png");
+                var thumbInfo = await _storage.SaveAsync(path, thumbnailData);
+            }
             foreach (var tag in tags)
             {
                 await _tags.CreateIfNotExistsAsync(tag);
@@ -25,13 +34,14 @@ namespace Docms.Web.Docs
 
             var document = new Document()
             {
-                Id = -1,
                 Name = docInfo.Name,
                 Path = docInfo.Path,
                 Size = docInfo.Size,
                 MediaType = docInfo.MediaType,
-                Created = docInfo.Created,
-                Modified = docInfo.Modified,
+                CreatedAt = docInfo.CreatedAt,
+                CreatedBy = user.Id,
+                ModifiedAt = docInfo.ModifiedAt,
+                ModifiedBy = user.Id,
                 Tags = tags,
             };
 

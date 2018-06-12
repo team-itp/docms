@@ -34,8 +34,8 @@ namespace Docms.Web.Docs.Mocks
                 Name = Path.GetFileName(path),
                 Path = path,
                 Size = byteArr.Length,
-                Created = now,
-                Modified = now
+                CreatedAt = now,
+                ModifiedAt = now
             };
             FileInfoMap.Add(path, info);
             return await Task.FromResult(info);

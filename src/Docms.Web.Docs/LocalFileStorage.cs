@@ -45,8 +45,8 @@ namespace Docms.Web.Docs
                 Name = fileInfo.Name,
                 Path = ConvertPath(fileInfo.FullName),
                 Size = fileInfo.Length,
-                Created = fileInfo.CreationTime,
-                Modified = fileInfo.LastWriteTime
+                CreatedAt = fileInfo.CreationTime,
+                ModifiedAt = fileInfo.LastWriteTime
             };
             return await Task.FromResult(info);
         }

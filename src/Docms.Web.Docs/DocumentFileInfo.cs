@@ -30,11 +30,11 @@ namespace Docms.Web.Docs
         /// <summary>
         /// 作成日時
         /// </summary>
-        public DateTime Created { get; set; }
+        public DateTime CreatedAt { get; set; }
 
         /// <summary>
         /// 更新日時
         /// </summary>
-        public DateTime Modified { get; set; }
+        public DateTime ModifiedAt { get; set; }
     }
 }

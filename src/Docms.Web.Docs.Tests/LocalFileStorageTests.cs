@@ -35,8 +35,8 @@ namespace Docms.Web.Docs
             Assert.AreEqual("Test/File1.txt", fileInfo.Path);
             Assert.AreEqual("File1.txt", fileInfo.Name);
             Assert.AreEqual(Encoding.UTF8.GetByteCount("Hello, World"), fileInfo.Size);
-            Assert.IsTrue(before < fileInfo.Created && fileInfo.Created < after);
-            Assert.IsTrue(before < fileInfo.Modified && fileInfo.Modified < after);
+            Assert.IsTrue(before < fileInfo.CreatedAt && fileInfo.CreatedAt < after);
+            Assert.IsTrue(before < fileInfo.ModifiedAt && fileInfo.ModifiedAt < after);
 
             Assert.IsTrue(File.Exists("Data\\Test\\File1.txt"));
             Assert.AreEqual("Hello, World", File.ReadAllText("Data\\Test\\File1.txt"));

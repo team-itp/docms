@@ -26,7 +26,7 @@ namespace Docms.Web.Docs.Mocks
         [TestMethod]
         public async Task ファイルを新たに作成するとDocumentStorageとDocumentRepositoryにドキュメントが作成される()
         {
-            await sut.CreateAsync("Test/File1.txt", new MemoryStream(Encoding.UTF8.GetBytes("Hello, World")), Array.Empty<Tag>(), new UserInfo()
+            await sut.CreateAsync("Test/File1.txt", new MemoryStream(Encoding.UTF8.GetBytes("Hello, World")), null, Array.Empty<Tag>(), new UserInfo()
             {
                 Id = 1,
                 Name = "UserName"

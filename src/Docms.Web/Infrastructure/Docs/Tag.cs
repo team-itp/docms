@@ -1,4 +1,4 @@
-﻿namespace Docms.Web.Infrastructure.Models
+﻿namespace Docms.Web.Infrastructure.Docs
 {
     public class Tag
     {

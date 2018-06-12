@@ -1,4 +1,6 @@
-namespace Docms.Web.Infrastructure.Models
+using System.Collections.Generic;
+
+namespace Docms.Web.Infrastructure.Docs
 {
     /// <summary>
     /// ドキュメント
@@ -33,6 +35,6 @@ namespace Docms.Web.Infrastructure.Models
         /// <summary>
         /// タグリスト
         /// </summary>
-        public Tag[] Tags { get; set; }
+        public ICollection<DocumentTag> Tags { get; set; }
     }
 }

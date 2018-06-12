@@ -1,10 +1,10 @@
-﻿using Docms.Web.Docs;
-using System;
+﻿using System;
 using System.Threading.Tasks;
+using Model = Docms.Web.Docs;
 
-namespace Docms.Web.Infrastructure
+namespace Docms.Web.Infrastructure.Docs
 {
-    public class DocmsContextDocumentsRepository : IDocumentsRepository
+    public class DocmsContextDocumentsRepository : Model.IDocumentsRepository
     {
         private DocmsContext _context;
 
@@ -13,12 +13,12 @@ namespace Docms.Web.Infrastructure
             _context = context;
         }
 
-        public Task CreateAsync(Document document)
+        public Task CreateAsync(Model.Document document)
         {
             throw new NotImplementedException();
         }
 
-        public Task<Document> FindAsync(int id)
+        public Task<Model.Document> FindAsync(int id)
         {
             throw new NotImplementedException();
         }

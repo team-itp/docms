@@ -1,11 +1,11 @@
-﻿using Docms.Web.Docs;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
+using Model = Docms.Web.Docs;
 
-namespace Docms.Web.Infrastructure
+namespace Docms.Web.Infrastructure.Docs
 {
-    public class DocmsContextTagsRepository : ITagsRepository
+    public class DocmsContextTagsRepository : Model.ITagsRepository
     {
         private DocmsContext _context;
 
@@ -14,7 +14,7 @@ namespace Docms.Web.Infrastructure
             _context = context;
         }
 
-        public async Task CreateIfNotExistsAsync(Tag tag)
+        public async Task CreateIfNotExistsAsync(Model.Tag tag)
         {
             await Task.Yield();
             var storedTag = _context.Tags.Where(t => t.Title == tag.Title);
@@ -25,7 +25,7 @@ namespace Docms.Web.Infrastructure
             else
             {
                 tag.Id = _context.Tags.Max(v => v.Id) + 1;
-                await _context.Tags.AddAsync(new Models.Tag()
+                await _context.Tags.AddAsync(new Tag()
                 {
                     Id = tag.Id,
                     Title = tag.Title
@@ -33,11 +33,11 @@ namespace Docms.Web.Infrastructure
             }
         }
 
-        public async Task<IEnumerable<Tag>> GetAllAsync()
+        public async Task<IEnumerable<Model.Tag>> GetAllAsync()
         {
             await Task.Yield();
             return _context.Tags
-                .Select(t => new Tag()
+                .Select(t => new Model.Tag()
                 {
                     Id = t.Id,
                     Title = t.Title

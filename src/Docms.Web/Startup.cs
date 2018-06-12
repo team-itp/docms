@@ -1,6 +1,6 @@
 using Docms.Web.Docs;
 using Docms.Web.IdentityServer;
-using Docms.Web.Infrastructure;
+using Docms.Web.Infrastructure.Docs;
 using Docms.Web.Swagger;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
@@ -38,7 +38,10 @@ namespace Docms.Web
                 });
 
             // アプリケーション用DIの設定
-            services.AddSingleton<IFileStorage, LocalFileStorage>();
+            services.AddDbContext<DocmsContext>()
+                .AddEntityFrameworkSqlite();
+
+            services.AddSingleton<IFileStorage, LocalFileStorage>(sc => new LocalFileStorage("App_Data"));
             services.AddSingleton<IDocumentsRepository, DocmsContextDocumentsRepository>();
             services.AddSingleton<ITagsRepository, DocmsContextTagsRepository>();
 
@@ -66,7 +69,6 @@ namespace Docms.Web
             app.UseSwashbuckle();
 
             app.UseStaticFiles();
-
             app.UseMvc(routes =>
             {
                 routes.MapRoute(
