@@ -24,7 +24,7 @@ namespace Docms.Web.Swagger
                     Description = "OAuth2 クライアント認可フロー",
                     Flow = "implicit",
                     Scopes = new Dictionary<string, string>() {
-                        { "docmsapi", "try out the api" }
+                        { "docmsapi", "文書管理システム API" }
                     },
                     TokenUrl = "/connect/token",
                     AuthorizationUrl = "/connect/authorize",

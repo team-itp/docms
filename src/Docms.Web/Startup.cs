@@ -1,4 +1,5 @@
 using Docms.Web.Docs;
+using Docms.Web.IdentityServer;
 using Docms.Web.Infrastructure;
 using Docms.Web.Swagger;
 using Microsoft.AspNetCore.Builder;
@@ -21,13 +22,7 @@ namespace Docms.Web
         // This method gets called by the runtime. Use this method to add services to the container.
         public void ConfigureServices(IServiceCollection services)
         {
-            // configure identity server with in-memory stores, keys, clients and scopes
-            services.AddIdentityServer()
-                .AddDeveloperSigningCredential()
-                .AddInMemoryIdentityResources(Config.GetIdentityResources())
-                .AddInMemoryApiResources(Config.GetApiResources())
-                .AddInMemoryClients(Config.GetClients())
-                .AddTestUsers(Config.GetUsers());
+            services.AddIdentityServer4();
             services.AddSwashbuckle();
 
             services.AddAuthentication()
@@ -67,10 +62,10 @@ namespace Docms.Web
                 app.UseExceptionHandler("/Home/Error");
             }
 
-            app.UseStaticFiles();
-
-            app.UseIdentityServer();
+            app.UseIdentityServer4();
             app.UseSwashbuckle();
+
+            app.UseStaticFiles();
 
             app.UseMvc(routes =>
             {

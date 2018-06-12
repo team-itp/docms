@@ -4,7 +4,7 @@ using IdentityServer4.Test;
 using System.Collections.Generic;
 using System.Security.Claims;
 
-namespace Docms.Web
+namespace Docms.Web.IdentityServer
 {
     public class Config
     {
