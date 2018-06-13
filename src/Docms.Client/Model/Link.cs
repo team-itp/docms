@@ -5,19 +5,19 @@ using System.Collections.Generic;
 using System.Runtime.Serialization;
 using Newtonsoft.Json;
 
-namespace IO.Swagger.Model {
+namespace Docms.Client.Model {
 
   /// <summary>
   /// 
   /// </summary>
   [DataContract]
-  public class TagLinks {
+  public class Link {
     /// <summary>
-    /// Gets or Sets Self
+    /// Gets or Sets Href
     /// </summary>
-    [DataMember(Name="self", EmitDefaultValue=false)]
-    [JsonProperty(PropertyName = "self")]
-    public Link Self { get; set; }
+    [DataMember(Name="href", EmitDefaultValue=false)]
+    [JsonProperty(PropertyName = "href")]
+    public string Href { get; set; }
 
 
     /// <summary>
@@ -26,8 +26,8 @@ namespace IO.Swagger.Model {
     /// <returns>String presentation of the object</returns>
     public override string ToString()  {
       var sb = new StringBuilder();
-      sb.Append("class TagLinks {\n");
-      sb.Append("  Self: ").Append(Self).Append("\n");
+      sb.Append("class Link {\n");
+      sb.Append("  Href: ").Append(Href).Append("\n");
       sb.Append("}\n");
       return sb.ToString();
     }

@@ -5,26 +5,26 @@ using System.Collections.Generic;
 using System.Runtime.Serialization;
 using Newtonsoft.Json;
 
-namespace IO.Swagger.Model {
+namespace Docms.Client.Model {
 
   /// <summary>
   /// 
   /// </summary>
   [DataContract]
-  public class CreateTagRequest {
+  public class SearchResponse {
     /// <summary>
-    /// Gets or Sets Id
+    /// Gets or Sets SearchTags
     /// </summary>
-    [DataMember(Name="id", EmitDefaultValue=false)]
-    [JsonProperty(PropertyName = "id")]
-    public int? Id { get; set; }
+    [DataMember(Name="searchTags", EmitDefaultValue=false)]
+    [JsonProperty(PropertyName = "searchTags")]
+    public List<TagResponse> SearchTags { get; set; }
 
     /// <summary>
-    /// Gets or Sets Title
+    /// Gets or Sets Documents
     /// </summary>
-    [DataMember(Name="title", EmitDefaultValue=false)]
-    [JsonProperty(PropertyName = "title")]
-    public string Title { get; set; }
+    [DataMember(Name="documents", EmitDefaultValue=false)]
+    [JsonProperty(PropertyName = "documents")]
+    public List<DocumentResponse> Documents { get; set; }
 
 
     /// <summary>
@@ -33,9 +33,9 @@ namespace IO.Swagger.Model {
     /// <returns>String presentation of the object</returns>
     public override string ToString()  {
       var sb = new StringBuilder();
-      sb.Append("class CreateTagRequest {\n");
-      sb.Append("  Id: ").Append(Id).Append("\n");
-      sb.Append("  Title: ").Append(Title).Append("\n");
+      sb.Append("class SearchResponse {\n");
+      sb.Append("  SearchTags: ").Append(SearchTags).Append("\n");
+      sb.Append("  Documents: ").Append(Documents).Append("\n");
       sb.Append("}\n");
       return sb.ToString();
     }

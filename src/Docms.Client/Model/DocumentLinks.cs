@@ -5,26 +5,26 @@ using System.Collections.Generic;
 using System.Runtime.Serialization;
 using Newtonsoft.Json;
 
-namespace IO.Swagger.Model {
+namespace Docms.Client.Model {
 
   /// <summary>
   /// 
   /// </summary>
   [DataContract]
-  public class SearchResponse {
+  public class DocumentLinks {
     /// <summary>
-    /// Gets or Sets SearchTags
+    /// Gets or Sets File
     /// </summary>
-    [DataMember(Name="searchTags", EmitDefaultValue=false)]
-    [JsonProperty(PropertyName = "searchTags")]
-    public List<TagResponse> SearchTags { get; set; }
+    [DataMember(Name="file", EmitDefaultValue=false)]
+    [JsonProperty(PropertyName = "file")]
+    public Link File { get; set; }
 
     /// <summary>
-    /// Gets or Sets Documents
+    /// Gets or Sets Self
     /// </summary>
-    [DataMember(Name="documents", EmitDefaultValue=false)]
-    [JsonProperty(PropertyName = "documents")]
-    public List<DocumentResponse> Documents { get; set; }
+    [DataMember(Name="self", EmitDefaultValue=false)]
+    [JsonProperty(PropertyName = "self")]
+    public Link Self { get; set; }
 
 
     /// <summary>
@@ -33,9 +33,9 @@ namespace IO.Swagger.Model {
     /// <returns>String presentation of the object</returns>
     public override string ToString()  {
       var sb = new StringBuilder();
-      sb.Append("class SearchResponse {\n");
-      sb.Append("  SearchTags: ").Append(SearchTags).Append("\n");
-      sb.Append("  Documents: ").Append(Documents).Append("\n");
+      sb.Append("class DocumentLinks {\n");
+      sb.Append("  File: ").Append(File).Append("\n");
+      sb.Append("  Self: ").Append(Self).Append("\n");
       sb.Append("}\n");
       return sb.ToString();
     }

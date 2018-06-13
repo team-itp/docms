@@ -11,7 +11,7 @@ using Newtonsoft.Json;
 using RestSharp;
 using RestSharp.Extensions;
 
-namespace IO.Swagger.Client
+namespace Docms.Client.Client
 {
     /// <summary>
     /// API client is mainly responible for making the HTTP call to the API backend.

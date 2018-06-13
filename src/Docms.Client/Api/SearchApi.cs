@@ -1,10 +1,10 @@
 using System;
 using System.Collections.Generic;
 using RestSharp;
-using IO.Swagger.Client;
-using IO.Swagger.Model;
+using Docms.Client.Client;
+using Docms.Client.Model;
 
-namespace IO.Swagger.Api
+namespace Docms.Client.Api
 {
     /// <summary>
     /// Represents a collection of functions to interact with the API endpoints

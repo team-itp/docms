@@ -5,20 +5,13 @@ using System.Collections.Generic;
 using System.Runtime.Serialization;
 using Newtonsoft.Json;
 
-namespace IO.Swagger.Model {
+namespace Docms.Client.Model {
 
   /// <summary>
   /// 
   /// </summary>
   [DataContract]
-  public class DocumentLinks {
-    /// <summary>
-    /// Gets or Sets File
-    /// </summary>
-    [DataMember(Name="file", EmitDefaultValue=false)]
-    [JsonProperty(PropertyName = "file")]
-    public Link File { get; set; }
-
+  public class TagLinks {
     /// <summary>
     /// Gets or Sets Self
     /// </summary>
@@ -33,8 +26,7 @@ namespace IO.Swagger.Model {
     /// <returns>String presentation of the object</returns>
     public override string ToString()  {
       var sb = new StringBuilder();
-      sb.Append("class DocumentLinks {\n");
-      sb.Append("  File: ").Append(File).Append("\n");
+      sb.Append("class TagLinks {\n");
       sb.Append("  Self: ").Append(Self).Append("\n");
       sb.Append("}\n");
       return sb.ToString();

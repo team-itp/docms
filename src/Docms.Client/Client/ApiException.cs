@@ -1,6 +1,6 @@
 using System;
 
-namespace IO.Swagger.Client {
+namespace Docms.Client.Client {
   /// <summary>
   /// API Exception
   /// </summary>
