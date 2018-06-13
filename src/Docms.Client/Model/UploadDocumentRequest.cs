@@ -52,7 +52,7 @@ namespace Docms.Client.Model {
     /// </summary>
     [DataMember(Name="tags", EmitDefaultValue=false)]
     [JsonProperty(PropertyName = "tags")]
-    public List<TagResponse> Tags { get; set; }
+    public List<int> Tags { get; set; }
 
 
     /// <summary>

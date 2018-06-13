@@ -19,14 +19,14 @@ namespace Docms.Uploader.Views
             CommandBindings.Add(new CommandBinding(UploadCommand, Upload, CanUpload));
         }
 
-        private async void Upload(object sender, ExecutedRoutedEventArgs e)
+        private void Upload(object sender, ExecutedRoutedEventArgs e)
         {
             try
             {
                 var vm = DataContext as UploaderViewModel;
                 if (vm != null)
                 {
-                    await vm.Upload();
+                    vm.Upload();
                 }
             }
             catch (Exception ex)

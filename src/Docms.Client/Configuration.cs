@@ -5,7 +5,7 @@ using System.IO;
 using System.Linq;
 using System.Text;
 
-namespace Docms.Client.Client
+namespace Docms.Client
 {
     /// <summary>
     /// Represents a set of configuration settings
@@ -23,7 +23,7 @@ namespace Docms.Client.Client
         /// Gets or sets the default API client for making HTTP calls.
         /// </summary>
         /// <value>The API client.</value>
-        public static ApiClient DefaultApiClient = new ApiClient();
+        public static DocmsApiClient DefaultApiClient = new DocmsApiClient();
   
         /// <summary>
         /// Gets or sets the username (HTTP basic authentication).

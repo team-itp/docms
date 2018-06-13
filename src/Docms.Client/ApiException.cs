@@ -1,6 +1,6 @@
 using System;
 
-namespace Docms.Client.Client {
+namespace Docms.Client {
   /// <summary>
   /// API Exception
   /// </summary>

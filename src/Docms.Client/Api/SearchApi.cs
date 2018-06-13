@@ -1,7 +1,7 @@
 using System;
 using System.Collections.Generic;
 using RestSharp;
-using Docms.Client.Client;
+using Docms.Client;
 using Docms.Client.Model;
 
 namespace Docms.Client.Api
@@ -29,7 +29,7 @@ namespace Docms.Client.Api
         /// </summary>
         /// <param name="apiClient"> an instance of ApiClient (optional)</param>
         /// <returns></returns>
-        public SearchApi(ApiClient apiClient = null)
+        public SearchApi(DocmsApiClient apiClient = null)
         {
             if (apiClient == null) // use the default one in Configuration
                 this.ApiClient = Configuration.DefaultApiClient; 
@@ -43,7 +43,7 @@ namespace Docms.Client.Api
         /// <returns></returns>
         public SearchApi(String basePath)
         {
-            this.ApiClient = new ApiClient(basePath);
+            this.ApiClient = new DocmsApiClient(basePath);
         }
     
         /// <summary>
@@ -70,7 +70,7 @@ namespace Docms.Client.Api
         /// Gets or sets the API client.
         /// </summary>
         /// <value>An instance of the ApiClient</value>
-        public ApiClient ApiClient {get; set;}
+        public DocmsApiClient ApiClient {get; set;}
     
         /// <summary>
         ///  

@@ -10,46 +10,43 @@ using System.Text;
 using Newtonsoft.Json;
 using RestSharp;
 using RestSharp.Extensions;
+using Docms.Client.Api;
+using System.Threading.Tasks;
 
-namespace Docms.Client.Client
+namespace Docms.Client
 {
     /// <summary>
-    /// API client is mainly responible for making the HTTP call to the API backend.
+    /// Web API のクライアント
     /// </summary>
-    public class ApiClient
+    public class DocmsApiClient
     {
-        private readonly Dictionary<String, String> _defaultHeaderMap = new Dictionary<String, String>();
-  
+        private IDictionary<string, string> _defaultHeaderMap = new Dictionary<string, string>();
+
         /// <summary>
-        /// Initializes a new instance of the <see cref="ApiClient" /> class.
+        /// <see cref="DocmsApiClient" /> クラスの新しいインスタンスを生成する
         /// </summary>
-        /// <param name="basePath">The base path.</param>
-        public ApiClient(String basePath="https://localhost")
+        /// <param name="basePath">既定のパス</param>
+        public DocmsApiClient(String basePath="https://localhost")
         {
             BasePath = basePath;
             RestClient = new RestClient(BasePath);
+            Tags = new TagsApi(this);
+            Documents = new DocumentsApi(this);
         }
-    
+
         /// <summary>
-        /// Gets or sets the base path.
+        /// タグ API
         /// </summary>
-        /// <value>The base path</value>
+        public TagsApi Tags { get; set; }
+
+        /// <summary>
+        /// ドキュメント API
+        /// </summary>
+        public DocumentsApi Documents { get; set; }
+
         public string BasePath { get; set; }
-    
-        /// <summary>
-        /// Gets or sets the RestClient.
-        /// </summary>
-        /// <value>An instance of the RestClient</value>
         public RestClient RestClient { get; set; }
-    
-        /// <summary>
-        /// Gets the default header.
-        /// </summary>
-        public Dictionary<String, String> DefaultHeader
-        {
-            get { return _defaultHeaderMap; }
-        }
-    
+
         /// <summary>
         /// Makes the HTTP request (Sync).
         /// </summary>
@@ -62,7 +59,7 @@ namespace Docms.Client.Client
         /// <param name="fileParams">File parameters.</param>
         /// <param name="authSettings">Authentication settings.</param>
         /// <returns>Object</returns>
-        public Object CallApi(String path, RestSharp.Method method, Dictionary<String, String> queryParams, String postBody,
+        internal Object CallApi(String path, RestSharp.Method method, Dictionary<String, String> queryParams, String postBody,
             Dictionary<String, String> headerParams, Dictionary<String, String> formParams, 
             Dictionary<String, FileParameter> fileParams, String[] authSettings)
         {
@@ -89,13 +86,12 @@ namespace Docms.Client.Client
 
             // add file parameter, if any
             foreach(var param in fileParams)
-                request.AddFile(param.Value.Name, param.Value.Writer, param.Value.FileName, param.Value.ContentType);
+                request.AddFile(param.Value.Name, param.Value.Writer, param.Value.FileName, param.Value.ContentLength, param.Value.ContentType);
 
             if (postBody != null) // http body (model) parameter
                 request.AddParameter("application/json", postBody, ParameterType.RequestBody);
 
-            return (Object)RestClient.Execute(request);
-
+            return RestClient.Execute(request);
         }
     
         /// <summary>
@@ -116,7 +112,7 @@ namespace Docms.Client.Client
         /// <returns>Escaped string.</returns>
         public string EscapeString(string str)
         {
-            return RestSharp.Contrib.HttpUtility.UrlEncode(str);
+            return HttpUtility.UrlEncode(str);
         }
     
         /// <summary>

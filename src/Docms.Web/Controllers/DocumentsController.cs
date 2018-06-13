@@ -201,10 +201,10 @@ namespace Docms.Web.Controllers
         public string Path { get; set; }
 
         /// <summary>
-        /// タグリスト
+        /// タグIDリスト
         /// </summary>
         [JsonProperty("tags")]
-        public TagResponse[] Tags { get; set; }
+        public int[] Tags { get; set; }
     }
 
     /// <summary>

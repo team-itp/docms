@@ -54,9 +54,9 @@
     <Compile Include="Api\DocumentsApi.cs" />
     <Compile Include="Api\SearchApi.cs" />
     <Compile Include="Api\TagsApi.cs" />
-    <Compile Include="Client\ApiClient.cs" />
-    <Compile Include="Client\ApiException.cs" />
-    <Compile Include="Client\Configuration.cs" />
+    <Compile Include="DocmsApiClient.cs" />
+    <Compile Include="ApiException.cs" />
+    <Compile Include="Configuration.cs" />
     <Compile Include="Model\CreateTagRequest.cs" />
     <Compile Include="Model\DocumentLinks.cs" />
     <Compile Include="Model\DocumentResponse.cs" />

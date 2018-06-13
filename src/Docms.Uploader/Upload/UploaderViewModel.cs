@@ -1,12 +1,13 @@
-﻿using Docms.Api;
+﻿using Docms.Client;
+using Docms.Client.Model;
 using Docms.Uploader.Common;
 using Docms.Uploader.FileWatch;
 using Docms.Uploader.Properties;
+using System;
 using System.Collections.ObjectModel;
 using System.IO;
 using System.Linq;
 using System.Threading.Tasks;
-using API = Docms.Api.Models;
 
 namespace Docms.Uploader.Upload
 {
@@ -22,7 +23,7 @@ namespace Docms.Uploader.Upload
         public TagsCollection TagChoices { get; set; }
         public TagsCollection SelectedTags { get; set; }
 
-        private static DocmsClient apiClient = new DocmsClient("http://localhost/api", "v1");
+        private static DocmsApiClient apiClient = new DocmsApiClient("http://localhost:5000");
 
         public UploaderViewModel()
         {
@@ -50,32 +51,38 @@ namespace Docms.Uploader.Upload
 
         public async Task Upload()
         {
+            await Task.Yield();
+
             var userId = Settings.Default.UserId;
             var password = Settings.Default.PasswordHash;
-            await apiClient.RequestJWToken(userId, password);
+            //await apiClient.RequestJWToken(userId, password);
             foreach (var t in SelectedTags
                 .Where(tag => tag.Id == -1)
                 .ToList())
             {
-                var createdTag = await apiClient.CreateTag(new API.Tag(t.Name));
-                t.UpdateId(createdTag.Id);
+                var createdTag = apiClient.Tags.Create(new CreateTagRequest() { Title = t.Name });
+                t.UpdateId(createdTag.Id.Value);
             }
 
             var tags = SelectedTags.Select(st => st.TermId).ToArray();
             foreach (var file in this.SelectedMediaFiles)
             {
-                var newPost = new API.Document();
-                newPost.Title = file.Name;
-                newPost.Tags = SelectedTags.Select(st => st.TermId).ToArray();
+                var newPost = new UploadDocumentRequest();
+                newPost.Name = file.Name;
+                newPost.Path = file.Name;
+                newPost.Tags = SelectedTags.Select(st => st.TermId).ToList();
                 var stream = new FileStream(file.FullPath, FileMode.Open, FileAccess.Read, FileShare.Read);
                 try
                 {
-                    var post = await apiClient.CreatePost(newPost, stream);
+                    var ms = new MemoryStream();
+                    stream.CopyTo(ms);
+                    newPost.Content = Convert.ToBase64String(ms.ToArray());
                 }
                 finally
                 {
                     stream.Close();
                 }
+                apiClient.Documents.ApiDocumentsPost(newPost);
             }
         }
 
