@@ -1,5 +1,5 @@
-using System;
 using System.Collections.Generic;
+using System.Linq;
 
 namespace Docms.Web.Data
 {
@@ -17,12 +17,15 @@ namespace Docms.Web.Data
 
         public void AddTag(Tag tag)
         {
-            Tags.Add(new DocumentTag()
+            if (!Tags.Any(t => t.TagId == tag.Id))
             {
-                DocumentId = this.Id,
-                TagId = tag.Id,
-                Tag = tag
-            });
+                Tags.Add(new DocumentTag()
+                {
+                    DocumentId = this.Id,
+                    TagId = tag.Id,
+                    Tag = tag
+                });
+            }
         }
     }
 
