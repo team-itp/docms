@@ -8,6 +8,15 @@ namespace Docms.Web.Data
         {
         }
 
+        protected override void OnModelCreating(ModelBuilder modelBuilder)
+        {
+            modelBuilder.Entity<DocumentTag>()
+                .HasKey(t => new { t.DocumentId, t.TagId });
+        }
+
+
         public DbSet<Document> Documents { get; set; }
+        public DbSet<DocumentTag> DocumentTags { get; set; }
+        public DbSet<Tag> Tags { get; set; }
     }
 }
