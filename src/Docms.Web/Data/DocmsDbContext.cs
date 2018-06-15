@@ -4,6 +4,12 @@ namespace Docms.Web.Data
 {
     public class DocmsDbContext : DbContext
     {
+        //public DocmsDbContext() : base(new DbContextOptionsBuilder<DocmsDbContext>()
+        //    .UseInMemoryDatabase("InMemoryDb")
+        //    .Options)
+        //{
+        //}
+
         public DocmsDbContext(DbContextOptions<DocmsDbContext> options) : base(options)
         {
         }
@@ -13,7 +19,6 @@ namespace Docms.Web.Data
             modelBuilder.Entity<DocumentTag>()
                 .HasKey(t => new { t.DocumentId, t.TagId });
         }
-
 
         public DbSet<Document> Documents { get; set; }
         public DbSet<DocumentTag> DocumentTags { get; set; }
