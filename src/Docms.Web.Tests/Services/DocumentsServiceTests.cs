@@ -1,11 +1,12 @@
 using Docms.Web.Data;
-using Docms.Web.Utils;
+using Docms.Web.Services;
+using Docms.Web.Tests.Utils;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 
-namespace Docms.Web.Services
+namespace Docms.Web.Tests.Services
 {
     [TestClass]
     public class DocumentsServiceTests
@@ -102,6 +103,5 @@ namespace Docms.Web.Services
             Assert.AreEqual(3, db.Tags.Count());
             Assert.AreEqual(2, db.DocumentTags.Count());
         }
-
     }
 }

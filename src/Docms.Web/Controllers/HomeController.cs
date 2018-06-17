@@ -1,10 +1,6 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Diagnostics;
-using System.Linq;
-using System.Threading.Tasks;
+﻿using Docms.Web.Models;
 using Microsoft.AspNetCore.Mvc;
-using Docms.Web.Models;
+using System.Diagnostics;
 
 namespace Docms.Web.Controllers
 {

@@ -1,9 +1,8 @@
-using System;
 using Docms.Web.Data;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
 
-namespace Docms.Web.Utils
+namespace Docms.Web.Tests.Utils
 {
     static class TestUtils
     {
