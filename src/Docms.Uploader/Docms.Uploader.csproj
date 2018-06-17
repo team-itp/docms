@@ -148,9 +148,9 @@
     </Page>
   </ItemGroup>
   <ItemGroup>
-    <ProjectReference Include="..\Docms.Api\Docms.Api.csproj">
-      <Project>{29f4db85-3fd2-4186-a999-6c4c294bdc69}</Project>
-      <Name>Docms.Api</Name>
+    <ProjectReference Include="..\Docms.Client\Docms.Client.csproj">
+      <Project>{1D02293A-20B9-4C3D-88BC-D100FEA1D435}</Project>
+      <Name>Docms.Client</Name>
     </ProjectReference>
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />

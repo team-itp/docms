@@ -1,4 +1,5 @@
-﻿using Docms.Uploader.Common;
+﻿using Docms.Client;
+using Docms.Uploader.Common;
 using Docms.Uploader.FileWatch;
 using System.Collections.ObjectModel;
 using System.Linq;
@@ -44,6 +45,12 @@ namespace Docms.Uploader.Upload
 
         public async Task Upload()
         {
+            var client = new DocmsClient("http://localhost:51693/");
+            var tags = SelectedTags.Select(t => t.Name).ToArray();
+            foreach(var f in SelectedMediaFiles)
+            {
+                await client.CreateDocumentAsync(f.FullPath, f.Name, tags);
+            }
         }
 
         public bool CanUpload()
