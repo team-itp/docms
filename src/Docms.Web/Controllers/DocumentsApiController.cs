@@ -1,5 +1,6 @@
 ﻿using Docms.Web.Data;
 using Docms.Web.Models;
+using Docms.Web.Services;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
@@ -110,17 +111,21 @@ namespace Docms.Web.Controllers
         [HttpPost]
         [ProducesResponseType(StatusCodes.Status201Created)]
         [ProducesResponseType(StatusCodes.Status400BadRequest, Type = typeof(ErrorResponse))]
-        public async Task<IActionResult> PostDocument([FromBody] Document document)
+        public async Task<IActionResult> PostDocument([FromBody] UploadDocumentRequest document)
         {
             if (!ModelState.IsValid)
             {
                 return BadRequest(ModelState);
             }
 
-            _context.Documents.Add(document);
-            await _context.SaveChangesAsync();
+            var service = new DocumentsService(_context);
+            var documentId = await service.CreateAsync(document.Uri, document.Name);
+            if (document.Tags != null && document.Tags.Length > 0)
+            {
+                await service.AddTagsAsync(document.Uri, document.Tags);
+            }
 
-            return CreatedAtAction("GetDocument", new { id = document.Id }, document);
+            return CreatedAtAction("GetDocument", new { id = documentId }, document);
         }
 
         /// <summary>
@@ -192,5 +197,12 @@ namespace Docms.Web.Controllers
         {
             return _context.Documents.Any(e => e.Id == id);
         }
+    }
+
+    public class UploadDocumentRequest
+    {
+        public string Uri { get; set; }
+        public string Name { get; set; }
+        public string[] Tags { get; set; } = new string[0];
     }
 }

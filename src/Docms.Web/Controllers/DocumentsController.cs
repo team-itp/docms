@@ -6,6 +6,12 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Rendering;
 using Microsoft.EntityFrameworkCore;
 using Docms.Web.Data;
+using Docms.Web.Models;
+using Docms.Web.Services;
+using Microsoft.WindowsAzure.Storage;
+using Microsoft.Azure;
+using Microsoft.Extensions.Options;
+using Docms.Web.Config;
 
 namespace Docms.Web.Controllers
 {
@@ -15,10 +21,12 @@ namespace Docms.Web.Controllers
     public class DocumentsController : Controller
     {
         private readonly DocmsDbContext _context;
+        private readonly StorageSettings _storageSettings;
 
-        public DocumentsController(DocmsDbContext context)
+        public DocumentsController(DocmsDbContext context, IOptions<StorageSettings> storageSettings)
         {
             _context = context;
+            _storageSettings = storageSettings?.Value;
         }
 
         /// <summary>
@@ -57,6 +65,8 @@ namespace Docms.Web.Controllers
         /// </summary>
         public IActionResult Create()
         {
+            ViewData["Tags"] = _context.Tags.Select(t => new SelectListItem() { Text = t.Name, Value = t.Name }).ToList();
+
             return View();
         }
 
@@ -67,12 +77,23 @@ namespace Docms.Web.Controllers
         /// <returns></returns>
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> Create([Bind("Id,Url")] Document document)
+        public async Task<IActionResult> Create([Bind("Url,Name,Tags")] UploadDocumentViewModel document)
         {
             if (ModelState.IsValid)
             {
-                _context.Add(document);
-                await _context.SaveChangesAsync();
+                var account = CloudStorageAccount.Parse(_storageSettings?.ConnectionString);
+                var client = account.CreateCloudBlobClient();
+                var container = client.GetContainerReference("files");
+                await container.CreateIfNotExistsAsync();
+                var blob = container.GetBlockBlobReference(Guid.NewGuid().ToString());
+                await blob.UploadFromStreamAsync(document.File.OpenReadStream());
+                var service = new DocumentsService(_context);
+                await service.CreateAsync(blob.Uri.ToString(), document.Name);
+                if (document.Tags != null && document.Tags.Length > 0)
+                {
+                    await service.AddTagsAsync(blob.Uri.ToString(), document.Tags);
+                }
+
                 return RedirectToAction(nameof(Index));
             }
             return View(document);

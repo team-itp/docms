@@ -16,27 +16,29 @@ namespace Docms.Web.Services
             _db = db;
         }
 
-        public async Task CreateAsync(string fileUrl)
+        public async Task<int> CreateAsync(string blobUri, string name)
         {
-            _db.Documents.Add(new Document()
+            var entity = _db.Documents.Add(new Document()
             {
-                Url = fileUrl
+                Uri = blobUri,
+                Name = name,
             });
             await _db.SaveChangesAsync();
+            return entity.Entity.Id;
         }
 
-        public async Task CreateAsync(string fileUrl, IEnumerable<string> tags)
+        public async Task CreateAsync(string blobUri, string name, IEnumerable<string> tags)
         {
-            await CreateAsync(fileUrl);
-            await AddTagsAsync(fileUrl, tags);
+            await CreateAsync(blobUri, name);
+            await AddTagsAsync(blobUri, tags);
         }
 
-        public async Task AddTagsAsync(string fileUrl, IEnumerable<string> tags)
+        public async Task AddTagsAsync(string blobUri, IEnumerable<string> tags)
         {
             var doc = _db.Documents
                 .Include(e => e.Tags)
                 .ThenInclude(e => e.Tag)
-                .Where(d => d.Url == fileUrl)
+                .Where(d => d.Uri == blobUri)
                 .FirstOrDefault();
 
             if (doc == null)
@@ -61,12 +63,12 @@ namespace Docms.Web.Services
             await _db.SaveChangesAsync();
         }
 
-        public async Task RemoveTagsAsync(string fileUrl, IEnumerable<string> tags)
+        public async Task RemoveTagsAsync(string blobUri, IEnumerable<string> tags)
         {
             var doc = _db.Documents
                  .Include(e => e.Tags)
                  .ThenInclude(e => e.Tag)
-                 .Where(d => d.Url == fileUrl)
+                 .Where(d => d.Uri == blobUri)
                  .FirstOrDefault();
 
             if (doc == null)

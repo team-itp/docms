@@ -2,6 +2,7 @@ using Docms.Web.Data;
 using Docms.Web.Services;
 using Docms.Web.Tests.Utils;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
@@ -30,8 +31,8 @@ namespace Docms.Web.Tests.Services
         [TestMethod]
         public async Task 新たにドキュメント情報を作成する()
         {
-            var newfile = TestUtils.DocumentUrlForPath("Test1.txt");
-            await sut.CreateAsync(newfile);
+            var blobUri = TestUtils.DocumentUrlForPath(Guid.NewGuid().ToString());
+            await sut.CreateAsync(blobUri, "Test1.txt");
 
             Assert.AreEqual(1, db.Documents.Count());
         }
@@ -39,8 +40,8 @@ namespace Docms.Web.Tests.Services
         [TestMethod]
         public async Task 新たにドキュメント情報をタグ付きで作成する()
         {
-            var newfile = TestUtils.DocumentUrlForPath("Test1.txt");
-            await sut.CreateAsync(newfile, new List<string>()
+            var blobUri = TestUtils.DocumentUrlForPath(Guid.NewGuid().ToString());
+            await sut.CreateAsync(blobUri, "Test1.txt", new List<string>()
             {
                 "Tag1",
                 "Tag2",
@@ -55,9 +56,9 @@ namespace Docms.Web.Tests.Services
         public async Task ドキュメント情報に既存のタグを追加できる()
         {
             await db.Tags.AddRangeAsync(new[] { new Tag() { Name = "Tag1" }, new Tag() { Name = "Tag2" } });
-            var newfile = TestUtils.DocumentUrlForPath("Test1.txt");
-            await sut.CreateAsync(newfile);
-            await sut.AddTagsAsync(newfile, new List<string>()
+            var blobUri = TestUtils.DocumentUrlForPath(Guid.NewGuid().ToString());
+            await sut.CreateAsync(blobUri, "Test1.txt");
+            await sut.AddTagsAsync(blobUri, new List<string>()
             {
                 "Tag1",
                 "Tag2",
@@ -71,9 +72,9 @@ namespace Docms.Web.Tests.Services
         [TestMethod]
         public async Task ドキュメント情報に新規にタグを追加できる()
         {
-            var newfile = TestUtils.DocumentUrlForPath("Test1.txt");
-            await sut.CreateAsync(newfile);
-            await sut.AddTagsAsync(newfile, new List<string>()
+            var blobUri = TestUtils.DocumentUrlForPath(Guid.NewGuid().ToString());
+            await sut.CreateAsync(blobUri, "Test1.txt");
+            await sut.AddTagsAsync(blobUri, new List<string>()
             {
                 "Tag1",
                 "Tag2",
@@ -87,14 +88,14 @@ namespace Docms.Web.Tests.Services
         [TestMethod]
         public async Task ドキュメント情報からタグを削除できる()
         {
-            var newfile = TestUtils.DocumentUrlForPath("Test1.txt");
-            await sut.CreateAsync(newfile, new List<string>()
+            var blobUri = TestUtils.DocumentUrlForPath(Guid.NewGuid().ToString());
+            await sut.CreateAsync(blobUri, "Test1.txt", new List<string>()
             {
                 "Tag1",
                 "Tag2",
                 "Tag3",
             });
-            await sut.RemoveTagsAsync(newfile, new List<string>()
+            await sut.RemoveTagsAsync(blobUri, new List<string>()
             {
                 "Tag2"
             });

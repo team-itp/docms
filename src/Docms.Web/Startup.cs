@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
+using Docms.Web.Config;
 using Docms.Web.Data;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
@@ -29,6 +30,8 @@ namespace Docms.Web
             {
                 options.UseInMemoryDatabase("InMemory");
             });
+
+            services.Configure<StorageSettings>(Configuration.GetSection("StorageSettings"));
         }
 
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.

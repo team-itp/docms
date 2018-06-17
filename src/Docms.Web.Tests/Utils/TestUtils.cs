@@ -25,7 +25,7 @@ namespace Docms.Web.Tests.Utils
 
         public static string DocumentUrlForPath(string path)
         {
-            return "http://localhost/" + path;
+            return "http://localhost/files" + path;
         }
     }
 }
