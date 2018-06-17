@@ -14,12 +14,12 @@ namespace Docms.Web
     {
         public static void Main(string[] args)
         {
-            BuildWebHost(args).Run();
+            var webhost = CreateWebHostBuilder(args).Build();
+            webhost.Run();
         }
 
-        public static IWebHost BuildWebHost(string[] args) =>
+        public static IWebHostBuilder CreateWebHostBuilder(string[] args) =>
             WebHost.CreateDefaultBuilder(args)
-                .UseStartup<Startup>()
-                .Build();
+                .UseStartup<Startup>();
     }
 }
