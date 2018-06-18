@@ -27,10 +27,21 @@ namespace Docms.Web.Services
             return entity.Entity.Id;
         }
 
-        public async Task CreateAsync(string blobUri, string name, IEnumerable<string> tags)
+        public async Task<int> CreateAsync(string blobUri, string name, IEnumerable<string> tags)
         {
-            await CreateAsync(blobUri, name);
-            await AddTagsAsync(blobUri, tags);
+            var documentId = await CreateAsync(blobUri, name);
+            await AddTagsAsync(documentId, tags);
+            return documentId;
+        }
+
+        public async Task AddTagsAsync(int doucmentId, IEnumerable<string> tags)
+        {
+            var doc = _db.Documents
+                .Include(e => e.Tags)
+                .ThenInclude(e => e.Tag)
+                .FirstOrDefault(d => d.Id == doucmentId);
+
+            await AddTagsAsync(doc, tags);
         }
 
         public async Task AddTagsAsync(string blobUri, IEnumerable<string> tags)
@@ -38,9 +49,13 @@ namespace Docms.Web.Services
             var doc = _db.Documents
                 .Include(e => e.Tags)
                 .ThenInclude(e => e.Tag)
-                .Where(d => d.Uri == blobUri)
-                .FirstOrDefault();
+                .FirstOrDefault(d => d.Uri == blobUri);
 
+            await AddTagsAsync(doc, tags);
+        }
+
+        private async Task AddTagsAsync(Document doc, IEnumerable<string> tags)
+        {
             if (doc == null)
             {
                 // TODO: message
@@ -63,13 +78,34 @@ namespace Docms.Web.Services
             await _db.SaveChangesAsync();
         }
 
-        public async Task RemoveTagsAsync(string blobUri, IEnumerable<string> tags)
+        public async Task AddTagsByIdAsync(int doucmentId, IEnumerable<int> tagIds)
+        {
+            var doc = _db.Documents
+                .Include(e => e.Tags)
+                .ThenInclude(e => e.Tag)
+                .FirstOrDefault(d => d.Id == doucmentId);
+
+            var dbTags = _db.Tags.Where(t => tagIds.Contains(t.Id)).ToList();
+            var tagsNotInDb = tagIds.Except(dbTags.Select(t => t.Id));
+            if (tagsNotInDb.Any())
+            {
+                //TODO: message
+                throw new InvalidOperationException();
+            }
+
+            foreach (var tag in dbTags)
+            {
+                doc.AddTag(tag);
+            }
+            await _db.SaveChangesAsync();
+        }
+
+        public async Task RemoveTagsAsync(int documentId, IEnumerable<string> tags)
         {
             var doc = _db.Documents
                  .Include(e => e.Tags)
                  .ThenInclude(e => e.Tag)
-                 .Where(d => d.Uri == blobUri)
-                 .FirstOrDefault();
+                 .FirstOrDefault(d => d.Id == documentId);
 
             if (doc == null)
             {
@@ -79,6 +115,27 @@ namespace Docms.Web.Services
 
             var tagsToRemove = doc.Tags.Where(t => tags.Contains(t.Tag.Name)).ToList();
             foreach(var t in tagsToRemove)
+            {
+                doc.Tags.Remove(t);
+            }
+            await _db.SaveChangesAsync();
+        }
+
+        public async Task RemoveTagsByIdAsync(int doucmentId, IEnumerable<int> tagIds)
+        {
+            var doc = _db.Documents
+                 .Include(e => e.Tags)
+                 .ThenInclude(e => e.Tag)
+                 .FirstOrDefault(d => d.Id == doucmentId);
+
+            if (doc == null)
+            {
+                // TODO: message
+                throw new ArgumentException();
+            }
+
+            var tagsToRemove = doc.Tags.Where(t => tagIds.Contains(t.TagId)).ToList();
+            foreach (var t in tagsToRemove)
             {
                 doc.Tags.Remove(t);
             }

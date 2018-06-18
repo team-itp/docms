@@ -89,13 +89,13 @@ namespace Docms.Web.Tests.Services
         public async Task ドキュメント情報からタグを削除できる()
         {
             var blobUri = TestUtils.DocumentUrlForPath(Guid.NewGuid().ToString());
-            await sut.CreateAsync(blobUri, "Test1.txt", new List<string>()
+            var docId = await sut.CreateAsync(blobUri, "Test1.txt", new List<string>()
             {
                 "Tag1",
                 "Tag2",
                 "Tag3",
             });
-            await sut.RemoveTagsAsync(blobUri, new List<string>()
+            await sut.RemoveTagsAsync(docId, new List<string>()
             {
                 "Tag2"
             });
