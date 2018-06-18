@@ -1,0 +1,25 @@
+﻿@model IEnumerable<Docms.Web.Data.Document>
+
+@{
+    ViewData["Title"] = "Index";
+}
+
+<h2>Index</h2>
+
+<div class="row">
+    @foreach (var document in Model)
+    {
+        <div class="card mb-4 box-shadow">
+            <img class="card-img-top" alt="@document.Name" src="@document.Uri" data-holder-rendered="true">
+            <div class="card-body">
+                <p class="card-text">@document.Name</p>
+                <div class="d-flex justify-content-between align-items-center">
+                    <div class="btn-group">
+                        <button class="btn btn-sm btn-outline-secondary" type="button">詳細</button>
+                    </div>
+                    <small class="text-muted">9 mins</small>
+                </div>
+            </div>
+        </div>
+    }
+</div>
