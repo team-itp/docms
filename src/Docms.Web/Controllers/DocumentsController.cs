@@ -1,17 +1,12 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
+﻿using Docms.Web.Data;
+using Docms.Web.Models;
+using Docms.Web.Services;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Rendering;
 using Microsoft.EntityFrameworkCore;
-using Docms.Web.Data;
-using Docms.Web.Models;
-using Docms.Web.Services;
-using Microsoft.WindowsAzure.Storage;
-using Microsoft.Azure;
-using Microsoft.Extensions.Options;
-using Docms.Web.Config;
+using System.IO;
+using System.Linq;
+using System.Threading.Tasks;
 
 namespace Docms.Web.Controllers
 {
@@ -21,12 +16,12 @@ namespace Docms.Web.Controllers
     public class DocumentsController : Controller
     {
         private readonly DocmsDbContext _context;
-        private readonly StorageSettings _storageSettings;
+        private readonly BlobsService _blobService;
 
-        public DocumentsController(DocmsDbContext context, IOptions<StorageSettings> storageSettings)
+        public DocumentsController(DocmsDbContext context, BlobsService blobsService)
         {
             _context = context;
-            _storageSettings = storageSettings?.Value;
+            _blobService = blobsService;
         }
 
         /// <summary>
@@ -81,17 +76,12 @@ namespace Docms.Web.Controllers
         {
             if (ModelState.IsValid)
             {
-                var account = CloudStorageAccount.Parse(_storageSettings?.ConnectionString);
-                var client = account.CreateCloudBlobClient();
-                var container = client.GetContainerReference("files");
-                await container.CreateIfNotExistsAsync();
-                var blob = container.GetBlockBlobReference(Guid.NewGuid().ToString());
-                await blob.UploadFromStreamAsync(document.File.OpenReadStream());
+                var blobUri = await _blobService.UploadFileAsync(document.File.OpenReadStream(), Path.GetExtension(document.Name));
                 var service = new DocumentsService(_context);
-                await service.CreateAsync(blob.Uri.ToString(), document.Name);
+                await service.CreateAsync(blobUri.ToString(), document.Name);
                 if (document.Tags != null && document.Tags.Length > 0)
                 {
-                    await service.AddTagsAsync(blob.Uri.ToString(), document.Tags);
+                    await service.AddTagsAsync(blobUri.ToString(), document.Tags);
                 }
 
                 return RedirectToAction(nameof(Index));
