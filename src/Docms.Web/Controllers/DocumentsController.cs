@@ -77,7 +77,7 @@ namespace Docms.Web.Controllers
         /// <returns></returns>
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> Create([Bind("Url,Name,Tags")] UploadDocumentViewModel document)
+        public async Task<IActionResult> Create([Bind("File,Name,Tags")] UploadDocumentViewModel document)
         {
             if (ModelState.IsValid)
             {
