@@ -1,8 +1,7 @@
-﻿using Microsoft.WindowsAzure.Storage;
-using RestSharp;
+﻿using RestSharp;
 using System;
-using System.Configuration;
 using System.IO;
+using System.Linq;
 using System.Threading.Tasks;
 
 namespace Docms.Client
@@ -11,28 +10,28 @@ namespace Docms.Client
     {
         private string _serverUri;
         private RestClient _client;
-        private CloudStorageAccount _account;
 
         public DocmsClient(string uri)
         {
             _serverUri = uri.EndsWith("/") ? uri : uri + "/";
             _client = new RestClient(uri);
-            _account = CloudStorageAccount.Parse(ConfigurationManager.AppSettings["storageAccount"]);
         }
 
         public async Task CreateDocumentAsync(string localFilePath, string name, string[] tags)
         {
-            var storageClient = _account.CreateCloudBlobClient();
-            var container = storageClient.GetContainerReference("files");
-            await container.CreateIfNotExistsAsync();
-            var blobName = Guid.NewGuid();
-            var blob = container.GetBlockBlobReference(blobName.ToString());
-            await blob.UploadFromFileAsync(localFilePath);
-            var uri = blob.Uri.ToString();
+            var fileUploadRequest = new RestRequest(_serverUri + "blobs");
+            fileUploadRequest.AddFile(Guid.NewGuid().ToString() + Path.GetExtension(name), File.ReadAllBytes(localFilePath), Path.GetFileName(localFilePath));
+            var fileUploadResponse = await _client.ExecutePostTaskAsync(fileUploadRequest);
+            if (!fileUploadResponse.IsSuccessful)
+            {
+                // TODO: message
+                throw new Exception();
+            }
+
             var request = new RestRequest(_serverUri + "api/documents", Method.POST);
             request.AddJsonBody(new
             {
-                Uri = blob.Uri,
+                Uri = fileUploadResponse.Headers.First(h => h.Name == "Location").Value,
                 Name = Path.GetFileName(localFilePath),
                 Tags = tags
             });
