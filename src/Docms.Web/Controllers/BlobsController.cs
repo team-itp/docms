@@ -33,10 +33,10 @@ namespace Docms.Web.Controllers
 
         [HttpPost]
         [RequestSizeLimit(100_000_000)]
-        public async Task<IActionResult> Post(IFormFile formFile)
+        public async Task<IActionResult> Post(IFormFile file)
         {
-            var blobName = await _service.UploadFileAsync(formFile.OpenReadStream(), Path.GetExtension(formFile.FileName));
-            return RedirectToAction(nameof(Get), new { blobName });
+            await _service.UploadFileAsync(file.OpenReadStream(), Path.GetExtension(file.FileName));
+            return CreatedAtAction(nameof(Get), new { blobName = file.FileName }, new { blobName = file.FileName });
         }
     }
 }
