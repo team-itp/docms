@@ -5,6 +5,6 @@ namespace Docms.Web.Models
 {
     public class SearchResultViewModel
     {
-        public IEnumerable<Document> Results { get; set; }
+        public IEnumerable<SearchResultItemViewModel> Results { get; set; }
     }
 }

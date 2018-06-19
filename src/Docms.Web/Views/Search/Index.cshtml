@@ -15,14 +15,13 @@
             @foreach (var document in Model.Results)
             {
                 <div class="card mb-4 box-shadow">
-                    <img class="card-img-top" alt="@document.Name" src="@document.Uri" data-holder-rendered="true">
+                    <img class="card-img-top" alt="@document.FileName" src="@document.ThumbnailUri" data-holder-rendered="true">
                     <div class="card-body">
-                        <p class="card-text">@document.Name</p>
+                        <p class="card-text">@document.FileName</p>
                         <div class="d-flex justify-content-between align-items-center">
                             <div class="btn-group">
-                                <button class="btn btn-sm btn-outline-secondary" type="button">詳細</button>
+                                <a asp-action="Details" asp-controller="Documents" asp-route-id="@document.Id" class="btn btn-sm btn-outline-secondary" type="button">詳細</a>
                             </div>
-                            <small class="text-muted">9 mins</small>
                         </div>
                     </div>
                 </div>

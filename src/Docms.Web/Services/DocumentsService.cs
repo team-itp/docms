@@ -16,21 +16,21 @@ namespace Docms.Web.Services
             _db = db;
         }
 
-        public async Task<int> CreateAsync(string blobUri, string name)
+        public async Task<int> CreateAsync(string blobName, string name)
         {
             var entity = _db.Documents.Add(new Document()
             {
-                Uri = blobUri,
-                Name = name,
+                BlobName = blobName,
+                FileName = name,
                 UploadedAt = DateTime.Now,
             });
             await _db.SaveChangesAsync();
             return entity.Entity.Id;
         }
 
-        public async Task<int> CreateAsync(string blobUri, string name, IEnumerable<string> tags)
+        public async Task<int> CreateAsync(string blobName, string name, IEnumerable<string> tags)
         {
-            var documentId = await CreateAsync(blobUri, name);
+            var documentId = await CreateAsync(blobName, name);
             await AddTagsAsync(documentId, tags);
             return documentId;
         }
@@ -45,12 +45,12 @@ namespace Docms.Web.Services
             await AddTagsAsync(doc, tags);
         }
 
-        public async Task AddTagsAsync(string blobUri, IEnumerable<string> tags)
+        public async Task AddTagsAsync(string blobName, IEnumerable<string> tags)
         {
             var doc = _db.Documents
                 .Include(e => e.Tags)
                 .ThenInclude(e => e.Tag)
-                .FirstOrDefault(d => d.Uri == blobUri);
+                .FirstOrDefault(d => d.BlobName == blobName);
 
             await AddTagsAsync(doc, tags);
         }

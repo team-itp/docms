@@ -34,7 +34,14 @@ namespace Docms.Web.Controllers
 
             return View(new SearchResultViewModel()
             {
-                Results = documents.ToList()
+                Results = documents.Select(d => new SearchResultItemViewModel()
+                {
+                    Id = d.Id,
+                    BlobUri = Url.Action("Index", "Blobs", new { blobName = d.BlobName }),
+                    ThumbnailUri = Url.Action("Index", "Blobs", new { blobName = d.BlobName }),
+                    FileName = d.FileName,
+                    UploadedAt = d.UploadedAt
+                }).ToList()
             });
         }
     }

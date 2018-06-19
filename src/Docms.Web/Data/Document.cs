@@ -12,8 +12,8 @@ namespace Docms.Web.Data
         }
 
         public int Id { get; set; }
-        public string Uri { get; set; }
-        public string Name { get; set; }
+        public string BlobName { get; set; }
+        public string FileName { get; set; }
         public DateTime UploadedAt { get; set; }
 
         public virtual ICollection<DocumentTag> Tags { get; set; }
