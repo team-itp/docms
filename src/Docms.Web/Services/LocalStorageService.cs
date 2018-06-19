@@ -43,6 +43,7 @@ namespace Docms.Web.Services
             {
                 await fs.CopyToAsync(stream);
             }
+            stream.Seek(0, SeekOrigin.Begin);
             return stream;
         }
     }

@@ -37,8 +37,8 @@ namespace Docms.Web.Controllers
                 Results = documents.Select(d => new SearchResultItemViewModel()
                 {
                     Id = d.Id,
-                    BlobUri = Url.Action("Index", "Blobs", new { blobName = d.BlobName }),
-                    ThumbnailUri = Url.Action("Index", "Blobs", new { blobName = d.BlobName }),
+                    BlobUri = Url.Action("Get", "Blobs", new { blobName = d.BlobName }),
+                    ThumbnailUri = Url.Action("Get", "Blobs", new { blobName = d.BlobName }),
                     FileName = d.FileName,
                     UploadedAt = d.UploadedAt
                 }).ToList()
