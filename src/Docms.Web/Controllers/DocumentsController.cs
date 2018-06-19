@@ -16,12 +16,12 @@ namespace Docms.Web.Controllers
     public class DocumentsController : Controller
     {
         private readonly DocmsDbContext _context;
-        private readonly BlobsService _blobService;
+        private readonly IStorageService _storageService;
 
-        public DocumentsController(DocmsDbContext context, BlobsService blobsService)
+        public DocumentsController(DocmsDbContext context, IStorageService storageService)
         {
             _context = context;
-            _blobService = blobsService;
+            _storageService = storageService;
         }
 
         /// <summary>
@@ -76,7 +76,7 @@ namespace Docms.Web.Controllers
         {
             if (ModelState.IsValid)
             {
-                var blobUri = await _blobService.UploadFileAsync(document.File.OpenReadStream(), Path.GetExtension(document.Name));
+                var blobUri = await _storageService.UploadFileAsync(document.File.OpenReadStream(), Path.GetExtension(document.Name));
                 var service = new DocumentsService(_context);
                 await service.CreateAsync(blobUri.ToString(), document.Name);
                 if (document.Tags != null && document.Tags.Length > 0)

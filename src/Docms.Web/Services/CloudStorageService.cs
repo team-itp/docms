@@ -7,27 +7,29 @@ using System.Threading.Tasks;
 
 namespace Docms.Web.Services
 {
-    public class BlobsService
+    public class CloudStorageService : IStorageService
     {
         private readonly StorageSettings _storageSettings;
         private readonly CloudStorageAccount _account;
 
-        public BlobsService(IOptions<StorageSettings> storageSettings)
+        public CloudStorageService(IOptions<StorageSettings> storageSettings)
         {
             _storageSettings = storageSettings?.Value;
             _account = CloudStorageAccount.Parse(_storageSettings?.ConnectionString);
         }
 
-        public async Task<Uri> UploadFileAsync(Stream stream, string fileextension)
+        public async Task<string> UploadFileAsync(Stream stream, string fileextension)
         {
             try
             {
                 var client = _account.CreateCloudBlobClient();
                 var container = client.GetContainerReference("files");
                 await container.CreateIfNotExistsAsync();
-                var blob = container.GetBlockBlobReference(Guid.NewGuid().ToString() + fileextension);
+
+                var blobName = Guid.NewGuid().ToString() + fileextension;
+                var blob = container.GetBlockBlobReference(blobName);
                 await blob.UploadFromStreamAsync(stream);
-                return blob.Uri;
+                return blobName;
             }
             finally
             {

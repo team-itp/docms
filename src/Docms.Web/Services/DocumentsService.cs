@@ -22,6 +22,7 @@ namespace Docms.Web.Services
             {
                 Uri = blobUri,
                 Name = name,
+                UploadedAt = DateTime.Now,
             });
             await _db.SaveChangesAsync();
             return entity.Entity.Id;

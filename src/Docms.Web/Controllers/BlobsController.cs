@@ -15,9 +15,9 @@ namespace Docms.Web.Controllers
     [Route("blobs")]
     public class BlobsController : Controller
     {
-        private BlobsService _service;
+        private IStorageService _service;
 
-        public BlobsController(BlobsService service)
+        public BlobsController(IStorageService service)
         {
             _service = service;
         }
