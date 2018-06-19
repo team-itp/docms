@@ -1,4 +1,5 @@
 ﻿using Docms.Web.Data;
+using Docms.Web.Models;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using System.Linq;
@@ -28,10 +29,13 @@ namespace Docms.Web.Controllers
 
             if (tags.Any())
             {
-                documents  = documents.Where(e => e.Tags.Any(t => tags.Contains(t.Tag.Name)));
+                documents = documents.Where(e => e.Tags.Any(t => tags.Contains(t.Tag.Name)));
             }
 
-            return View(documents.ToList());
+            return View(new SearchResultViewModel()
+            {
+                Results = documents.ToList()
+            });
         }
     }
 }
