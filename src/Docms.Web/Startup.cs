@@ -29,7 +29,7 @@ namespace Docms.Web
 
             services.AddDbContext<DocmsDbContext>(options =>
             {
-                options.UseInMemoryDatabase("InMemory");
+                options.UseSqlite("Data Source=App_Data\\data.db");
             });
 
             services.Configure<StorageSettings>(Configuration.GetSection("StorageSettings"));

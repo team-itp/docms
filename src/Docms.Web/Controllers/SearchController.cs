@@ -22,6 +22,21 @@ namespace Docms.Web.Controllers
         [HttpGet]
         public ActionResult Index([Bind("t")]string[] tags)
         {
+            var tagSelection = new TagSelectionsViewModel()
+            {
+                Panels = _context.TagGroups
+                    .Include(e => e.Tags)
+                    .ThenInclude(e => e.Tag)
+                    .Where(e => e.Tags.Any())
+                    .Select(tg => new TagSelection()
+                    {
+                        Title = tg.Title,
+                        Tags = tg.Tags.Select(tgt=> tgt.Tag).ToList()
+                    })
+                    .ToList()
+            };
+            ViewData["TagSelections"] = tagSelection;
+
             var documents = _context.Documents
                 .Include(e => e.Tags)
                 .ThenInclude(e => e.Tag)
