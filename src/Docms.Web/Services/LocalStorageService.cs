@@ -1,6 +1,3 @@
-using Docms.Web.Config;
-using Microsoft.Extensions.Options;
-using Microsoft.WindowsAzure.Storage;
 using System;
 using System.IO;
 using System.Threading.Tasks;
@@ -38,13 +35,17 @@ namespace Docms.Web.Services
 
         public async Task<Stream> OpenStreamAsync(string blobName)
         {
-            var stream = new MemoryStream();
-            using (var fs = new FileStream(Path.Combine(_basePath, blobName), FileMode.Open, FileAccess.Read))
+            return await Task.FromResult(new FileStream(Path.Combine(_basePath, blobName), FileMode.Open, FileAccess.Read));
+        }
+
+        public async Task DeleteFileAsync(string blobName)
+        {
+            await Task.Yield();
+            var filePath = Path.Combine(_basePath, blobName);
+            if (File.Exists(filePath))
             {
-                await fs.CopyToAsync(stream);
+                File.Delete(filePath);
             }
-            stream.Seek(0, SeekOrigin.Begin);
-            return stream;
         }
     }
 }

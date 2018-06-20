@@ -11,5 +11,6 @@ namespace Docms.Web.Services
     {
         Task<string> UploadFileAsync(Stream stream, string fileextension);
         Task<Stream> OpenStreamAsync(string blobName);
+        Task DeleteFileAsync(string blobName);
     }
 }

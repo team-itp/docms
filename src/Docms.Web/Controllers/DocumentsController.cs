@@ -60,7 +60,7 @@ namespace Docms.Web.Controllers
         /// </summary>
         public IActionResult Create()
         {
-            ViewData["Tags"] = _context.Tags.Select(t => new SelectListItem() { Text = t.Name, Value = t.Name }).ToList();
+            ViewData["Tags"] = _context.Tags.ToList();
 
             return View();
         }
@@ -72,16 +72,25 @@ namespace Docms.Web.Controllers
         /// <returns></returns>
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> Create([Bind("File,Name,Tags")] UploadDocumentViewModel document)
+        public async Task<IActionResult> Create([Bind("Files,Tags")] UploadDocumentViewModel document)
         {
+            if (document.Files == null || document.Files.Count == 0)
+            {
+                ModelState.AddModelError("Files", "ファイルは1件以上指定してください。");
+            }
+
             if (ModelState.IsValid)
             {
-                var blobUri = await _storageService.UploadFileAsync(document.File.OpenReadStream(), Path.GetExtension(document.Name));
-                var service = new DocumentsService(_context);
-                await service.CreateAsync(blobUri.ToString(), document.Name);
-                if (document.Tags != null && document.Tags.Length > 0)
+                foreach (var file in document.Files)
                 {
-                    await service.AddTagsAsync(blobUri.ToString(), document.Tags);
+                    var filename = Path.GetFileName(file.FileName);
+                    var blobName = await _storageService.UploadFileAsync(file.OpenReadStream(), Path.GetExtension(file.FileName));
+                    var service = new DocumentsService(_context);
+                    await service.CreateAsync(blobName, filename);
+                    if (document.Tags != null && document.Tags.Length > 0)
+                    {
+                        await service.AddTagsAsync(blobName, document.Tags);
+                    }
                 }
 
                 return RedirectToAction(nameof(Index));
@@ -179,6 +188,7 @@ namespace Docms.Web.Controllers
         public async Task<IActionResult> DeleteConfirmed(int id)
         {
             var document = await _context.Documents.SingleOrDefaultAsync(m => m.Id == id);
+            await _storageService.DeleteFileAsync(document.BlobName);
             _context.Documents.Remove(document);
             await _context.SaveChangesAsync();
             return RedirectToAction(nameof(Index));

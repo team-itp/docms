@@ -45,5 +45,14 @@ namespace Docms.Web.Services
             var blob = container.GetBlockBlobReference(blobName);
             return await blob.OpenReadAsync();
         }
+
+        public async Task DeleteFileAsync(string blobName)
+        {
+            var client = _account.CreateCloudBlobClient();
+            var container = client.GetContainerReference("files");
+            await container.CreateIfNotExistsAsync();
+            var blob = container.GetBlockBlobReference(blobName);
+            await blob.DeleteIfExistsAsync();
+        }
     }
 }
