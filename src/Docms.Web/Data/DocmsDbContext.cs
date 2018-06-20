@@ -24,6 +24,9 @@ namespace Docms.Web.Data
 
             modelBuilder.Entity<TagGroupTag>()
                 .HasKey(t => new { t.TagGroupId, t.TagId });
+
+            modelBuilder.Entity<TagSearchTag>()
+                .HasKey(t => new { t.TagSearchCategoryId, t.TagId });
         }
 
         public DbSet<Document> Documents { get; set; }
@@ -33,5 +36,8 @@ namespace Docms.Web.Data
 
         public DbSet<TagGroup> TagGroups { get; set; }
         public DbSet<TagGroupTag> TagGroupTags { get; set; }
+
+        public DbSet<TagSearchCategory> TagSearchCategories { get; set; }
+        public DbSet<TagSearchTag> TagSearchTags { get; set; }
     }
 }

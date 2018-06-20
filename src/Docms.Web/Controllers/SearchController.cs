@@ -60,14 +60,17 @@ namespace Docms.Web.Controllers
         {
             var tagSelection = new TagSelectionsViewModel()
             {
-                Panels = _context.TagGroups
+                Panels = _context.TagSearchCategories
                     .Include(e => e.Tags)
                     .ThenInclude(e => e.Tag)
                     .Where(e => e.Tags.Any())
+                    .OrderBy(e => e.Seq)
                     .Select(tg => new TagSelection()
                     {
-                        Title = tg.Title,
-                        Tags = tg.Tags.Select(tgt=> tgt.Tag).ToList()
+                        Title = tg.Name,
+                        Tags = tg.Tags.OrderBy(tgt => tgt.Seq)
+                            .Select(tgt => tgt.Tag)
+                            .ToList()
                     })
                     .ToList()
             };

@@ -5,7 +5,7 @@ namespace Docms.Web.Data
     public class TagGroup
     {
         public int Id { get; set; }
-        public string Title { get; set; }
+        public string Name { get; set; }
         public ICollection<TagGroupTag> Tags { get; set; }
     }
 
