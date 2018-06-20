@@ -16,11 +16,47 @@ namespace Docms.Web.Controllers
         }
 
         /// <summary>
-        /// ドキュメントの検索
+        /// ドキュメントの検索(キーワード検索)
         /// </summary>
         /// <returns></returns>
         [HttpGet]
-        public ActionResult Index([Bind("t")]string[] tags)
+        public ActionResult Index([Bind("t")]int[] tags, [Bind("q")]string keyword)
+        {
+            FetchTagSelection();
+
+            var documents = _context.Documents
+                .Include(e => e.Tags)
+                .ThenInclude(e => e.Tag)
+                .AsQueryable();
+
+            if (!string.IsNullOrEmpty(keyword))
+            {
+                documents = documents.Where(e => e.Tags.Any(t => t.Tag.Name.Contains(keyword)));
+            }
+
+            if (tags.Any())
+            {
+                documents = documents.Where(e => e.Tags.Any(t => tags.Contains(t.TagId)));
+            }
+
+            var searchTags = _context.Tags.Where(t => tags.Contains(t.Id));
+
+            return View(new SearchResultViewModel()
+            {
+                SearchKeyword = keyword,
+                SearchTags = searchTags,
+                Results = documents.Select(d => new SearchResultItemViewModel()
+                {
+                    Id = d.Id,
+                    BlobUri = Url.Action("Get", "Blobs", new { blobName = d.BlobName }),
+                    ThumbnailUri = Url.Action("Get", "Blobs", new { blobName = d.BlobName }),
+                    FileName = d.FileName,
+                    UploadedAt = d.UploadedAt
+                }).ToList()
+            });
+        }
+
+        private void FetchTagSelection()
         {
             var tagSelection = new TagSelectionsViewModel()
             {
@@ -36,28 +72,6 @@ namespace Docms.Web.Controllers
                     .ToList()
             };
             ViewData["TagSelections"] = tagSelection;
-
-            var documents = _context.Documents
-                .Include(e => e.Tags)
-                .ThenInclude(e => e.Tag)
-                .AsQueryable();
-
-            if (tags.Any())
-            {
-                documents = documents.Where(e => e.Tags.Any(t => tags.Contains(t.Tag.Name)));
-            }
-
-            return View(new SearchResultViewModel()
-            {
-                Results = documents.Select(d => new SearchResultItemViewModel()
-                {
-                    Id = d.Id,
-                    BlobUri = Url.Action("Get", "Blobs", new { blobName = d.BlobName }),
-                    ThumbnailUri = Url.Action("Get", "Blobs", new { blobName = d.BlobName }),
-                    FileName = d.FileName,
-                    UploadedAt = d.UploadedAt
-                }).ToList()
-            });
         }
     }
 }
