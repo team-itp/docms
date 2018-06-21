@@ -1,0 +1,23 @@
+﻿@model DeleteTagViewModel
+
+@{
+    ViewData["Title"] = "タグの削除" + Model.FileName;
+}
+
+<h2>@Model.FileName</h2>
+
+<h4>タグの削除</h4>
+<hr />
+
+<div>
+    <p>以下のタグを削除します。よろしいですか。</p>
+    <ul class="my-4">
+        <li>@Model.Name</li>
+    </ul>
+    <form asp-action="DeleteTag">
+        <input type="hidden" asp-for="Id" />
+        <input type="hidden" asp-for="TagId" />
+        <button type="submit" class="btn btn-default">削除</button> |
+        <a asp-action="Details" asp-route-id="@Model.Id">戻る</a>
+    </form>
+</div>

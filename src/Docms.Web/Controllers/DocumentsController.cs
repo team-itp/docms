@@ -198,7 +198,8 @@ namespace Docms.Web.Controllers
 
             return View(new AddTagsViewModel()
             {
-                Id = document.Id
+                Id = document.Id,
+                FileName = document.FileName,
             });
         }
 
@@ -275,6 +276,7 @@ namespace Docms.Web.Controllers
             {
                 Id = document.Id,
                 TagId = tag.TagId,
+                FileName = document.FileName,
                 Name = tag.Tag.Name,
             });
         }

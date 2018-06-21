@@ -62,9 +62,9 @@ namespace Docms.Web.Services
             }
 
             var dbTags = _db.Tags.Where(t => tags.Contains(t.Name)).ToList();
-            var tagsToInsert = tags.Except(dbTags.Select(t => t.Name)).Select(t => new Tag()
+            var tagsToInsert = tags.Where(t => !String.IsNullOrWhiteSpace(t)).Except(dbTags.Select(t => t.Name)).Select(t => new Tag()
             {
-                Name = t
+                Name = t.Trim()
             }).ToList();
             await _db.Tags.AddRangeAsync(tagsToInsert);
             await _db.SaveChangesAsync();
@@ -113,7 +113,7 @@ namespace Docms.Web.Services
             }
 
             var tagsToRemove = doc.Tags.Where(t => tags.Contains(t.Tag.Name)).ToList();
-            foreach(var t in tagsToRemove)
+            foreach (var t in tagsToRemove)
             {
                 doc.Tags.Remove(t);
             }

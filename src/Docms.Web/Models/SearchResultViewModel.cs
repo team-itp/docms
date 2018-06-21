@@ -88,8 +88,8 @@ namespace Docms.Web.Models
             var vm = new SearchResultItemLinks()
             {
                 Self = url.Action("Details", "Documents", new { id = document.Id }),
-                Blob = url.Action("Thumubnail", "Blobs", new { blobName = document.BlobName }),
-                Thumbnail = url.Action("Thumubnail", "Blobs", new { blobName = document.BlobName }),
+                Blob = url.Action("Get", "Blobs", new { blobName = document.BlobName }),
+                Thumbnail = url.Action("Thumbnail", "Blobs", new { blobName = document.BlobName }),
             };
             return vm;
         }
