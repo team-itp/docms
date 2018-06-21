@@ -122,7 +122,7 @@ namespace Docms.Web.Controllers
             var documentId = await service.CreateAsync(document.Uri, document.Name);
             if (document.Tags != null && document.Tags.Length > 0)
             {
-                await service.AddTagsAsync(document.Uri, document.Tags);
+                await service.AddTagsAsync(documentId, document.Tags);
             }
 
             return CreatedAtAction("GetDocument", new { id = documentId }, document);

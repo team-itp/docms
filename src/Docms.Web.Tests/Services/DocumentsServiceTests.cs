@@ -57,8 +57,8 @@ namespace Docms.Web.Tests.Services
         {
             await db.Tags.AddRangeAsync(new[] { new Tag() { Name = "Tag1" }, new Tag() { Name = "Tag2" } });
             var blobUri = TestUtils.DocumentUrlForPath(Guid.NewGuid().ToString());
-            await sut.CreateAsync(blobUri, "Test1.txt");
-            await sut.AddTagsAsync(blobUri, new List<string>()
+            var docId = await sut.CreateAsync(blobUri, "Test1.txt");
+            await sut.AddTagsAsync(docId, new List<string>()
             {
                 "Tag1",
                 "Tag2",
@@ -70,11 +70,21 @@ namespace Docms.Web.Tests.Services
         }
 
         [TestMethod]
+        public async Task ドキュメント情報の名前を変更できる()
+        {
+            var blobUri = TestUtils.DocumentUrlForPath(Guid.NewGuid().ToString());
+            var docId = await sut.CreateAsync(blobUri, "Test1.txt");
+            await sut.UpdateFileNameAsync(docId, "Test2.txt");
+
+            Assert.AreEqual("Test2.txt", (await db.Documents.FindAsync(docId)).FileName);
+        }
+
+        [TestMethod]
         public async Task ドキュメント情報に新規にタグを追加できる()
         {
             var blobUri = TestUtils.DocumentUrlForPath(Guid.NewGuid().ToString());
-            await sut.CreateAsync(blobUri, "Test1.txt");
-            await sut.AddTagsAsync(blobUri, new List<string>()
+            var docId = await sut.CreateAsync(blobUri, "Test1.txt");
+            await sut.AddTagsAsync(docId, new List<string>()
             {
                 "Tag1",
                 "Tag2",

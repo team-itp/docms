@@ -16,7 +16,12 @@ namespace Docms.Web.Services
             _db = db;
         }
 
-        public async Task<int> CreateAsync(string blobName, string name)
+        public async Task<int> CreateAsync(string blobName, string fileName)
+        {
+            return await CreateAsync(blobName, fileName, Array.Empty<string>());
+        }
+
+        public async Task<int> CreateAsync(string blobName, string name, IEnumerable<string> tags)
         {
             var entity = _db.Documents.Add(new Document()
             {
@@ -24,15 +29,18 @@ namespace Docms.Web.Services
                 FileName = name,
                 UploadedAt = DateTime.Now,
             });
-            await _db.SaveChangesAsync();
-            return entity.Entity.Id;
-        }
-
-        public async Task<int> CreateAsync(string blobName, string name, IEnumerable<string> tags)
-        {
-            var documentId = await CreateAsync(blobName, name);
+            await _db.SaveChangesAsync().ConfigureAwait(false);
+            var documentId = entity.Entity.Id;
             await AddTagsAsync(documentId, tags);
             return documentId;
+        }
+
+        public async Task UpdateFileNameAsync(int doucmentId, string editedFileName)
+        {
+            var data = await _db.Documents.FindAsync(doucmentId).ConfigureAwait(false);
+            data.FileName = editedFileName;
+            _db.Update(data);
+            await _db.SaveChangesAsync().ConfigureAwait(false);
         }
 
         public async Task AddTagsAsync(int doucmentId, IEnumerable<string> tags)
@@ -41,16 +49,6 @@ namespace Docms.Web.Services
                 .Include(e => e.Tags)
                 .ThenInclude(e => e.Tag)
                 .FirstOrDefault(d => d.Id == doucmentId);
-
-            await AddTagsAsync(doc, tags);
-        }
-
-        public async Task AddTagsAsync(string blobName, IEnumerable<string> tags)
-        {
-            var doc = _db.Documents
-                .Include(e => e.Tags)
-                .ThenInclude(e => e.Tag)
-                .FirstOrDefault(d => d.BlobName == blobName);
 
             await AddTagsAsync(doc, tags);
         }

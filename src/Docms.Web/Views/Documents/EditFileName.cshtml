@@ -1,0 +1,38 @@
+﻿@model EditFileNameViewModel
+
+@{
+    ViewData["Title"] = "ファイル名の編集 " + Model.OriginalFileName;
+}
+
+<h2>@Model.OriginalFileName</h2>
+
+<h4>ファイル名を編集する</h4>
+<hr />
+<div class="row">
+    <div class="col-md-4">
+        <form asp-action="EditFileName">
+            <div asp-validation-summary="ModelOnly" class="text-danger"></div>
+            <input type="hidden" asp-for="Id" />
+            <div class="form-group">
+                <label asp-for="OriginalFileName" class="control-label"></label>
+                <input asp-for="OriginalFileName" readonly class="form-control-plaintext" />
+            </div>
+            <div class="form-group">
+                <label asp-for="EditedFileName" class="control-label"></label>
+                <input asp-for="EditedFileName" class="form-control" />
+                <span asp-validation-for="EditedFileName" class="text-danger"></span>
+            </div>
+            <div class="form-group">
+                <input type="submit" value="Save" class="btn btn-default" />
+            </div>
+        </form>
+    </div>
+</div>
+
+<div>
+    <a asp-action="Details" asp-route-id="@Model.Id">戻る</a>
+</div>
+
+@section Scripts {
+    @{await Html.RenderPartialAsync("_ValidationScriptsPartial");}
+}
