@@ -63,7 +63,7 @@ namespace Docms.Web.Controllers
         /// <summary>
         /// ドキュメント情報を作成する
         /// </summary>
-        [HttpPost]
+        [HttpGet("create")]
         public IActionResult Create()
         {
             ViewData["Tags"] = _context.Tags.ToList();
@@ -76,7 +76,7 @@ namespace Docms.Web.Controllers
         /// </summary>
         /// <param name="document">ドキュメント情報</param>
         /// <returns></returns>
-        [HttpPost]
+        [HttpPost("create")]
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> Create([Bind("Files,Tags")] UploadDocumentViewModel document)
         {
@@ -242,8 +242,8 @@ namespace Docms.Web.Controllers
         /// <param name="id">ドキュメントID</param>
         /// <param name="tagId">タグ名</param>
         /// <returns></returns>
-        [HttpGet("edit/{id}/tags/delete/{tagId}")]
-        public async Task<IActionResult> DeleteTags(int? id, int? tagId)
+        [HttpGet("edit/{id}/tags/{tagId}/delete")]
+        public async Task<IActionResult> DeleteTag(int? id, int? tagId)
         {
             if (id == null || tagId == null)
             {
@@ -281,7 +281,7 @@ namespace Docms.Web.Controllers
         /// <param name="id">ドキュメントID</param>
         /// <param name="tags">タグ情報</param>
         /// <returns></returns>
-        [HttpPost("edit/{id}/tags/delete/{tagId}")]
+        [HttpPost("edit/{id}/tags/{tagId}/delete")]
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> DeleteTagConfirmed(int id, int tagId)
         {
