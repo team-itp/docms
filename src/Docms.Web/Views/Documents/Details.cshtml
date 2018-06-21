@@ -9,7 +9,9 @@
 <hr />
 
 <div>
-    <img src="@Model.Links.Thumbnail" alt="@Model.FileName" />
+    <a href="@Model.Links.Blob">
+        <img src="@Model.Links.Thumbnail" alt="@Model.FileName" />
+    </a>
     <dl class="dl-horizontal">
         <dt>
             @Html.DisplayNameFor(model => model.FileName)
@@ -23,11 +25,19 @@
         <dd>
             @Html.DisplayFor(model => model.UploadedAt)
         </dd>
+        <dt>
+            @Html.DisplayNameFor(model => model.Tags)
+        </dt>
+        <dd>
+            @foreach(var tag in Model.Tags)
+            {
+                <a href="@tag.Links.List" class="btn btn-dark py-0 mr-3">@tag.Name</a>
+            }
+        </dd>
     </dl>
-    <a href="@Model.Links.Blob" class="btn btn-primary">ダウンロード</a>
 </div>
 <div>
-    <a asp-action="Edit" asp-route-id="@Model.Id">Edit</a> |
-    <a asp-action="Delete" asp-route-id="@Model.Id">Delete</a> |
+    <a href="@Model.Links.Edit">Edit</a> |
+    <a href="@Model.Links.Delete">Delete</a> |
     <a asp-action="Index">Back to List</a>
 </div>

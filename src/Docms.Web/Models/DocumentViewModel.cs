@@ -43,46 +43,50 @@ namespace Docms.Web.Models
             var vm = new DocumentLinks()
             {
                 Self = url.Action("Details", "Documents", new { id = data.Id }),
-                Edit = url.Action("Details", "Edit", new { id = data.Id }),
-                Delete = url.Action("Details", "Delete", new { id = data.Id }),
+                Edit = url.Action("Edit", "Documents", new { id = data.Id }),
+                Delete = url.Action("Delete", "Documents", new { id = data.Id }),
                 Blob = url.Action("Get", "Blobs", new { blobName = data.BlobName }),
                 Thumbnail = url.Action("Thumbnail", "Blobs", new { blobName = data.BlobName }),
-        };
+            };
             return vm;
         }
-}
-
-public class DocumentTagViewModel
-{
-    public int Id { get; set; }
-    public int DoucmentId { get; set; }
-    public string Name { get; set; }
-    public DocumentTagLinks Links { get; set; }
-
-    public static DocumentTagViewModel Create(IUrlHelper url, DocumentTag data)
-    {
-        var vm = new DocumentTagViewModel()
-        {
-            Id = data.TagId,
-            DoucmentId = data.DocumentId,
-            Name = data.Tag.Name,
-            Links = DocumentTagLinks.Create(url, data),
-        };
-        return vm;
     }
-}
 
-public class DocumentTagLinks
-{
-    public string Delete { get; set; }
-
-    public static DocumentTagLinks Create(IUrlHelper url, DocumentTag data)
+    public class DocumentTagViewModel
     {
-        var vm = new DocumentTagLinks()
+        public int Id { get; set; }
+        public int DoucmentId { get; set; }
+        public string Name { get; set; }
+        public DocumentTagLinks Links { get; set; }
+
+        public static DocumentTagViewModel Create(IUrlHelper url, DocumentTag data)
         {
-            Delete = url.Action("DeleteTag", "Documents", new { id = data.DocumentId, tagId = data.TagId })
-        };
-        return vm;
+            var vm = new DocumentTagViewModel()
+            {
+                Id = data.TagId,
+                DoucmentId = data.DocumentId,
+                Name = data.Tag.Name,
+                Links = DocumentTagLinks.Create(url, data),
+            };
+            return vm;
+        }
     }
-}
+
+    public class DocumentTagLinks
+    {
+        public string Self { get; set; }
+        public string List { get; set; }
+        public string Delete { get; set; }
+
+        public static DocumentTagLinks Create(IUrlHelper url, DocumentTag data)
+        {
+            var vm = new DocumentTagLinks()
+            {
+                Self = url.Action("DeleteTag", "Tags", new { id = data.TagId }),
+                List = url.Action("Index", "Search", new { t = new[] { data.TagId } }),
+                Delete = url.Action("DeleteTag", "Documents", new { id = data.DocumentId, tagId = data.TagId }),
+            };
+            return vm;
+        }
+    }
 }

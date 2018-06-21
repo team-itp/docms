@@ -46,6 +46,8 @@ namespace Docms.Web.Controllers
             }
 
             var document = await _context.Documents
+                .Include(d => d.Tags)
+                .ThenInclude(dt => dt.Tag)
                 .SingleOrDefaultAsync(m => m.Id == id);
             if (document == null)
             {
