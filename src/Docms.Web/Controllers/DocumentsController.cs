@@ -52,7 +52,7 @@ namespace Docms.Web.Controllers
                 return NotFound();
             }
 
-            return View(document);
+            return View(DocumentViewModel.Create(Url, document));
         }
 
         /// <summary>

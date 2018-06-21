@@ -31,6 +31,15 @@ namespace Docms.Web.Controllers
             return File(stream, contentType ?? "application/octet-stream", blobName);
         }
 
+        [HttpGet("thumbnails/{blobName}")]
+        public async Task<IActionResult> Thumbnail(string blobName)
+        {
+            var stream = await _service.OpenStreamAsync(blobName);
+            string contentType;
+            new FileExtensionContentTypeProvider().TryGetContentType(blobName, out contentType);
+            return File(stream, contentType ?? "application/octet-stream", blobName);
+        }
+
         [HttpPost]
         [RequestSizeLimit(100_000_000)]
         public async Task<IActionResult> Post(IFormFile file)

@@ -1,21 +1,16 @@
-﻿@model Docms.Web.Data.Document
+﻿@model DocumentViewModel
 
 @{
-    ViewData["Title"] = "Details";
+    ViewData["Title"] = Model.FileName;
 }
 
-<h2>Details</h2>
+<h2>@Model.FileName</h2>
+
+<hr />
 
 <div>
-    <h4>Document</h4>
-    <hr />
+    <img src="@Model.Links.Thumbnail" alt="@Model.FileName" />
     <dl class="dl-horizontal">
-        <dt>
-            @Html.DisplayNameFor(model => model.BlobName)
-        </dt>
-        <dd>
-            @Html.DisplayFor(model => model.BlobName)
-        </dd>
         <dt>
             @Html.DisplayNameFor(model => model.FileName)
         </dt>
@@ -29,8 +24,10 @@
             @Html.DisplayFor(model => model.UploadedAt)
         </dd>
     </dl>
+    <a href="@Model.Links.Blob" class="btn btn-primary">ダウンロード</a>
 </div>
 <div>
     <a asp-action="Edit" asp-route-id="@Model.Id">Edit</a> |
+    <a asp-action="Delete" asp-route-id="@Model.Id">Delete</a> |
     <a asp-action="Index">Back to List</a>
 </div>
