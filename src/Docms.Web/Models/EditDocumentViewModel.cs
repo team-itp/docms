@@ -9,14 +9,15 @@ namespace Docms.Web.Models
     public class EditFileNameViewModel
     {
         public int Id { get; set; }
-        public string OriginalFileName { get; set; }
+        public string FileName { get; set; }
         public string EditedFileName { get; set; }
     }
 
-    public class AddTagViewModel
+    public class AddTagsViewModel
     {
         public int Id { get; set; }
-        public string Tag { get; set; }
+        public string FileName { get; set; }
+        public string[] Tags { get; set; }
     }
 
     public class DeleteTagViewModel

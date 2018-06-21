@@ -1,0 +1,35 @@
+﻿@model AddTagsViewModel
+
+@{
+    ViewData["Title"] = "タグの追加 " + Model.FileName;
+}
+
+<h2>@Model.FileName</h2>
+
+<h4>タグの追加</h4>
+<hr />
+<div class="row">
+    <div class="col-md-4">
+        <form asp-action="AddTags">
+            <div asp-validation-summary="ModelOnly" class="text-danger"></div>
+            <input type="hidden" asp-for="Id" />
+            <div class="form-group">
+                <label asp-for="Tags" class="control-label"></label>
+                <input asp-for="Tags" class="form-control" />
+                <span asp-validation-for="Tags" class="text-danger"></span>
+            </div>
+            <div class="form-group">
+                <label asp-for="Tags" class="control-label"></label>
+                <select asp-for="Tags" asp-items="@ViewData["Tags"] as IEnumerable<SelectListItem>" multiple class="form-control"></select>
+            </div>
+            <div class="form-group">
+                <button type="submit" class="btn btn-default">追加</button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<div>
+    <a asp-action="Details" asp-route-id="@Model.Id">戻る</a>
+</div>
+

@@ -128,7 +128,7 @@ namespace Docms.Web.Controllers
             return View(new EditFileNameViewModel()
             {
                 Id = document.Id,
-                OriginalFileName = document.FileName,
+                FileName = document.FileName,
                 EditedFileName = document.FileName
             });
         }
@@ -177,7 +177,7 @@ namespace Docms.Web.Controllers
         /// <param name="id">ドキュメントID</param>
         /// <returns></returns>
         [HttpGet("edit/{id}/tags/add")]
-        public async Task<IActionResult> AddTag(int? id)
+        public async Task<IActionResult> AddTags(int? id)
         {
             if (id == null)
             {
@@ -192,7 +192,11 @@ namespace Docms.Web.Controllers
                 return NotFound();
             }
 
-            return View(new AddTagViewModel()
+            ViewData["Tags"] = _context.Tags
+                .OrderBy(t => t.Name)
+                .Select(t => new SelectListItem() { Text = t.Name, Value = t.Name });
+
+            return View(new AddTagsViewModel()
             {
                 Id = document.Id
             });
@@ -206,7 +210,7 @@ namespace Docms.Web.Controllers
         /// <returns></returns>
         [HttpPost("edit/{id}/tags/add")]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> AddTag(int id, [Bind("Id,Tag")] AddTagViewModel document)
+        public async Task<IActionResult> AddTags(int id, [Bind("Id,Tags")] AddTagsViewModel document)
         {
             if (id != document.Id)
             {
@@ -218,7 +222,7 @@ namespace Docms.Web.Controllers
                 try
                 {
                     var service = new DocumentsService(_context);
-                    await service.AddTagsAsync(document.Id, new[] { document.Tag });
+                    await service.AddTagsAsync(document.Id, document.Tags);
                 }
                 catch (DbUpdateConcurrencyException)
                 {
@@ -231,7 +235,7 @@ namespace Docms.Web.Controllers
                         throw;
                     }
                 }
-                return RedirectToAction(nameof(Index));
+                return RedirectToAction(nameof(Details), new { id = id });
             }
             return View(document);
         }

@@ -45,7 +45,7 @@ namespace Docms.Web.Models
             {
                 Self = url.Action("Details", "Documents", new { id = data.Id }),
                 EditFileName = url.Action("EditFileName", "Documents", new { id = data.Id }),
-                AddTag = url.Action("AddTag", "Documents", new { id = data.Id }),
+                AddTag = url.Action("AddTags", "Documents", new { id = data.Id }),
                 Delete = url.Action("Delete", "Documents", new { id = data.Id }),
                 Blob = url.Action("Get", "Blobs", new { blobName = data.BlobName }),
                 Thumbnail = url.Action("Thumbnail", "Blobs", new { blobName = data.BlobName }),
