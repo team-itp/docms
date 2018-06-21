@@ -3,6 +3,7 @@ using Docms.Web.Models;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using System.Linq;
+using System.Threading.Tasks;
 
 namespace Docms.Web.Controllers
 {
@@ -20,7 +21,7 @@ namespace Docms.Web.Controllers
         /// </summary>
         /// <returns></returns>
         [HttpGet]
-        public ActionResult Index([Bind("t")]int[] tags, [Bind("q")]string keyword)
+        public async Task<ActionResult> Index([Bind("t")]int[] tags, [Bind("q")]string keyword)
         {
             FetchTagSelection();
 
@@ -41,19 +42,7 @@ namespace Docms.Web.Controllers
 
             var searchTags = _context.Tags.Where(t => tags.Contains(t.Id));
 
-            return View(new SearchResultViewModel()
-            {
-                SearchKeyword = keyword,
-                SearchTags = searchTags,
-                Results = documents.Select(d => new SearchResultItemViewModel()
-                {
-                    Id = d.Id,
-                    BlobUri = Url.Action("Get", "Blobs", new { blobName = d.BlobName }),
-                    ThumbnailUri = Url.Action("Get", "Blobs", new { blobName = d.BlobName }),
-                    FileName = d.FileName,
-                    UploadedAt = d.UploadedAt
-                }).ToList()
-            });
+            return View(SearchResultViewModel.Create(Url, keyword, searchTags, await documents.ToListAsync()));
         }
 
         private void FetchTagSelection()
