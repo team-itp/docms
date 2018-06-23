@@ -21,8 +21,10 @@ namespace Docms.Web.IntegrationTests.ApiEndpoints
         public async Task ファイルをアップロードすることができる()
         {
             var client = _factory.CreateClient();
-            var multipart = new MultipartFormDataContent();
-            multipart.Add(new StringContent("Test"), "file", "filename.txt");
+            var multipart = new MultipartFormDataContent
+            {
+                { new StringContent("Test"), "file", "filename.txt" }
+            };
             var response = await client.PostAsync("/blobs", multipart);
             response.EnsureSuccessStatusCode();
         }

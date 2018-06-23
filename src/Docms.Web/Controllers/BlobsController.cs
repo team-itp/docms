@@ -1,9 +1,7 @@
 ﻿using Docms.Web.Services;
 using Microsoft.AspNetCore.Http;
-using Microsoft.AspNetCore.Http.Features;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.StaticFiles;
-using Microsoft.Extensions.Logging;
 using System.IO;
 using System.Threading.Tasks;
 
@@ -26,8 +24,7 @@ namespace Docms.Web.Controllers
         public async Task<IActionResult> Get(string blobName)
         {
             var stream = await _service.OpenStreamAsync(blobName);
-            string contentType;
-            new FileExtensionContentTypeProvider().TryGetContentType(blobName, out contentType);
+            new FileExtensionContentTypeProvider().TryGetContentType(blobName, out var contentType);
             return File(stream, contentType ?? "application/octet-stream", blobName);
         }
 
@@ -35,8 +32,7 @@ namespace Docms.Web.Controllers
         public async Task<IActionResult> Thumbnail(string blobName)
         {
             var stream = await _service.OpenStreamAsync(blobName);
-            string contentType;
-            new FileExtensionContentTypeProvider().TryGetContentType(blobName, out contentType);
+            new FileExtensionContentTypeProvider().TryGetContentType(blobName, out var contentType);
             return File(stream, contentType ?? "application/octet-stream", blobName);
         }
 
