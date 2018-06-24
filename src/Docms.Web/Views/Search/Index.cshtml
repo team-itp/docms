@@ -5,32 +5,45 @@
     var tagSelections = ViewData["TagSelections"] as TagSelectionsViewModel;
 }
 
-<h2>検索</h2>
+<h2>
+    検索
+    @if (!string.IsNullOrEmpty(Model.SearchKeyword))
+    {
+        <small>(キーワード: @Model.SearchKeyword)</small>
+    }
+</h2>
 <hr />
 <div class="row">
     <div class="col-sm-4 col-md-3">
         @await Html.PartialAsync("_TagSelections", tagSelections)
     </div>
     <div class="col-sm-8 col-md-9">
-        <div class="row">
-            @foreach (var document in Model.Results)
-            {
-                <div class="col-md-auto">
-                    <div class="card box-shadow my-2">
-                        <a href="@document.Links.Self">
-                            <img class="card-img-top" alt="@document.FileName" src="@document.Links.Thumbnail" data-holder-rendered="true">
-                        </a>
-                        <div class="card-body">
-                            <div class="d-flex justify-content-between align-items-center">
-                                <p class="card-text">@document.FileName</p>
-                                <div class="btn-group">
-                                    <a href="@document.Links.Self" class="btn btn-sm btn-outline-secondary">詳細</a>
+        @if (Model.Results.Any())
+        {
+            <p>検索結果は見つかりませんでした。</p>
+        }
+        else
+        {
+            <div class="row">
+                @foreach (var document in Model.Results)
+                {
+                    <div class="col-md-auto">
+                        <div class="card box-shadow my-2">
+                            <a href="@document.Links.Self">
+                                <img class="card-img-top" alt="@document.FileName" src="@document.Links.Thumbnail" data-holder-rendered="true">
+                            </a>
+                            <div class="card-body">
+                                <div class="d-flex justify-content-between align-items-center">
+                                    <p class="card-text">@document.FileName</p>
+                                    <div class="btn-group">
+                                        <a href="@document.Links.Self" class="btn btn-sm btn-outline-secondary">詳細</a>
+                                    </div>
                                 </div>
                             </div>
                         </div>
                     </div>
-                </div>
-            }
-        </div>
+                }
+            </div>
+        }
     </div>
 </div>

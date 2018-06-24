@@ -21,7 +21,7 @@ namespace Docms.Web.Controllers
         /// </summary>
         /// <returns></returns>
         [HttpGet]
-        public async Task<ActionResult> Index([Bind("t")]int[] tags, [Bind("q")]string keyword)
+        public async Task<ActionResult> Index([FromQuery(Name = "t")]int[] tags, [FromQuery(Name = "q")]string keyword)
         {
             FetchTagSelection();
 
