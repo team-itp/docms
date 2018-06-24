@@ -7,8 +7,11 @@ using System.Threading.Tasks;
 
 namespace Docms.Web.Controllers
 {
+    [Route("search")]
     public class SearchController : Controller
     {
+        private const int CONTENT_PER_PAGE = 10;
+
         private DocmsDbContext _context;
 
         public SearchController(DocmsDbContext context)
@@ -21,7 +24,10 @@ namespace Docms.Web.Controllers
         /// </summary>
         /// <returns></returns>
         [HttpGet]
-        public async Task<ActionResult> Index([FromQuery(Name = "t")]int[] tags, [FromQuery(Name = "q")]string keyword)
+        public async Task<ActionResult> Index(
+            [FromQuery(Name = "t")]int[] tags,
+            [FromQuery(Name = "q")]string keyword,
+            [FromQuery(Name = "p")]int? page)
         {
             FetchTagSelection();
 
@@ -40,9 +46,23 @@ namespace Docms.Web.Controllers
                 documents = documents.Where(e => e.Tags.Any(t => tags.Contains(t.TagId)));
             }
 
-            var searchTags = _context.Tags.Where(t => tags.Contains(t.Id));
+            var totalPages = ((await documents.CountAsync()) / CONTENT_PER_PAGE) + 1;
 
-            return View(SearchResultViewModel.Create(Url, keyword, searchTags, await documents.ToListAsync()));
+            documents = documents.OrderByDescending(d => d.UploadedAt);
+
+            if (page.HasValue)
+            {
+                documents = documents.Skip((page.Value - 1) * CONTENT_PER_PAGE);
+            }
+
+            documents.Take(CONTENT_PER_PAGE);
+
+            var searchTags = _context
+                .Tags
+                .Where(t => tags.Contains(t.Id))
+                .ToList();
+
+            return View(SearchResultViewModel.Create(Url, keyword, searchTags, page ?? 1, totalPages, await documents.ToListAsync()));
         }
 
         private void FetchTagSelection()

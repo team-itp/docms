@@ -18,13 +18,13 @@
         @await Html.PartialAsync("_TagSelections", tagSelections)
     </div>
     <div class="col-sm-8 col-md-9">
-        @if (Model.Results.Any())
+        @if (!Model.Results.Any())
         {
             <p>検索結果は見つかりませんでした。</p>
         }
         else
         {
-            <div class="row">
+            <div class="row search-result">
                 @foreach (var document in Model.Results)
                 {
                     <div class="col-md-auto">
@@ -44,6 +44,29 @@
                     </div>
                 }
             </div>
+            @if (Model.TotalPages > 1)
+            {
+                <nav aria-label="ページの移動">
+                    <ul class="pagination">
+                        <li class="page-item @(string.IsNullOrEmpty(Model.Links.Prev) ? "disabled" : "")">
+                            <a class="page-link" href="@Model.Links.Prev" aria-label="前へ">
+                                <span aria-hidden="true">&laquo;</span>
+                                <span class="sr-only">前へ</span>
+                            </a>
+                        </li>
+                        @for (int i = 1; i <= Model.TotalPages; i++)
+                        {
+                            <li class="page-item"><a class="page-link @(i == Model.Page ? "active" : "" )" href="@(Model.Links.ForPage(i))">@i</a></li>
+                        }
+                        <li class="page-item @(string.IsNullOrEmpty(Model.Links.Next) ? "disabled" : "")">
+                            <a class="page-link" href="@Model.Links.Next" aria-label="次へ">
+                                <span aria-hidden="true">&raquo;</span>
+                                <span class="sr-only">次へ</span>
+                            </a>
+                        </li>
+                    </ul>
+                </nav>
+            }
         }
     </div>
 </div>

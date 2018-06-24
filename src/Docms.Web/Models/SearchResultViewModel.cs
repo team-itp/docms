@@ -10,16 +10,58 @@ namespace Docms.Web.Models
     {
         public string SearchKeyword { get; set; }
         public IEnumerable<SearchTagViewModel> SearchTags { get; set; }
+        public int Page { get; set; }
+        public int TotalPages { get; set; }
         public IEnumerable<SearchResultItemViewModel> Results { get; set; }
+        public SearchResultLinks Links { get; set; }
 
-        public static SearchResultViewModel Create(IUrlHelper url, string keyword, IEnumerable<Tag> searchTags, IEnumerable<Document> results)
+        public static SearchResultViewModel Create(
+            IUrlHelper url,
+            string keyword,
+            IEnumerable<Tag> searchTags,
+            int page,
+            int totalPages,
+            IEnumerable<Document> results)
         {
             var vm = new SearchResultViewModel()
             {
                 SearchKeyword = keyword,
                 SearchTags = searchTags.Select(t => SearchTagViewModel.Create(url, t, searchTags)),
+                Page = page,
+                TotalPages = totalPages,
                 Results = results.Select(d => SearchResultItemViewModel.Create(url, d)),
+                Links = SearchResultLinks.Create(url, keyword, searchTags, page, totalPages),
             };
+            return vm;
+        }
+    }
+
+    public class SearchResultLinks
+    {
+        private string _pageFormatTemplate;
+        public string First { get; set; }
+        public string Next { get; set; }
+        public string Prev { get; set; }
+        public string ForPage(int i)
+        {
+            return string.Format(_pageFormatTemplate, i);
+        }
+
+        public static SearchResultLinks Create(IUrlHelper url, string keyword, IEnumerable<Tag> searchTags, int page, int totalPages)
+        {
+            var tags = searchTags.Select(t => t.Id).ToArray();
+            var baseUrl = url.Action("Index", "Search", new
+            {
+                keyword,
+                tags
+            });
+            int idx = baseUrl.IndexOf('?');
+            var template = baseUrl + (idx >= 0 ? "&p={0}" : "?p={0}");
+            var vm = new SearchResultLinks();
+            vm._pageFormatTemplate = template;
+            vm.First = baseUrl;
+            vm.Prev = page > 2 ? vm.ForPage(page - 1) : null;
+            vm.Next = page < totalPages ? vm.ForPage(page + 1) : null;
             return vm;
         }
     }

@@ -11,7 +11,7 @@
 </head>
 <body>
     <nav class="navbar navbar-expand-sm navbar-dark bg-dark fixed-top">
-        <div class="container">
+        <div class="container-fluid">
             <a asp-area="" asp-controller="Home" asp-action="Index" class="navbar-brand">文書管理システム</a>
             <button class="navbar-toggler d-sm-none" type="button" data-toggle="collapse" data-target="#navbarToggler" aria-controls="navbarToggler" aria-expanded="false" aria-label="Toggle navigation">
                 <span class="navbar-toggler-icon"></span>
@@ -35,7 +35,7 @@
             </div>
         </div>
     </nav>
-    <div class="container body-content">
+    <div class="container-fluid body-content">
         @RenderBody()
         <hr />
         <footer>
