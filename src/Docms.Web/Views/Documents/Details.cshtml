@@ -10,12 +10,12 @@
 
 <div>
     <a href="@Model.Links.Blob">
-        <img src="@Model.Links.Thumbnail" alt="@Model.FileName" />
+        <img src="@Model.Links.Thumbnail" alt="@Model.FileName" class="mw-100" />
     </a>
     <dl class="dl-horizontal">
         <dt>
             @Html.DisplayNameFor(model => model.FileName)
-            <a href="@Model.Links.EditFileName" class="btn btn-light">
+            <a href="@Model.Links.EditFileName" class="badge badge-light">
                 <span title="ファイル名を変更する" class="oi oi-pencil"></span><span class="sr-only">ファイル名を変更する</span>
             </a>
         </dt>
@@ -30,24 +30,24 @@
         </dd>
         <dt>
             @Html.DisplayNameFor(model => model.Tags)
-            <a href="@Model.Links.AddTag" class="btn btn-light">
+            <a href="@Model.Links.AddTag" class="badge badge-light">
                 <span title="タグを追加する" class="oi oi-plus"></span><span class="sr-only">タグを追加する</span>
             </a>
         </dt>
         <dd>
-            @foreach(var tag in Model.Tags)
+            @foreach (var tag in Model.Tags)
             {
-                <a href="@tag.Links.List" class="btn btn-dark py-0 mr-3">
-                    @tag.Name
-                    <a href="@tag.Links.Delete" class="d-inline btn btn-light badge badge-light">
+                <div class="btn btn-dark mr-2">
+                    <span>@tag.Name</span>
+                    <a href="@tag.Links.Delete" class="badge badge-dark">
                         <span title="タグを削除する" class="oi oi-delete"></span><span class="sr-only">タグを削除する</span>
                     </a>
-                </a>
+                </div>
             }
         </dd>
     </dl>
 </div>
 <div>
-    <a href="@Model.Links.Delete" >削除する</a> |
+    <a href="@Model.Links.Delete">削除する</a> |
     <a asp-action="Index">一覧へ戻る</a>
 </div>

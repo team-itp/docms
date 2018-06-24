@@ -17,10 +17,12 @@
             {
                 <div class="col-md-auto">
                     <div class="card box-shadow my-2">
-                        <img class="card-img-top" alt="@document.FileName" src="@document.Links.Thumbnail" data-holder-rendered="true">
+                        <a href="@document.Links.Self">
+                            <img class="card-img-top" alt="@document.FileName" src="@document.Links.Thumbnail" data-holder-rendered="true">
+                        </a>
                         <div class="card-body">
-                            <p class="card-text">@document.FileName</p>
                             <div class="d-flex justify-content-between align-items-center">
+                                <p class="card-text">@document.FileName</p>
                                 <div class="btn-group">
                                     <a href="@document.Links.Self" class="btn btn-sm btn-outline-secondary">詳細</a>
                                 </div>
