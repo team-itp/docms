@@ -39,6 +39,7 @@ namespace Docms.Web.Models
     public class SearchResultLinks
     {
         private string _pageFormatTemplate;
+        public string Self { get; set; }
         public string First { get; set; }
         public string Next { get; set; }
         public string Prev { get; set; }
@@ -59,6 +60,7 @@ namespace Docms.Web.Models
             var template = baseUrl + (idx >= 0 ? "&p={0}" : "?p={0}");
             var vm = new SearchResultLinks();
             vm._pageFormatTemplate = template;
+            vm.Self = page == 1 ? baseUrl : vm.ForPage(page);
             vm.First = baseUrl;
             vm.Prev = page > 2 ? vm.ForPage(page - 1) : null;
             vm.Next = page < totalPages ? vm.ForPage(page + 1) : null;

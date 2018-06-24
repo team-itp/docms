@@ -41,7 +41,7 @@ namespace Docms.Web.Controllers
         /// <param name="id">ドキュメントID</param>
         /// <returns>ドキュメント情報</returns>
         [HttpGet("details/{id}")]
-        public async Task<IActionResult> Details(int? id)
+        public async Task<IActionResult> Details(int? id, [FromQuery(Name = "r")] string referer)
         {
             if (id == null)
             {
@@ -56,6 +56,8 @@ namespace Docms.Web.Controllers
             {
                 return NotFound();
             }
+
+            ViewData["Referer"] = referer;
 
             return View(DocumentViewModel.Create(Url, document));
         }

@@ -2,16 +2,39 @@
 
 @{
     ViewData["Title"] = Model.FileName;
+    var referer = ViewData["Referer"] as string;
 }
 
 <h2>@Model.FileName</h2>
 
 <hr />
 
+@if ((referer ?? "").ToUpperInvariant().Contains("/SEARCH"))
+{
+    <nav aria-label="breadcrumb">
+        <ol class="breadcrumb">
+            <li class="breadcrumb-item"><a href="@referer">検索結果</a></li>
+            <li class="breadcrumb-item active" aria-current="page">@Model.FileName</li>
+        </ol>
+    </nav>
+}
+
 <div>
     <a href="@Model.Links.Blob">
         <img src="@Model.Links.Thumbnail" alt="@Model.FileName" class="mw-100" />
     </a>
+
+    <div class="btn-toolbar my-2 mx-0" role="toolbar" aria-label="Toolbar with button groups">
+        <div class="btn-group" role="group" aria-label="First group">
+            <a href="@Model.Links.Blob" class="btn btn-outline-dark">
+                <span class="oi oi-data-transfer-download"></span> ダウンロード
+            </a>
+            <a href="@Model.Links.Delete" class="btn btn-outline-dark">
+                <span class="oi oi-trash"></span> 削除
+            </a>
+        </div>
+    </div>
+
     <dl class="dl-horizontal">
         <dt>
             @Html.DisplayNameFor(model => model.FileName)
@@ -34,7 +57,7 @@
                 <span title="タグを追加する" class="oi oi-plus"></span><span class="sr-only">タグを追加する</span>
             </a>
         </dt>
-        <dd>
+        <dd class="py-2">
             @foreach (var tag in Model.Tags)
             {
                 <div class="btn btn-dark mr-2">
@@ -46,8 +69,4 @@
             }
         </dd>
     </dl>
-</div>
-<div>
-    <a href="@Model.Links.Delete">削除する</a> |
-    <a asp-action="Index">一覧へ戻る</a>
 </div>
