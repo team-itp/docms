@@ -40,8 +40,8 @@ namespace Docms.Web.Controllers
         [RequestSizeLimit(100_000_000)]
         public async Task<IActionResult> Post(IFormFile file)
         {
-            await _service.UploadFileAsync(file.OpenReadStream(), Path.GetExtension(file.FileName));
-            return CreatedAtAction(nameof(Get), new { blobName = file.FileName }, new { blobName = file.FileName });
+            var blobName = await _service.UploadFileAsync(file.OpenReadStream(), Path.GetExtension(file.FileName));
+            return CreatedAtAction(nameof(Get), new {  blobName }, new {  blobName });
         }
     }
 }
