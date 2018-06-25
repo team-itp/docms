@@ -63,20 +63,20 @@ namespace Docms.Client
         public async Task CreateDocumentAsync(string localFilePath, string name, string[] tags)
         {
             var fileUploadRequest = new RestRequest(_serverUri + "blobs");
-            var blobName = Guid.NewGuid().ToString() + Path.GetExtension(name);
-            fileUploadRequest.AddFile("file", File.ReadAllBytes(localFilePath), blobName);
+            fileUploadRequest.AddFile("file", File.ReadAllBytes(localFilePath), name);
             var fileUploadResponse = await _client.ExecutePostTaskAsync(fileUploadRequest);
             if (!fileUploadResponse.IsSuccessful)
             {
                 // TODO: message
                 throw new Exception();
             }
+            var blobName = JsonConvert.DeserializeObject<FileCreatedResponse>(fileUploadResponse.Content).BlobName;
 
             var request = new RestRequest(_serverUri + "api/documents", Method.POST);
             request.AddJsonBody(new UploadDocumentRequest()
             {
                 BlobName = blobName,
-                Name = Path.GetFileName(localFilePath),
+                Name = name,
                 Tags = tags
             });
             var registResponse = await _client.ExecutePostTaskAsync(request);
