@@ -24,13 +24,28 @@
             </Style>
 
         </StackPanel.Resources>
+        <Label>担当者</Label>
         <ComboBox
-            x:Name="ProjectCombo"
+            DisplayMemberPath="Name"
+            IsEditable="True"
+            IsReadOnly="False"
+            ItemsSource="{Binding PersonInChargeChoices}"
+            SelectedItem="{Binding PersonInCharge}" />
+        <Label>顧客</Label>
+        <ComboBox
+            DisplayMemberPath="Name"
+            IsEditable="True"
+            IsReadOnly="False"
+            ItemsSource="{Binding CustomerChoices}"
+            SelectedItem="{Binding Customer}" />
+        <Label>案件</Label>
+        <ComboBox
             DisplayMemberPath="Name"
             IsEditable="True"
             IsReadOnly="False"
             ItemsSource="{Binding ProjectChoices}"
             SelectedItem="{Binding Project}" />
+        <Label>タグ</Label>
         <ComboBox
             x:Name="TagCombo"
             DisplayMemberPath="Name"

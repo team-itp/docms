@@ -58,5 +58,14 @@ namespace Docms.Uploader.Properties {
                 this["DirectoryToWatch"] = value;
             }
         }
+        
+        [global::System.Configuration.ApplicationScopedSettingAttribute()]
+        [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
+        [global::System.Configuration.DefaultSettingValueAttribute("http://localhost:51693/")]
+        public string DocmsWebEndpoint {
+            get {
+                return ((string)(this["DocmsWebEndpoint"]));
+            }
+        }
     }
 }

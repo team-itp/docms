@@ -1,4 +1,5 @@
 ﻿using Docms.Client.Models;
+using Newtonsoft.Json;
 using RestSharp;
 using System;
 using System.Collections.Generic;
@@ -31,14 +32,25 @@ namespace Docms.Client
         }
 
         /// <summary>
+        /// タグ取得
+        /// </summary>
+        /// <returns>タグ</returns>
+        public async Task<IEnumerable<TagResponse>> GetTagsAsync()
+        {
+            var request = new RestRequest(_serverUri + "api/tags");
+            var result = await _client.GetTaskAsync<List<TagResponse>>(request);
+            return result;
+        }
+
+        /// <summary>
         /// 顧客情報取得
         /// </summary>
         /// <returns>顧客情報</returns>
-        public async Task<IEnumerable<CustomerResponse>> GetCustomerAsync()
+        public async Task<IEnumerable<CustomerResponse>> GetCustomersAsync()
         {
             var request = new RestRequest(_serverUri + "api/vs/customers");
-            var result = await _client.GetTaskAsync<List<CustomerResponse>>(request);
-            return result;
+            var result = await _client.ExecuteGetTaskAsync(request);
+            return JsonConvert.DeserializeObject<List<CustomerResponse>>(result.Content);
         }
 
         /// <summary>
@@ -51,7 +63,8 @@ namespace Docms.Client
         public async Task CreateDocumentAsync(string localFilePath, string name, string[] tags)
         {
             var fileUploadRequest = new RestRequest(_serverUri + "blobs");
-            fileUploadRequest.AddFile(Guid.NewGuid().ToString() + Path.GetExtension(name), File.ReadAllBytes(localFilePath), Path.GetFileName(localFilePath));
+            var blobName = Guid.NewGuid().ToString() + Path.GetExtension(name);
+            fileUploadRequest.AddFile("file", File.ReadAllBytes(localFilePath), blobName);
             var fileUploadResponse = await _client.ExecutePostTaskAsync(fileUploadRequest);
             if (!fileUploadResponse.IsSuccessful)
             {
@@ -60,9 +73,9 @@ namespace Docms.Client
             }
 
             var request = new RestRequest(_serverUri + "api/documents", Method.POST);
-            request.AddJsonBody(new
+            request.AddJsonBody(new UploadDocumentRequest()
             {
-                Uri = fileUploadResponse.Headers.First(h => h.Name == "Location").Value,
+                BlobName = blobName,
                 Name = Path.GetFileName(localFilePath),
                 Tags = tags
             });
