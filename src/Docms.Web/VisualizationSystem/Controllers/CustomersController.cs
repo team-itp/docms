@@ -46,6 +46,7 @@ namespace Docms.Web.VisualizationSystem.Controllers
                     Projects = cso.so.Select(m => new ProjectResponse()
                     {
                         No = m.No,
+                        CustomerId = m.CustomerId,
                         Name = m.Name,
                     }).ToArray()
                 }).ToList();
