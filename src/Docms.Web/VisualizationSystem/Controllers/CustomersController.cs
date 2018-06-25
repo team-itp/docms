@@ -15,7 +15,7 @@ using System.Threading.Tasks;
 namespace Docms.Web.VisualizationSystem.Controllers
 {
     /// <summary>
-    /// VSコントローラ
+    /// VS顧客コントローラー
     /// </summary>
     [Produces("application/json")]
     [Route("api/vs/customers")]
@@ -29,7 +29,7 @@ namespace Docms.Web.VisualizationSystem.Controllers
         }
 
         [HttpGet]
-        public IEnumerable<CustomerResponse> GetCustomer()
+        public IEnumerable<CustomerResponse> GetCustomers()
         {
             return _context.Customers
                 .GroupJoin(

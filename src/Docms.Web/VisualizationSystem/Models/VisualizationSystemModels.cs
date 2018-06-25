@@ -16,7 +16,8 @@ namespace Docms.Web.VisualizationSystem.Models
 
     public class UserResponse
     {
-        public int Id { get; set; }
+        public string Id { get; set; }
+        public int? Department { get; set; }
         public string Name { get; set; }
     }
 }
