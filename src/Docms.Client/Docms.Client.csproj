@@ -54,6 +54,9 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="DocmsClient.cs" />
+    <Compile Include="Models\CustomerResponse.cs" />
+    <Compile Include="Models\ProjectResponse.cs" />
+    <Compile Include="Models\UserResponse.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>
   <ItemGroup>
