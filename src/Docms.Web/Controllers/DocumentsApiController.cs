@@ -119,13 +119,13 @@ namespace Docms.Web.Controllers
             }
 
             var service = new DocumentsService(_context);
-            var documentId = await service.CreateAsync(document.Uri, document.Name);
+            var documentId = await service.CreateAsync(document.BlobName, document.Name);
             if (document.Tags != null && document.Tags.Length > 0)
             {
                 await service.AddTagsAsync(documentId, document.Tags);
             }
 
-            return CreatedAtAction("GetDocument", new { id = documentId }, document);
+            return CreatedAtAction("GetDocument", new { id = documentId });
         }
 
         /// <summary>
@@ -201,7 +201,7 @@ namespace Docms.Web.Controllers
 
     public class UploadDocumentRequest
     {
-        public string Uri { get; set; }
+        public string BlobName { get; set; }
         public string Name { get; set; }
         public string[] Tags { get; set; } = new string[0];
     }

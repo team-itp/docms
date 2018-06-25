@@ -168,7 +168,7 @@ namespace Docms.Web.Controllers
                         throw;
                     }
                 }
-                return RedirectToAction(nameof(Details), new { id = id });
+                return RedirectToAction(nameof(Details), new { id });
             }
             return View(document);
         }
@@ -238,7 +238,7 @@ namespace Docms.Web.Controllers
                         throw;
                     }
                 }
-                return RedirectToAction(nameof(Details), new { id = id });
+                return RedirectToAction(nameof(Details), new { id });
             }
             return View(document);
         }
@@ -295,7 +295,7 @@ namespace Docms.Web.Controllers
         {
             var service = new DocumentsService(_context);
             await service.RemoveTagsByIdAsync(id, new[] { tagId });
-            return RedirectToAction(nameof(Details), new { id = id });
+            return RedirectToAction(nameof(Details), new { id });
         }
 
         /// <summary>

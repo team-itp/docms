@@ -17,7 +17,7 @@ namespace Docms.Web.IntegrationTests.MvcEndpoints
         }
 
         [TestMethod]
-        public async Task documents_エンドポイントのリクエストが200番台のステータスを返却する()
+        public async Task Documents_エンドポイントのリクエストが200番台のステータスを返却する()
         {
             var client = _factory.CreateClient();
             var response = await client.GetAsync("/documents");

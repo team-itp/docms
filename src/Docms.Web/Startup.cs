@@ -5,6 +5,7 @@ using System.Threading.Tasks;
 using Docms.Web.Config;
 using Docms.Web.Data;
 using Docms.Web.Services;
+using Docms.Web.VisualizationSystem.Data;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.EntityFrameworkCore;
@@ -30,6 +31,11 @@ namespace Docms.Web
             services.AddDbContext<DocmsDbContext>(options =>
             {
                 options.UseSqlite("Data Source=App_Data\\data.db");
+            });
+
+            services.AddDbContext<VisualizationSystemDBContext>(options =>
+            {
+                options.UseSqlite("Data Source=App_Data\\vs.db");
             });
 
             services.Configure<StorageSettings>(Configuration.GetSection("StorageSettings"));

@@ -6,7 +6,9 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Docms.Web", "Docms.Web\Docm
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Docms.Web.Tests", "Docms.Web.Tests\Docms.Web.Tests.csproj", "{CFD2A881-3866-407D-AF8B-6A450414D7AE}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Docms.Web.IntegrationTests", "Docms.Web.IntegrationTests\Docms.Web.IntegrationTests.csproj", "{DB178F7D-FE96-4BC1-A891-2442DB6D78A1}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Docms.Web.IntegrationTests", "Docms.Web.IntegrationTests\Docms.Web.IntegrationTests.csproj", "{DB178F7D-FE96-4BC1-A891-2442DB6D78A1}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Docms.Web.VisualizationSystem", "Docms.Web.VisualizationSystem\Docms.Web.VisualizationSystem.csproj", "{67823D72-8D37-4426-ADED-0392C4B2C78B}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -54,6 +56,18 @@ Global
 		{DB178F7D-FE96-4BC1-A891-2442DB6D78A1}.Release|x64.Build.0 = Release|Any CPU
 		{DB178F7D-FE96-4BC1-A891-2442DB6D78A1}.Release|x86.ActiveCfg = Release|Any CPU
 		{DB178F7D-FE96-4BC1-A891-2442DB6D78A1}.Release|x86.Build.0 = Release|Any CPU
+		{67823D72-8D37-4426-ADED-0392C4B2C78B}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{67823D72-8D37-4426-ADED-0392C4B2C78B}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{67823D72-8D37-4426-ADED-0392C4B2C78B}.Debug|x64.ActiveCfg = Debug|Any CPU
+		{67823D72-8D37-4426-ADED-0392C4B2C78B}.Debug|x64.Build.0 = Debug|Any CPU
+		{67823D72-8D37-4426-ADED-0392C4B2C78B}.Debug|x86.ActiveCfg = Debug|Any CPU
+		{67823D72-8D37-4426-ADED-0392C4B2C78B}.Debug|x86.Build.0 = Debug|Any CPU
+		{67823D72-8D37-4426-ADED-0392C4B2C78B}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{67823D72-8D37-4426-ADED-0392C4B2C78B}.Release|Any CPU.Build.0 = Release|Any CPU
+		{67823D72-8D37-4426-ADED-0392C4B2C78B}.Release|x64.ActiveCfg = Release|Any CPU
+		{67823D72-8D37-4426-ADED-0392C4B2C78B}.Release|x64.Build.0 = Release|Any CPU
+		{67823D72-8D37-4426-ADED-0392C4B2C78B}.Release|x86.ActiveCfg = Release|Any CPU
+		{67823D72-8D37-4426-ADED-0392C4B2C78B}.Release|x86.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
