@@ -13,6 +13,7 @@ namespace Docms.Web.VisualizationSystem.Data
         public VisualizationSystemDBContext(DbContextOptions<VisualizationSystemDBContext> options)
             : base(options)
         {
+            Database.EnsureCreated();
         }
 
         public virtual DbSet<Company> Companies { get; set; }
@@ -35,7 +36,7 @@ namespace Docms.Web.VisualizationSystem.Data
         public virtual DbSet<SalesGoals> SalesGoals { get; set; }
         public virtual DbSet<SalesOrders> SalesOrders { get; set; }
         public virtual DbSet<Suppliers> Suppliers { get; set; }
-        public virtual DbSet<TaxRatio> TaxRatios { get;set;}
+        public virtual DbSet<TaxRatio> TaxRatios { get; set; }
         public virtual DbSet<Teams> Teams { get; set; }
         public virtual DbSet<Users> Users { get; set; }
 
@@ -43,7 +44,7 @@ namespace Docms.Web.VisualizationSystem.Data
         {
             modelBuilder.Entity<Company>(entity =>
             {
-                entity.ToTable("Company");
+                entity.HasKey(e => new { e.Name });
             });
 
             modelBuilder.Entity<Costs>(entity =>
@@ -438,6 +439,7 @@ namespace Docms.Web.VisualizationSystem.Data
 
             modelBuilder.Entity<TaxRatio>(entity =>
             {
+                entity.HasKey(e => new { e.From, e.To });
                 entity.Property(e => e.Ratio)
                     .HasColumnName("TaxRatio");
             });

@@ -16,4 +16,8 @@
     <Folder Include="App_Data\" />
   </ItemGroup>
 
+  <ItemGroup>
+    <ProjectReference Include="..\Docms.Web.VisualizationSystem\Docms.Web.VisualizationSystem.csproj" />
+  </ItemGroup>
+
 </Project>
