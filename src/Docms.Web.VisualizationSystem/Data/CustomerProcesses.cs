@@ -1,7 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 
-namespace Docms.Web.VisualizationSystem.Models
+namespace Docms.Web.VisualizationSystem.Data
 {
     public partial class CustomerProcesses
     {

@@ -2,7 +2,7 @@
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata;
 
-namespace Docms.Web.VisualizationSystem.Models
+namespace Docms.Web.VisualizationSystem.Data
 {
     public partial class VisualizationSystemDBContext : DbContext
     {
