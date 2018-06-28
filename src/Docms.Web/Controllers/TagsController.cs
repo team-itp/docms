@@ -1,4 +1,5 @@
 ﻿using Docms.Web.Data;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using System.Linq;
@@ -6,6 +7,7 @@ using System.Threading.Tasks;
 
 namespace Docms.Web.Controllers
 {
+    [Authorize]
     public class TagsController : Controller
     {
         private readonly DocmsDbContext _context;

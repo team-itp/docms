@@ -1,5 +1,6 @@
 ﻿using Docms.Web.Data;
 using Docms.Web.Models;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using System.Linq;
@@ -8,6 +9,7 @@ using System.Threading.Tasks;
 namespace Docms.Web.Controllers
 {
     [Route("search")]
+    [Authorize]
     public class SearchController : Controller
     {
         private const int CONTENT_PER_PAGE = 10;

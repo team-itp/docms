@@ -1,16 +1,21 @@
 ﻿using Docms.Web.Models;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using System.Diagnostics;
 
 namespace Docms.Web.Controllers
 {
+    [Authorize]
+    [Route("")]
     public class HomeController : Controller
     {
+        [HttpGet]
         public IActionResult Index()
         {
             return View();
         }
 
+        [HttpGet("about")]
         public IActionResult About()
         {
             ViewData["Message"] = "Your application description page.";
@@ -18,6 +23,7 @@ namespace Docms.Web.Controllers
             return View();
         }
 
+        [HttpGet("contact")]
         public IActionResult Contact()
         {
             ViewData["Message"] = "Your contact page.";

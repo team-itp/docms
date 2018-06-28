@@ -1,4 +1,5 @@
 using Docms.Web.Services;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Http.Features;
 using Microsoft.AspNetCore.Mvc;
@@ -12,8 +13,11 @@ namespace Docms.Web.Controllers
     /// <summary>
     /// 管理コントローラ
     /// </summary>
+    [Authorize]
+    [Route("admin")]
     public class AdminController : Controller
     {
+        [HttpGet]
         public IActionResult Index()
         {
             return View();

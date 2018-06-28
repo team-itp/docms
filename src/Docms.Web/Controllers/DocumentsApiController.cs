@@ -1,6 +1,7 @@
 ﻿using Docms.Web.Data;
 using Docms.Web.Models;
 using Docms.Web.Services;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
@@ -13,6 +14,7 @@ namespace Docms.Web.Controllers
     /// <summary>
     /// ドキュメント情報 API コントローラー
     /// </summary>
+    [Authorize]
     [Produces("application/json")]
     [Route("api/documents")]
     public class DocumentsApiController : Controller

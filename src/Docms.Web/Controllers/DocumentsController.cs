@@ -1,6 +1,7 @@
 ﻿using Docms.Web.Data;
 using Docms.Web.Models;
 using Docms.Web.Services;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Rendering;
 using Microsoft.EntityFrameworkCore;
@@ -13,6 +14,7 @@ namespace Docms.Web.Controllers
     /// <summary>
     /// ドキュメント情報コントローラー
     /// </summary>
+    [Authorize]
     [Route("documents")]
     public class DocumentsController : Controller
     {

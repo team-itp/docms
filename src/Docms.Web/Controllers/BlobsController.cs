@@ -1,4 +1,5 @@
 ﻿using Docms.Web.Services;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.StaticFiles;
@@ -10,6 +11,7 @@ namespace Docms.Web.Controllers
     /// <summary>
     /// ドキュメント取得 (AzureStorageのWrapper)
     /// </summary>
+    [Authorize]
     [Route("blobs")]
     public class BlobsController : Controller
     {
