@@ -1,13 +1,26 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
-using Microsoft.AspNetCore.Identity;
 
 namespace Docms.Web.Models
 {
-    // Add profile data for application users by adding properties to the ApplicationUser class
-    public class ApplicationUser : IdentityUser
+    public class ApplicationUser
     {
+        public ApplicationUser(string accountName)
+        {
+            AccountName = accountName;
+        }
+
+        public string Id { get; set; }
+        public string Name { get; set; }
+        public string AccountName { get; set; }
+        public string PasswordHash { get; set; }
+        public int Rank { get; set; }
+        public int? Department { get; set; }
+        public string TeamId { get; set; }
+    }
+
+    public class ApplicationRole
+    {
+        public Guid Id { get; set; }
+        public string Name { get; set; }
     }
 }

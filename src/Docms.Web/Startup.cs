@@ -1,8 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
-using Docms.Web.Config;
+﻿using Docms.Web.Config;
 using Docms.Web.Data;
 using Docms.Web.Models;
 using Docms.Web.Services;
@@ -33,8 +29,10 @@ namespace Docms.Web
             services.AddDbContext<VisualizationSystemDBContext>(options =>
                 options.UseSqlite(Configuration.GetConnectionString("VisualizationSystemConnection")));
 
-            services.AddIdentity<ApplicationUser, IdentityRole>()
-                .AddEntityFrameworkStores<DocmsDbContext>()
+            services.AddTransient<IUserStore<ApplicationUser>, InMemoryUserStore>();
+            services.AddTransient<IRoleStore<ApplicationRole>, InMemoryRoleStore>();
+
+            services.AddIdentity<ApplicationUser, ApplicationRole>()
                 .AddDefaultTokenProviders();
 
             services.Configure<StorageSettings>(Configuration.GetSection("StorageSettings"));
