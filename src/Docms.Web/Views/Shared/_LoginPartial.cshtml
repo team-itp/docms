@@ -20,12 +20,9 @@
                 <span class="oi oi-cog"></span><span class="d-sm-none pl-2">設定</span>
             </a>
         </li>
-        <li class="">
-            <a asp-area="" asp-controller="Manage" asp-action="Index" title="Manage">Hello @UserManager.GetUserName(User)!</a>
-        </li>
-        <li>
+        <li class="nav-item">
             <form asp-area="" asp-controller="Account" asp-action="Logout" method="post" id="logoutForm" class="navbar-right">
-                <button type="submit" class="btn btn-link navbar-btn navbar-link">Log out</button>
+                <button type="submit" class="btn btn-outline-secondary">ログアウト</button>
             </form>
         </li>
     </ul>

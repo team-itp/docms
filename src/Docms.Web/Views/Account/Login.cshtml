@@ -6,16 +6,15 @@
 @inject Microsoft.AspNetCore.Identity.SignInManager<ApplicationUser> SignInManager
 
 @{
-    ViewData["Title"] = "Log in";
+    ViewData["Title"] = "ログイン";
 }
 
 <h2>@ViewData["Title"]</h2>
 <div class="row">
     <div class="col-md-6">
+        <hr />
         <section>
             <form asp-route-returnurl="@ViewData["ReturnUrl"]" method="post">
-                <h4>Use a local account to log in.</h4>
-                <hr />
                 <div asp-validation-summary="All" class="text-danger"></div>
                 <div class="form-group">
                     <label asp-for="AccountName"></label>
@@ -36,7 +35,7 @@
                     </div>
                 </div>
                 <div class="form-group">
-                    <button type="submit" class="btn btn-success">Log in</button>
+                    <button type="submit" class="btn btn-success">ログイン</button>
                 </div>
             </form>
         </section>
