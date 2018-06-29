@@ -1,6 +1,7 @@
 ﻿using Docms.Web.Data;
 using Docms.Web.Models;
 using Docms.Web.Services;
+using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
@@ -14,7 +15,7 @@ namespace Docms.Web.Controllers
     /// <summary>
     /// ドキュメント情報 API コントローラー
     /// </summary>
-    [Authorize]
+    [Authorize(AuthenticationSchemes = JwtBearerDefaults.AuthenticationScheme)]
     [Produces("application/json")]
     [Route("api/documents")]
     public class DocumentsApiController : Controller

@@ -3,6 +3,7 @@ using Docms.Web.Data;
 using Docms.Web.Models;
 using Docms.Web.Services;
 using Docms.Web.VisualizationSystem.Data;
+using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Identity;
@@ -34,7 +35,6 @@ namespace Docms.Web
             services.AddTransient<IRoleStore<ApplicationRole>, InMemoryRoleStore>();
 
             services.AddIdentity<ApplicationUser, ApplicationRole>();
-
             services.ConfigureApplicationCookie(options =>
             {
                 options.Cookie.HttpOnly = true;
@@ -43,6 +43,20 @@ namespace Docms.Web
                 options.AccessDeniedPath = "/account/accessdenied";
                 options.SlidingExpiration = true;
             });
+
+            services.AddIdentityServer()
+                .AddDeveloperSigningCredential()
+                .AddInMemoryClients(IdentityConfig.GetAllClients())
+                .AddInMemoryApiResources(IdentityConfig.GetAllResources())
+                .AddAspNetIdentity<ApplicationUser>();
+
+            services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
+                .AddJwtBearer(options =>
+                {
+                    options.Authority = "http://localhost:51693/";
+                    options.Audience = "docmsapi";
+                    options.RequireHttpsMetadata = false;
+                });
 
             services.Configure<StorageSettings>(Configuration.GetSection("StorageSettings"));
             services.AddTransient<IStorageService, LocalStorageService>();
@@ -63,7 +77,7 @@ namespace Docms.Web
             }
 
             app.UseStaticFiles();
-            app.UseAuthentication();
+            app.UseIdentityServer();
             app.UseMvcWithDefaultRoute();
         }
     }
