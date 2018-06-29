@@ -30,7 +30,7 @@ namespace Docms.Web
             services.AddDbContext<VisualizationSystemDBContext>(options =>
                 options.UseSqlite(Configuration.GetConnectionString("VisualizationSystemConnection")));
 
-            services.AddTransient<IUserStore<ApplicationUser>, InMemoryUserStore>();
+            services.AddTransient<IUserStore<ApplicationUser>, VisualizationSystemUserStore>();
             services.AddTransient<IRoleStore<ApplicationRole>, InMemoryRoleStore>();
 
             services.AddIdentity<ApplicationUser, ApplicationRole>()
