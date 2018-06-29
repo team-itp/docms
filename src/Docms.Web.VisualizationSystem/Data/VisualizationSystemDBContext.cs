@@ -1,6 +1,6 @@
-﻿using System;
-using Microsoft.EntityFrameworkCore;
-using Microsoft.EntityFrameworkCore.Metadata;
+﻿using Microsoft.EntityFrameworkCore;
+using System;
+using System.Linq;
 
 namespace Docms.Web.VisualizationSystem.Data
 {
@@ -15,23 +15,30 @@ namespace Docms.Web.VisualizationSystem.Data
         {
             Database.EnsureCreated();
 
-            var team1 = new Data.Teams() {
-                Id = Guid.NewGuid().ToString(),
-                Name = "営業１課",
-                Department = 1,
-            };
-            Teams.Add(team1);
-            Users.Add(new Data.Users() {
-                Id = Guid.NewGuid().ToString(),
-                Name = "Test User",
-                AccountName = "testuser",
-                Password = "Passw0rd",
-                Rank = 1,
-                Department = team1.Department,
-                TeamId = team1.Id,
-                Theme = 0,
-                Obsolete = false,
-            });
+            if (!Teams.Any())
+            {
+                var team1 = new Teams()
+                {
+                    Id = Guid.NewGuid().ToString(),
+                    Name = "営業１課",
+                    Department = 1,
+                };
+                Teams.Add(team1);
+                Users.Add(new Users()
+                {
+                    Id = Guid.NewGuid().ToString(),
+                    Name = "Test User",
+                    AccountName = "testuser",
+                    Password = "Passw0rd",
+                    Rank = 1,
+                    Department = team1.Department,
+                    TeamId = team1.Id,
+                    Theme = 0,
+                    Obsolete = false,
+                });
+                SaveChanges();
+
+            }
         }
 
         public virtual DbSet<Company> Companies { get; set; }

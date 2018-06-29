@@ -33,8 +33,7 @@ namespace Docms.Web
             services.AddTransient<IUserStore<ApplicationUser>, VisualizationSystemUserStore>();
             services.AddTransient<IRoleStore<ApplicationRole>, InMemoryRoleStore>();
 
-            services.AddIdentity<ApplicationUser, ApplicationRole>()
-                .AddDefaultTokenProviders();
+            services.AddIdentity<ApplicationUser, ApplicationRole>();
 
             services.ConfigureApplicationCookie(options =>
             {
