@@ -13,5 +13,6 @@ namespace Docms.Uploader
     /// </summary>
     public partial class App : Application
     {
+
     }
 }

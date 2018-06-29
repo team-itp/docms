@@ -1,4 +1,6 @@
-﻿using Docms.Client.Models;
+﻿using IdentityModel;
+using IdentityModel.Client;
+using Docms.Client.Models;
 using Newtonsoft.Json;
 using RestSharp;
 using System;
@@ -12,12 +14,29 @@ namespace Docms.Client
     public class DocmsClient
     {
         private string _serverUri;
+        private string _accessToken;
         private RestClient _client;
 
         public DocmsClient(string uri)
         {
             _serverUri = uri.EndsWith("/") ? uri : uri + "/";
             _client = new RestClient(uri);
+        }
+
+        public async Task LoginAsync(string username, string password)
+        {
+            var discoveryClient = new DiscoveryClient(new Uri(_serverUri).GetLeftPart(UriPartial.Authority).ToString());
+            discoveryClient.Policy.RequireHttps = false;
+            var doc = await discoveryClient.GetAsync();
+
+            var tokenEndpoint = doc.TokenEndpoint;
+            var client = new TokenClient(
+                tokenEndpoint,
+                "docms-client",
+                "docms-client-secret");
+
+            var response = await client.RequestResourceOwnerPasswordAsync(username, password, "docmsapi");
+            _accessToken = response.AccessToken;
         }
 
         /// <summary>
@@ -27,6 +46,7 @@ namespace Docms.Client
         public async Task<IEnumerable<UserResponse>> GetUsersAsync()
         {
             var request = new RestRequest(_serverUri + "api/vs/users");
+            request.AddHeader("Authorization", "Bearer " + _accessToken);
             var result = await _client.GetTaskAsync<List<UserResponse>>(request);
             return result;
         }
@@ -38,6 +58,7 @@ namespace Docms.Client
         public async Task<IEnumerable<TagResponse>> GetTagsAsync()
         {
             var request = new RestRequest(_serverUri + "api/tags");
+            request.AddHeader("Authorization", "Bearer " + _accessToken);
             var result = await _client.GetTaskAsync<List<TagResponse>>(request);
             return result;
         }
@@ -49,6 +70,7 @@ namespace Docms.Client
         public async Task<IEnumerable<CustomerResponse>> GetCustomersAsync()
         {
             var request = new RestRequest(_serverUri + "api/vs/customers");
+            request.AddHeader("Authorization", "Bearer " + _accessToken);
             var result = await _client.ExecuteGetTaskAsync(request);
             return JsonConvert.DeserializeObject<List<CustomerResponse>>(result.Content);
         }
@@ -63,7 +85,8 @@ namespace Docms.Client
         public async Task CreateDocumentAsync(string localFilePath, string name, string[] tags)
         {
             var fileUploadRequest = new RestRequest(_serverUri + "blobs");
-            fileUploadRequest.AddFile("file", File.ReadAllBytes(localFilePath), name);
+            fileUploadRequest.AddHeader("Authorization", "Bearer " + _accessToken);
+            fileUploadRequest.AddFile("file", File.ReadAllBytes(localFilePath), Guid.NewGuid().ToString() + Path.GetExtension(name));
             var fileUploadResponse = await _client.ExecutePostTaskAsync(fileUploadRequest);
             if (!fileUploadResponse.IsSuccessful)
             {
@@ -73,6 +96,7 @@ namespace Docms.Client
             var blobName = JsonConvert.DeserializeObject<FileCreatedResponse>(fileUploadResponse.Content).BlobName;
 
             var request = new RestRequest(_serverUri + "api/documents", Method.POST);
+            request.AddHeader("Authorization", "Bearer " + _accessToken);
             request.AddJsonBody(new UploadDocumentRequest()
             {
                 BlobName = blobName,

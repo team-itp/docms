@@ -80,9 +80,22 @@ namespace Docms.Uploader.Upload
             SelectedMediaFiles = new MediaFilesCollection();
             SelectedTags = new TagsCollection();
             Loading = true;
-            var service = new DocmsClient(Settings.Default.DocmsWebEndpoint);
+            InitializeAsync().ContinueWith(t =>
+            {
+                if (t.IsCompleted)
+                {
+                    Loading = false;
+                }
+            });
+        }
+
+        private async Task InitializeAsync()
+        {
+            var scheduler = TaskScheduler.FromCurrentSynchronizationContext();
+            var client = new DocmsClient(Settings.Default.DocmsWebEndpoint);
+            await client.LoginAsync(Settings.Default.UserId, Settings.Default.PasswordHash).ConfigureAwait(false);
             var tasks = new List<Task>();
-            tasks.Add(service.GetCustomersAsync().ContinueWith(t =>
+            tasks.Add(client.GetCustomersAsync().ContinueWith(t =>
             {
                 if (t.IsCompleted)
                 {
@@ -91,8 +104,8 @@ namespace Docms.Uploader.Upload
                         CustomerChoices.Add(c);
                     }
                 }
-            }, TaskScheduler.FromCurrentSynchronizationContext()));
-            tasks.Add(service.GetUsersAsync().ContinueWith(t =>
+            }, scheduler));
+            tasks.Add(client.GetUsersAsync().ContinueWith(t =>
             {
                 if (t.IsCompleted)
                 {
@@ -101,8 +114,8 @@ namespace Docms.Uploader.Upload
                         PersonInChargeChoices.Add(u);
                     }
                 }
-            }, TaskScheduler.FromCurrentSynchronizationContext()));
-            tasks.Add(service.GetTagsAsync().ContinueWith(t =>
+            }, scheduler));
+            tasks.Add(client.GetTagsAsync().ContinueWith(t =>
             {
                 if (t.IsCompleted)
                 {
@@ -111,15 +124,8 @@ namespace Docms.Uploader.Upload
                         TagChoices.Add(new Tag(tag.Id, tag.Name));
                     }
                 }
-            }, TaskScheduler.FromCurrentSynchronizationContext()));
-
-            Task.WhenAll(tasks).ContinueWith(t =>
-            {
-                if (t.IsCompleted)
-                {
-                    Loading = false;
-                }
-            });
+            }, scheduler));
+            await Task.WhenAll(tasks);
         }
 
         public void SelectFile(MediaFile file)
@@ -134,6 +140,7 @@ namespace Docms.Uploader.Upload
         public async Task Upload()
         {
             var client = new DocmsClient(Settings.Default.DocmsWebEndpoint);
+            await client.LoginAsync("testuser", "Passw0rd");
             var tags = SelectedTags.Select(t => t.Name).ToList();
             if (PersonInCharge != null)
             {
