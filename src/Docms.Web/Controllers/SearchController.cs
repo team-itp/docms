@@ -57,7 +57,7 @@ namespace Docms.Web.Controllers
                 documents = documents.Skip((page.Value - 1) * CONTENT_PER_PAGE);
             }
 
-            documents.Take(CONTENT_PER_PAGE);
+            documents = documents.Take(CONTENT_PER_PAGE);
 
             var searchTags = _context
                 .Tags
