@@ -1,4 +1,5 @@
 ﻿using Docms.Web.Services;
+using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
@@ -12,6 +13,7 @@ namespace Docms.Web.Controllers
     /// ドキュメント取得 (AzureStorageのWrapper)
     /// </summary>
     [Authorize]
+    [Authorize(AuthenticationSchemes = JwtBearerDefaults.AuthenticationScheme)]
     [Route("blobs")]
     public class BlobsController : Controller
     {
@@ -43,7 +45,7 @@ namespace Docms.Web.Controllers
         public async Task<IActionResult> Post(IFormFile file)
         {
             var blobName = await _service.UploadFileAsync(file.OpenReadStream(), Path.GetExtension(file.FileName));
-            return CreatedAtAction(nameof(Get), new {  blobName }, new {  blobName });
+            return CreatedAtAction(nameof(Get), new { blobName }, new { blobName });
         }
     }
 }
