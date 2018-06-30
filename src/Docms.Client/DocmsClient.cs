@@ -1,12 +1,10 @@
-﻿using IdentityModel;
+﻿using Docms.Client.Models;
 using IdentityModel.Client;
-using Docms.Client.Models;
 using Newtonsoft.Json;
 using RestSharp;
 using System;
 using System.Collections.Generic;
 using System.IO;
-using System.Linq;
 using System.Threading.Tasks;
 
 namespace Docms.Client
@@ -86,7 +84,7 @@ namespace Docms.Client
         {
             var fileUploadRequest = new RestRequest(_serverUri + "blobs");
             fileUploadRequest.AddHeader("Authorization", "Bearer " + _accessToken);
-            fileUploadRequest.AddFile("file", File.ReadAllBytes(localFilePath), Guid.NewGuid().ToString() + Path.GetExtension(name));
+            fileUploadRequest.AddFile("file", File.ReadAllBytes(localFilePath), name);
             var fileUploadResponse = await _client.ExecutePostTaskAsync(fileUploadRequest);
             if (!fileUploadResponse.IsSuccessful)
             {

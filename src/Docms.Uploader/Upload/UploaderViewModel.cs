@@ -140,7 +140,7 @@ namespace Docms.Uploader.Upload
         public async Task Upload()
         {
             var client = new DocmsClient(Settings.Default.DocmsWebEndpoint);
-            await client.LoginAsync("testuser", "Passw0rd");
+            await client.LoginAsync(Settings.Default.UserId, Settings.Default.PasswordHash).ConfigureAwait(false);
             var tags = SelectedTags.Select(t => t.Name).ToList();
             if (PersonInCharge != null)
             {
