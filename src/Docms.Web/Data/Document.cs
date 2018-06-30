@@ -17,6 +17,7 @@ namespace Docms.Web.Data
         public DateTime UploadedAt { get; set; }
 
         public virtual ICollection<DocumentTag> Tags { get; set; }
+        public virtual ICollection<DocumentMeta> Metadata { get; set; }
 
         public void AddTag(Tag tag)
         {
@@ -37,5 +38,13 @@ namespace Docms.Web.Data
         public int DocumentId { get; set; }
         public int TagId { get; set; }
         public virtual Tag Tag { get; set; }
+    }
+
+    public class DocumentMeta
+    {
+        public int Id { get; set; }
+        public int DocumentId { get; set; }
+        public string MetaKey { get; set; }
+        public string MetaValue { get; set; }
     }
 }

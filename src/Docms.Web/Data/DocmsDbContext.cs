@@ -1,4 +1,5 @@
 using Microsoft.EntityFrameworkCore;
+using System.Linq;
 
 namespace Docms.Web.Data
 {
@@ -13,6 +14,40 @@ namespace Docms.Web.Data
         public DocmsDbContext(DbContextOptions<DocmsDbContext> options) : base(options)
         {
             Database.EnsureCreated();
+
+            if (!Tags.Any())
+            {
+                var tag1 = new Tag()
+                {
+                    Name = "タグ1",
+                };
+                tag1["category"] = "タグカテゴリー1";
+                tag1["category_order"] = "1";
+                tag1["category_tag_order"] = "1";
+                Tags.Add(tag1);
+                TagMeta.AddRange(tag1.Metadata);
+
+                var tag2 = new Tag()
+                {
+                    Name = "タグ2",
+                };
+                tag2["category"] = "タグカテゴリー1";
+                tag2["category_order"] = "1";
+                tag2["category_tag_order"] = "2";
+                Tags.Add(tag2);
+                TagMeta.AddRange(tag2.Metadata);
+
+                var tag3 = new Tag()
+                {
+                    Name = "タグ3",
+                };
+                tag3["category"] = "タグカテゴリー2";
+                tag3["category_order"] = "2";
+                tag3["category_tag_order"] = "1";
+                Tags.Add(tag3);
+                TagMeta.AddRange(tag3.Metadata);
+                SaveChanges();
+            }
         }
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
@@ -21,23 +56,16 @@ namespace Docms.Web.Data
 
             modelBuilder.Entity<DocumentTag>()
                 .HasKey(t => new { t.DocumentId, t.TagId });
-
-            modelBuilder.Entity<TagGroupTag>()
-                .HasKey(t => new { t.TagGroupId, t.TagId });
-
-            modelBuilder.Entity<TagSearchTag>()
-                .HasKey(t => new { t.TagSearchCategoryId, t.TagId });
         }
+
+        public DbSet<User> User { get; set; }
+        public DbSet<UserMeta> UserMeta { get; set; }
 
         public DbSet<Document> Documents { get; set; }
         public DbSet<DocumentTag> DocumentTags { get; set; }
+        public DbSet<DocumentMeta> DocumentMeta { get; set; }
 
         public DbSet<Tag> Tags { get; set; }
-
-        public DbSet<TagGroup> TagGroups { get; set; }
-        public DbSet<TagGroupTag> TagGroupTags { get; set; }
-
-        public DbSet<TagSearchCategory> TagSearchCategories { get; set; }
-        public DbSet<TagSearchTag> TagSearchTags { get; set; }
+        public DbSet<TagMeta> TagMeta { get; set; }
     }
 }

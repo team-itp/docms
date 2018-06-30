@@ -71,16 +71,15 @@ namespace Docms.Web.Controllers
         {
             var tagSelection = new TagSelectionsViewModel()
             {
-                Panels = _context.TagSearchCategories
-                    .Include(e => e.Tags)
-                    .ThenInclude(e => e.Tag)
-                    .Where(e => e.Tags.Any())
-                    .OrderBy(e => e.Seq)
-                    .Select(tg => new TagSelection()
+                Panels = _context.Tags
+                    .Include(e => e.Metadata)
+                    .Where(e => e.Metadata.HasKey("category"))
+                    .OrderBy(eg => int.Parse(eg.Metadata.ValueForKey("category_order")))
+                    .GroupBy(e => e.Metadata.ValueForKey("category"))
+                    .Select(e => new TagSelection()
                     {
-                        Title = tg.Name,
-                        Tags = tg.Tags.OrderBy(tgt => tgt.Seq)
-                            .Select(tgt => tgt.Tag)
+                        Title = e.Key,
+                        Tags = e.OrderBy(eg => int.Parse(eg.Metadata.ValueForKey("category_tag_order")))
                             .ToList()
                     })
                     .ToList()
