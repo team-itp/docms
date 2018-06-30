@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 using System.Linq;
 
@@ -17,10 +18,15 @@ namespace Docms.Web.Data
 
         public string this[string key]
         {
-            get { return Metadata.FirstOrDefault(m => m.MetaKey == key)?.MetaValue; }
+            get { return Metadata.ValueForKey(key); }
             set
             {
-                var meta = Metadata.FirstOrDefault(m => m.MetaKey == key);
+                if (string.IsNullOrEmpty(key))
+                {
+                    throw new ArgumentNullException(nameof(key));
+                }
+
+                var meta = Metadata.FindForKey(key);
                 if (meta == null)
                 {
                     if (!string.IsNullOrEmpty(value))
@@ -63,9 +69,14 @@ namespace Docms.Web.Data
             return meta.Any(m => m.MetaKey == key);
         }
 
+        public static TagMeta FindForKey(this IEnumerable<TagMeta> meta, string key)
+        {
+            return meta.FirstOrDefault(m => m.MetaKey == key);
+        }
+
         public static string ValueForKey(this IEnumerable<TagMeta> meta, string key)
         {
-            return meta.FirstOrDefault(m => m.MetaKey == key).MetaValue;
+            return meta.FindForKey(key)?.MetaValue;
         }
     }
 }

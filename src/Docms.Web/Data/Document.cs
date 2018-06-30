@@ -31,6 +31,43 @@ namespace Docms.Web.Data
                 });
             }
         }
+
+        public string this[string key]
+        {
+            get { return Metadata.ValueForKey(key); }
+            set
+            {
+                if (string.IsNullOrEmpty(key))
+                {
+                    throw new ArgumentNullException(nameof(key));
+                }
+
+                var meta = Metadata.FindForKey(key);
+                if (meta == null)
+                {
+                    if (!string.IsNullOrEmpty(value))
+                    {
+                        Metadata.Add(new DocumentMeta()
+                        {
+                            DocumentId = Id,
+                            MetaKey = key,
+                            MetaValue = value
+                        });
+                    }
+                }
+                else
+                {
+                    if (string.IsNullOrEmpty(value))
+                    {
+                        Metadata.Remove(meta);
+                    }
+                    else
+                    {
+                        meta.MetaValue = value;
+                    }
+                }
+            }
+        }
     }
 
     public class DocumentTag
@@ -46,5 +83,23 @@ namespace Docms.Web.Data
         public int DocumentId { get; set; }
         public string MetaKey { get; set; }
         public string MetaValue { get; set; }
+    }
+
+    public static class DocumentMetaExtension
+    {
+        public static bool HasKey(this IEnumerable<DocumentMeta> meta, string key)
+        {
+            return meta.Any(m => m.MetaKey == key);
+        }
+
+        public static DocumentMeta FindForKey(this IEnumerable<DocumentMeta> meta, string key)
+        {
+            return meta.FirstOrDefault(m => m.MetaKey == key);
+        }
+
+        public static string ValueForKey(this IEnumerable<DocumentMeta> meta, string key)
+        {
+            return meta.FindForKey(key)?.MetaValue;
+        }
     }
 }
