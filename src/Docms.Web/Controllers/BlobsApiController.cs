@@ -10,15 +10,15 @@ using System.Threading.Tasks;
 namespace Docms.Web.Controllers
 {
     /// <summary>
-    /// ドキュメント取得 (AzureStorageのWrapper)
+    /// ドキュメント取得(API) (AzureStorageのWrapper)
     /// </summary>
-    [Authorize]
-    [Route("blobs")]
-    public class BlobsController : Controller
+    [Authorize(AuthenticationSchemes = JwtBearerDefaults.AuthenticationScheme)]
+    [Route("api/blobs")]
+    public class BlobsApiController : Controller
     {
         private IStorageService _service;
 
-        public BlobsController(IStorageService service)
+        public BlobsApiController(IStorageService service)
         {
             _service = service;
         }
