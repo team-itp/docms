@@ -1,24 +1,70 @@
 ﻿@model Docms.Web.Data.Tag
 
 @{
-    ViewData["Title"] = "Details";
+    ViewData["Title"] = "タグ: " + Model.Name;
 }
 
-<h2>Details</h2>
+<h2>タグの詳細</h2>
 
 <div>
-    <h4>Tag</h4>
     <hr />
-    <dl class="dl-horizontal">
+    <dl class="dl-horizontal mb-4">
         <dt>
             @Html.DisplayNameFor(model => model.Name)
+            <a class="badge badge-light" asp-action="EditName" asp-route-id="@Model.Id">
+                <span class="oi oi-pencil"></span>
+                <span class="sr-only">タグの名前を変更する</span>
+            </a>
         </dt>
-        <dd>
+        <dd class="ml-2">
             @Html.DisplayFor(model => model.Name)
         </dd>
+        <dt>
+            @Html.DisplayNameFor(model => model.Metadata)
+        </dt>
+        <dd class="ml-2">
+            <table class="table table-responsive">
+                <thead class="thead-light">
+                    <tr>
+                        <th scope="col">@Html.DisplayNameFor(model => model.Metadata.First().MetaKey)</th>
+                        <th scope="col">
+                            @Html.DisplayNameFor(model => model.Metadata.First().MetaValue)
+                        </th>
+                        <th class="text-right">
+                            <a class="btn btn-sm btn-outline-dark" asp-action="AddMeta" asp-route-id="@Model.Id">
+                                <span class="oi oi-plus"></span>
+                                <span class="sr-only">メタデータを追加する</span>
+                            </a>
+                        </th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @foreach (var meta in Model.Metadata)
+                {
+                    <tr>
+                        <td>@meta.MetaKey</td>
+                        <td>
+                            @meta.MetaValue
+                        </td>
+                        <td class="text-right">
+                            <a class="btn btn-sm btn-outline-dark" asp-action="EditMeta" asp-route-id="@Model.Id" asp-route-meta-id="@meta.Id">
+                                <span class="oi oi-pencil"></span>
+                                <span class="sr-only">メタデータ編集する</span>
+                            </a>
+                            <a class="btn btn-sm btn-outline-dark" asp-action="DeleteMeta" asp-route-id="@Model.Id" asp-route-meta-id="@meta.Id">
+                                <span class="oi oi-trash"></span>
+                                <span class="sr-only">メタデータを削除する</span>
+                            </a>
+                        </td>
+                    </tr>
+            }
+                </tbody>
+            </table>
+
+        </dd>
     </dl>
+
 </div>
 <div>
-    <a asp-action="Edit" asp-route-id="@Model.Id">Edit</a> |
-    <a asp-action="Index">Back to List</a>
+    <a asp-action="Index">一覧に戻る</a>
 </div>

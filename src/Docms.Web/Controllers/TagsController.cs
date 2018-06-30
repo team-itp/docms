@@ -32,7 +32,11 @@ namespace Docms.Web.Controllers
             }
 
             var tag = await _context.Tags
+                .Include(m => m.Metadata)
                 .SingleOrDefaultAsync(m => m.Id == id);
+
+            tag.Metadata = tag.Metadata.OrderBy(m => m.MetaKey).ToList();
+
             if (tag == null)
             {
                 return NotFound();
