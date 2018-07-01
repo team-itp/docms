@@ -4,7 +4,7 @@
     ViewData["Title"] = "タグ: " + Model.Name;
 }
 
-<h2>タグの詳細</h2>
+<h2>@Model.Name <small>詳細</small></h2>
 
 <div>
     <hr />
@@ -31,7 +31,7 @@
                             @Html.DisplayNameFor(model => model.Metadata.First().MetaValue)
                         </th>
                         <th class="text-right">
-                            <a class="btn btn-sm btn-outline-dark" asp-action="AddMeta" asp-route-id="@Model.Id">
+                            <a class="btn btn-sm btn-outline-dark" asp-action="CreateMetadata" asp-route-id="@Model.Id">
                                 <span class="oi oi-plus"></span>
                                 <span class="sr-only">メタデータを追加する</span>
                             </a>
@@ -40,24 +40,24 @@
                 </thead>
                 <tbody>
                     @foreach (var meta in Model.Metadata)
-                {
-                    <tr>
-                        <td>@meta.MetaKey</td>
-                        <td>
-                            @meta.MetaValue
-                        </td>
-                        <td class="text-right">
-                            <a class="btn btn-sm btn-outline-dark" asp-action="EditMeta" asp-route-id="@Model.Id" asp-route-meta-id="@meta.Id">
-                                <span class="oi oi-pencil"></span>
-                                <span class="sr-only">メタデータ編集する</span>
-                            </a>
-                            <a class="btn btn-sm btn-outline-dark" asp-action="DeleteMeta" asp-route-id="@Model.Id" asp-route-meta-id="@meta.Id">
-                                <span class="oi oi-trash"></span>
-                                <span class="sr-only">メタデータを削除する</span>
-                            </a>
-                        </td>
-                    </tr>
-            }
+                    {
+                        <tr>
+                            <td>@meta.MetaKey</td>
+                            <td>
+                                @meta.MetaValue
+                            </td>
+                            <td class="text-right">
+                                <a class="btn btn-sm btn-outline-dark" asp-action="EditMetadataMetaValue" asp-route-id="@Model.Id" asp-route-meta-id="@meta.Id">
+                                    <span class="oi oi-pencil"></span>
+                                    <span class="sr-only">メタデータ編集する</span>
+                                </a>
+                                <a class="btn btn-sm btn-outline-dark" asp-action="DeleteMetadata" asp-route-id="@Model.Id" asp-route-meta-id="@meta.Id">
+                                    <span class="oi oi-trash"></span>
+                                    <span class="sr-only">メタデータを削除する</span>
+                                </a>
+                            </td>
+                        </tr>
+                    }
                 </tbody>
             </table>
 

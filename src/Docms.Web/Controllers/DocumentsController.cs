@@ -180,7 +180,7 @@ namespace Docms.Web.Controllers
         /// </summary>
         /// <param name="id">ドキュメントID</param>
         /// <returns></returns>
-        [HttpGet("edit/{id}/tags/add")]
+        [HttpGet("add/{id}/tags")]
         public async Task<IActionResult> AddTags(int? id)
         {
             if (id == null)
@@ -213,7 +213,7 @@ namespace Docms.Web.Controllers
         /// <param name="id">ドキュメントID</param>
         /// <param name="tags">タグ情報</param>
         /// <returns></returns>
-        [HttpPost("edit/{id}/tags/add")]
+        [HttpPost("add/{id}/tags")]
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> AddTags(int id, [Bind("Id,Tags")] AddTagsViewModel document)
         {
@@ -251,7 +251,7 @@ namespace Docms.Web.Controllers
         /// <param name="id">ドキュメントID</param>
         /// <param name="tagId">タグ名</param>
         /// <returns></returns>
-        [HttpGet("edit/{id}/tags/{tagId}/delete")]
+        [HttpGet("delete/{id}/tags/{tagId}")]
         public async Task<IActionResult> DeleteTag(int? id, int? tagId)
         {
             if (id == null || tagId == null)
@@ -291,7 +291,7 @@ namespace Docms.Web.Controllers
         /// <param name="id">ドキュメントID</param>
         /// <param name="tags">タグ情報</param>
         /// <returns></returns>
-        [HttpPost("edit/{id}/tags/{tagId}/delete")]
+        [HttpPost("delete/{id}/tags/{tagId}")]
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> DeleteTagConfirmed(int id, int tagId)
         {
