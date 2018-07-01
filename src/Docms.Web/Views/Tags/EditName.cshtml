@@ -1,0 +1,38 @@
+﻿@model EditTagNameViewModel
+
+@{
+    ViewData["Title"] = "タグ名の編集 " + Model.Name;
+}
+
+<h2>@Model.Name</h2>
+
+<h4>ファイル名を編集する</h4>
+<hr />
+<div class="row">
+    <div class="col-md-4">
+        <form asp-action="EditName">
+            <div asp-validation-summary="ModelOnly" class="text-danger"></div>
+            <input type="hidden" asp-for="Id" />
+            <div class="form-group">
+                <label asp-for="Name" class="control-label"></label>
+                <input asp-for="Name" readonly class="form-control-plaintext" />
+            </div>
+            <div class="form-group">
+                <label asp-for="EditedName" class="control-label"></label>
+                <input asp-for="EditedName" class="form-control" />
+                <span asp-validation-for="EditedName" class="text-danger"></span>
+            </div>
+            <div class="form-group">
+                <input type="submit" value="保存する" class="btn btn-success" />
+            </div>
+        </form>
+    </div>
+</div>
+
+<div>
+    <a asp-action="Details" asp-route-id="@Model.Id">戻る</a>
+</div>
+
+@section Scripts {
+    @{await Html.RenderPartialAsync("_ValidationScriptsPartial");}
+}

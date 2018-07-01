@@ -1,4 +1,5 @@
 ﻿using Docms.Web.Data;
+using Docms.Web.Models;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
@@ -103,20 +104,24 @@ namespace Docms.Web.Controllers
             {
                 return NotFound();
             }
-            return View(tag);
+            return View(new EditTagNameViewModel()
+            {
+                Id = tag.Id,
+                Name = tag.Name
+            });
         }
 
         /// <summary>
         /// タグを編集する (Post)
         /// </summary>
         /// <param name="id">タグID</param>
-        /// <param name="tag">タグ</param>
+        /// <param name="model">タグ</param>
         /// <returns>ビューリザルト</returns>
         [HttpPost("edit/{id}/name")]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> EditName(int id, [Bind("Id,Name")] Tag tag)
+        public async Task<IActionResult> EditName(int id, [Bind("Id,EditedName")] EditTagNameViewModel model)
         {
-            if (id != tag.Id)
+            if (id != model.Id)
             {
                 return NotFound();
             }
@@ -125,12 +130,14 @@ namespace Docms.Web.Controllers
             {
                 try
                 {
+                    var tag = _context.Tags.Find(id);
+                    tag.Name = model.Name;
                     _context.Update(tag);
                     await _context.SaveChangesAsync();
                 }
                 catch (DbUpdateConcurrencyException)
                 {
-                    if (!TagExists(tag.Id))
+                    if (!TagExists(model.Id))
                     {
                         return NotFound();
                     }
@@ -141,7 +148,7 @@ namespace Docms.Web.Controllers
                 }
                 return RedirectToAction(nameof(Index));
             }
-            return View(tag);
+            return View(model);
         }
 
 
