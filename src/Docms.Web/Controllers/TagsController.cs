@@ -170,30 +170,39 @@ namespace Docms.Web.Controllers
                 return NotFound();
             }
 
-            return View();
+            return View(new CreateTagMetaViewModel()
+            {
+                Id = tag.Id,
+                Name = tag.Name
+            });
         }
 
         /// <summary>
         /// タグを新たに作成する (Post)
         /// </summary>
-        /// <param name="tagMeta">タグ</param>
+        /// <param name="model">タグ</param>
         /// <returns>ビューリザルト</returns>
         [HttpPost("create/{id}/metadata")]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> CreateMetadata(int id, [Bind("TagId,MetaKey,MetaValue")] TagMeta tagMeta)
+        public async Task<IActionResult> CreateMetadata(int id, [Bind("Id,MetaKey,MetaValue")] CreateTagMetaViewModel model)
         {
-            if (id != tagMeta.Id)
+            if (id != model.Id)
             {
                 return NotFound();
             }
 
             if (ModelState.IsValid)
             {
-                _context.Add(tagMeta);
+                _context.Add(new TagMeta()
+                {
+                    TagId = model.Id,
+                    MetaKey = model.MetaKey,
+                    MetaValue = model.MetaValue
+                });
                 await _context.SaveChangesAsync();
-                return RedirectToAction(nameof(Index));
+                return RedirectToAction(nameof(Details), new { id });
             }
-            return View(tagMeta);
+            return View(model);
         }
 
         /// <summary>
@@ -226,9 +235,9 @@ namespace Docms.Web.Controllers
         /// <returns>ビューリザルト</returns>
         [HttpPost("edit/{id}/metadata/{metaId}/metavalue")]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> EditMetadataMetaValue(int? id, int? metaId, [Bind("Id,TagId,MetaKey,MetaValue")] TagMeta tagMeta)
+        public async Task<IActionResult> EditMetadataMetaValue(int? id, int? metaId, [Bind("Id,MetaId,MetaKey,MetaValue")] EditTagMetaMetaValueViewModel model)
         {
-            if (id != tagMeta.TagId || metaId != tagMeta.Id)
+            if (id != model.Id || metaId != model.MetaId)
             {
                 return NotFound();
             }
@@ -237,12 +246,14 @@ namespace Docms.Web.Controllers
             {
                 try
                 {
+                    var tagMeta = await _context.TagMeta.FindAsync(id, metaId);
+                    tagMeta.MetaValue = model.MetaValue;
                     _context.Update(tagMeta);
                     await _context.SaveChangesAsync();
                 }
                 catch (DbUpdateConcurrencyException)
                 {
-                    if (!TagMetaExists(tagMeta.TagId, tagMeta.Id))
+                    if (!TagMetaExists(model.Id, model.MetaId))
                     {
                         return NotFound();
                     }
@@ -253,7 +264,7 @@ namespace Docms.Web.Controllers
                 }
                 return RedirectToAction(nameof(Index));
             }
-            return View(tagMeta);
+            return View(model);
         }
 
         /// <summary>

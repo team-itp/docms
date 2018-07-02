@@ -74,12 +74,12 @@ namespace Docms.Web.Controllers
                 Panels = _context.Tags
                     .Include(e => e.Metadata)
                     .Where(e => e.Metadata.HasKey("category"))
-                    .OrderBy(eg => int.Parse(eg.Metadata.ValueForKey("category_order")))
+                    .OrderBy(eg => string.IsNullOrEmpty(eg.Metadata.ValueForKey("category_order")) ? int.MaxValue : int.Parse(eg.Metadata.ValueForKey("category_order")))
                     .GroupBy(e => e.Metadata.ValueForKey("category"))
                     .Select(e => new TagSelection()
                     {
                         Title = e.Key,
-                        Tags = e.OrderBy(eg => int.Parse(eg.Metadata.ValueForKey("category_tag_order")))
+                        Tags = e.OrderBy(eg => string.IsNullOrEmpty(eg.Metadata.ValueForKey("category_tag_order")) ? int.MaxValue : int.Parse(eg.Metadata.ValueForKey("category_tag_order")))
                             .ToList()
                     })
                     .ToList()
