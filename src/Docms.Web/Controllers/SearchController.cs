@@ -31,7 +31,7 @@ namespace Docms.Web.Controllers
             [FromQuery(Name = "q")]string keyword,
             [FromQuery(Name = "p")]int? page)
         {
-            FetchTagSelection();
+            await FetchTagSelection();
 
             var documents = _context.Documents
                 .Include(e => e.Tags)
@@ -67,19 +67,21 @@ namespace Docms.Web.Controllers
             return View(SearchResultViewModel.Create(Url, keyword, searchTags, page ?? 1, totalPages, await documents.ToListAsync()));
         }
 
-        private void FetchTagSelection()
+        private async Task FetchTagSelection()
         {
+            var tags = await _context.Tags
+                    .Include(e => e.Metadata)
+                    .Where(e => e.Metadata.Any(m => m.MetaKey == "category"))
+                    .ToListAsync();
             var tagSelection = new TagSelectionsViewModel()
             {
-                Panels = _context.Tags
-                    .Include(e => e.Metadata)
-                    .Where(e => e.Metadata.HasKey("category"))
-                    .OrderBy(eg => string.IsNullOrEmpty(eg.Metadata.ValueForKey("category_order")) ? int.MaxValue : int.Parse(eg.Metadata.ValueForKey("category_order")))
-                    .GroupBy(e => e.Metadata.ValueForKey("category"))
+                Panels = tags.OrderBy(eg => int.TryParse(eg["category_order"], out var order) ? order : int.MaxValue)
+                    .GroupBy(e => e["category"])
                     .Select(e => new TagSelection()
                     {
                         Title = e.Key,
-                        Tags = e.OrderBy(eg => string.IsNullOrEmpty(eg.Metadata.ValueForKey("category_tag_order")) ? int.MaxValue : int.Parse(eg.Metadata.ValueForKey("category_tag_order")))
+                        Tags = e
+                            .OrderBy(eg => int.TryParse(eg["category_tag_order"], out var order) ? order : int.MaxValue)
                             .ToList()
                     })
                     .ToList()

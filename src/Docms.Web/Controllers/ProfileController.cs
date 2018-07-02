@@ -1,17 +1,11 @@
 using Docms.Web.Data;
 using Docms.Web.Models;
-using Docms.Web.Services;
 using Microsoft.AspNetCore.Authorization;
-using Microsoft.AspNetCore.Http;
-using Microsoft.AspNetCore.Http.Features;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.AspNetCore.StaticFiles;
 using Microsoft.EntityFrameworkCore;
-using Microsoft.Extensions.Logging;
-using System.IO;
+using System.Collections.Generic;
 using System.Linq;
-using System.Threading;
 using System.Threading.Tasks;
 
 namespace Docms.Web.Controllers
@@ -42,16 +36,28 @@ namespace Docms.Web.Controllers
                 .ThenInclude(e => e.Tag)
                 .FirstOrDefaultAsync(e => e.VSUserId == appUser.Id);
 
+            var projectTags = await _context.Tags
+                .Include(e => e.Metadata)
+                .Where(e => e.Metadata.Any(m => m.MetaKey == "category"))
+                .Where(e => e.Metadata.First(m => m.MetaKey == "category").MetaValue == "案件")
+                .ToListAsync();
+
+            projectTags = projectTags
+                .OrderBy(e => int.TryParse(e["category_tag_order"], out var v) ? v : int.MaxValue)
+                .ToList();
+            ViewData["ProjectTags"] = projectTags;
+
             return View(new ProfileViewModel()
             {
                 AccountName = appUser.AccountName,
                 Name = appUser.Name,
                 DepartmentName = appUser.DepartmentName,
-                PreferredTags = user.UserPreferredTags
-                    .Select(e => new PreferredTagViewModel() {
+                PreferredTags = (user?.UserPreferredTags
+                    .Select(e => new PreferredTagViewModel()
+                    {
                         Id = e.TagId,
                         Name = e.Tag.Name
-                    }).ToList(),
+                    }) ?? new List<PreferredTagViewModel>()).ToList(),
             });
         }
 
@@ -69,6 +75,15 @@ namespace Docms.Web.Controllers
                 .Include(e => e.Metadata)
                 .Include(e => e.UserPreferredTags)
                 .FirstOrDefaultAsync(e => e.VSUserId == appUser.Id);
+            if (user == null)
+            {
+                user = new User()
+                {
+                    VSUserId = appUser.Id
+                };
+                await _context.AddAsync(user);
+                user = await _context.Users.FindAsync(user.Id);
+            }
             user.AddPreferredTag(tag);
             await _context.SaveChangesAsync();
 
@@ -89,8 +104,12 @@ namespace Docms.Web.Controllers
                 .Include(e => e.Metadata)
                 .Include(e => e.UserPreferredTags)
                 .FirstOrDefaultAsync(e => e.VSUserId == appUser.Id);
-            user.RemovePreferredTag(tag);
-            await _context.SaveChangesAsync();
+
+            if (user != null)
+            {
+                user.RemovePreferredTag(tag);
+                await _context.SaveChangesAsync();
+            }
 
             return RedirectToAction(nameof(Index));
         }

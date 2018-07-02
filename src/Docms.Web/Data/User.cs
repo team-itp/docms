@@ -9,6 +9,7 @@ namespace Docms.Web.Data
         public User()
         {
             Metadata = new List<UserMeta>();
+            UserPreferredTags = new List<UserPreferredTag>();
         }
 
         public int Id { get; set; }
