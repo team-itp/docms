@@ -131,7 +131,7 @@ namespace Docms.Web.Controllers
                 try
                 {
                     var tag = _context.Tags.Find(id);
-                    tag.Name = model.Name;
+                    tag.Name = model.EditedName;
                     _context.Update(tag);
                     await _context.SaveChangesAsync();
                 }

@@ -4,15 +4,19 @@
     ViewData["Title"] = "タグ一覧";
 }
 
-<h2>Index</h2>
+<h2>タグの一覧</h2>
+<hr />
 
 <p>
-    <a asp-action="Create">タグ一覧</a>
+    <a class="btn btn-success" asp-action="Create">
+        <span class="oi oi-plus"></span>
+        新規作成
+    </a>
 </p>
-<table class="table">
-    <thead>
+<table class="table table-light border">
+    <thead class="thead-light">
         <tr>
-            <th>
+            <th class="p-3">
                 @Html.DisplayNameFor(model => model.Name)
             </th>
             <th></th>
@@ -25,9 +29,15 @@
                 <td>
                     @Html.DisplayFor(modelItem => item.Name)
                 </td>
-                <td>
-                    <a asp-action="Details" asp-route-id="@item.Id">詳細</a> |
-                    <a asp-action="Delete" asp-route-id="@item.Id">削除</a>
+                <td class="text-right">
+                    <a class="btn btn-sm btn-outline-secondary" asp-action="Details" asp-route-id="@item.Id">
+                        <span class="oi oi-file"></span>
+                        <span class="d-none d-sm-inline">詳細</span>
+                    </a>
+                    <a class="btn btn-sm btn-outline-secondary" asp-action="Delete" asp-route-id="@item.Id">
+                        <span class="oi oi-trash"></span>
+                        <span class="d-none d-sm-inline">削除</span>
+                    </a>
                 </td>
             </tr>
         }
