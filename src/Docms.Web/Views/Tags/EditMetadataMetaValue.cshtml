@@ -1,0 +1,42 @@
+﻿@model EditTagMetaMetaValueViewModel
+
+@{
+    ViewData["Title"] = Model.Name + " メタデータの編集";
+}
+
+<h2>@Model.Name</h2>
+<h4>タグ @Model.Name のメタデータ @Model.MetaKey を編集します</h4>
+
+<div class="row">
+    <div class="col-md-6">
+        <hr />
+        <form asp-action="EditMetadataMetaValue">
+            <input type="hidden" value="@Model.Id" />
+            <input type="hidden" value="@Model.MetaId" />
+            <div asp-validation-summary="ModelOnly" class="text-danger"></div>
+            <div class="form-group">
+                <label asp-for="MetaKey" class="control-label"></label>
+                <input asp-for="MetaKey" readonly class="form-control-plaintext" />
+                <span asp-validation-for="MetaKey" class="text-danger"></span>
+            </div>
+            <div class="form-group">
+                <label asp-for="MetaValue" class="control-label"></label>
+                <input asp-for="MetaValue" readonly class="form-control-plaintext" />
+                <span asp-validation-for="MetaValue" class="text-danger"></span>
+            </div>
+            <div class="form-group">
+                <label asp-for="EditedMetaValue" class="control-label"></label>
+                <input asp-for="EditedMetaValue" class="form-control" />
+                <span asp-validation-for="EditedMetaValue" class="text-danger"></span>
+            </div>
+            <div class="form-group">
+                <button type="submit" class="btn btn-success">メタデータの編集</button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<div>
+    <a asp-action="Details" asp-route-id="@Model.Id">詳細に戻る</a>
+</div>
+

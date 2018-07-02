@@ -219,12 +219,20 @@ namespace Docms.Web.Controllers
                 return NotFound();
             }
 
-            var tag = await _context.TagMeta.SingleOrDefaultAsync(m => m.TagId == id && m.Id == metaId);
-            if (tag == null)
+            var tag = await _context.Tags.SingleOrDefaultAsync(m => m.Id == id);
+            var tagMeta = await _context.TagMeta.SingleOrDefaultAsync(m => m.TagId == id && m.Id == metaId);
+            if (tag == null || tagMeta == null)
             {
                 return NotFound();
             }
-            return View(tag);
+            return View(new EditTagMetaMetaValueViewModel()
+            {
+                Id = tag.Id,
+                Name = tag.Name,
+                MetaId = tagMeta.Id,
+                MetaKey = tagMeta.MetaKey,
+                MetaValue = tagMeta.MetaValue
+            });
         }
 
         /// <summary>
@@ -235,7 +243,7 @@ namespace Docms.Web.Controllers
         /// <returns>ビューリザルト</returns>
         [HttpPost("edit/{id}/metadata/{metaId}/metavalue")]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> EditMetadataMetaValue(int? id, int? metaId, [Bind("Id,MetaId,MetaKey,MetaValue")] EditTagMetaMetaValueViewModel model)
+        public async Task<IActionResult> EditMetadataMetaValue(int? id, int? metaId, [Bind("Id,MetaId,EditedMetaValue")] EditTagMetaMetaValueViewModel model)
         {
             if (id != model.Id || metaId != model.MetaId)
             {
@@ -246,8 +254,8 @@ namespace Docms.Web.Controllers
             {
                 try
                 {
-                    var tagMeta = await _context.TagMeta.FindAsync(id, metaId);
-                    tagMeta.MetaValue = model.MetaValue;
+                    var tagMeta = await _context.TagMeta.FirstOrDefaultAsync(m => m.TagId == id && m.Id == metaId);
+                    tagMeta.MetaValue = model.EditedMetaValue;
                     _context.Update(tagMeta);
                     await _context.SaveChangesAsync();
                 }

@@ -22,5 +22,6 @@
         public string Name { get; set; }
         public string MetaKey { get; set; }
         public string MetaValue { get; set; }
+        public string EditedMetaValue { get; set; }
     }
 }
