@@ -19,9 +19,9 @@ namespace Docms.Web.Data
             {
                 var tag1 = new Tag()
                 {
-                    Name = "ƒ^ƒO1",
+                    Name = "ã‚¿ã‚°1",
                 };
-                tag1["category"] = "ƒ^ƒOƒJƒeƒSƒŠ[1";
+                tag1["category"] = "ã‚¿ã‚°ã‚«ãƒ†ã‚´ãƒªãƒ¼1";
                 tag1["category_order"] = "1";
                 tag1["category_tag_order"] = "1";
                 Tags.Add(tag1);
@@ -29,9 +29,9 @@ namespace Docms.Web.Data
 
                 var tag2 = new Tag()
                 {
-                    Name = "ƒ^ƒO2",
+                    Name = "ã‚¿ã‚°2",
                 };
-                tag2["category"] = "ƒ^ƒOƒJƒeƒSƒŠ[1";
+                tag2["category"] = "ã‚¿ã‚°ã‚«ãƒ†ã‚´ãƒªãƒ¼1";
                 tag2["category_order"] = "1";
                 tag2["category_tag_order"] = "2";
                 Tags.Add(tag2);
@@ -39,9 +39,9 @@ namespace Docms.Web.Data
 
                 var tag3 = new Tag()
                 {
-                    Name = "ƒ^ƒO3",
+                    Name = "ã‚¿ã‚°3",
                 };
-                tag3["category"] = "ƒ^ƒOƒJƒeƒSƒŠ[2";
+                tag3["category"] = "ã‚¿ã‚°ã‚«ãƒ†ã‚´ãƒªãƒ¼2";
                 tag3["category_order"] = "2";
                 tag3["category_tag_order"] = "1";
                 Tags.Add(tag3);
@@ -54,12 +54,16 @@ namespace Docms.Web.Data
         {
             base.OnModelCreating(modelBuilder);
 
+            modelBuilder.Entity<UserPreferredTag>()
+                .HasKey(t => new { t.UserId, t.TagId });
+
             modelBuilder.Entity<DocumentTag>()
                 .HasKey(t => new { t.DocumentId, t.TagId });
         }
 
-        public DbSet<User> User { get; set; }
+        public DbSet<User> Users { get; set; }
         public DbSet<UserMeta> UserMeta { get; set; }
+        public DbSet<UserPreferredTag> UserPreferredTags { get; set; }
 
         public DbSet<Document> Documents { get; set; }
         public DbSet<DocumentTag> DocumentTags { get; set; }

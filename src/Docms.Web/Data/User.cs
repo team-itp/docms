@@ -15,6 +15,7 @@ namespace Docms.Web.Data
         public string VSUserId { get; set; }
 
         public virtual ICollection<UserMeta> Metadata { get; set; }
+        public virtual ICollection<UserPreferredTag> UserPreferredTags { get; set; }
 
         public string this[string key]
         {
@@ -52,6 +53,27 @@ namespace Docms.Web.Data
                 }
             }
         }
+
+        public void AddPreferredTag(Tag tag)
+        {
+            if (!UserPreferredTags.Any(e => e.TagId == tag.Id))
+            {
+                UserPreferredTags.Add(new UserPreferredTag()
+                {
+                    UserId = Id,
+                    TagId = tag.Id,
+                });
+            }
+        }
+
+        public void RemovePreferredTag(Tag tag)
+        {
+            var dbData = UserPreferredTags.FirstOrDefault(e => e.TagId == tag.Id);
+            if (dbData != null)
+            {
+                UserPreferredTags.Remove(dbData);
+            }
+        }
     }
 
     public class UserMeta
@@ -78,5 +100,12 @@ namespace Docms.Web.Data
         {
             return meta.FindForKey(key)?.MetaValue;
         }
+    }
+
+    public class UserPreferredTag
+    {
+        public int UserId { get; set; }
+        public int TagId { get; set; }
+        public virtual Tag Tag { get; set; }
     }
 }

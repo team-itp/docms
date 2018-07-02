@@ -40,6 +40,7 @@ namespace Docms.Web.Services
                 Id = user.Id,
                 Name = user.Name,
                 AccountName = user.AccountName,
+                DepartmentName = user.Department.ToString(),
             };
             appUser.PasswordHash = hasher.HashPassword(appUser, user.Password);
             return appUser;
@@ -61,6 +62,7 @@ namespace Docms.Web.Services
                 Id = user.Id,
                 Name = user.Name,
                 AccountName = user.AccountName,
+                DepartmentName = user.Department.ToString(),
             };
             appUser.PasswordHash = hasher.HashPassword(appUser, user.Password);
             return appUser;
