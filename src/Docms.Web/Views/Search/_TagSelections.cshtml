@@ -1,5 +1,9 @@
 ﻿@model TagSelectionsViewModel
 
+@{
+    var searchTags = ViewData["SearchTags"] as IEnumerable<SearchTagViewModel>;
+}
+
 <form asp-action="Index" asp-controller="Search" method="get">
     <div class="card mb-2">
         <div class="card-body p-3">
@@ -10,7 +14,7 @@
                     @foreach (var tag in panel.Tags)
                     {
                         <div class="form-check">
-                            <input class="form-check-input" type="checkbox" name="t" value="@tag.Id" id="check-@tag.Id">
+                            <input class="form-check-input" type="checkbox" name="t" value="@tag.Id" id="check-@tag.Id" @if(searchTags.Any(st => st.Id == tag.Id)) { <text>checked</text> }>
                             <label class="form-check-label" for="check-@tag.Id">
                                 @tag.Name
                             </label>

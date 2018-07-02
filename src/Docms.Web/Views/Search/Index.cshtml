@@ -1,9 +1,10 @@
-﻿@model Docms.Web.Models.SearchResultViewModel
+﻿@model SearchResultViewModel
 
 @{
     ViewData["Title"] = "検索";
     var tagSelections = ViewData["TagSelections"] as TagSelectionsViewModel;
     var referer = Html.UrlEncoder.Encode(Model.Links.Self);
+    ViewData["SearchTags"] = Model.SearchTags;
 }
 
 <h2>
