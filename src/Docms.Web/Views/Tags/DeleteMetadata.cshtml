@@ -1,0 +1,41 @@
+﻿@model DeleteTagMetaViewModel
+
+@{
+    ViewData["Title"] = Model.Name + " メターデータの削除";
+}
+
+<h2>@Model.Name</h2>
+
+<h4>タグ @Model.Name のメタデータ @Model.MetaKey を削除します。よろしいですか？</h4>
+<h4>本当に削除してよろしいですか？</h4>
+<div class="row">
+    <div class="col-md-6">
+        <hr />
+        <dl class="dl-horizontal">
+            <dt>
+                @Html.DisplayNameFor(model => model.MetaKey)
+            </dt>
+            <dd>
+                @Html.DisplayFor(model => model.MetaKey)
+            </dd>
+            <dt>
+                @Html.DisplayNameFor(model => model.MetaValue)
+            </dt>
+            <dd>
+                @Html.DisplayFor(model => model.MetaValue)
+            </dd>
+        </dl>
+
+        <form asp-action="DeleteMetadata">
+            <div class="form-group">
+                <input type="hidden" asp-for="Id" />
+                <input type="hidden" asp-for="MetaId" />
+                <button type="submit" class="btn btn-danger">削除する</button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<div>
+    <a asp-action="Details" asp-route-id="@Model.Id">詳細に戻る</a>
+</div>

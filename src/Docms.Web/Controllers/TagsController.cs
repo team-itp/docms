@@ -289,12 +289,20 @@ namespace Docms.Web.Controllers
                 return NotFound();
             }
 
-            var tag = await _context.TagMeta.SingleOrDefaultAsync(m => m.TagId == id && m.Id == metaId);
-            if (tag == null)
+            var tag = await _context.Tags.SingleOrDefaultAsync(m => m.Id == id);
+            var tagMeta = await _context.TagMeta.SingleOrDefaultAsync(m => m.TagId == id && m.Id == metaId);
+            if (tag == null || tagMeta == null)
             {
                 return NotFound();
             }
-            return View(tag);
+            return View(new DeleteTagMetaViewModel()
+            {
+                Id = tag.Id,
+                Name = tag.Name,
+                MetaId = tagMeta.Id,
+                MetaKey = tagMeta.MetaKey,
+                MetaValue = tagMeta.MetaValue
+            });
         }
 
         /// <summary>
