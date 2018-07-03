@@ -4,6 +4,7 @@ using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
+using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
 using System.Threading.Tasks;
@@ -34,12 +35,16 @@ namespace Docms.Web.Controllers
                 .ThenInclude(e => e.Tag)
                 .FirstOrDefaultAsync(e => e.VSUserId == appUser.Id);
 
-            var preferredTags = user.UserPreferredTags
-                .Select(p => new PreferredTagViewModel()
-                {
-                    Id = p.TagId,
-                    Name = p.Tag.Name
-                });
+            var preferredTags = new List<PreferredTagViewModel>();
+            if (user != null)
+            {
+                preferredTags = user.UserPreferredTags
+                    .Select(p => new PreferredTagViewModel()
+                    {
+                        Id = p.TagId,
+                        Name = p.Tag.Name
+                    }).ToList();
+            }
 
             var userTag = _context.Tags.FirstOrDefaultAsync(t => t.Name == appUser.Name);
             var documentsQuery = _context.Documents.Include(d => d.Tags) as IQueryable<Document>;
