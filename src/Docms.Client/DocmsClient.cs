@@ -45,8 +45,9 @@ namespace Docms.Client
         {
             var request = new RestRequest(_serverUri + "api/vs/users");
             request.AddHeader("Authorization", "Bearer " + _accessToken);
-            var result = await _client.GetTaskAsync<List<UserResponse>>(request);
-            return result;
+            var result = await _client.ExecuteGetTaskAsync(request);
+            ThrowIfNotSuccessfulStatus(result);
+            return JsonConvert.DeserializeObject<List<UserResponse>>(result.Content);
         }
 
         /// <summary>
@@ -57,8 +58,9 @@ namespace Docms.Client
         {
             var request = new RestRequest(_serverUri + "api/tags");
             request.AddHeader("Authorization", "Bearer " + _accessToken);
-            var result = await _client.GetTaskAsync<List<TagResponse>>(request);
-            return result;
+            var result = await _client.ExecuteGetTaskAsync(request);
+            ThrowIfNotSuccessfulStatus(result);
+            return JsonConvert.DeserializeObject<List<TagResponse>>(result.Content);
         }
 
         /// <summary>
@@ -70,6 +72,7 @@ namespace Docms.Client
             var request = new RestRequest(_serverUri + "api/vs/customers");
             request.AddHeader("Authorization", "Bearer " + _accessToken);
             var result = await _client.ExecuteGetTaskAsync(request);
+            ThrowIfNotSuccessfulStatus(result);
             return JsonConvert.DeserializeObject<List<CustomerResponse>>(result.Content);
         }
 
@@ -86,11 +89,8 @@ namespace Docms.Client
             fileUploadRequest.AddHeader("Authorization", "Bearer " + _accessToken);
             fileUploadRequest.AddFile("file", File.ReadAllBytes(localFilePath), name);
             var fileUploadResponse = await _client.ExecutePostTaskAsync(fileUploadRequest);
-            if (!fileUploadResponse.IsSuccessful)
-            {
-                // TODO: message
-                throw new Exception();
-            }
+            ThrowIfNotSuccessfulStatus(fileUploadResponse);
+
             var blobName = JsonConvert.DeserializeObject<FileCreatedResponse>(fileUploadResponse.Content).BlobName;
 
             var request = new RestRequest(_serverUri + "api/documents", Method.POST);
@@ -102,8 +102,14 @@ namespace Docms.Client
                 Tags = tags
             });
             var registResponse = await _client.ExecutePostTaskAsync(request);
-            if (!registResponse.IsSuccessful)
+            ThrowIfNotSuccessfulStatus(registResponse);
+        }
+
+        private void ThrowIfNotSuccessfulStatus(IRestResponse result)
+        {
+            if (!result.IsSuccessful)
             {
+                // message
                 throw new Exception();
             }
         }
