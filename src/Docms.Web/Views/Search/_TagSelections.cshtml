@@ -7,6 +7,17 @@
 <form asp-action="Index" asp-controller="Search" method="get">
     <div class="card mb-2">
         <div class="card-body p-3">
+            @foreach (var tag in searchTags)
+            {
+                <span class="badge badge-success p-2 my-2 mr-2 font-weight-normal" style="font-size:0.9rem">
+                    <span class="oi oi-tag align-middle"></span>
+                    <span class="align-middle">@tag.Name</span>
+                    <a href="@tag.Links.Delete" class="badge badge-success align-middle">
+                        <span class="oi oi-x p-0"></span>
+                    </a>
+                </span>
+            }
+
             @foreach (var panel in Model.Panels)
             {
                 <h5 class="card-title" type="button" data-toggle="collapse" data-target="#collapse-@panel.Title" aria-expanded="true" aria-controls="collapseOne">@panel.Title</h5>
@@ -14,7 +25,7 @@
                     @foreach (var tag in panel.Tags)
                     {
                         <div class="form-check">
-                            <input class="form-check-input" type="checkbox" name="t" value="@tag.Id" id="check-@tag.Id" @if(searchTags.Any(st => st.Id == tag.Id)) { <text>checked</text> }>
+                            <input class="form-check-input" type="checkbox" name="t" value="@tag.Id" id="check-@tag.Id" @if (searchTags.Any(st => st.Id == tag.Id)) { <text> checked</text> }>
                             <label class="form-check-label" for="check-@tag.Id">
                                 @tag.Name
                             </label>

@@ -60,12 +60,13 @@
         <dd class="py-2">
             @foreach (var tag in Model.Tags)
             {
-                <div class="btn btn-dark mr-2">
-                    <span>@tag.Name</span>
-                    <a href="@tag.Links.Delete" class="badge badge-dark">
+                <span class="badge badge-dark p-2 my-2 mr-2 font-weight-normal" style="font-size:0.9rem">
+                    <span class="oi oi-tag align-middle"></span>
+                    <span class="align-middle">@tag.Name</span>
+                    <a href="@tag.Links.Delete" class="badge badge-dark align-middle">
                         <span title="タグを削除する" class="oi oi-delete"></span><span class="sr-only">タグを削除する</span>
                     </a>
-                </div>
+                </span>
             }
         </dd>
     </dl>

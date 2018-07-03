@@ -7,7 +7,7 @@
 <div class="d-flex">
     @foreach (var preferredTag in Model.PreferredTags)
     {
-        <a class="btn btn-outline-success mx-2" asp-action="Index" asp-controller="Search" asp-route-tags="@preferredTag.Id">
+        <a class="btn btn-outline-success mx-2" asp-action="Index" asp-controller="Search" asp-route-t="@preferredTag.Id">
             <span class="oi oi-tag"></span>
             @preferredTag.Name
         </a>
@@ -18,7 +18,7 @@
     {
         <div class="card box-shadow mx-2 my-3">
             <a href="@(document.Links.Self)">
-                <img class="card-img-top" alt="@document.FileName" src="@document.Links.Thumbnail" height="280" data-holder-rendered="true">
+                <img class="card-img-top" alt="@document.FileName" src="@document.Links.Thumbnail" data-holder-rendered="true">
             </a>
             <div class="card-body py-2">
                 <div class="d-flex justify-content-between align-items-center">
