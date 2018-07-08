@@ -44,45 +44,6 @@ namespace Docms.Uploader.Views
             }
         }
 
-        private void SelectTag(object sender, ExecutedRoutedEventArgs e)
-        {
-            var vm = DataContext as UploaderViewModel;
-            if (vm != null)
-            {
-                var tag = TagCombo.SelectedItem as Tag;
-                if (tag == null && !string.IsNullOrEmpty(TagCombo.Text))
-                {
-                    tag = new Tag(TagCombo.Text);
-                    TagCombo.Text = string.Empty;
-                }
-                if (tag != null && !vm.SelectedTags.Contains(tag))
-                {
-                    vm.SelectedTags.Add(tag);
-                }
-            }
-        }
-
-        private void TagCombo_KeyDown(object sender, KeyEventArgs e)
-        {
-            if (e.Key == Key.Enter)
-            {
-                var vm = DataContext as UploaderViewModel;
-                if (vm != null)
-                {
-                    var tag = TagCombo.SelectedItem as Tag;
-                    if (tag == null && !string.IsNullOrEmpty(TagCombo.Text))
-                    {
-                        tag = new Tag(TagCombo.Text);
-                        TagCombo.Text = string.Empty;
-                    }
-                    if (tag != null && !vm.SelectedTags.Contains(tag))
-                    {
-                        vm.SelectedTags.Add(tag);
-                    }
-                }
-            }
-        }
-
         private void TagCombo_SelectionChanged(object sender, SelectionChangedEventArgs e)
         {
             var vm = DataContext as UploaderViewModel;

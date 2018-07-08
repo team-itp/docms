@@ -11,18 +11,19 @@
     mc:Ignorable="d">
     <StackPanel Orientation="Vertical">
         <StackPanel.Resources>
-            <Style TargetType="ComboBox">
-                <Setter Property="Margin" Value="5" />
+            <Style TargetType="ComboBox" BasedOn="{StaticResource BaseStyle}">
+                <Setter Property="Margin" Value="8" />
                 <Setter Property="Padding" Value="4" />
             </Style>
-            <Style TargetType="local:TagListView">
-                <Setter Property="Margin" Value="5" />
-            </Style>
-            <Style TargetType="Button">
-                <Setter Property="Margin" Value="5" />
+            
+            <Style TargetType="Button" BasedOn="{StaticResource BaseStyle}">
+                <Setter Property="Margin" Value="8" />
                 <Setter Property="Padding" Value="16,4" />
             </Style>
 
+            <Style TargetType="local:TagListView">
+                <Setter Property="Margin" Value="8" />
+            </Style>
         </StackPanel.Resources>
         <Label>担当者</Label>
         <ComboBox
@@ -30,31 +31,24 @@
             IsEditable="True"
             IsReadOnly="False"
             ItemsSource="{Binding PersonInChargeChoices}"
-            SelectedItem="{Binding PersonInCharge}" />
+            SelectedItem="{Binding PersonInCharge}"
+            Text="{Binding PersonInChargeText}" />
         <Label>顧客</Label>
         <ComboBox
             DisplayMemberPath="Name"
             IsEditable="True"
             IsReadOnly="False"
             ItemsSource="{Binding CustomerChoices}"
-            SelectedItem="{Binding Customer}" />
+            SelectedItem="{Binding Customer}"
+            Text="{Binding CustomerText}"/>
         <Label>案件</Label>
         <ComboBox
             DisplayMemberPath="Name"
             IsEditable="True"
             IsReadOnly="False"
             ItemsSource="{Binding ProjectChoices}"
-            SelectedItem="{Binding Project}" />
-        <Label>タグ</Label>
-        <ComboBox
-            x:Name="TagCombo"
-            DisplayMemberPath="Name"
-            IsEditable="True"
-            IsReadOnly="False"
-            ItemsSource="{Binding TagChoices}"
-            KeyDown="TagCombo_KeyDown"
-            SelectionChanged="TagCombo_SelectionChanged" />
-        <local:TagListView DataContext="{Binding SelectedTags}" />
+            SelectedItem="{Binding Project}"
+            Text="{Binding ProjectText}"/>
         <Button
             HorizontalAlignment="Right"
             Command="{x:Static local:UploaderView.UploadCommand}"

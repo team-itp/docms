@@ -15,6 +15,9 @@ namespace Docms.Uploader.Upload
         private CustomerResponse _Customer;
         private ProjectResponse _Project;
         private UserResponse _PersonInCharge;
+        private string _CustomerText;
+        private string _ProjectText;
+        private string _PersonInChargeText;
         private bool _Loading;
 
         public class MediaFilesCollection : ObservableCollection<MediaFile> { }
@@ -59,6 +62,33 @@ namespace Docms.Uploader.Upload
             set
             {
                 SetProperty(ref _PersonInCharge, value);
+            }
+
+        }
+        public string CustomerText
+        {
+            get => _CustomerText;
+            set
+            {
+                SetProperty(ref _CustomerText, value);
+            }
+        }
+
+        public string ProjectText
+        {
+            get => _ProjectText;
+            set
+            {
+                SetProperty(ref _ProjectText, value);
+            }
+        }
+
+        public string PersonInChargeText
+        {
+            get => _PersonInChargeText;
+            set
+            {
+                SetProperty(ref _PersonInChargeText, value);
             }
 
         }
@@ -142,17 +172,17 @@ namespace Docms.Uploader.Upload
             var client = new DocmsClient(Settings.Default.DocmsWebEndpoint);
             await client.LoginAsync(Settings.Default.UserId, Settings.Default.PasswordHash).ConfigureAwait(false);
             var tags = SelectedTags.Select(t => t.Name).ToList();
-            if (PersonInCharge != null)
+            if (PersonInCharge != null || !string.IsNullOrEmpty(PersonInChargeText))
             {
-                tags.Add(PersonInCharge.Name);
+                tags.Add(PersonInCharge?.Name ?? PersonInChargeText);
             }
-            if (Customer != null)
+            if (Customer != null || !string.IsNullOrEmpty(CustomerText))
             {
-                tags.Add(Customer.Name);
+                tags.Add(Customer?.Name ?? CustomerText);
             }
-            if (Project != null)
+            if (Project != null || !string.IsNullOrEmpty(ProjectText))
             {
-                tags.Add(Project.Name);
+                tags.Add(Project?.Name ?? ProjectText);
             }
             foreach (var f in SelectedMediaFiles)
             {
