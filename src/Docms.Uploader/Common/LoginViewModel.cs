@@ -46,6 +46,7 @@ namespace Docms.Uploader.Common
         public RelayCommand LoginCommand { get; }
 
         // Design-Time only
+        [Obsolete]
         public LoginViewModel() { }
 
         public LoginViewModel(DocmsClient client)

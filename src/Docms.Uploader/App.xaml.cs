@@ -39,14 +39,14 @@ namespace Docms.Uploader
             if (needCredential)
             {
                 var loginWindow = new LoginWindow();
-                var vm = new LoginViewModel(client)
+                var loginVM = new LoginViewModel(client)
                 {
                     Username = userid,
                 };
-                loginWindow.DataContext = vm;
+                loginWindow.DataContext = loginVM;
 
                 var loginSuccess = false;
-                vm.LoginSucceeded += (s, ev) =>
+                loginVM.LoginSucceeded += (s, ev) =>
                 {
                     loginWindow.Close();
                     loginSuccess = true;
@@ -59,7 +59,12 @@ namespace Docms.Uploader
                 }
             }
 
-            mainWindow.DataContext = new MainWindowViewModel(client);
+            var mainVM = new MainWindowViewModel(client);
+            mainVM.SessionEnded += (s, ev) =>
+            {
+                mainWindow.Close();
+            };
+            mainWindow.DataContext = mainVM;
             mainWindow.Show();
         }
     }

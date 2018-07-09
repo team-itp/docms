@@ -14,6 +14,7 @@ namespace Docms.Client
         private string _serverUri;
         private string _tokenEndpoint;
         private string _introspectionEndpoint;
+        private string _revocationEndpoint;
         private string _username;
         private string _password;
         private string _accessToken;
@@ -35,17 +36,18 @@ namespace Docms.Client
         {
             var discoveryClient = new DiscoveryClient(new Uri(_serverUri).GetLeftPart(UriPartial.Authority).ToString());
             discoveryClient.Policy.RequireHttps = false;
-            var doc = await discoveryClient.GetAsync();
+            var doc = await discoveryClient.GetAsync().ConfigureAwait(false);
 
             _tokenEndpoint = doc.TokenEndpoint;
             _introspectionEndpoint = doc.IntrospectionEndpoint;
+            _revocationEndpoint = doc.RevocationEndpoint;
 
             var client = new TokenClient(
                 _tokenEndpoint,
                 "docms-client",
                 "docms-client-secret");
 
-            var response = await client.RequestResourceOwnerPasswordAsync(username, password, "docmsapi");
+            var response = await client.RequestResourceOwnerPasswordAsync(username, password, "docmsapi").ConfigureAwait(false);
             if (response.IsError)
             {
                 // TODO message
@@ -54,6 +56,20 @@ namespace Docms.Client
             _username = username;
             _password = password;
             _accessToken = response.AccessToken;
+        }
+
+        /// <summary>
+        /// ログアウト
+        /// </summary>
+        /// <returns></returns>
+        public async Task LogoutAsync()
+        {
+            var client = new TokenRevocationClient(
+                _revocationEndpoint,
+                "docms-client",
+                "docms-client-secret");
+
+            await client.RevokeAccessTokenAsync(_accessToken).ConfigureAwait(false);
         }
 
         public async Task VerifyTokenAsync()
@@ -69,7 +85,7 @@ namespace Docms.Client
                     Token = _accessToken,
                     ClientId = "docms-client",
                     ClientSecret = "docms-client-secret",  
-                });
+                }).ConfigureAwait(false);
 
             if (!response.IsActive)
             {
@@ -85,7 +101,7 @@ namespace Docms.Client
         {
             var request = new RestRequest(_serverUri + "api/vs/users");
             request.AddHeader("Authorization", "Bearer " + _accessToken);
-            var result = await _client.ExecuteGetTaskAsync(request);
+            var result = await _client.ExecuteGetTaskAsync(request).ConfigureAwait(false);
             ThrowIfNotSuccessfulStatus(result);
             return JsonConvert.DeserializeObject<List<UserResponse>>(result.Content);
         }
@@ -98,7 +114,7 @@ namespace Docms.Client
         {
             var request = new RestRequest(_serverUri + "api/tags");
             request.AddHeader("Authorization", "Bearer " + _accessToken);
-            var result = await _client.ExecuteGetTaskAsync(request);
+            var result = await _client.ExecuteGetTaskAsync(request).ConfigureAwait(false);
             ThrowIfNotSuccessfulStatus(result);
             return JsonConvert.DeserializeObject<List<TagResponse>>(result.Content);
         }
@@ -111,7 +127,7 @@ namespace Docms.Client
         {
             var request = new RestRequest(_serverUri + "api/vs/customers");
             request.AddHeader("Authorization", "Bearer " + _accessToken);
-            var result = await _client.ExecuteGetTaskAsync(request);
+            var result = await _client.ExecuteGetTaskAsync(request).ConfigureAwait(false);
             ThrowIfNotSuccessfulStatus(result);
             return JsonConvert.DeserializeObject<List<CustomerResponse>>(result.Content);
         }
@@ -128,7 +144,7 @@ namespace Docms.Client
             var fileUploadRequest = new RestRequest(_serverUri + "api/blobs");
             fileUploadRequest.AddHeader("Authorization", "Bearer " + _accessToken);
             fileUploadRequest.AddFile("file", File.ReadAllBytes(localFilePath), name);
-            var fileUploadResponse = await _client.ExecutePostTaskAsync(fileUploadRequest);
+            var fileUploadResponse = await _client.ExecutePostTaskAsync(fileUploadRequest).ConfigureAwait(false);
             ThrowIfNotSuccessfulStatus(fileUploadResponse);
 
             var blobName = JsonConvert.DeserializeObject<FileCreatedResponse>(fileUploadResponse.Content).BlobName;
@@ -141,7 +157,7 @@ namespace Docms.Client
                 Name = name,
                 Tags = tags
             });
-            var registResponse = await _client.ExecutePostTaskAsync(request);
+            var registResponse = await _client.ExecutePostTaskAsync(request).ConfigureAwait(false);
             ThrowIfNotSuccessfulStatus(registResponse);
         }
 
