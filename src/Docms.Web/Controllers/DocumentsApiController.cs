@@ -126,7 +126,7 @@ namespace Docms.Web.Controllers
             var documentId = await _service.CreateAsync(document.BlobName, document.Name);
             if (document.Tags != null && document.Tags.Length > 0)
             {
-                await _service.AddTagsAsync(documentId, document.Tags);
+                await _service.AddTagsAsync(documentId, document.Tags.Where(t => !string.IsNullOrEmpty(t)));
             }
 
             return CreatedAtAction("GetDocument", new { id = documentId });

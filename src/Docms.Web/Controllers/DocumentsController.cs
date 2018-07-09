@@ -100,7 +100,7 @@ namespace Docms.Web.Controllers
                     var documentId = await _service.CreateAsync(blobName, filename);
                     if (document.Tags != null && document.Tags.Length > 0)
                     {
-                        await _service.AddTagsAsync(documentId, document.Tags);
+                        await _service.AddTagsAsync(documentId, document.Tags.Where(t => !string.IsNullOrEmpty(t)));
                     }
                 }
 
@@ -226,7 +226,7 @@ namespace Docms.Web.Controllers
             {
                 try
                 {
-                    await _service.AddTagsAsync(document.Id, document.Tags);
+                    await _service.AddTagsAsync(document.Id, document.Tags.Where(t => !string.IsNullOrEmpty(t)));
                 }
                 catch (DbUpdateConcurrencyException)
                 {

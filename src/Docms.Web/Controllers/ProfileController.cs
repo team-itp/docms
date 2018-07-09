@@ -61,8 +61,8 @@ namespace Docms.Web.Controllers
             });
         }
 
-        [HttpPost("preferredtags/add/{tagId}")]
-        public async Task<IActionResult> AddPreferredTag(int tagId)
+        [HttpPost("preferredtags/add")]
+        public async Task<IActionResult> AddPreferredTag([Bind("tagId")] int tagId)
         {
             var tag = await _context.Tags.FirstOrDefaultAsync(e => e.Id == tagId);
             if (tag == null)
