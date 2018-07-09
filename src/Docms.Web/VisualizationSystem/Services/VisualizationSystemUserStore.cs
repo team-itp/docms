@@ -6,7 +6,7 @@ using System;
 using System.Threading;
 using System.Threading.Tasks;
 
-namespace Docms.Web.Services
+namespace Docms.Web.VisualizationSystem.Services
 {
     public class VisualizationSystemUserStore : IUserStore<ApplicationUser>, IUserPasswordStore<ApplicationUser>
     {

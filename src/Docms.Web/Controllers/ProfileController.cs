@@ -61,8 +61,8 @@ namespace Docms.Web.Controllers
             });
         }
 
-        [HttpPost("preferredtags/add")]
-        public async Task<IActionResult> AddPreferredTag([Bind("TagId")] int tagId)
+        [HttpPost("preferredtags/add/{tagId}")]
+        public async Task<IActionResult> AddPreferredTag(int tagId)
         {
             var tag = await _context.Tags.FirstOrDefaultAsync(e => e.Id == tagId);
             if (tag == null)
@@ -90,8 +90,8 @@ namespace Docms.Web.Controllers
             return RedirectToAction(nameof(Index));
         }
 
-        [HttpPost("preferredtags/delete")]
-        public async Task<IActionResult> DeletePreferredTag([Bind("TagId")] int tagId)
+        [HttpPost("preferredtags/delete/{tagId}")]
+        public async Task<IActionResult> DeletePreferredTag(int tagId)
         {
             var tag = await _context.Tags.FirstOrDefaultAsync(e => e.Id == tagId);
             if (tag == null)

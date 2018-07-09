@@ -10,10 +10,12 @@ namespace Docms.Web.Services
     public class DocumentsService
     {
         private DocmsDbContext _db;
+        private TagsService _tags;
 
-        public DocumentsService(DocmsDbContext db)
+        public DocumentsService(DocmsDbContext db, TagsService tags)
         {
             _db = db;
+            _tags = tags;
         }
 
         public async Task<int> CreateAsync(string blobName, string fileName)
@@ -61,16 +63,15 @@ namespace Docms.Web.Services
                 throw new ArgumentException();
             }
 
-            var dbTags = _db.Tags.Where(t => tags.Contains(t.Name)).ToList();
-            var tagsToInsert = tags.Where(t => !String.IsNullOrWhiteSpace(t)).Except(dbTags.Select(t => t.Name)).Select(t => new Tag()
+            var tagList = new List<Tag>();
+            foreach (var tagname in tags)
             {
-                Name = t.Trim()
-            }).ToList();
-            await _db.Tags.AddRangeAsync(tagsToInsert);
+                tagList.Add(await _tags.FindOrCreateAsync(tagname));
+            }
+            _db.UpdateRange(tagList);
             await _db.SaveChangesAsync();
-            dbTags.AddRange(tagsToInsert);
 
-            foreach (var tag in dbTags)
+            foreach (var tag in tagList)
             {
                 doc.AddTag(tag);
             }

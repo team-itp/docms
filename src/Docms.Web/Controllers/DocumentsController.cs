@@ -19,11 +19,13 @@ namespace Docms.Web.Controllers
     public class DocumentsController : Controller
     {
         private readonly DocmsDbContext _context;
+        private readonly DocumentsService _service;
         private readonly IStorageService _storageService;
 
-        public DocumentsController(DocmsDbContext context, IStorageService storageService)
+        public DocumentsController(DocmsDbContext context, DocumentsService service, IStorageService storageService)
         {
             _context = context;
+            _service = service;
             _storageService = storageService;
         }
 
@@ -95,11 +97,10 @@ namespace Docms.Web.Controllers
                 {
                     var filename = Path.GetFileName(file.FileName);
                     var blobName = await _storageService.UploadFileAsync(file.OpenReadStream(), Path.GetExtension(file.FileName));
-                    var service = new DocumentsService(_context);
-                    var documentId = await service.CreateAsync(blobName, filename);
+                    var documentId = await _service.CreateAsync(blobName, filename);
                     if (document.Tags != null && document.Tags.Length > 0)
                     {
-                        await service.AddTagsAsync(documentId, document.Tags);
+                        await _service.AddTagsAsync(documentId, document.Tags);
                     }
                 }
 
@@ -156,8 +157,7 @@ namespace Docms.Web.Controllers
             {
                 try
                 {
-                    var service = new DocumentsService(_context);
-                    await service.UpdateFileNameAsync(document.Id, document.EditedFileName);
+                    await _service.UpdateFileNameAsync(document.Id, document.EditedFileName);
                 }
                 catch (DbUpdateConcurrencyException)
                 {
@@ -226,8 +226,7 @@ namespace Docms.Web.Controllers
             {
                 try
                 {
-                    var service = new DocumentsService(_context);
-                    await service.AddTagsAsync(document.Id, document.Tags);
+                    await _service.AddTagsAsync(document.Id, document.Tags);
                 }
                 catch (DbUpdateConcurrencyException)
                 {
@@ -295,8 +294,7 @@ namespace Docms.Web.Controllers
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> DeleteTagConfirmed(int id, int tagId)
         {
-            var service = new DocumentsService(_context);
-            await service.RemoveTagsByIdAsync(id, new[] { tagId });
+            await _service.RemoveTagsByIdAsync(id, new[] { tagId });
             return RedirectToAction(nameof(Details), new { id });
         }
 

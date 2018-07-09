@@ -13,13 +13,15 @@ namespace Docms.Web.Tests.Services
     public class DocumentsServiceTests
     {
         private DocmsDbContext db;
+        private TagsService ts;
         private DocumentsService sut;
 
         [TestInitialize]
         public void Setup()
         {
             db = new DocmsDbContext(TestUtils.CreateContext());
-            sut = new DocumentsService(db);
+            ts = new TagsService(db);
+            sut = new DocumentsService(db, ts);
         }
 
         [TestCleanup]

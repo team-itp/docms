@@ -3,6 +3,7 @@ using Docms.Web.Data;
 using Docms.Web.Models;
 using Docms.Web.Services;
 using Docms.Web.VisualizationSystem.Data;
+using Docms.Web.VisualizationSystem.Services;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
@@ -33,6 +34,8 @@ namespace Docms.Web
 
             services.AddTransient<IUserStore<ApplicationUser>, VisualizationSystemUserStore>();
             services.AddTransient<IRoleStore<ApplicationRole>, InMemoryRoleStore>();
+            services.AddTransient<DocumentsService>();
+            services.AddTransient<TagsService, VisualizationSystemTagsService>();
 
             services.AddIdentity<ApplicationUser, ApplicationRole>();
             services.ConfigureApplicationCookie(options =>

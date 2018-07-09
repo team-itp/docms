@@ -21,10 +21,12 @@ namespace Docms.Web.Controllers
     public class DocumentsApiController : Controller
     {
         private readonly DocmsDbContext _context;
+        private readonly DocumentsService _service;
 
-        public DocumentsApiController(DocmsDbContext context)
+        public DocumentsApiController(DocmsDbContext context, DocumentsService service)
         {
             _context = context;
+            _service = service;
         }
 
         /// <summary>
@@ -121,11 +123,10 @@ namespace Docms.Web.Controllers
                 return BadRequest(ModelState);
             }
 
-            var service = new DocumentsService(_context);
-            var documentId = await service.CreateAsync(document.BlobName, document.Name);
+            var documentId = await _service.CreateAsync(document.BlobName, document.Name);
             if (document.Tags != null && document.Tags.Length > 0)
             {
-                await service.AddTagsAsync(documentId, document.Tags);
+                await _service.AddTagsAsync(documentId, document.Tags);
             }
 
             return CreatedAtAction("GetDocument", new { id = documentId });
