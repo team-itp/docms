@@ -9,7 +9,7 @@
 
 <p>
     <a class="btn btn-success" asp-action="Create">
-        <span class="oi oi-plus"></span>
+        <i class="fa fa-plus"></i>
         新規作成
     </a>
 </p>
@@ -31,11 +31,11 @@
                 </td>
                 <td class="text-right">
                     <a class="btn btn-sm btn-outline-secondary" asp-action="Details" asp-route-id="@item.Id">
-                        <span class="oi oi-file"></span>
+                        <i class="fa fa-info-circle"></i>
                         <span class="d-none d-sm-inline">詳細</span>
                     </a>
                     <a class="btn btn-sm btn-outline-secondary" asp-action="Delete" asp-route-id="@item.Id">
-                        <span class="oi oi-trash"></span>
+                        <i class="fa fa-trash"></i>
                         <span class="d-none d-sm-inline">削除</span>
                     </a>
                 </td>

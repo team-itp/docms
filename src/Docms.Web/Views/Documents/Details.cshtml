@@ -27,10 +27,10 @@
     <div class="btn-toolbar my-2 mx-0" role="toolbar" aria-label="Toolbar with button groups">
         <div class="btn-group" role="group" aria-label="First group">
             <a href="@Model.Links.Blob" class="btn btn-outline-dark">
-                <span class="oi oi-data-transfer-download"></span> ダウンロード
+                <i class="fa fa-file-download"></i> ダウンロード
             </a>
             <a href="@Model.Links.Delete" class="btn btn-outline-dark">
-                <span class="oi oi-trash"></span> 削除
+                <i class="fa fa-trash"></i> 削除
             </a>
         </div>
     </div>
@@ -39,7 +39,7 @@
         <dt>
             @Html.DisplayNameFor(model => model.FileName)
             <a href="@Model.Links.EditFileName" class="badge badge-light">
-                <span title="ファイル名を変更する" class="oi oi-pencil"></span><span class="sr-only">ファイル名を変更する</span>
+                <i title="ファイル名を変更する" class="fa fa-pen"></i><span class="sr-only">ファイル名を変更する</span>
             </a>
         </dt>
         <dd>
@@ -54,17 +54,17 @@
         <dt>
             @Html.DisplayNameFor(model => model.Tags)
             <a href="@Model.Links.AddTag" class="badge badge-light">
-                <span title="タグを追加する" class="oi oi-plus"></span><span class="sr-only">タグを追加する</span>
+                <i title="タグを追加する" class="fa fa-plus"></i><span class="sr-only">タグを追加する</span>
             </a>
         </dt>
         <dd class="py-2">
             @foreach (var tag in Model.Tags)
             {
                 <span class="badge badge-dark p-2 my-2 mr-2 font-weight-normal" style="font-size:0.9rem">
-                    <span class="oi oi-tag align-middle"></span>
+                    <i class="fa fa-tag align-middle"></i>
                     <span class="align-middle">@tag.Name</span>
                     <a href="@tag.Links.Delete" class="badge badge-dark align-middle">
-                        <span title="タグを削除する" class="oi oi-delete"></span><span class="sr-only">タグを削除する</span>
+                        <i title="タグを削除する" class="fa fa-backspace"></i><span class="sr-only">タグを削除する</span>
                     </a>
                 </span>
             }

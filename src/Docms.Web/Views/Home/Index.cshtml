@@ -8,7 +8,7 @@
     @foreach (var preferredTag in Model.PreferredTags)
     {
         <a class="btn btn-outline-success mx-2" asp-action="Index" asp-controller="Search" asp-route-t="@preferredTag.Id">
-            <span class="oi oi-tag"></span>
+            <i class="fa fa-tag"></i>
             @preferredTag.Name
         </a>
     }
@@ -25,7 +25,10 @@
                     <div class="d-flex justify-content-between align-items-center">
                         <p class="card-text">@document.FileName</p>
                         <div class="btn-group">
-                            <a href="@(document.Links.Self)" class="btn btn-sm btn-outline-secondary">詳細</a>
+                            <a href="@(document.Links.Self)" class="btn btn-sm btn-outline-secondary">
+                                <i class="fa fa-info-circle"></i>
+                                詳細
+                            </a>
                         </div>
                     </div>
                 </div>

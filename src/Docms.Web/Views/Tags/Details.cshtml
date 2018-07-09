@@ -7,7 +7,7 @@
 <h2>
     @Model.Name
     <a class="btn btn-sm btn-outline-secondary" asp-action="EditName" asp-route-id="@Model.Id">
-        <span class="oi oi-pencil"></span>
+        <i class="fa fa-pen"></i>
         <span class="sr-only">タグの名前を変更する</span>
     </a>
 </h2>
@@ -16,7 +16,7 @@
 
 <p>
     <a class="btn btn-success"  asp-action="CreateMetadata" asp-route-id="@Model.Id">
-        <span class="oi oi-plus"></span>
+        <i class="fa fa-plus"></i>
         新規作成
     </a>
 </p>
@@ -42,11 +42,11 @@
                 </td>
                 <td class="text-right">
                     <a class="btn btn-sm btn-outline-secondary" asp-action="EditMetadataMetaValue" asp-route-id="@Model.Id" asp-route-metaId="@meta.Id">
-                        <span class="oi oi-pencil"></span>
+                        <i class="fa fa-pen"></i>
                         <span class="d-none d-sm-inline">編集</span>
                     </a>
                     <a class="btn btn-sm btn-outline-secondary" asp-action="DeleteMetadata" asp-route-id="@Model.Id" asp-route-metaId="@meta.Id">
-                        <span class="oi oi-trash"></span>
+                        <i class="fa fa-trash"></i>
                         <span class="d-none d-sm-inline">削除</span>
                     </a>
                 </td>

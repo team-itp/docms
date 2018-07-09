@@ -10,10 +10,10 @@
             @foreach (var tag in searchTags)
             {
                 <span class="badge badge-success p-2 my-2 mr-2 font-weight-normal" style="font-size:0.9rem">
-                    <span class="oi oi-tag align-middle"></span>
+                    <i class="fa fa-tag align-middle"></i>
                     <span class="align-middle">@tag.Name</span>
                     <a href="@tag.Links.Delete" class="badge badge-success align-middle">
-                        <span class="oi oi-x p-0"></span>
+                        <i class="fa fa-times p-0"></i>
                     </a>
                 </span>
             }
