@@ -11,6 +11,7 @@ namespace Docms.Uploader.Common
     public class MainWindowViewModel : ViewModelBase
     {
         public event EventHandler<EventArgs> SessionEnded;
+        public event EventHandler<EventArgs> ShowSettingsRequested;
 
         private UploaderViewModel _uploader;
         private MediaFileListViewModel _mediaFileList;
@@ -37,6 +38,7 @@ namespace Docms.Uploader.Common
         }
 
         public RelayCommand LogoutCommand { get; }
+        public RelayCommand ShowSettingsCommand { get; }
 
         // Design-Time only
         [Obsolete]
@@ -45,15 +47,14 @@ namespace Docms.Uploader.Common
         public MainWindowViewModel(DocmsClient client)
         {
             _client = client;
-
-            var pathToWatch = Settings.Default.DirectoryToWatch;
-            MediaFileList = new MediaFileListViewModel(pathToWatch);
-            Uploader = new UploaderViewModel(client);
-
-            MediaFileList.Startwatch();
-            MediaFileList.SelectedFiles.CollectionChanged += MediaFileListSelectedFiles_CollectionChanged;
-
+            Initialize();
             LogoutCommand = new RelayCommand(Logout);
+            ShowSettingsCommand = new RelayCommand(ShowSettings);
+        }
+
+        public void ShowSettings()
+        {
+            ShowSettingsRequested?.Invoke(this, EventArgs.Empty);
         }
 
         public async void Logout()
@@ -95,6 +96,16 @@ namespace Docms.Uploader.Common
                     .ToList()
                     .ForEach(vm => Uploader.SelectedMediaFiles.Add(vm));
             }
+        }
+
+        public void Initialize()
+        {
+            var pathToWatch = Settings.Default.DirectoryToWatch;
+            MediaFileList = new MediaFileListViewModel(pathToWatch);
+            Uploader = new UploaderViewModel(_client);
+
+            MediaFileList.Startwatch();
+            MediaFileList.SelectedFiles.CollectionChanged += MediaFileListSelectedFiles_CollectionChanged;
         }
     }
 }

@@ -71,6 +71,7 @@ namespace Docms.Uploader.Common
             catch (Exception ex)
             {
                 ErrorMessage = ex.Message;
+                Password = "";
             }
             finally
             {

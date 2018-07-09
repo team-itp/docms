@@ -41,11 +41,8 @@ namespace Docms.Uploader.Views
                 {
                     try
                     {
-                        this.Dispatcher.Invoke(() =>
-                        {
-                            RefleshMedia();
-                            _tokenSource = null;
-                        });
+                        await RefleshMedia();
+                        _tokenSource = null;
                         return;
                     }
                     catch (Exception)
@@ -61,9 +58,14 @@ namespace Docms.Uploader.Views
             _tokenSource?.Cancel();
         }
 
-        public void RefleshMedia()
+        public async Task RefleshMedia()
         {
-            var mediaFile = DataContext as MediaFile;
+            var mediaFile = default(MediaFile);
+            await this.Dispatcher.InvokeAsync(() =>
+            {
+                mediaFile = DataContext as MediaFile;
+            });
+
             if (mediaFile == null)
             {
                 return;
@@ -78,12 +80,18 @@ namespace Docms.Uploader.Views
                 using (var document = PdfDocument.Load(path))
                 {
                     var bitmap = document.Render(0, 96, 96, false);
-                    image.Source = BitmapHelper.ToBitmapSource(bitmap);
+                    await this.Dispatcher.InvokeAsync(() =>
+                    {
+                        image.Source = BitmapHelper.ToBitmapSource(bitmap);
+                    });
                 }
             }
             else
             {
-                image.Source = new BitmapImage(new Uri(path));
+                await this.Dispatcher.InvokeAsync(() =>
+                {
+                    image.Source = new BitmapImage(new Uri(path));
+                });
             }
         }
     }

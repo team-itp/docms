@@ -51,6 +51,7 @@
     <Reference Include="System.ComponentModel.DataAnnotations" />
     <Reference Include="System.Data" />
     <Reference Include="System.Drawing" />
+    <Reference Include="System.Windows.Forms" />
     <Reference Include="System.Xml" />
     <Reference Include="Microsoft.CSharp" />
     <Reference Include="System.Core" />
@@ -77,13 +78,18 @@
     <Compile Include="Common\MainWindowViewModel.cs" />
     <Compile Include="Common\RelayCommand.cs" />
     <Compile Include="Common\SettingsExtension.cs" />
+    <Compile Include="ApplicationSettings\SettingsViewModel.cs" />
     <Compile Include="Common\ViewModelBase.cs" />
+    <Compile Include="ApplicationSettings\WatchDirecotrySettingsViewModel.cs" />
     <Compile Include="FileWatch\MediaFileListViewModel.cs" />
     <Compile Include="FileWatch\MediaFiles.cs" />
     <Compile Include="Upload\Tags.cs" />
     <Compile Include="Upload\UploaderViewModel.cs" />
     <Compile Include="Views\LoginWindow.xaml.cs">
       <DependentUpon>LoginWindow.xaml</DependentUpon>
+    </Compile>
+    <Compile Include="Views\SettingsWindow.xaml.cs">
+      <DependentUpon>SettingsWindow.xaml</DependentUpon>
     </Compile>
     <Compile Include="Views\TagListView.xaml.cs">
       <DependentUpon>TagListView.xaml</DependentUpon>
@@ -103,6 +109,9 @@
     </Compile>
     <Compile Include="Views\MediaFileView.xaml.cs">
       <DependentUpon>MediaFileView.xaml</DependentUpon>
+    </Compile>
+    <Compile Include="Views\WatchDirectorySettingsView.xaml.cs">
+      <DependentUpon>WatchDirectorySettingsView.xaml</DependentUpon>
     </Compile>
   </ItemGroup>
   <ItemGroup>
@@ -149,11 +158,19 @@
       <Generator>MSBuild:Compile</Generator>
       <SubType>Designer</SubType>
     </Page>
+    <Page Include="Views\SettingsWindow.xaml">
+      <SubType>Designer</SubType>
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
     <Page Include="Views\TagListView.xaml">
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>
     </Page>
     <Page Include="Views\UploaderView.xaml">
+      <SubType>Designer</SubType>
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
+    <Page Include="Views\WatchDirectorySettingsView.xaml">
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>
     </Page>

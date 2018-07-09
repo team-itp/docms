@@ -3,13 +3,13 @@
   <Profiles />
   <Settings>
     <Setting Name="UserId" Type="System.String" Scope="User">
-      <Value Profile="(Default)">admin</Value>
+      <Value Profile="(Default)" />
     </Setting>
     <Setting Name="PasswordHash" Type="System.String" Scope="User">
-      <Value Profile="(Default)">admin</Value>
+      <Value Profile="(Default)" />
     </Setting>
     <Setting Name="DirectoryToWatch" Type="System.String" Scope="User">
-      <Value Profile="(Default)">C:\Temp\Images</Value>
+      <Value Profile="(Default)" />
     </Setting>
     <Setting Name="DocmsWebEndpoint" Type="System.String" Scope="Application">
       <Value Profile="(Default)">http://localhost:51693/</Value>

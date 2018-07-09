@@ -51,7 +51,7 @@ namespace Docms.Client
             if (response.IsError)
             {
                 // TODO message
-                throw new Exception();
+                throw new Exception("ログインができません。ユーザー名とパスワードを確認してください。");
             }
             _username = username;
             _password = password;

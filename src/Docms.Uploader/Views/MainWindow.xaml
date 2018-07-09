@@ -14,9 +14,10 @@
         <vm:MainWindowViewModel />
     </d:Window.DataContext>
     <DockPanel>
-        <Grid DockPanel.Dock="Top">
+        <StackPanel DockPanel.Dock="Top" Orientation="Horizontal" HorizontalAlignment="Right">
+            <Button HorizontalAlignment="Right" Command="{Binding ShowSettingsCommand}">設定</Button>
             <Button HorizontalAlignment="Right" Command="{Binding LogoutCommand}">ログアウト</Button>
-        </Grid>
+        </StackPanel>
         <Grid>
             <Grid.ColumnDefinitions>
                 <ColumnDefinition Width="320" MinWidth="320" />

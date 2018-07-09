@@ -1,7 +1,9 @@
 ﻿using Docms.Client;
+using Docms.Uploader.ApplicationSettings;
 using Docms.Uploader.Common;
 using Docms.Uploader.Properties;
 using Docms.Uploader.Views;
+using System;
 using System.Threading.Tasks;
 using System.Windows;
 
@@ -64,8 +66,32 @@ namespace Docms.Uploader
             {
                 mainWindow.Close();
             };
+
+            mainVM.ShowSettingsRequested += (s, ev) => ShowSettingsWindow(mainVM);
             mainWindow.DataContext = mainVM;
             mainWindow.Show();
+
+            if (string.IsNullOrEmpty(Settings.Default.DirectoryToWatch))
+            {
+                ShowSettingsWindow(mainVM);
+            }
+        }
+
+        private void ShowSettingsWindow(MainWindowViewModel mainVM)
+        {
+            var settingsWindow = new SettingsWindow();
+            var settingsVM = new SettingsViewModel();
+            settingsVM.SettingsConfirmed += (s, ev) =>
+            {
+                settingsWindow.Close();
+            };
+            settingsVM.SettingsCanceled += (s, ev) =>
+            {
+                settingsWindow.Close();
+            };
+            settingsWindow.DataContext = settingsVM;
+            settingsWindow.ShowDialog();
+            mainVM.Initialize();
         }
     }
 }
