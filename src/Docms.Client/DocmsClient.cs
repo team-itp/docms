@@ -34,6 +34,11 @@ namespace Docms.Client
                 "docms-client-secret");
 
             var response = await client.RequestResourceOwnerPasswordAsync(username, password, "docmsapi");
+            if (response.IsError)
+            {
+                // TODO message
+                throw new Exception();
+            }
             _accessToken = response.AccessToken;
         }
 

@@ -1,8 +1,8 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Configuration;
-using System.Data;
-using System.Linq;
+﻿using Docms.Client;
+using Docms.Uploader.Common;
+using Docms.Uploader.Properties;
+using Docms.Uploader.Views;
+using System;
 using System.Threading.Tasks;
 using System.Windows;
 
@@ -13,6 +13,51 @@ namespace Docms.Uploader
     /// </summary>
     public partial class App : Application
     {
+        protected override void OnStartup(StartupEventArgs e)
+        {
+            base.OnStartup(e);
 
+            var mainWindow = new MainWindow();
+
+            var userid = Settings.Default.UserId;
+            var password = Settings.Default.GetPassword();
+            var needCredential = string.IsNullOrEmpty(userid);
+            if (!needCredential)
+            {
+                var client = new DocmsClient(Settings.Default.DocmsWebEndpoint);
+                try
+                {
+                    Task.Run(async () => await client.LoginAsync(userid, password)).Wait();
+                }
+                catch
+                {
+                    needCredential = true;
+                }
+            }
+
+            if (needCredential)
+            {
+                var loginWindow = new LoginWindow();
+                var vm = new LoginViewModel()
+                {
+                    Username = userid,
+                };
+                loginWindow.DataContext = vm;
+
+                var loginSuccess = false;
+                vm.LoginSucceeded += (s, ev) =>
+                {
+                    loginWindow.Close();
+                    loginSuccess = true;
+                };
+                loginWindow.ShowDialog();
+                if (!loginSuccess)
+                {
+                    Shutdown();
+                    return;
+                }
+            }
+            mainWindow.Show();
+        }
     }
 }

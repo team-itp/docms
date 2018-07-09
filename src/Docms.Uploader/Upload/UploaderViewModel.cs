@@ -123,7 +123,7 @@ namespace Docms.Uploader.Upload
         {
             var scheduler = TaskScheduler.FromCurrentSynchronizationContext();
             var client = new DocmsClient(Settings.Default.DocmsWebEndpoint);
-            await client.LoginAsync(Settings.Default.UserId, Settings.Default.PasswordHash).ConfigureAwait(false);
+            await client.LoginAsync(Settings.Default.UserId, Settings.Default.GetPassword()).ConfigureAwait(false);
             var tasks = new List<Task>();
             tasks.Add(client.GetCustomersAsync().ContinueWith(t =>
             {
@@ -170,7 +170,7 @@ namespace Docms.Uploader.Upload
         public async Task Upload()
         {
             var client = new DocmsClient(Settings.Default.DocmsWebEndpoint);
-            await client.LoginAsync(Settings.Default.UserId, Settings.Default.PasswordHash).ConfigureAwait(false);
+            await client.LoginAsync(Settings.Default.UserId, Settings.Default.GetPassword()).ConfigureAwait(false);
             var tags = SelectedTags.Select(t => t.Name).ToList();
             if (PersonInCharge != null || !string.IsNullOrEmpty(PersonInChargeText))
             {

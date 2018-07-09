@@ -2,8 +2,7 @@
     x:Class="Docms.Uploader.App"
     xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-    xmlns:local="clr-namespace:Docms.Uploader"
-    StartupUri="Views/MainWindow.xaml">
+    xmlns:local="clr-namespace:Docms.Uploader">
     <Application.Resources>
         <Style x:Key="BaseStyle" TargetType="{x:Type Control}">
             <Setter Property="FontSize" Value="16" />

@@ -1,10 +1,14 @@
 ﻿using System;
+using System.Collections;
+using System.Collections.Generic;
 using System.ComponentModel;
+using System.ComponentModel.DataAnnotations;
+using System.Linq;
 using System.Runtime.CompilerServices;
 
 namespace Docms.Uploader.Common
 {
-    public abstract class ViewModelBase : INotifyPropertyChanged, IDataErrorInfo
+    public abstract class ViewModelBase : INotifyPropertyChanged
     {
         public event PropertyChangedEventHandler PropertyChanged;
 
@@ -18,12 +22,58 @@ namespace Docms.Uploader.Common
             member = value;
             OnPropertyChanged(propertyName);
         }
+    }
 
-        string IDataErrorInfo.Error { get { throw new NotImplementedException(); } }
-        string IDataErrorInfo.this[string columnName] => Verify(columnName);
+    public abstract class ValidationViewModelBase : ViewModelBase, IDataErrorInfo, INotifyDataErrorInfo
+    {
+        private ValidationContext context;
 
-        public virtual bool HasError => false;
-        protected virtual string Verify(string columnName) => string.Empty;
-        protected void HasErrorUpdated() => OnPropertyChanged(nameof(HasError));
+        public event EventHandler<DataErrorsChangedEventArgs> ErrorsChanged;
+
+        public ValidationViewModelBase()
+        {
+            context = new ValidationContext(this);
+        }
+
+        string IDataErrorInfo.this[string propertyName] => GetErrors(propertyName)?.Cast<string>().FirstOrDefault();
+        string IDataErrorInfo.Error => GetErrors("")?.Cast<string>().FirstOrDefault();
+        public bool HasErrors => !string.IsNullOrEmpty(((IDataErrorInfo)this).Error);
+
+        public IEnumerable GetErrors(string propertyName)
+        {
+            var results = new List<ValidationResult>();
+            if (string.IsNullOrEmpty(propertyName))
+            {
+                if (Validator.TryValidateObject(this, context, results))
+                {
+                    return null;
+                }
+                return results.Select(e => e.ErrorMessage);
+            }
+            else
+            {
+                if (Validator.TryValidateProperty(GetValue(propertyName), new ValidationContext(this, null, null) { MemberName = propertyName }, results))
+                {
+                    return null;
+                }
+                return results.Select(e => e.ErrorMessage);
+            }
+        }
+
+        protected override void OnPropertyChanged(string propertyName)
+        {
+            base.OnPropertyChanged(propertyName);
+            OnErrosChanged(propertyName);
+        }
+
+        protected virtual void OnErrosChanged(string propertyName)
+        {
+            ErrorsChanged?.Invoke(this, new DataErrorsChangedEventArgs(propertyName));
+        }
+
+        private object GetValue(string propertyName)
+        {
+            return GetType().GetProperty(propertyName).GetValue(this);
+        }
     }
 }

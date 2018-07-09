@@ -48,6 +48,7 @@
       <HintPath>..\packages\PdfiumViewer.2.13.0.0\lib\net20\PdfiumViewer.dll</HintPath>
     </Reference>
     <Reference Include="System" />
+    <Reference Include="System.ComponentModel.DataAnnotations" />
     <Reference Include="System.Data" />
     <Reference Include="System.Drawing" />
     <Reference Include="System.Xml" />
@@ -72,12 +73,18 @@
       <DependentUpon>App.xaml</DependentUpon>
       <SubType>Code</SubType>
     </Compile>
+    <Compile Include="Common\LoginViewModel.cs" />
     <Compile Include="Common\MainWindowViewModel.cs" />
+    <Compile Include="Common\RelayCommand.cs" />
+    <Compile Include="Common\SettingsExtension.cs" />
     <Compile Include="Common\ViewModelBase.cs" />
     <Compile Include="FileWatch\MediaFileListViewModel.cs" />
     <Compile Include="FileWatch\MediaFiles.cs" />
     <Compile Include="Upload\Tags.cs" />
     <Compile Include="Upload\UploaderViewModel.cs" />
+    <Compile Include="Views\LoginWindow.xaml.cs">
+      <DependentUpon>LoginWindow.xaml</DependentUpon>
+    </Compile>
     <Compile Include="Views\TagListView.xaml.cs">
       <DependentUpon>TagListView.xaml</DependentUpon>
     </Compile>
@@ -126,6 +133,10 @@
     <None Include="App.config" />
   </ItemGroup>
   <ItemGroup>
+    <Page Include="Views\LoginWindow.xaml">
+      <SubType>Designer</SubType>
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
     <Page Include="Views\MainWindow.xaml">
       <SubType>Designer</SubType>
       <Generator>XamlIntelliSenseFileGenerator</Generator>
