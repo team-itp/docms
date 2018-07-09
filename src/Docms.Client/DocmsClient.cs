@@ -12,6 +12,10 @@ namespace Docms.Client
     public class DocmsClient
     {
         private string _serverUri;
+        private string _tokenEndpoint;
+        private string _introspectionEndpoint;
+        private string _username;
+        private string _password;
         private string _accessToken;
         private RestClient _client;
 
@@ -21,15 +25,23 @@ namespace Docms.Client
             _client = new RestClient(uri);
         }
 
+        /// <summary>
+        /// ログイン
+        /// </summary>
+        /// <param name="username">ユーザー名</param>
+        /// <param name="password">パスワード</param>
+        /// <returns></returns>
         public async Task LoginAsync(string username, string password)
         {
             var discoveryClient = new DiscoveryClient(new Uri(_serverUri).GetLeftPart(UriPartial.Authority).ToString());
             discoveryClient.Policy.RequireHttps = false;
             var doc = await discoveryClient.GetAsync();
 
-            var tokenEndpoint = doc.TokenEndpoint;
+            _tokenEndpoint = doc.TokenEndpoint;
+            _introspectionEndpoint = doc.IntrospectionEndpoint;
+
             var client = new TokenClient(
-                tokenEndpoint,
+                _tokenEndpoint,
                 "docms-client",
                 "docms-client-secret");
 
@@ -39,7 +51,30 @@ namespace Docms.Client
                 // TODO message
                 throw new Exception();
             }
+            _username = username;
+            _password = password;
             _accessToken = response.AccessToken;
+        }
+
+        public async Task VerifyTokenAsync()
+        {
+            var client = new IntrospectionClient(
+                _introspectionEndpoint,
+                "docmsapi",
+                "docmsapi-secret");
+
+            var response = await client.SendAsync(
+                new IntrospectionRequest
+                {
+                    Token = _accessToken,
+                    ClientId = "docms-client",
+                    ClientSecret = "docms-client-secret",  
+                });
+
+            if (!response.IsActive)
+            {
+                await LoginAsync(_username, _password);
+            }
         }
 
         /// <summary>
@@ -90,7 +125,7 @@ namespace Docms.Client
         /// <returns></returns>
         public async Task CreateDocumentAsync(string localFilePath, string name, string[] tags)
         {
-            var fileUploadRequest = new RestRequest(_serverUri + "blobs");
+            var fileUploadRequest = new RestRequest(_serverUri + "api/blobs");
             fileUploadRequest.AddHeader("Authorization", "Bearer " + _accessToken);
             fileUploadRequest.AddFile("file", File.ReadAllBytes(localFilePath), name);
             var fileUploadResponse = await _client.ExecutePostTaskAsync(fileUploadRequest);

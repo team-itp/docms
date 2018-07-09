@@ -12,6 +12,7 @@ namespace Docms.Uploader.Common
         private string _Username;
         private string _Password;
         private string _ErrorMessage;
+        private DocmsClient _client;
 
         [Required]
         public string Username
@@ -44,8 +45,12 @@ namespace Docms.Uploader.Common
 
         public RelayCommand LoginCommand { get; }
 
-        public LoginViewModel()
+        // Design-Time only
+        public LoginViewModel() { }
+
+        public LoginViewModel(DocmsClient client)
         {
+            _client = client;
             LoginCommand = new RelayCommand(Login, () => !_isExecutingLogin && !HasErrors);
         }
 
@@ -56,8 +61,7 @@ namespace Docms.Uploader.Common
             _isExecutingLogin = true;
             try
             {
-                var docmsClient = new DocmsClient(Settings.Default.DocmsWebEndpoint);
-                await docmsClient.LoginAsync(Username, Password);
+                await _client.LoginAsync(Username, Password);
                 Settings.Default.UserId = Username;
                 Settings.Default.SetPasswordHash(Password);
                 Settings.Default.Save();

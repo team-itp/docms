@@ -1,4 +1,5 @@
-﻿using Docms.Uploader.FileWatch;
+﻿using Docms.Client;
+using Docms.Uploader.FileWatch;
 using Docms.Uploader.Properties;
 using Docms.Uploader.Upload;
 using System.Collections.Specialized;
@@ -31,11 +32,11 @@ namespace Docms.Uploader.Common
             }
         }
 
-        public MainWindowViewModel()
+        public MainWindowViewModel(DocmsClient client)
         {
             var pathToWatch = Settings.Default.DirectoryToWatch;
             MediaFileList = new MediaFileListViewModel(pathToWatch);
-            Uploader = new UploaderViewModel();
+            Uploader = new UploaderViewModel(client);
 
             MediaFileList.Startwatch();
             MediaFileList.SelectedFiles.CollectionChanged += MediaFileListSelectedFiles_CollectionChanged;

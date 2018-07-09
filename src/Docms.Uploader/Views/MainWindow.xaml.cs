@@ -1,5 +1,4 @@
-﻿using Docms.Uploader.Common;
-using System.Windows;
+﻿using System.Windows;
 
 namespace Docms.Uploader.Views
 {
@@ -11,7 +10,6 @@ namespace Docms.Uploader.Views
         public MainWindow()
         {
             InitializeComponent();
-            DataContext = new MainWindowViewModel();
         }
     }
 }

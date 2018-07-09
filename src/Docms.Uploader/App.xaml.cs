@@ -2,7 +2,6 @@
 using Docms.Uploader.Common;
 using Docms.Uploader.Properties;
 using Docms.Uploader.Views;
-using System;
 using System.Threading.Tasks;
 using System.Windows;
 
@@ -19,12 +18,14 @@ namespace Docms.Uploader
 
             var mainWindow = new MainWindow();
 
+            var client = new DocmsClient(Settings.Default.DocmsWebEndpoint);
+
             var userid = Settings.Default.UserId;
             var password = Settings.Default.GetPassword();
+
             var needCredential = string.IsNullOrEmpty(userid);
             if (!needCredential)
             {
-                var client = new DocmsClient(Settings.Default.DocmsWebEndpoint);
                 try
                 {
                     Task.Run(async () => await client.LoginAsync(userid, password)).Wait();
@@ -38,7 +39,7 @@ namespace Docms.Uploader
             if (needCredential)
             {
                 var loginWindow = new LoginWindow();
-                var vm = new LoginViewModel()
+                var vm = new LoginViewModel(client)
                 {
                     Username = userid,
                 };
@@ -57,6 +58,8 @@ namespace Docms.Uploader
                     return;
                 }
             }
+
+            mainWindow.DataContext = new MainWindowViewModel(client);
             mainWindow.Show();
         }
     }

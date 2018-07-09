@@ -19,9 +19,11 @@ namespace Docms.Uploader.Upload
         private string _ProjectText;
         private string _PersonInChargeText;
         private bool _Loading;
+        private DocmsClient _client;
 
         public class MediaFilesCollection : ObservableCollection<MediaFile> { }
         public class TagsCollection : ObservableCollection<Tag> { }
+
 
         public MediaFilesCollection SelectedMediaFiles { get; }
 
@@ -105,8 +107,9 @@ namespace Docms.Uploader.Upload
 
         }
 
-        public UploaderViewModel()
+        public UploaderViewModel(DocmsClient client)
         {
+            _client = client;
             SelectedMediaFiles = new MediaFilesCollection();
             SelectedTags = new TagsCollection();
             Loading = true;
@@ -122,10 +125,9 @@ namespace Docms.Uploader.Upload
         private async Task InitializeAsync()
         {
             var scheduler = TaskScheduler.FromCurrentSynchronizationContext();
-            var client = new DocmsClient(Settings.Default.DocmsWebEndpoint);
-            await client.LoginAsync(Settings.Default.UserId, Settings.Default.GetPassword()).ConfigureAwait(false);
+            await _client.VerifyTokenAsync().ConfigureAwait(false);
             var tasks = new List<Task>();
-            tasks.Add(client.GetCustomersAsync().ContinueWith(t =>
+            tasks.Add(_client.GetCustomersAsync().ContinueWith(t =>
             {
                 if (t.IsCompleted)
                 {
@@ -135,7 +137,7 @@ namespace Docms.Uploader.Upload
                     }
                 }
             }, scheduler));
-            tasks.Add(client.GetUsersAsync().ContinueWith(t =>
+            tasks.Add(_client.GetUsersAsync().ContinueWith(t =>
             {
                 if (t.IsCompleted)
                 {
@@ -145,7 +147,7 @@ namespace Docms.Uploader.Upload
                     }
                 }
             }, scheduler));
-            tasks.Add(client.GetTagsAsync().ContinueWith(t =>
+            tasks.Add(_client.GetTagsAsync().ContinueWith(t =>
             {
                 if (t.IsCompleted)
                 {
@@ -169,8 +171,7 @@ namespace Docms.Uploader.Upload
 
         public async Task Upload()
         {
-            var client = new DocmsClient(Settings.Default.DocmsWebEndpoint);
-            await client.LoginAsync(Settings.Default.UserId, Settings.Default.GetPassword()).ConfigureAwait(false);
+            await _client.VerifyTokenAsync().ConfigureAwait(false);
             var tags = SelectedTags.Select(t => t.Name).ToList();
             if (PersonInCharge != null || !string.IsNullOrEmpty(PersonInChargeText))
             {
@@ -186,7 +187,7 @@ namespace Docms.Uploader.Upload
             }
             foreach (var f in SelectedMediaFiles)
             {
-                await client.CreateDocumentAsync(f.FullPath, f.Name, tags.ToArray());
+                await _client.CreateDocumentAsync(f.FullPath, f.Name, tags.ToArray());
             }
         }
 
