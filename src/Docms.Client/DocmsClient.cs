@@ -84,7 +84,7 @@ namespace Docms.Client
                 {
                     Token = _accessToken,
                     ClientId = "docms-client",
-                    ClientSecret = "docms-client-secret",  
+                    ClientSecret = "docms-client-secret",
                 }).ConfigureAwait(false);
 
             if (!response.IsActive)
@@ -137,9 +137,18 @@ namespace Docms.Client
         /// </summary>
         /// <param name="localFilePath">アップロードするファイルパス</param>
         /// <param name="name">ファイル名</param>
+        /// <param name="personInCharge">担当者</param>
+        /// <param name="customer">顧客</param>
+        /// <param name="project">案件</param>
         /// <param name="tags">タグ名</param>
         /// <returns></returns>
-        public async Task CreateDocumentAsync(string localFilePath, string name, string[] tags)
+        public async Task CreateDocumentAsync(
+            string localFilePath,
+            string name,
+            string personInCharge,
+            string customer,
+            string project,
+            string[] tags)
         {
             var fileUploadRequest = new RestRequest(_serverUri + "api/blobs");
             fileUploadRequest.AddHeader("Authorization", "Bearer " + _accessToken);
@@ -155,6 +164,9 @@ namespace Docms.Client
             {
                 BlobName = blobName,
                 Name = name,
+                PersonInCharge = personInCharge,
+                Customer = customer,
+                Project = project,
                 Tags = tags
             });
             var registResponse = await _client.ExecutePostTaskAsync(request).ConfigureAwait(false);

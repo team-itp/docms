@@ -173,21 +173,14 @@ namespace Docms.Uploader.Upload
         {
             await _client.VerifyTokenAsync().ConfigureAwait(false);
             var tags = SelectedTags.Select(t => t.Name).ToList();
-            if (PersonInCharge != null || !string.IsNullOrEmpty(PersonInChargeText))
-            {
-                tags.Add(PersonInCharge?.Name ?? PersonInChargeText);
-            }
-            if (Customer != null || !string.IsNullOrEmpty(CustomerText))
-            {
-                tags.Add(Customer?.Name ?? CustomerText);
-            }
-            if (Project != null || !string.IsNullOrEmpty(ProjectText))
-            {
-                tags.Add(Project?.Name ?? ProjectText);
-            }
             foreach (var f in SelectedMediaFiles)
             {
-                await _client.CreateDocumentAsync(f.FullPath, f.Name, tags.ToArray());
+                await _client.CreateDocumentAsync(f.FullPath,
+                    f.Name,
+                    PersonInCharge?.Name ?? PersonInChargeText,
+                    Customer?.Name ?? CustomerText,
+                    Project?.Name ?? ProjectText,
+                    tags.ToArray());
             }
         }
 
