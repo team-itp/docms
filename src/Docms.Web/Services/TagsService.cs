@@ -17,12 +17,22 @@ namespace Docms.Web.Services
             _docms = docms;
         }
 
-        public virtual async Task<Tag> FindOrCreateAsync(string tagname)
+        public Task<Tag> FindOrCreateAsync(string tagname)
+        {
+            return FindOrCreateAsync(tagname, null);
+        }
+
+        public virtual async Task<Tag> FindOrCreateAsync(string tagname, string category)
         {
             var tag = await _docms.Tags.FirstOrDefaultAsync(e => e.Name == tagname);
             if (tag == null)
             {
                 tag = new Tag() { Name = tagname };
+            }
+
+            if (!string.IsNullOrEmpty(category))
+            {
+                tag[Constants.TAG_KEY_CATEGORY] = category;
             }
             return tag;
         }

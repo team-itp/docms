@@ -15,14 +15,14 @@ namespace Docms.Web.VisualizationSystem.Services
         private VisualizationSystemDBContext _vs;
 
         public VisualizationSystemTagsService(
-            DocmsDbContext docms, 
+            DocmsDbContext docms,
             VisualizationSystemDBContext vs) : base(docms)
         {
             _docms = docms;
             _vs = vs;
         }
 
-        public override async Task<Tag> FindOrCreateAsync(string tagname)
+        public override async Task<Tag> FindOrCreateAsync(string tagname, string category)
         {
             var tag = await _docms.Tags.FirstOrDefaultAsync(e => e.Name == tagname);
             if (tag == null)
@@ -31,22 +31,26 @@ namespace Docms.Web.VisualizationSystem.Services
                 var user = await _vs.Users.FirstOrDefaultAsync(e => e.Name == tagname);
                 if (user != null)
                 {
-                    tag["vs_user_id"] = user.Id;
-                    tag["category"] = "担当者";
+                    tag[VSConstants.TAG_KEY_USER_ID] = user.Id;
+                    tag[Constants.TAG_KEY_CATEGORY] = Constants.TAG_CATEGORY_PERSON_IN_CHARGE;
                 }
                 var customer = await _vs.Customers.FirstOrDefaultAsync(e => e.Name == tagname);
                 if (customer != null)
                 {
-                    tag["vs_customer_id"] = customer.Id;
-                    tag["category"] = "顧客";
+                    tag[VSConstants.TAG_KEY_CUSTOMER_ID] = customer.Id;
+                    tag[Constants.TAG_KEY_CATEGORY] = Constants.TAG_CATEGORY_CUSTOMER;
                 }
                 var project = await _vs.SalesOrders.FirstOrDefaultAsync(e => e.Name == tagname);
                 if (project != null)
                 {
-                    tag["vs_customer_id"] = project.CustomerId;
-                    tag["vs_sales_order_no"] = project.No;
-                    tag["category"] = "案件";
+                    tag[VSConstants.TAG_KEY_CUSTOMER_ID] = project.CustomerId;
+                    tag[VSConstants.TAG_KEY_SALES_ORDER_NO] = project.No;
+                    tag[Constants.TAG_KEY_CATEGORY] = Constants.TAG_CATEGORY_PROJECT;
                 }
+            }
+            if (!string.IsNullOrEmpty(category))
+            {
+                tag[Constants.TAG_KEY_CATEGORY] = category;
             }
             return tag;
         }

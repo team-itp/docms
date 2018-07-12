@@ -93,15 +93,12 @@ namespace Docms.Web.Controllers
 
             if (ModelState.IsValid)
             {
+                var uploadedUser = User.Identity.Name;
                 foreach (var file in document.Files)
                 {
                     var filename = Path.GetFileName(file.FileName);
                     var blobName = await _storageService.UploadFileAsync(file.OpenReadStream(), Path.GetExtension(file.FileName));
-                    var documentId = await _service.CreateAsync(blobName, filename);
-                    if (document.Tags != null && document.Tags.Length > 0)
-                    {
-                        await _service.AddTagsAsync(documentId, document.Tags.Where(t => !string.IsNullOrEmpty(t)));
-                    }
+                    var documentId = await _service.CreateAsync(blobName, filename, uploadedUser, document.Tags.Where(t => !string.IsNullOrEmpty(t)));
                 }
 
                 return RedirectToAction(nameof(Index));
@@ -157,7 +154,8 @@ namespace Docms.Web.Controllers
             {
                 try
                 {
-                    await _service.UpdateFileNameAsync(document.Id, document.EditedFileName);
+                    var uploadedUser = User.Identity.Name;
+                    await _service.UpdateFileNameAsync(document.Id, document.EditedFileName, uploadedUser);
                 }
                 catch (DbUpdateConcurrencyException)
                 {
@@ -226,7 +224,8 @@ namespace Docms.Web.Controllers
             {
                 try
                 {
-                    await _service.AddTagsAsync(document.Id, document.Tags.Where(t => !string.IsNullOrEmpty(t)));
+                    var userAccountName = User.Identity.Name;
+                    await _service.AddTagsAsync(document.Id, document.Tags.Where(t => !string.IsNullOrEmpty(t)), userAccountName);
                 }
                 catch (DbUpdateConcurrencyException)
                 {
@@ -294,7 +293,8 @@ namespace Docms.Web.Controllers
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> DeleteTagConfirmed(int id, int tagId)
         {
-            await _service.RemoveTagsByIdAsync(id, new[] { tagId });
+            var userAccountName = User.Identity.Name;
+            await _service.RemoveTagsAsync(id, new[] { tagId }, userAccountName);
             return RedirectToAction(nameof(Details), new { id });
         }
 
@@ -332,7 +332,7 @@ namespace Docms.Web.Controllers
         {
             var document = await _context.Documents.SingleOrDefaultAsync(m => m.Id == id);
             await _storageService.DeleteFileAsync(document.BlobName);
-            _context.Documents.Remove(document);
+            await _service.RemoveAsync(document.Id);
             await _context.SaveChangesAsync();
             return RedirectToAction(nameof(Index));
         }
