@@ -62,6 +62,7 @@ namespace Docms.Uploader.FileWatch
             _context = SynchronizationContext.Current;
             _pathToWatch = pathToWatch;
             _watcher = new FileSystemWatcher(_pathToWatch);
+            _watcher.IncludeSubdirectories = true;
             _watcher.Created += new FileSystemEventHandler(_watcher_Created);
             _watcher.Deleted += new FileSystemEventHandler(_watcher_Deleted);
             _watcher.Renamed += new RenamedEventHandler(_watcher_Renamed);
