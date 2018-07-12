@@ -47,7 +47,6 @@ namespace Docms.Uploader.Common
         public MainWindowViewModel(DocmsClient client)
         {
             _client = client;
-            Initialize();
             LogoutCommand = new RelayCommand(Logout);
             ShowSettingsCommand = new RelayCommand(ShowSettings);
         }

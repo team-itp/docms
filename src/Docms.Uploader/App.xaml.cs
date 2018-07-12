@@ -75,6 +75,10 @@ namespace Docms.Uploader
             {
                 ShowSettingsWindow(mainVM);
             }
+            else
+            {
+                mainVM.Initialize();
+            }
         }
 
         private void ShowSettingsWindow(MainWindowViewModel mainVM)
