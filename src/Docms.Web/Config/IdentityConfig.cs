@@ -32,6 +32,9 @@ namespace Docms.Web.Config
                 {
                     Scopes = new List<Scope>() {
                         new Scope("docmsapi", "文書管理システム API")
+                    },
+                    ApiSecrets = new  List<Secret>() {
+                        new Secret("docmsapi-secret".Sha256())
                     }
                 }
             };
