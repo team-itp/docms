@@ -16,7 +16,7 @@ namespace Docms.Uploader.ApplicationSettings
 
         public object ViewModel
         {
-            get => _viewModel;
+            get { return _viewModel; }
             set
             {
                 SetProperty(ref _viewModel, value);

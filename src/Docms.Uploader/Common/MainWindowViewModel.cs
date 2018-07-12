@@ -19,20 +19,20 @@ namespace Docms.Uploader.Common
 
         public UploaderViewModel Uploader
         {
-            get => _uploader;
+            get { return _uploader; }
             set
             {
-                _uploader = value;
+                SetProperty(ref _uploader, value);
                 OnPropertyChanged(nameof(Uploader));
             }
         }
 
         public MediaFileListViewModel MediaFileList
         {
-            get => _mediaFileList;
+            get { return _mediaFileList; }
             set
             {
-                _mediaFileList = value;
+                SetProperty(ref _mediaFileList, value);
                 OnPropertyChanged(nameof(MediaFileList));
             }
         }

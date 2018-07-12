@@ -33,7 +33,7 @@ namespace Docms.Uploader.Upload
 
         public CustomerResponse Customer
         {
-            get => _Customer;
+            get { return _Customer; }
             set
             {
                 SetProperty(ref _Customer, value);
@@ -51,7 +51,7 @@ namespace Docms.Uploader.Upload
 
         public ProjectResponse Project
         {
-            get => _Project;
+            get { return _Project; }
             set
             {
                 SetProperty(ref _Project, value);
@@ -60,7 +60,7 @@ namespace Docms.Uploader.Upload
 
         public UserResponse PersonInCharge
         {
-            get => _PersonInCharge;
+            get { return _PersonInCharge; }
             set
             {
                 SetProperty(ref _PersonInCharge, value);
@@ -69,7 +69,7 @@ namespace Docms.Uploader.Upload
         }
         public string CustomerText
         {
-            get => _CustomerText;
+            get { return _CustomerText; }
             set
             {
                 SetProperty(ref _CustomerText, value);
@@ -78,7 +78,7 @@ namespace Docms.Uploader.Upload
 
         public string ProjectText
         {
-            get => _ProjectText;
+            get { return _ProjectText; }
             set
             {
                 SetProperty(ref _ProjectText, value);
@@ -87,7 +87,7 @@ namespace Docms.Uploader.Upload
 
         public string PersonInChargeText
         {
-            get => _PersonInChargeText;
+            get { return _PersonInChargeText; }
             set
             {
                 SetProperty(ref _PersonInChargeText, value);
@@ -99,7 +99,7 @@ namespace Docms.Uploader.Upload
         public TagsCollection SelectedTags { get; set; }
         public bool Loading
         {
-            get => _Loading;
+            get { return _Loading; }
             set
             {
                 SetProperty(ref _Loading, value);

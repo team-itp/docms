@@ -17,7 +17,7 @@ namespace Docms.Uploader.Common
         [Required]
         public string Username
         {
-            get => _Username;
+            get { return _Username; }
             set
             {
                 SetProperty(ref _Username, value);
@@ -27,7 +27,7 @@ namespace Docms.Uploader.Common
         [Required]
         public string Password
         {
-            get => _Password;
+            get { return _Password; }
             set
             {
                 SetProperty(ref _Password, value);
@@ -36,7 +36,7 @@ namespace Docms.Uploader.Common
 
         public string ErrorMessage
         {
-            get => _ErrorMessage;
+            get { return _ErrorMessage; }
             set
             {
                 SetProperty(ref _ErrorMessage, value);
