@@ -38,8 +38,8 @@ namespace Docms.Web.Controllers
 
             var projectTags = await _context.Tags
                 .Include(e => e.Metadata)
-                .Where(e => e.Metadata.Any(m => m.MetaKey == "category"))
-                .Where(e => e.Metadata.First(m => m.MetaKey == "category").MetaValue == "案件")
+                .Where(e => e.Metadata.Any(m => m.MetaKey == Constants.TAG_KEY_CATEGORY))
+                .Where(e => e.Metadata.First(m => m.MetaKey == Constants.TAG_KEY_CATEGORY).MetaValue == Constants.TAG_CATEGORY_PROJECT)
                 .ToListAsync();
 
             projectTags = projectTags
@@ -52,6 +52,7 @@ namespace Docms.Web.Controllers
                 AccountName = appUser.AccountName,
                 Name = appUser.Name,
                 DepartmentName = appUser.DepartmentName,
+                TeamName = appUser.TeamName,
                 Favorites = (user?.UserFavorites
                     .OfType<UserFavoriteTag>()
                     .Select(p =>
@@ -64,33 +65,6 @@ namespace Docms.Web.Controllers
                             Name = p.Tag.Name,
                         };
                     }) ?? new List<FavoriteTagViewModel>()).ToList(),
-            });
-        }
-
-        [HttpGet("favorites/add")]
-        public async Task<IActionResult> AddFavorites(
-            [FromQuery(Name = "t")] string type,
-            [FromQuery(Name = "i")] int dataId)
-        {
-            if (type != Constants.FAV_TYPE_TAG)
-            {
-                return BadRequest();
-            }
-
-            var tag = await _context.Tags.FirstOrDefaultAsync(e => e.Id == dataId);
-            if (tag == null)
-            {
-                return BadRequest();
-            }
-
-            var appUser = await _userManager.GetUserAsync(User);
-            return View(new AddFavoritesViewModel()
-            {
-                UserName = appUser.Name,
-                Type = Constants.FAV_TYPE_TAG,
-                TypeName = Constants.FAV_TYPE_TAG_NAME,
-                DataId = dataId,
-                DataName = tag.Name
             });
         }
 

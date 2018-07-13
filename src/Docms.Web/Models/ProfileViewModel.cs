@@ -6,7 +6,8 @@ namespace Docms.Web.Models
     {
         public string AccountName { get; set; }
         public string Name { get; set; }
-        public string DepartmentName { get; internal set; }
+        public string DepartmentName { get; set; }
+        public string TeamName { get; set; }
 
         public ICollection<FavoriteTagViewModel> Favorites { get; set; }
     }
@@ -20,11 +21,8 @@ namespace Docms.Web.Models
 
     public class AddFavoritesViewModel
     {
-        public string UserName { get; set; }
         public string Type { get; set; }
-        public string TypeName { get; set; }
         public int DataId { get; set; }
-        public string DataName { get; set; }
         public string ReturnUrl { get; set; }
     }
 }

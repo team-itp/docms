@@ -34,13 +34,25 @@ namespace Docms.Web.VisualizationSystem.Services
             {
                 return null;
             }
+
+            var teamName = default(string);
+            if (!string.IsNullOrEmpty(user.TeamId))
+            {
+                teamName = (await _context.Teams.FindAsync(user.TeamId))?.Name;
+            }
+
             var hasher = new PasswordHasher<ApplicationUser>();
             var appUser = new ApplicationUser()
             {
                 Id = user.Id,
                 Name = user.Name,
                 AccountName = user.AccountName,
-                DepartmentName = user.Department.ToString(),
+                DepartmentName = user.Department == 0
+                                    ? "リフォーム"
+                                    : user.Department == 1
+                                    ? "建築"
+                                    : null,
+                TeamName = teamName,
             };
             appUser.PasswordHash = hasher.HashPassword(appUser, user.Password);
             return appUser;

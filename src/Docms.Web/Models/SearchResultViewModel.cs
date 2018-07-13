@@ -53,8 +53,8 @@ namespace Docms.Web.Models
             var tags = searchTags.Select(t => t.Id).ToArray();
             var baseUrl = url.Action("Index", "Search", new
             {
-                keyword,
-                tags
+                q = keyword,
+                t = tags
             });
             int idx = baseUrl.IndexOf('?');
             var template = baseUrl + (idx >= 0 ? "&p={0}" : "?p={0}");
