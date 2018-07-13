@@ -5,11 +5,11 @@
 }
 
 <div class="d-flex">
-    @foreach (var preferredTag in Model.PreferredTags)
+    @foreach (var item in Model.Favorites)
     {
-        <a class="btn btn-outline-success mx-2" asp-action="Index" asp-controller="Search" asp-route-t="@preferredTag.Id">
+        <a class="btn btn-outline-success mx-2" asp-action="Index" asp-controller="Search" asp-route-t="@item.Id">
             <i class="fa fa-tag"></i>
-            @preferredTag.Name
+            @item.Name
         </a>
     }
 </div>

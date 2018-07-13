@@ -9,17 +9,17 @@ namespace Docms.Web.Models
     public class HomeViewModel
     {
         public IEnumerable<HomeDocumentViewModel> RecentUploadedDocuments { get; set; }
-        public IEnumerable<PreferredTagViewModel> PreferredTags { get; set; }
+        public IEnumerable<FavoriteTagViewModel> Favorites { get; set; }
 
         public static HomeViewModel Create(
             IUrlHelper url, 
             IEnumerable<Document> recentUploadedDocuments, 
-            IEnumerable<PreferredTagViewModel> preferredTags)
+            IEnumerable<FavoriteTagViewModel> favorites)
         {
             return new HomeViewModel()
             {
                 RecentUploadedDocuments = recentUploadedDocuments.Select(e => HomeDocumentViewModel.Create(url, e)),
-                PreferredTags = preferredTags
+                Favorites = favorites
             };
         }
     }

@@ -9,14 +9,14 @@ namespace Docms.Web.Data
         public User()
         {
             Metadata = new List<UserMeta>();
-            UserPreferredTags = new List<UserPreferredTag>();
+            UserFavorites = new List<UserFavorite>();
         }
 
         public int Id { get; set; }
         public string VSUserId { get; set; }
 
         public virtual ICollection<UserMeta> Metadata { get; set; }
-        public virtual ICollection<UserPreferredTag> UserPreferredTags { get; set; }
+        public virtual ICollection<UserFavorite> UserFavorites { get; set; }
 
         public string this[string key]
         {
@@ -55,24 +55,24 @@ namespace Docms.Web.Data
             }
         }
 
-        public void AddPreferredTag(Tag tag)
+        public void AddFavorites(Tag tag)
         {
-            if (!UserPreferredTags.Any(e => e.TagId == tag.Id))
+            if (!UserFavorites.Any(e => e is UserFavoriteTag && e.DataId == tag.Id))
             {
-                UserPreferredTags.Add(new UserPreferredTag()
+                UserFavorites.Add(new UserFavoriteTag()
                 {
                     UserId = Id,
-                    TagId = tag.Id,
+                    Tag = tag
                 });
             }
         }
 
-        public void RemovePreferredTag(Tag tag)
+        public void RemoveFavorites(Tag tag)
         {
-            var dbData = UserPreferredTags.FirstOrDefault(e => e.TagId == tag.Id);
+            var dbData = UserFavorites.FirstOrDefault(e => e is UserFavoriteTag && e.DataId == tag.Id);
             if (dbData != null)
             {
-                UserPreferredTags.Remove(dbData);
+                UserFavorites.Remove(dbData);
             }
         }
     }
@@ -103,10 +103,16 @@ namespace Docms.Web.Data
         }
     }
 
-    public class UserPreferredTag
+    public class UserFavorite
     {
+        public int Id { get; set; }
         public int UserId { get; set; }
-        public int TagId { get; set; }
+        public string Type { get; set; }
+        public int DataId { get; set; }
+    }
+
+    public class UserFavoriteTag : UserFavorite
+    {
         public virtual Tag Tag { get; set; }
     }
 }

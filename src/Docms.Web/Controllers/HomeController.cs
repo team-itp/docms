@@ -31,18 +31,22 @@ namespace Docms.Web.Controllers
             var appUser = await _userManager.GetUserAsync(User);
             var user = await _context.Users
                 .Include(e => e.Metadata)
-                .Include(e => e.UserPreferredTags)
-                .ThenInclude(e => e.Tag)
+                .Include(e => e.UserFavorites)
                 .FirstOrDefaultAsync(e => e.VSUserId == appUser.Id);
 
-            var preferredTags = new List<PreferredTagViewModel>();
+            var favoriteTags = new List<FavoriteTagViewModel>();
             if (user != null)
             {
-                preferredTags = user.UserPreferredTags
-                    .Select(p => new PreferredTagViewModel()
+                favoriteTags = user.UserFavorites
+                    .OfType<UserFavoriteTag>()
+                    .Select(p =>
                     {
-                        Id = p.TagId,
-                        Name = p.Tag.Name
+                         _context.Entry(p).Reference(e => e.Tag).Load();
+                        return new FavoriteTagViewModel()
+                        {
+                            Id = p.DataId,
+                            Name = p.Tag.Name
+                        };
                     }).ToList();
             }
 
@@ -55,14 +59,14 @@ namespace Docms.Web.Controllers
 
             documentsQuery = documentsQuery.Union(_context.Documents
                 .Include(d => d.Tags)
-                .Where(d => d.Tags.Any(t => preferredTags.Any(p => p.Id == t.TagId))));
+                .Where(d => d.Tags.Any(t => favoriteTags.Any(p => p.Id == t.TagId))));
 
             var documents = await documentsQuery
                 .OrderBy(d => d.UploadedAt)
                 .Take(40)
                 .ToListAsync();
 
-            return View(HomeViewModel.Create(Url, documents, preferredTags));
+            return View(HomeViewModel.Create(Url, documents, favoriteTags));
         }
 
         [HttpGet("about")]

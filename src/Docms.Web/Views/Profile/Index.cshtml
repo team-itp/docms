@@ -30,7 +30,7 @@
         </dl>
 
         <h4>お気に入りの案件一覧</h4>
-        <form asp-action="AddPreferredTag">
+        <form asp-action="AddFavorites">
             <div class="input-group mb-3">
                 <select class="custom-select" name="tagId" asp-items="@tags"></select>
                 <div class="input-group-append">
@@ -39,11 +39,11 @@
             </div>
         </form>
         <ul class="list-group">
-            @foreach (var item in Model.PreferredTags)
+            @foreach (var item in Model.Favorites)
             {
                 <li class="list-group-item d-flex justify-content-between">
                     @item.Name
-                    <form asp-action="DeletePreferredTag" asp-route-tagId="@item.Id">
+                    <form asp-action="DeleteFavorites" asp-route-tagId="@item.Id">
                         <button class="btn btn-sm btn-outline-dark py-1">
                             <i class="fa fa-trash"></i>
                         </button>

@@ -8,10 +8,10 @@ namespace Docms.Web.Models
         public string Name { get; set; }
         public string DepartmentName { get; internal set; }
 
-        public ICollection<PreferredTagViewModel> PreferredTags { get; set; }
+        public ICollection<FavoriteTagViewModel> Favorites { get; set; }
     }
 
-    public class PreferredTagViewModel
+    public class FavoriteTagViewModel
     {
         public int Id { get; set; }
         public string Name { get; set; }

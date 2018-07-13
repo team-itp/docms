@@ -32,8 +32,7 @@ namespace Docms.Web.Controllers
             var appUser = await _userManager.GetUserAsync(User);
             var user = await _context.Users
                 .Include(e => e.Metadata)
-                .Include(e => e.UserPreferredTags)
-                .ThenInclude(e => e.Tag)
+                .Include(e => e.UserFavorites)
                 .FirstOrDefaultAsync(e => e.VSUserId == appUser.Id);
 
             var projectTags = await _context.Tags
@@ -52,17 +51,22 @@ namespace Docms.Web.Controllers
                 AccountName = appUser.AccountName,
                 Name = appUser.Name,
                 DepartmentName = appUser.DepartmentName,
-                PreferredTags = (user?.UserPreferredTags
-                    .Select(e => new PreferredTagViewModel()
+                Favorites = (user?.UserFavorites
+                    .OfType<UserFavoriteTag>()
+                    .Select(p =>
                     {
-                        Id = e.TagId,
-                        Name = e.Tag.Name
-                    }) ?? new List<PreferredTagViewModel>()).ToList(),
+                         _context.Entry(p).Reference(e => e.Tag).Load();
+                        return new FavoriteTagViewModel()
+                        {
+                            Id = p.DataId,
+                            Name = p.Tag.Name
+                        };
+                    }) ?? new List<FavoriteTagViewModel>()).ToList(),
             });
         }
 
-        [HttpPost("preferredtags/add")]
-        public async Task<IActionResult> AddPreferredTag([Bind("tagId")] int tagId)
+        [HttpPost("favorites/add")]
+        public async Task<IActionResult> AddFavorites([Bind("tagId")] int tagId)
         {
             var tag = await _context.Tags.FirstOrDefaultAsync(e => e.Id == tagId);
             if (tag == null)
@@ -73,7 +77,7 @@ namespace Docms.Web.Controllers
             var appUser = await _userManager.GetUserAsync(User);
             var user = await _context.Users
                 .Include(e => e.Metadata)
-                .Include(e => e.UserPreferredTags)
+                .Include(e => e.UserFavorites)
                 .FirstOrDefaultAsync(e => e.VSUserId == appUser.Id);
             if (user == null)
             {
@@ -84,14 +88,14 @@ namespace Docms.Web.Controllers
                 await _context.AddAsync(user);
                 user = await _context.Users.FindAsync(user.Id);
             }
-            user.AddPreferredTag(tag);
+            user.AddFavorites(tag);
             await _context.SaveChangesAsync();
 
             return RedirectToAction(nameof(Index));
         }
 
-        [HttpPost("preferredtags/delete/{tagId}")]
-        public async Task<IActionResult> DeletePreferredTag(int tagId)
+        [HttpPost("favorites/delete/{tagId}")]
+        public async Task<IActionResult> DeleteFavorites(int tagId)
         {
             var tag = await _context.Tags.FirstOrDefaultAsync(e => e.Id == tagId);
             if (tag == null)
@@ -102,12 +106,12 @@ namespace Docms.Web.Controllers
             var appUser = await _userManager.GetUserAsync(User);
             var user = await _context.Users
                 .Include(e => e.Metadata)
-                .Include(e => e.UserPreferredTags)
+                .Include(e => e.UserFavorites)
                 .FirstOrDefaultAsync(e => e.VSUserId == appUser.Id);
 
             if (user != null)
             {
-                user.RemovePreferredTag(tag);
+                user.RemoveFavorites(tag);
                 await _context.SaveChangesAsync();
             }
 

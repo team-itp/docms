@@ -54,8 +54,15 @@ namespace Docms.Web.Data
         {
             base.OnModelCreating(modelBuilder);
 
-            modelBuilder.Entity<UserPreferredTag>()
-                .HasKey(t => new { t.UserId, t.TagId });
+            modelBuilder.Entity<UserFavorite>()
+                .HasDiscriminator(t => t.Type)
+                .HasValue<UserFavoriteTag>("tag");
+
+            modelBuilder.Entity<UserFavoriteTag>()
+                .HasOne(t => t.Tag)
+                .WithOne()
+                .HasForeignKey<UserFavoriteTag>(t => t.DataId)
+                .HasPrincipalKey<Tag>(p => p.Id);
 
             modelBuilder.Entity<DocumentTag>()
                 .HasKey(t => new { t.DocumentId, t.TagId });
@@ -63,7 +70,7 @@ namespace Docms.Web.Data
 
         public DbSet<User> Users { get; set; }
         public DbSet<UserMeta> UserMeta { get; set; }
-        public DbSet<UserPreferredTag> UserPreferredTags { get; set; }
+        public DbSet<UserFavorite> UserFavorites { get; set; }
 
         public DbSet<Document> Documents { get; set; }
         public DbSet<DocumentTag> DocumentTags { get; set; }
