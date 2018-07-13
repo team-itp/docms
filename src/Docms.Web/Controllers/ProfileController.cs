@@ -95,7 +95,7 @@ namespace Docms.Web.Controllers
         }
 
         [HttpPost("favorites/add")]
-        public async Task<IActionResult> AddFavorites([Bind("Type,DataId")] AddFavoritesViewModel data)
+        public async Task<IActionResult> AddFavorites([Bind("Type,DataId,ReturnUrl")] AddFavoritesViewModel data)
         {
             if (data.Type != Constants.FAV_TYPE_TAG)
             {
@@ -124,11 +124,18 @@ namespace Docms.Web.Controllers
             user.AddFavorites(tag);
             await _context.SaveChangesAsync();
 
-            return RedirectToAction(nameof(Index));
+            if (string.IsNullOrEmpty(data.ReturnUrl))
+            {
+                return RedirectToAction(nameof(Index));
+            }
+            else
+            {
+                return Redirect(data.ReturnUrl);
+            }
         }
 
         [HttpPost("favorites/delete/{favId}")]
-        public async Task<IActionResult> DeleteFavorites(int favId)
+        public async Task<IActionResult> DeleteFavorites(int favId, [FromForm] string ReturnUrl)
         {
             var user = await FindUserAsync();
             if (user != null)
@@ -138,7 +145,14 @@ namespace Docms.Web.Controllers
                 await _context.SaveChangesAsync();
             }
 
-            return RedirectToAction(nameof(Index));
+            if (string.IsNullOrEmpty(ReturnUrl))
+            {
+                return RedirectToAction(nameof(Index));
+            }
+            else
+            {
+                return Redirect(ReturnUrl);
+            }
         }
 
         private async Task<User> FindUserAsync()

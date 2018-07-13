@@ -6,6 +6,62 @@ using System.Linq;
 
 namespace Docms.Web.Models
 {
+
+    public class DocumentsByTagViewModel
+    {
+        public TagViewModel Tag { get; set; }
+        public IEnumerable<DocumentViewModel> Documents { get; set; }
+
+        public static DocumentsByTagViewModel Create(IUrlHelper url, Tag tag, List<Document> documents, List<UserFavoriteTag> favTags)
+        {
+            return new DocumentsByTagViewModel()
+            {
+                Tag = TagViewModel.Create(url, tag, favTags),
+                Documents = documents.Select(e => DocumentViewModel.Create(url, e))
+            };
+        }
+    }
+
+    public class TagViewModel
+    {
+        public int Id { get; set; }
+        public string Name { get; set; }
+        public bool IsFaved { get; set; }
+        public int? FavId { get; set; }
+        public TagLinks Links { get; set; }
+
+        public static TagViewModel Create(IUrlHelper url, Tag data, List<UserFavoriteTag> favTags)
+        {
+            var fav = favTags.FirstOrDefault(f => f.DataId == data.Id);
+            var vm = new TagViewModel()
+            {
+                Id = data.Id,
+                Name = data.Name,
+                IsFaved = fav != null,
+                FavId = fav?.Id,
+                Links = TagLinks.Create(url, data),
+            };
+            return vm;
+        }
+    }
+
+    public class TagLinks
+    {
+        public string Self { get; set; }
+        public string List { get; set; }
+        public string Fav { get; set; }
+        public static TagLinks Create(IUrlHelper url, Tag data)
+        {
+            var vm = new TagLinks()
+            {
+                Self = url.Action("Details", "Tags", new { id = data.Id }),
+                List = url.Action("Index", "Search", new { t = new[] { data.Id } }),
+                Fav = url.Action("AddFavorites", "Profile", new { type = Constants.FAV_TYPE_TAG, dataId = data.Id }),
+            };
+            return vm;
+        }
+    }
+
     public class DocumentViewModel
     {
         public int Id { get; set; }

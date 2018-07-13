@@ -25,5 +25,6 @@ namespace Docms.Web.Models
         public string TypeName { get; set; }
         public int DataId { get; set; }
         public string DataName { get; set; }
+        public string ReturnUrl { get; set; }
     }
 }

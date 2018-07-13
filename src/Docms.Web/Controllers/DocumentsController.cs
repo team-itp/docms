@@ -2,6 +2,7 @@
 using Docms.Web.Models;
 using Docms.Web.Services;
 using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Rendering;
 using Microsoft.EntityFrameworkCore;
@@ -21,12 +22,18 @@ namespace Docms.Web.Controllers
         private readonly DocmsDbContext _context;
         private readonly DocumentsService _service;
         private readonly IStorageService _storageService;
+        private UserManager<ApplicationUser> _userManager;
 
-        public DocumentsController(DocmsDbContext context, DocumentsService service, IStorageService storageService)
+        public DocumentsController(
+            DocmsDbContext context, 
+            DocumentsService service, 
+            IStorageService storageService,
+            UserManager<ApplicationUser> userManager)
         {
             _context = context;
             _service = service;
             _storageService = storageService;
+            _userManager = userManager;
         }
 
         /// <summary>
@@ -37,6 +44,40 @@ namespace Docms.Web.Controllers
         public async Task<IActionResult> Index()
         {
             return View(await _context.Documents.ToListAsync());
+        }
+
+        /// <summary>
+        /// タグごとのドキュメント情報の一覧を取得する
+        /// </summary>
+        /// <param name="tagId">タグID</param>
+        /// <returns>ドキュメント情報の一覧</returns>
+        [HttpGet("byTag/{tagId}")]
+        public async Task<IActionResult> IndexByTag(int tagId)
+        {
+            var tag = await _context.Tags.FirstOrDefaultAsync(e => e.Id == tagId);
+            if (tag == null)
+            {
+                return NotFound();
+            }
+
+            var documents = await _context.Documents
+                .Include(e => e.Tags)
+                .ThenInclude(e => e.Tag)
+                .Include(e => e.Metadata)
+                .Where(e => e.Tags.Any(t => t.TagId == tagId))
+                .ToListAsync();
+
+            var appUser = await _userManager.GetUserAsync(User);
+            var userId = appUser.Id;
+            var favTags = (await _context.Users
+                .Where(e => e.VSUserId == userId)
+                .Include(e => e.UserFavorites)
+                .SelectMany(e => e.UserFavorites)
+                .ToListAsync())
+                .OfType<UserFavoriteTag>()
+                .ToList();
+
+            return View(DocumentsByTagViewModel.Create(Url, tag, documents, favTags));
         }
 
         /// <summary>
