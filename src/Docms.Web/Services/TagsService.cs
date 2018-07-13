@@ -24,7 +24,10 @@ namespace Docms.Web.Services
 
         public virtual async Task<Tag> FindOrCreateAsync(string tagname, string category)
         {
-            var tag = await _docms.Tags.FirstOrDefaultAsync(e => e.Name == tagname);
+            var tag = await _docms.Tags
+                .Include(e => e.Metadata)
+                .FirstOrDefaultAsync(e => e.Name == tagname);
+
             if (tag == null)
             {
                 tag = new Tag() { Name = tagname };
@@ -34,6 +37,7 @@ namespace Docms.Web.Services
             {
                 tag[Constants.TAG_KEY_CATEGORY] = category;
             }
+
             return tag;
         }
     }
