@@ -1,8 +1,5 @@
 using Docms.Web.Data;
-using Docms.Web.VisualizationSystem.Data;
 using Microsoft.EntityFrameworkCore;
-using System;
-using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 
@@ -39,6 +36,20 @@ namespace Docms.Web.Services
             }
 
             return tag;
+        }
+
+        public async Task Remove(int tagId)
+        {
+            var tag = await _docms.Tags
+                .Include(m => m.Metadata)
+                .SingleOrDefaultAsync(m => m.Id == tagId);
+            _docms.Tags.Remove(tag);
+            _docms.TagMeta.RemoveRange(tag.Metadata);
+
+            var docTags = _docms.DocumentTags.Where(m => m.TagId == tagId);
+            _docms.RemoveRange(docTags);
+
+            await _docms.SaveChangesAsync();
         }
     }
 }

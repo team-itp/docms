@@ -1,5 +1,6 @@
 ﻿using Docms.Web.Data;
 using Docms.Web.Models;
+using Docms.Web.Services;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
@@ -16,10 +17,12 @@ namespace Docms.Web.Controllers
     public class TagsController : Controller
     {
         private readonly DocmsDbContext _context;
+        private readonly TagsService _service;
 
-        public TagsController(DocmsDbContext context)
+        public TagsController(DocmsDbContext context, TagsService service)
         {
             _context = context;
+            _service = service;
         }
 
         /// <summary>
@@ -352,9 +355,7 @@ namespace Docms.Web.Controllers
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> DeleteConfirmed(int id)
         {
-            var tag = await _context.Tags.SingleOrDefaultAsync(m => m.Id == id);
-            _context.Tags.Remove(tag);
-            await _context.SaveChangesAsync();
+            await _service.Remove(id);
             return RedirectToAction(nameof(Index));
         }
 

@@ -2,6 +2,7 @@ using Docms.Web.Data;
 using Microsoft.AspNetCore.Mvc;
 using System;
 using System.Collections.Generic;
+using System.ComponentModel;
 using System.Linq;
 
 namespace Docms.Web.Models
@@ -65,8 +66,13 @@ namespace Docms.Web.Models
     public class DocumentViewModel
     {
         public int Id { get; set; }
+        [DisplayName("ファイル名")]
         public string FileName { get; set; }
+        [DisplayName("アップロード時刻")]
         public DateTime UploadedAt { get; set; }
+        [DisplayName("アップロードユーザー")]
+        public string UploadedBy { get; set; }
+        [DisplayName("タグ")]
         public List<DocumentTagViewModel> Tags { get; set; }
         public DocumentLinks Links { get; set; }
 
@@ -77,6 +83,7 @@ namespace Docms.Web.Models
                 Id = data.Id,
                 FileName = data.FileName,
                 UploadedAt = data.UploadedAt,
+                UploadedBy = data.UploadedBy,
                 Links = DocumentLinks.Create(url, data),
                 Tags = data.Tags
                     .Select(t => DocumentTagViewModel.Create(url, t))

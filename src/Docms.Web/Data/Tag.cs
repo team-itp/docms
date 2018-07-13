@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.ComponentModel;
 using System.Linq;
 
 namespace Docms.Web.Data
@@ -12,8 +13,10 @@ namespace Docms.Web.Data
         }
 
         public int Id { get; set; }
+        [DisplayName("名前")]
         public string Name { get; set; }
 
+        [DisplayName("メタデータ")]
         public virtual ICollection<TagMeta> Metadata { get; set; }
 
         public string this[string key]
@@ -58,7 +61,9 @@ namespace Docms.Web.Data
     {
         public int Id { get; set; }
         public int TagId { get; set; }
+        [DisplayName("キー")]
         public string MetaKey { get; set; }
+        [DisplayName("値")]
         public string MetaValue { get; set; }
     }
 
