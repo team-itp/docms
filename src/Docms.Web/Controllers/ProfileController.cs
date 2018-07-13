@@ -4,6 +4,7 @@ using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
@@ -55,38 +56,70 @@ namespace Docms.Web.Controllers
                     .OfType<UserFavoriteTag>()
                     .Select(p =>
                     {
-                         _context.Entry(p).Reference(e => e.Tag).Load();
+                        _context.Entry(p).Reference(e => e.Tag).Load();
                         return new FavoriteTagViewModel()
                         {
-                            Id = p.DataId,
-                            Name = p.Tag.Name
+                            Id = p.Id,
+                            TagId = p.Tag.Id,
+                            Name = p.Tag.Name,
                         };
                     }) ?? new List<FavoriteTagViewModel>()).ToList(),
             });
         }
 
-        [HttpPost("favorites/add")]
-        public async Task<IActionResult> AddFavorites([Bind("tagId")] int tagId)
+        [HttpGet("favorites/add")]
+        public async Task<IActionResult> AddFavorites(
+            [FromQuery(Name = "t")] string type,
+            [FromQuery(Name = "i")] int dataId)
         {
-            var tag = await _context.Tags.FirstOrDefaultAsync(e => e.Id == tagId);
+            if (type != Constants.FAV_TYPE_TAG)
+            {
+                return BadRequest();
+            }
+
+            var tag = await _context.Tags.FirstOrDefaultAsync(e => e.Id == dataId);
             if (tag == null)
             {
-                BadRequest();
+                return BadRequest();
             }
 
             var appUser = await _userManager.GetUserAsync(User);
-            var user = await _context.Users
-                .Include(e => e.Metadata)
-                .Include(e => e.UserFavorites)
-                .FirstOrDefaultAsync(e => e.VSUserId == appUser.Id);
+            return View(new AddFavoritesViewModel()
+            {
+                UserName = appUser.Name,
+                Type = Constants.FAV_TYPE_TAG,
+                TypeName = Constants.FAV_TYPE_TAG_NAME,
+                DataId = dataId,
+                DataName = tag.Name
+            });
+        }
+
+        [HttpPost("favorites/add")]
+        public async Task<IActionResult> AddFavorites([Bind("Type,DataId")] AddFavoritesViewModel data)
+        {
+            if (data.Type != Constants.FAV_TYPE_TAG)
+            {
+                return BadRequest();
+            }
+
+            var tag = await _context.Tags.FirstOrDefaultAsync(e => e.Id == data.DataId);
+            if (tag == null)
+            {
+                return BadRequest();
+            }
+
+            var user = await FindUserAsync();
             if (user == null)
             {
+                var appUser = await _userManager.GetUserAsync(User);
                 user = new User()
                 {
                     VSUserId = appUser.Id
                 };
                 await _context.AddAsync(user);
-                user = await _context.Users.FindAsync(user.Id);
+                await _context.SaveChangesAsync();
+
+                user = await FindUserAsync();
             }
             user.AddFavorites(tag);
             await _context.SaveChangesAsync();
@@ -94,28 +127,27 @@ namespace Docms.Web.Controllers
             return RedirectToAction(nameof(Index));
         }
 
-        [HttpPost("favorites/delete/{tagId}")]
-        public async Task<IActionResult> DeleteFavorites(int tagId)
+        [HttpPost("favorites/delete/{favId}")]
+        public async Task<IActionResult> DeleteFavorites(int favId)
         {
-            var tag = await _context.Tags.FirstOrDefaultAsync(e => e.Id == tagId);
-            if (tag == null)
-            {
-                BadRequest();
-            }
-
-            var appUser = await _userManager.GetUserAsync(User);
-            var user = await _context.Users
-                .Include(e => e.Metadata)
-                .Include(e => e.UserFavorites)
-                .FirstOrDefaultAsync(e => e.VSUserId == appUser.Id);
-
+            var user = await FindUserAsync();
             if (user != null)
             {
-                user.RemoveFavorites(tag);
+                var fav = user.UserFavorites.FirstOrDefault(e => e.Id == favId);
+                _context.Remove(fav);
                 await _context.SaveChangesAsync();
             }
 
             return RedirectToAction(nameof(Index));
+        }
+
+        private async Task<User> FindUserAsync()
+        {
+            var appUser = await _userManager.GetUserAsync(User);
+            return await _context.Users
+                .Include(e => e.Metadata)
+                .Include(e => e.UserFavorites)
+                .FirstOrDefaultAsync(e => e.VSUserId == appUser.Id);
         }
     }
 }

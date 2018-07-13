@@ -41,10 +41,11 @@ namespace Docms.Web.Controllers
                     .OfType<UserFavoriteTag>()
                     .Select(p =>
                     {
-                         _context.Entry(p).Reference(e => e.Tag).Load();
+                        _context.Entry(p).Reference(e => e.Tag).Load();
                         return new FavoriteTagViewModel()
                         {
-                            Id = p.DataId,
+                            Id = p.Id,
+                            TagId = p.DataId,
                             Name = p.Tag.Name
                         };
                     }).ToList();
@@ -59,7 +60,7 @@ namespace Docms.Web.Controllers
 
             documentsQuery = documentsQuery.Union(_context.Documents
                 .Include(d => d.Tags)
-                .Where(d => d.Tags.Any(t => favoriteTags.Any(p => p.Id == t.TagId))));
+                .Where(d => d.Tags.Any(t => favoriteTags.Any(p => p.TagId == t.TagId))));
 
             var documents = await documentsQuery
                 .OrderBy(d => d.UploadedAt)

@@ -32,7 +32,8 @@
         <h4>お気に入りの案件一覧</h4>
         <form asp-action="AddFavorites">
             <div class="input-group mb-3">
-                <select class="custom-select" name="tagId" asp-items="@tags"></select>
+                <input type="hidden" name="Type" value="@Constants.FAV_TYPE_TAG" />
+                <select class="custom-select" name="DataId" asp-items="@tags"></select>
                 <div class="input-group-append">
                     <button class="btn btn-primary" type="submit">お気に入り追加</button>
                 </div>
@@ -43,7 +44,7 @@
             {
                 <li class="list-group-item d-flex justify-content-between">
                     @item.Name
-                    <form asp-action="DeleteFavorites" asp-route-tagId="@item.Id">
+                    <form asp-action="DeleteFavorites" asp-route-favId="@item.Id">
                         <button class="btn btn-sm btn-outline-dark py-1">
                             <i class="fa fa-trash"></i>
                         </button>

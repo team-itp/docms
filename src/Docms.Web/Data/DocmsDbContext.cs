@@ -56,13 +56,13 @@ namespace Docms.Web.Data
 
             modelBuilder.Entity<UserFavorite>()
                 .HasDiscriminator(t => t.Type)
-                .HasValue<UserFavoriteTag>("tag");
+                .HasValue<UserFavoriteTag>(Constants.FAV_TYPE_TAG);
 
             modelBuilder.Entity<UserFavoriteTag>()
                 .HasOne(t => t.Tag)
-                .WithOne()
-                .HasForeignKey<UserFavoriteTag>(t => t.DataId)
-                .HasPrincipalKey<Tag>(p => p.Id);
+                .WithMany()
+                .HasForeignKey(t => t.DataId)
+                .HasPrincipalKey(p => p.Id);
 
             modelBuilder.Entity<DocumentTag>()
                 .HasKey(t => new { t.DocumentId, t.TagId });

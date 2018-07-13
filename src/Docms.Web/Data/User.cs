@@ -62,6 +62,8 @@ namespace Docms.Web.Data
                 UserFavorites.Add(new UserFavoriteTag()
                 {
                     UserId = Id,
+                    Type = Constants.FAV_TYPE_TAG,
+                    DataId = tag.Id,
                     Tag = tag
                 });
             }

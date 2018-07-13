@@ -14,6 +14,16 @@ namespace Docms.Web.Models
     public class FavoriteTagViewModel
     {
         public int Id { get; set; }
+        public int TagId { get; set; }
         public string Name { get; set; }
+    }
+
+    public class AddFavoritesViewModel
+    {
+        public string UserName { get; set; }
+        public string Type { get; set; }
+        public string TypeName { get; set; }
+        public int DataId { get; set; }
+        public string DataName { get; set; }
     }
 }
