@@ -10,28 +10,23 @@ namespace Docms.WebJob.ThumbCreator
     public class Functions
     {
         public static void ProcessQueueMessage(
-            [BlobTrigger("files/{name}.{ext}")] Stream input, string name, string ext,
-            [Blob("thumbnails/{name}_large.{ext}", FileAccess.Write)] CloudBlockBlob largeThumbOutput,
-            [Blob("thumbnails/{name}_small.{ext}", FileAccess.Write)] CloudBlockBlob smallThumbOutput,
+            [BlobTrigger("files/{name}")] CloudBlockBlob input,
+            [Blob("thumbnails/{name}_large.png")] CloudBlockBlob largeThumbOutput,
+            [Blob("thumbnails/{name}_small.png")] CloudBlockBlob smallThumbOutput,
             TextWriter log)
         {
-            log.WriteLine("Processing: " + name);
+            log.WriteLine("Processing: " + input.Name);
             var largeThumbMs = default(MemoryStream);
-            if (ext.ToUpperInvariant() == "PDF")
+            if (input.Properties.ContentType.EndsWith("pdf")) // application/pdf
             {
-                var temp = new MemoryStream();
-                input.CopyTo(temp);
-
                 double pageWidth;
                 double pageHeight;
-                temp.Seek(0, SeekOrigin.Begin);
-                using (var pdfDoc = PdfSharp.Pdf.IO.PdfReader.Open(temp))
+                using (var pdfDoc = PdfSharp.Pdf.IO.PdfReader.Open(input.OpenRead()))
                 {
                     pageWidth = pdfDoc.Pages[0].Width.Inch * 175.1426;
                     pageHeight = pdfDoc.Pages[0].Height.Inch * 175.1426;
                 }
-                temp.Seek(0, SeekOrigin.Begin);
-                using (var pdfDoc = PdfiumViewer.PdfDocument.Load(temp))
+                using (var pdfDoc = PdfiumViewer.PdfDocument.Load(input.OpenRead()))
                 {
                     var image = pdfDoc.Render(0, (int)pageWidth, (int)pageHeight, 96, 96, true);
 
@@ -39,19 +34,16 @@ namespace Docms.WebJob.ThumbCreator
                     image.Save(largeThumbMs, ImageFormat.Png);
                 }
             }
-            else if (ext.ToUpperInvariant() == "PNG" 
-                || ext.ToUpperInvariant() == "JPG"
-                || ext.ToUpperInvariant() == "JPEG")
+            else if (input.Properties.ContentType.StartsWith("image"))
             {
                 largeThumbMs = new MemoryStream();
-                input.CopyTo(largeThumbMs);
+                input.DownloadToStream(largeThumbMs);
             }
 
             if (largeThumbMs == null)
             {
                 return;
             }
-
 
             var factory = new ImageProcessor.ImageFactory();
             var smallThumbMs = new MemoryStream();

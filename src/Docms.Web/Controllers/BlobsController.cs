@@ -3,6 +3,7 @@ using Docms.Web.Services;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.StaticFiles;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Net.Http.Headers;
 using System.IO;
@@ -67,7 +68,8 @@ namespace Docms.Web.Controllers
         [RequestSizeLimit(100_000_000)]
         public async Task<IActionResult> Post(IFormFile file)
         {
-            var blobName = await _storage.UploadFileAsync(file.OpenReadStream(), Path.GetExtension(file.FileName));
+            new FileExtensionContentTypeProvider().TryGetContentType(file.FileName, out var contentType);
+            var blobName = await _storage.UploadFileAsync(file.OpenReadStream(), contentType ?? "application/octet-stream");
             return CreatedAtAction(nameof(Get), new { blobName }, new { blobName });
         }
     }
