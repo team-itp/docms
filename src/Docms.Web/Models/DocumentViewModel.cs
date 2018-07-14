@@ -1,4 +1,4 @@
-using Docms.Web.Data;
+ï»¿using Docms.Web.Data;
 using Microsoft.AspNetCore.Mvc;
 using System;
 using System.Collections.Generic;
@@ -66,13 +66,13 @@ namespace Docms.Web.Models
     public class DocumentViewModel
     {
         public int Id { get; set; }
-        [DisplayName("ƒtƒ@ƒCƒ‹–¼")]
+        [DisplayName("ãƒ•ã‚¡ã‚¤ãƒ«å")]
         public string FileName { get; set; }
-        [DisplayName("ƒAƒbƒvƒ[ƒh")]
+        [DisplayName("ã‚¢ãƒƒãƒ—ãƒ­ãƒ¼ãƒ‰æ™‚åˆ»")]
         public DateTime UploadedAt { get; set; }
-        [DisplayName("ƒAƒbƒvƒ[ƒhƒ†[ƒU[")]
+        [DisplayName("ã‚¢ãƒƒãƒ—ãƒ­ãƒ¼ãƒ‰ãƒ¦ãƒ¼ã‚¶ãƒ¼")]
         public string UploadedBy { get; set; }
-        [DisplayName("ƒ^ƒO")]
+        [DisplayName("ã‚¿ã‚°")]
         public List<DocumentTagViewModel> Tags { get; set; }
         public DocumentLinks Links { get; set; }
 

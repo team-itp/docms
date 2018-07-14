@@ -1,4 +1,4 @@
-using System.ComponentModel;
+ï»¿using System.ComponentModel;
 using System.ComponentModel.DataAnnotations;
 
 namespace Docms.Web.Models
@@ -6,9 +6,9 @@ namespace Docms.Web.Models
     public class EditFileNameViewModel
     {
         public int Id { get; set; }
-        [DisplayName("Œ³‚Ìƒtƒ@ƒCƒ‹–¼")]
+        [DisplayName("å…ƒã®ãƒ•ã‚¡ã‚¤ãƒ«å")]
         public string FileName { get; set; }
-        [DisplayName("V‚µ‚¢ƒtƒ@ƒCƒ‹–¼")]
+        [DisplayName("æ–°ã—ã„ãƒ•ã‚¡ã‚¤ãƒ«å")]
         [Required]
         public string EditedFileName { get; set; }
     }
@@ -16,9 +16,9 @@ namespace Docms.Web.Models
     public class AddTagsViewModel
     {
         public int Id { get; set; }
-        [DisplayName("ƒtƒ@ƒCƒ‹–¼")]
+        [DisplayName("ãƒ•ã‚¡ã‚¤ãƒ«å")]
         public string FileName { get; set; }
-        [DisplayName("ƒ^ƒO")]
+        [DisplayName("ã‚¿ã‚°")]
         [Required]
         public string[] Tags { get; set; }
     }
@@ -27,9 +27,9 @@ namespace Docms.Web.Models
     {
         public int Id { get; set; }
         public int TagId { get; set; }
-        [DisplayName("ƒtƒ@ƒCƒ‹–¼")]
+        [DisplayName("ãƒ•ã‚¡ã‚¤ãƒ«å")]
         public string FileName { get; set; }
-        [DisplayName("ƒ^ƒO")]
+        [DisplayName("ã‚¿ã‚°")]
         public string Name { get; set; }
     }
 }

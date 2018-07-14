@@ -1,17 +1,17 @@
-using System.Collections.Generic;
+ï»¿using System.Collections.Generic;
 using System.ComponentModel;
 
 namespace Docms.Web.Models
 {
     public class ProfileViewModel
     {
-        [DisplayName("ƒAƒJƒEƒ“ƒg–¼")]
+        [DisplayName("ã‚¢ã‚«ã‚¦ãƒ³ãƒˆå")]
         public string AccountName { get; set; }
-        [DisplayName("–¼")]
+        [DisplayName("æ°å")]
         public string Name { get; set; }
-        [DisplayName("•”–å")]
+        [DisplayName("éƒ¨é–€")]
         public string DepartmentName { get; set; }
-        [DisplayName("ƒ`[ƒ€")]
+        [DisplayName("ãƒãƒ¼ãƒ ")]
         public string TeamName { get; set; }
 
         public ICollection<FavoriteTagViewModel> Favorites { get; set; }
@@ -21,7 +21,7 @@ namespace Docms.Web.Models
     {
         public int Id { get; set; }
         public int TagId { get; set; }
-        [DisplayName("ƒ^ƒO–¼")]
+        [DisplayName("ã‚¿ã‚°å")]
         public string Name { get; set; }
     }
 
