@@ -58,7 +58,7 @@ namespace Docms.Web.Controllers
                 }
                 else
                 {
-                    ModelState.AddModelError(string.Empty, "Invalid login attempt.");
+                    ModelState.AddModelError(string.Empty, "ユーザー名またはパスワードが不正です。");
                     return View(model);
                 }
             }

@@ -3,6 +3,7 @@ using Docms.Web.Models;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
+using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 
@@ -31,21 +32,30 @@ namespace Docms.Web.Controllers
             [FromQuery(Name = "q")]string keyword,
             [FromQuery(Name = "p")]int? page)
         {
-            await FetchTagSelection();
+            var tagSelection = await FetchTagSelection();
 
             var documents = _context.Documents
                 .Include(e => e.Tags)
                 .ThenInclude(e => e.Tag)
                 .AsQueryable();
 
-            if (!string.IsNullOrEmpty(keyword))
-            {
-                documents = documents.Where(e => e.Tags.Any(t => t.Tag.Name.Contains(keyword)));
-            }
-
             if (tags.Any())
             {
-                documents = documents.Where(e => e.Tags.Any(t => tags.Contains(t.TagId)));
+                var taggroups = new List<int[]>();
+                foreach (var panel in tagSelection.Panels)
+                {
+                    taggroups.Add(tags.Intersect(panel.Tags.Select(t => t.Id)).ToArray());
+                }
+                foreach (var taggroup in taggroups)
+                {
+                    documents = documents.Where(d => d.Tags.Any(t => taggroup.Contains(t.TagId)));
+                }
+            }
+
+            if (!string.IsNullOrEmpty(keyword))
+            {
+                documents = documents.Where(e => e.Tags
+                    .Any(t => t.Tag.Name.Contains(keyword)) || e.FileName.Contains(keyword));
             }
 
             var totalPages = ((await documents.CountAsync()) / CONTENT_PER_PAGE) + 1;
@@ -67,7 +77,7 @@ namespace Docms.Web.Controllers
             return View(SearchResultViewModel.Create(Url, keyword, searchTags, page ?? 1, totalPages, await documents.ToListAsync()));
         }
 
-        private async Task FetchTagSelection()
+        private async Task<TagSelectionsViewModel> FetchTagSelection()
         {
             var tags = await _context.Tags
                     .Include(e => e.Metadata)
@@ -87,6 +97,7 @@ namespace Docms.Web.Controllers
                     .ToList()
             };
             ViewData["TagSelections"] = tagSelection;
+            return tagSelection;
         }
     }
 }
