@@ -88,11 +88,23 @@ namespace Docms.Web.Services
             {
                 File.Delete(filePath);
             }
+
+            var smallThumnail = Path.Combine(_thumbnailPath, string.Format("{0}_{1}.png", Path.GetFileNameWithoutExtension(blobName), "small"));
+            if (File.Exists(smallThumnail))
+            {
+                File.Delete(smallThumnail);
+            }
+
+            var largeThumnail = Path.Combine(_thumbnailPath, string.Format("{0}_{1}.png", Path.GetFileNameWithoutExtension(blobName), "large"));
+            if (File.Exists(largeThumnail))
+            {
+                File.Delete(largeThumnail);
+            }
         }
 
         public Task<BlobInfo> GetThumbInfo(string blobName, string size)
         {
-            var fileInfo = new FileInfo(string.Format("{0}_{1}.png", Path.GetFileNameWithoutExtension(blobName), size));
+            var fileInfo = new FileInfo(Path.Combine(_thumbnailPath, string.Format("{0}_{1}.png", Path.GetFileNameWithoutExtension(blobName), size)));
             if (!fileInfo.Exists)
             {
                 return Task.FromResult(default(BlobInfo));
@@ -105,14 +117,14 @@ namespace Docms.Web.Services
                 ContentType = contentType ?? "application/octet-stream",
                 LastModified = fileInfo.LastWriteTime,
                 FileSize = fileInfo.Length,
-                ETag = "\\" + ETagGenerator.GetETag(blobName, File.ReadAllBytes(fileInfo.FullName)) + "\\"
+                ETag = "\"" + ETagGenerator.GetETag(blobName, File.ReadAllBytes(fileInfo.FullName)) + "\""
             });
         }
 
         public async Task<Stream> OpenThumbnailStreamAsync(string blobName, string size = "small")
         {
             var name = string.Format("{0}_{1}.png", Path.GetFileNameWithoutExtension(blobName), size);
-            return await Task.FromResult(new FileStream(Path.Combine(_basePath, name), FileMode.Open, FileAccess.Read));
+            return await Task.FromResult(new FileStream(Path.Combine(_thumbnailPath, name), FileMode.Open, FileAccess.Read));
         }
 
         public string FindFile(string path, string blobName)
