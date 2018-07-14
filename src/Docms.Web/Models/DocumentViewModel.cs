@@ -97,7 +97,8 @@ namespace Docms.Web.Models
     {
         public string Self { get; set; }
         public string Blob { get; set; }
-        public string Thumbnail { get; set; }
+        public string SmallThumb { get; set; }
+        public string LargeThumb { get; set; }
         public string EditFileName { get; set; }
         public string AddTag { get; set; }
         public string Delete { get; set; }
@@ -111,7 +112,8 @@ namespace Docms.Web.Models
                 AddTag = url.Action("AddTags", "Documents", new { id = data.Id }),
                 Delete = url.Action("Delete", "Documents", new { id = data.Id }),
                 Blob = url.Action("Get", "Blobs", new { blobName = data.BlobName }),
-                Thumbnail = url.Action("Thumbnail", "Blobs", new { blobName = data.BlobName }),
+                SmallThumb = url.Action("GetThumbnail", "Blobs", new { blobName = data.BlobName, size = "small" }),
+                LargeThumb = url.Action("GetThumbnail", "Blobs", new { blobName = data.BlobName, size = "large" }),
             };
             return vm;
         }

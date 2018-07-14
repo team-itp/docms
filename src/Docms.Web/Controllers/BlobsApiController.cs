@@ -23,28 +23,13 @@ namespace Docms.Web.Controllers
             _service = service;
         }
 
-        [HttpGet("{blobName}")]
-        public async Task<IActionResult> Get(string blobName)
-        {
-            var stream = await _service.OpenStreamAsync(blobName);
-            new FileExtensionContentTypeProvider().TryGetContentType(blobName, out var contentType);
-            return File(stream, contentType ?? "application/octet-stream", blobName);
-        }
-
-        [HttpGet("thumbnails/{blobName}")]
-        public async Task<IActionResult> Thumbnail(string blobName)
-        {
-            var stream = await _service.OpenStreamAsync(blobName);
-            new FileExtensionContentTypeProvider().TryGetContentType(blobName, out var contentType);
-            return File(stream, contentType ?? "application/octet-stream", blobName);
-        }
-
         [HttpPost]
         [RequestSizeLimit(100_000_000)]
         public async Task<IActionResult> Post(IFormFile file)
         {
-            var blobName = await _service.UploadFileAsync(file.OpenReadStream(), Path.GetExtension(file.FileName));
-            return CreatedAtAction(nameof(Get), new { blobName }, new { blobName });
+            new FileExtensionContentTypeProvider().TryGetContentType(file.FileName, out var contentType);
+            var blobName = await _service.UploadFileAsync(file.OpenReadStream(), contentType ?? "application/octet-stream");
+            return Ok(new { blobName });
         }
     }
 }

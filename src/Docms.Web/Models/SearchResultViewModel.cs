@@ -125,7 +125,8 @@ namespace Docms.Web.Models
     {
         public string Self { get; set; }
         public string Blob { get; set; }
-        public string Thumbnail { get; set; }
+        public string SmallThumb { get; set; }
+        public string LargeThumb { get; set; }
 
         public static SearchResultItemLinks Create(IUrlHelper url, Document document)
         {
@@ -133,7 +134,8 @@ namespace Docms.Web.Models
             {
                 Self = url.Action("Details", "Documents", new { id = document.Id }),
                 Blob = url.Action("Get", "Blobs", new { blobName = document.BlobName }),
-                Thumbnail = url.Action("Thumbnail", "Blobs", new { blobName = document.BlobName }),
+                SmallThumb = url.Action("GetThumbnail", "Blobs", new { blobName = document.BlobName, size = "small" }),
+                LargeThumb = url.Action("GetThumbnail", "Blobs", new { blobName = document.BlobName, size = "large" }),
             };
             return vm;
         }
