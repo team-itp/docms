@@ -1,6 +1,6 @@
-﻿using Microsoft.Azure.WebJobs;
+﻿using ImageProcessor.Imaging;
+using Microsoft.Azure.WebJobs;
 using Microsoft.WindowsAzure.Storage.Blob;
-using Newtonsoft.Json;
 using System.Drawing;
 using System.Drawing.Imaging;
 using System.IO;
@@ -16,47 +16,70 @@ namespace Docms.WebJob.ThumbCreator
             TextWriter log)
         {
             log.WriteLine("Processing: " + input.Name);
-            var largeThumbMs = default(MemoryStream);
+
+            var inputMs = new MemoryStream();
+            input.DownloadToStream(inputMs);
+
             if (input.Properties.ContentType.EndsWith("pdf")) // application/pdf
             {
-                double pageWidth;
-                double pageHeight;
-                using (var pdfDoc = PdfSharp.Pdf.IO.PdfReader.Open(input.OpenRead()))
-                {
-                    pageWidth = pdfDoc.Pages[0].Width.Inch * 175.1426;
-                    pageHeight = pdfDoc.Pages[0].Height.Inch * 175.1426;
-                }
-                using (var pdfDoc = PdfiumViewer.PdfDocument.Load(input.OpenRead()))
-                {
-                    var image = pdfDoc.Render(0, (int)pageWidth, (int)pageHeight, 96, 96, true);
-
-                    largeThumbMs = new MemoryStream();
-                    image.Save(largeThumbMs, ImageFormat.Png);
-                }
+                var pdfImageStream = CreatePdfImage(inputMs);
+                var smallThumbMs = CreateSmallThumb(pdfImageStream);
+                UploadAsPngImages(pdfImageStream, largeThumbOutput);
+                UploadAsPngImages(smallThumbMs, smallThumbOutput);
             }
             else if (input.Properties.ContentType.StartsWith("image"))
             {
-                largeThumbMs = new MemoryStream();
-                input.DownloadToStream(largeThumbMs);
-            }
+                inputMs.Seek(0, SeekOrigin.Begin);
+                var largeThumbMs = new MemoryStream();
+                new ImageProcessor.ImageFactory()
+                    .Load(inputMs)
+                    .Resize(new ResizeLayer(new Size(2048, 2048), ResizeMode.Max, AnchorPosition.Center, upscale: false))
+                    .Save(largeThumbMs);
 
-            if (largeThumbMs == null)
+                var smallThumbMs = CreateSmallThumb(inputMs);
+                UploadAsPngImages(largeThumbMs, largeThumbOutput);
+                UploadAsPngImages(smallThumbMs, smallThumbOutput);
+            }
+        }
+
+        private static MemoryStream CreatePdfImage(MemoryStream pdfStream)
+        {
+            var output = new MemoryStream();
+            double pageWidth;
+            double pageHeight;
+            pdfStream.Seek(0, SeekOrigin.Begin);
+            using (var pdfDoc = PdfSharp.Pdf.IO.PdfReader.Open(pdfStream))
             {
-                return;
+                pageWidth = pdfDoc.Pages[0].Width.Inch * 175.1426;
+                pageHeight = pdfDoc.Pages[0].Height.Inch * 175.1426;
             }
+            pdfStream.Seek(0, SeekOrigin.Begin);
 
-            var factory = new ImageProcessor.ImageFactory();
+            using (var pdfDoc = PdfiumViewer.PdfDocument.Load(pdfStream))
+            {
+                var image = pdfDoc.Render(0, (int)pageWidth, (int)pageHeight, 96, 96, true);
+                image.Save(output, ImageFormat.Png);
+            }
+            return output;
+        }
+
+        private static MemoryStream CreateSmallThumb(MemoryStream inputStream)
+        {
+            inputStream.Seek(0, SeekOrigin.Begin);
+
             var smallThumbMs = new MemoryStream();
-            largeThumbMs.Seek(0, SeekOrigin.Begin);
-            factory.Load(largeThumbMs);
-            factory.Resize(new Size(280, 280))
+            new ImageProcessor.ImageFactory()
+                .Load(inputStream)
+                .Resize(new ResizeLayer(new Size(480, 480), ResizeMode.Crop, AnchorPosition.Center, upscale: false))
                 .Save(smallThumbMs);
-            largeThumbOutput.UploadFromStream(largeThumbMs);
-            largeThumbOutput.Properties.ContentType = "image/png";
-            largeThumbOutput.SetProperties();
-            smallThumbOutput.UploadFromStream(smallThumbMs);
-            smallThumbOutput.Properties.ContentType = "image/png";
-            smallThumbOutput.SetProperties();
+            return smallThumbMs;
+        }
+
+        private static void UploadAsPngImages(Stream input, CloudBlockBlob output)
+        {
+            output.UploadFromStream(input);
+            output.Properties.ContentType = "image/png";
+            output.SetProperties();
         }
     }
 }
