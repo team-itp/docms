@@ -2,6 +2,8 @@
 
 @{
     ViewData["Title"] = Model.FileName + " タグの追加";
+
+    var tags = ViewData["Tags"] as IEnumerable<Docms.Web.Data.Tag>;
 }
 
 <h2>@Model.FileName</h2>
@@ -15,12 +17,14 @@
             <input type="hidden" asp-for="Id" />
             <div class="form-group">
                 <label asp-for="Tags" class="control-label"></label>
-                <input asp-for="Tags" class="form-control" />
+                <input asp-for="Tags" class="form-control" list="tags-list" />
+                <datalist id="tags-list">
+                    @foreach (var item in tags)
+                    {
+                        <option value="@item.Name">@item.Name</option>
+                    }
+                </datalist>
                 <span asp-validation-for="Tags" class="text-danger"></span>
-            </div>
-            <div class="form-group">
-                <label asp-for="Tags" class="control-label"></label>
-                <select asp-for="Tags" asp-items="@ViewData["Tags"] as IEnumerable<SelectListItem>" multiple class="form-control"></select>
             </div>
             <div class="form-group">
                 <button type="submit" class="btn btn-success">追加</button>
@@ -30,6 +34,6 @@
 </div>
 
 <div>
-    <a asp-action="Details" asp-route-id="@Model.Id">戻る</a>
+    <a asp-action="Details" asp-route-id="@Model.Id">詳細に戻る</a>
 </div>
 

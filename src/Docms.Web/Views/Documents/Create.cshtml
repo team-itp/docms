@@ -1,7 +1,12 @@
-﻿@model Docms.Web.Models.UploadDocumentViewModel
+﻿@model UploadDocumentViewModel
 
 @{
     ViewData["Title"] = "アップロード";
+
+    var personInChargeList = ViewData["PersonInChargeList"] as IEnumerable<Docms.Web.Data.Tag>;
+    var customerList = ViewData["CustomerList"] as IEnumerable<Docms.Web.Data.Tag>;
+    var projectList = ViewData["ProjectList"] as IEnumerable<Docms.Web.Data.Tag>;
+    var tags = ViewData["Tags"] as IEnumerable<Docms.Web.Data.Tag>;
 }
 
 <h2>アップロード</h2>
@@ -15,10 +20,56 @@
         <form asp-action="Create" enctype="multipart/form-data">
             <div asp-validation-summary="ModelOnly" class="text-danger"></div>
             <div class="form-group">
-                <label asp-for="Tags" class="control-label"></label>
-                <input asp-for="Tags" class="form-control" />
-                <input type="hidden" value="@Json.Serialize(ViewData["Tags"])" />
-                <span asp-validation-for="Tags" class="text-danger"></span>
+                <label asp-for="PersonInCharge" class="control-label"></label>
+                <input asp-for="PersonInCharge" class="form-control" list="person-in-charge-list" />
+                <datalist id="person-in-charge-list">
+                    @foreach (var item in personInChargeList)
+                    {
+                        <option value="@item.Name">@item.Name</option>
+                    }
+                </datalist>
+                <span asp-validation-for="PersonInCharge" class="text-danger"></span>
+            </div>
+            <div class="form-group">
+                <label asp-for="Customer" class="control-label"></label>
+                <input asp-for="Customer" class="form-control" />
+                <datalist id="person-in-charge-list">
+                    @foreach (var item in customerList)
+                    {
+                        <option value="item.Name">@item.Name</option>
+                    }
+                </datalist>
+                <span asp-validation-for="Customer" class="text-danger"></span>
+            </div>
+            <div class="form-group">
+                <label asp-for="Project" class="control-label"></label>
+                <input asp-for="Project" class="form-control" />
+                <datalist id="person-in-charge-list">
+                    @foreach (var item in projectList)
+                    {
+                        <option value="item.Name">@item.Name</option>
+                    }
+                </datalist>
+                <span asp-validation-for="Project" class="text-danger"></span>
+            </div>
+            <div class="form-group">
+                <label class="control-label">年度</label>
+                <select class="form-control" name="@Html.NameFor(model => model.Tags)">
+                    <option value=""></option>
+                    @{ var now = DateTime.Now; }
+                    @for (int i = 0; i < 20; i++)
+                    {
+                        @if (now.Year == now.AddYears(i - 10).Year)
+                        {
+                            <option value="@now.AddYears(i -10).Year" selected>@now.AddYears(i - 10).Year</option>
+                        }
+                        else
+                        {
+                            <option value="@now.AddYears(i -10).Year">@now.AddYears(i - 10).Year</option>
+                        }
+
+                    }
+                </select>
             </div>
             <div class="form-group">
                 <label asp-for="Files" class="control-label"></label>

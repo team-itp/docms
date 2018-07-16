@@ -5,6 +5,7 @@ using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Rendering;
+using Microsoft.AspNetCore.StaticFiles;
 using Microsoft.EntityFrameworkCore;
 using System.IO;
 using System.Linq;
@@ -22,11 +23,11 @@ namespace Docms.Web.Controllers
         private readonly DocmsDbContext _context;
         private readonly DocumentsService _service;
         private readonly IStorageService _storageService;
-        private UserManager<ApplicationUser> _userManager;
+        private readonly UserManager<ApplicationUser> _userManager;
 
         public DocumentsController(
-            DocmsDbContext context, 
-            DocumentsService service, 
+            DocmsDbContext context,
+            DocumentsService service,
             IStorageService storageService,
             UserManager<ApplicationUser> userManager)
         {
@@ -44,40 +45,6 @@ namespace Docms.Web.Controllers
         public async Task<IActionResult> Index()
         {
             return View(await _context.Documents.ToListAsync());
-        }
-
-        /// <summary>
-        /// タグごとのドキュメント情報の一覧を取得する
-        /// </summary>
-        /// <param name="tagId">タグID</param>
-        /// <returns>ドキュメント情報の一覧</returns>
-        [HttpGet("byTag/{tagId}")]
-        public async Task<IActionResult> IndexByTag(int tagId)
-        {
-            var tag = await _context.Tags.FirstOrDefaultAsync(e => e.Id == tagId);
-            if (tag == null)
-            {
-                return NotFound();
-            }
-
-            var documents = await _context.Documents
-                .Include(e => e.Tags)
-                .ThenInclude(e => e.Tag)
-                .Include(e => e.Metadata)
-                .Where(e => e.Tags.Any(t => t.TagId == tagId))
-                .ToListAsync();
-
-            var appUser = await _userManager.GetUserAsync(User);
-            var userId = appUser.Id;
-            var favTags = (await _context.Users
-                .Where(e => e.VSUserId == userId)
-                .Include(e => e.UserFavorites)
-                .SelectMany(e => e.UserFavorites)
-                .ToListAsync())
-                .OfType<UserFavoriteTag>()
-                .ToList();
-
-            return View(DocumentsByTagViewModel.Create(Url, tag, documents, favTags));
         }
 
         /// <summary>
@@ -113,6 +80,9 @@ namespace Docms.Web.Controllers
         [HttpGet("create")]
         public IActionResult Create()
         {
+            ViewData["PersonInChargeList"] = _context.Tags.Include(t => t.Metadata).Where(e => e.Metadata.Any(md => md.MetaKey == Constants.TAG_KEY_CATEGORY && md.MetaValue == Constants.TAG_CATEGORY_PERSON_IN_CHARGE));
+            ViewData["CustomerList"] = _context.Tags.Include(t => t.Metadata).Where(e => e.Metadata.Any(md => md.MetaKey == Constants.TAG_KEY_CATEGORY && md.MetaValue == Constants.TAG_CATEGORY_CUSTOMER));
+            ViewData["ProjectList"] = _context.Tags.Include(t => t.Metadata).Where(e => e.Metadata.Any(md => md.MetaKey == Constants.TAG_KEY_CATEGORY && md.MetaValue == Constants.TAG_CATEGORY_PROJECT));
             ViewData["Tags"] = _context.Tags.ToList();
 
             return View();
@@ -125,7 +95,7 @@ namespace Docms.Web.Controllers
         /// <returns></returns>
         [HttpPost("create")]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> Create([Bind("Files,Tags")] UploadDocumentViewModel document)
+        public async Task<IActionResult> Create(UploadDocumentViewModel document)
         {
             if (document.Files == null || document.Files.Count == 0)
             {
@@ -138,11 +108,12 @@ namespace Docms.Web.Controllers
                 foreach (var file in document.Files)
                 {
                     var filename = Path.GetFileName(file.FileName);
-                    var blobName = await _storageService.UploadFileAsync(file.OpenReadStream(), Path.GetExtension(file.FileName));
-                    var documentId = await _service.CreateAsync(blobName, filename, uploadedUser, document.Tags.Where(t => !string.IsNullOrEmpty(t)));
+                    new FileExtensionContentTypeProvider().TryGetContentType(file.FileName, out var contentType);
+                    var blobName = await _storageService.UploadFileAsync(file.OpenReadStream(), contentType);
+                    var documentId = await _service.CreateAsync(blobName, filename, uploadedUser, document.Tags.Where(t => !string.IsNullOrEmpty(t)), document.PersonInCharge, document.Customer, document.Project);
                 }
 
-                return RedirectToAction(nameof(Index));
+                return RedirectToAction("Index", "Home");
             }
             return View(document);
         }
@@ -152,7 +123,7 @@ namespace Docms.Web.Controllers
         /// </summary>
         /// <param name="id">ドキュメントID</param>
         /// <returns></returns>
-        [HttpGet("edit/{id}/filename")]
+        [HttpGet("{id}/edit/filename")]
         public async Task<IActionResult> EditFileName(int? id)
         {
             if (id == null)
@@ -182,7 +153,7 @@ namespace Docms.Web.Controllers
         /// <param name="id">ドキュメントID</param>
         /// <param name="document">ドキュメント情報</param>
         /// <returns></returns>
-        [HttpPost("edit/{id}/filename")]
+        [HttpPost("{id}/edit/filename")]
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> EditFileName(int id, [Bind("Id,EditedFileName")] EditFileNameViewModel document)
         {
@@ -219,7 +190,7 @@ namespace Docms.Web.Controllers
         /// </summary>
         /// <param name="id">ドキュメントID</param>
         /// <returns></returns>
-        [HttpGet("add/{id}/tags")]
+        [HttpGet("{id}/tags/add")]
         public async Task<IActionResult> AddTags(int? id)
         {
             if (id == null)
@@ -235,9 +206,9 @@ namespace Docms.Web.Controllers
                 return NotFound();
             }
 
-            ViewData["Tags"] = _context.Tags
+            ViewData["Tags"] = await _context.Tags
                 .OrderBy(t => t.Name)
-                .Select(t => new SelectListItem() { Text = t.Name, Value = t.Name });
+                .ToListAsync();
 
             return View(new AddTagsViewModel()
             {
@@ -252,7 +223,7 @@ namespace Docms.Web.Controllers
         /// <param name="id">ドキュメントID</param>
         /// <param name="tags">タグ情報</param>
         /// <returns></returns>
-        [HttpPost("add/{id}/tags")]
+        [HttpPost("{id}/tags/add")]
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> AddTags(int id, [Bind("Id,Tags")] AddTagsViewModel document)
         {
@@ -290,7 +261,7 @@ namespace Docms.Web.Controllers
         /// <param name="id">ドキュメントID</param>
         /// <param name="tagId">タグ名</param>
         /// <returns></returns>
-        [HttpGet("delete/{id}/tags/{tagId}")]
+        [HttpGet("{id}/tags/delete/{tagId}")]
         public async Task<IActionResult> DeleteTag(int? id, int? tagId)
         {
             if (id == null || tagId == null)
@@ -330,7 +301,7 @@ namespace Docms.Web.Controllers
         /// <param name="id">ドキュメントID</param>
         /// <param name="tags">タグ情報</param>
         /// <returns></returns>
-        [HttpPost("delete/{id}/tags/{tagId}")]
+        [HttpPost("{id}/tags/delete/{tagId}")]
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> DeleteTagConfirmed(int id, int tagId)
         {
@@ -374,7 +345,6 @@ namespace Docms.Web.Controllers
             var document = await _context.Documents.SingleOrDefaultAsync(m => m.Id == id);
             await _storageService.DeleteFileAsync(document.BlobName);
             await _service.RemoveAsync(document.Id);
-            await _context.SaveChangesAsync();
             return RedirectToAction(nameof(Index));
         }
 

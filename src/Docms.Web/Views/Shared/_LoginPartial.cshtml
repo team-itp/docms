@@ -1,8 +1,6 @@
 @using Microsoft.AspNetCore.Identity
-@using Docms.Web.Models
 
 @inject SignInManager<ApplicationUser> SignInManager
-@inject UserManager<ApplicationUser> UserManager
 
 @if (SignInManager.IsSignedIn(User))
 {
@@ -20,20 +18,10 @@
                 <i class="fa fa-cog"></i><span class="d-sm-none pl-2">設定</span>
             </a>
             <div class="dropdown-menu dropdown-menu-right" aria-labelledby="navbarSettingsDropdown">
-                <a asp-controller="Admin" asp-action="Index" class="dropdown-item">管理メニュー</a>
-                <a asp-controller="Profile" asp-action="Index" class="dropdown-item">ユーザー設定</a>
-                <div class="dropdown-divider"></div>
                 <form asp-area="" asp-controller="Account" asp-action="Logout" method="post" id="logoutForm" class="navbar-right">
                     <button type="submit" class="dropdown-item">ログアウト</button>
                 </form>
             </div>
-        </li>
-
-        <li class="nav-item">
-            
-            
-        </li>
-        <li class="nav-item">
         </li>
     </ul>
 }

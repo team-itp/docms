@@ -76,7 +76,7 @@ namespace Docms.Web
             }
             else
             {
-                app.UseExceptionHandler("/Shared/Error");
+                app.UseExceptionHandler("/Home/Error");
             }
 
             app.UseStaticFiles();
