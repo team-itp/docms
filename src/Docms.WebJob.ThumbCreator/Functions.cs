@@ -1,6 +1,8 @@
 ﻿using ImageProcessor.Imaging;
 using Microsoft.Azure.WebJobs;
+using Microsoft.WindowsAzure.Storage;
 using Microsoft.WindowsAzure.Storage.Blob;
+using System.Configuration;
 using System.Drawing;
 using System.Drawing.Imaging;
 using System.IO;
@@ -10,24 +12,31 @@ namespace Docms.WebJob.ThumbCreator
     public class Functions
     {
         public static void ProcessQueueMessage(
-            [BlobTrigger("files/{name}")] CloudBlockBlob input,
-            [Blob("thumbnails/{name}_large.png")] CloudBlockBlob largeThumbOutput,
-            [Blob("thumbnails/{name}_small.png")] CloudBlockBlob smallThumbOutput,
+            [QueueTrigger("create-thumbnail")] CreateThumbnailQueue queue,
             TextWriter log)
         {
-            log.WriteLine("Processing: " + input.Name);
+            log.WriteLine("Processing: " + queue.BlobName);
 
-            var inputMs = new MemoryStream();
+            var account = CloudStorageAccount.Parse(ConfigurationManager.ConnectionStrings["AzureWebJobsStorage"].ConnectionString);
+            var blobClient = account.CreateCloudBlobClient();
+            var filesContainer = blobClient.GetContainerReference("files");
+            CloudBlockBlob input = filesContainer.GetBlockBlobReference(queue.BlobName);
+            var thumbnailsContainer = blobClient.GetContainerReference("thumbnails");
+            thumbnailsContainer.CreateIfNotExists();
+            CloudBlockBlob largeThumbOutput = thumbnailsContainer.GetBlockBlobReference(string.Format("{0}_large.png", queue.BlobName));
+            CloudBlockBlob smallThumbOutput = thumbnailsContainer.GetBlockBlobReference(string.Format("{0}_small.png", queue.BlobName));
+
+           var inputMs = new MemoryStream();
             input.DownloadToStream(inputMs);
 
-            if (input.Properties.ContentType.EndsWith("pdf")) // application/pdf
+            if (queue.ContentType.EndsWith("pdf")) // application/pdf
             {
                 var pdfImageStream = CreatePdfImage(inputMs);
                 var smallThumbMs = CreateSmallThumb(pdfImageStream);
                 UploadAsPngImages(pdfImageStream, largeThumbOutput);
                 UploadAsPngImages(smallThumbMs, smallThumbOutput);
             }
-            else if (input.Properties.ContentType.StartsWith("image"))
+            else if (queue.ContentType.StartsWith("image"))
             {
                 inputMs.Seek(0, SeekOrigin.Begin);
                 var largeThumbMs = new MemoryStream();

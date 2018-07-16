@@ -1,6 +1,8 @@
 ﻿using Docms.Web.Config;
 using Microsoft.Extensions.Options;
 using Microsoft.WindowsAzure.Storage;
+using Microsoft.WindowsAzure.Storage.Queue;
+using Newtonsoft.Json;
 using System;
 using System.IO;
 using System.Threading.Tasks;
@@ -31,6 +33,12 @@ namespace Docms.Web.Services
                 await blob.UploadFromStreamAsync(stream);
                 blob.Properties.ContentType = contentType;
                 await blob.SetPropertiesAsync();
+
+                var queue = _account.CreateCloudQueueClient();
+                var queueRef = queue.GetQueueReference("create-thumbnail");
+                await queueRef.CreateIfNotExistsAsync();
+                await queueRef.AddMessageAsync(new CloudQueueMessage(JsonConvert.SerializeObject(new { BlobName = blobName, ContentType = contentType })));
+
                 return blobName;
             }
             finally
