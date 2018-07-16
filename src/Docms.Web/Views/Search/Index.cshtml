@@ -35,15 +35,7 @@
                                 <img class="card-img-top" alt="@document.FileName" src="@document.Links.SmallThumb" data-holder-rendered="true">
                             </a>
                             <div class="card-body">
-                                <div class="d-flex justify-content-between align-items-center">
-                                    <p class="card-text">@document.FileName</p>
-                                    <div class="btn-group">
-                                        <a href="@(document.Links.Self + "?r=" + referer)" class="btn btn-sm btn-outline-secondary">
-                                            <i class="fa fa-info-circle"></i>
-                                            詳細
-                                        </a>
-                                    </div>
-                                </div>
+                                <p class="card-text">@document.FileName</p>
                             </div>
                         </div>
                     </div>

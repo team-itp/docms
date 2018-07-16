@@ -52,7 +52,18 @@ namespace Docms.Web.Controllers
             var info = await _storage.GetThumbInfo(blobName, size);
             if (info == null)
             {
-                return NotFound();
+                var infoOrig = await _storage.GetBlobInfo(blobName);
+                if (infoOrig == null)
+                {
+                    return NotFound();
+                }
+
+                if (Request.Headers.Keys.Contains("If-None-Match") && Request.Headers["If-None-Match"].ToString() == infoOrig.ETag)
+                {
+                    return new StatusCodeResult(304);
+                }
+
+                return LocalRedirect("~/assets/noimage.png");
             }
 
             if (Request.Headers.Keys.Contains("If-None-Match") && Request.Headers["If-None-Match"].ToString() == info.ETag)
