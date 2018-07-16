@@ -48,7 +48,10 @@ namespace Docms.Web.Controllers
                 }
                 foreach (var taggroup in taggroups)
                 {
-                    documents = documents.Where(d => d.Tags.Any(t => taggroup.Contains(t.TagId)));
+                    if (taggroup.Length > 0)
+                    {
+                        documents = documents.Where(d => d.Tags.Any(t => taggroup.Contains(t.TagId)));
+                    }
                 }
             }
 
