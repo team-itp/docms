@@ -1,5 +1,6 @@
 using Microsoft.AspNetCore.StaticFiles;
 using System;
+using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using System.Security.Cryptography;
@@ -72,6 +73,7 @@ namespace Docms.Web.Services
                 {
                     await stream.CopyToAsync(fs);
                 }
+                Process.Start("../Docms.WebJob.ThumbCreator/bin/Debug/Docms.WebJob.ThumbCreator.exe", Path.GetFullPath("."));
                 return blobName;
             }
             finally

@@ -1,9 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using Microsoft.Azure.WebJobs;
+﻿using Microsoft.Azure.WebJobs;
 
 namespace Docms.WebJob.ThumbCreator
 {
@@ -12,9 +7,9 @@ namespace Docms.WebJob.ThumbCreator
     {
         // Please set the following connection strings in app.config for this WebJob to run:
         // AzureWebJobsDashboard and AzureWebJobsStorage
-        static void Main()
+        static void Main(string[] args)
         {
-            // Functions.ConvertLocally("../../../Docms.Web/App_Data/Files", "../../../Docms.Web/App_Data/Thumbnails");
+            // Functions.ConvertLocally(Path.Combine(args[0], "App_Data/Files"), Path.Combine(args[0], "App_Data/Thumbnails"));
 
             var config = new JobHostConfiguration();
 

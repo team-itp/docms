@@ -345,7 +345,7 @@ namespace Docms.Web.Controllers
             var document = await _context.Documents.SingleOrDefaultAsync(m => m.Id == id);
             await _storageService.DeleteFileAsync(document.BlobName);
             await _service.RemoveAsync(document.Id);
-            return RedirectToAction(nameof(Index));
+            return RedirectToAction("Index", "Home");
         }
 
         private bool DocumentExists(int id)
