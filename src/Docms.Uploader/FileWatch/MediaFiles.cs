@@ -1,6 +1,6 @@
-﻿using PdfiumViewer;
-using System;
+﻿using System;
 using System.IO;
+using PdfiumViewer;
 
 namespace Docms.Uploader.FileWatch
 {

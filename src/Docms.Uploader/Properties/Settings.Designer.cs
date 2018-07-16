@@ -61,7 +61,7 @@ namespace Docms.Uploader.Properties {
         
         [global::System.Configuration.ApplicationScopedSettingAttribute()]
         [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
-        [global::System.Configuration.DefaultSettingValueAttribute("http://localhost:51693/")]
+        [global::System.Configuration.DefaultSettingValueAttribute("https://docms-local.azurewebsites.net/")]
         public string DocmsWebEndpoint {
             get {
                 return ((string)(this["DocmsWebEndpoint"]));

@@ -11,7 +11,7 @@
     mc:Ignorable="d">
     <StackPanel Orientation="Vertical">
         <StackPanel.Resources>
-            <Style TargetType="ComboBox" BasedOn="{StaticResource BaseStyle}">
+            <!--<Style TargetType="ComboBox" BasedOn="{StaticResource BaseStyle}">
                 <Setter Property="Margin" Value="8" />
                 <Setter Property="Padding" Value="4" />
             </Style>
@@ -19,7 +19,7 @@
             <Style TargetType="Button" BasedOn="{StaticResource BaseStyle}">
                 <Setter Property="Margin" Value="8" />
                 <Setter Property="Padding" Value="16,4" />
-            </Style>
+            </Style>-->
 
             <Style TargetType="local:TagListView">
                 <Setter Property="Margin" Value="8" />

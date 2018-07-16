@@ -1,13 +1,14 @@
 ﻿using Docms.Uploader.Common;
 using System.Windows;
 using System.Windows.Controls;
+using MahApps.Metro.Controls;
 
 namespace Docms.Uploader.Views
 {
     /// <summary>
     /// LoginWindow.xaml の相互作用ロジック
     /// </summary>
-    public partial class LoginWindow : Window
+    public partial class LoginWindow
     {
         public LoginWindow()
         {

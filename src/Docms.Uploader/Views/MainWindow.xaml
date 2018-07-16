@@ -1,40 +1,33 @@
-﻿<Window
-    x:Class="Docms.Uploader.Views.MainWindow"
-    xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
-    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-    xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
-    xmlns:local="clr-namespace:Docms.Uploader.Views"
-    xmlns:vm="clr-namespace:Docms.Uploader.Common"
-    xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
-    Title="文書管理システム アップローダー"
-    Width="800"
-    Height="600"
-    mc:Ignorable="d">
+﻿<ctls:MetroWindow
+    x:Class="Docms.Uploader.Views.MainWindow" xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation" xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    xmlns:ctls="http://metro.mahapps.com/winfx/xaml/controls" xmlns:d="http://schemas.microsoft.com/expression/blend/2008" xmlns:local="clr-namespace:Docms.Uploader.Views"
+    xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" xmlns:vm="clr-namespace:Docms.Uploader.Common" Title="文書管理システム アップローダー"
+    Width="800" Height="600" mc:Ignorable="d"
+    >
     <d:Window.DataContext>
         <vm:MainWindowViewModel />
     </d:Window.DataContext>
     <DockPanel>
-        <StackPanel DockPanel.Dock="Top" Orientation="Horizontal" HorizontalAlignment="Right">
+        <StackPanel
+            HorizontalAlignment="Right" DockPanel.Dock="Top" Orientation="Horizontal"
+            >
             <Button HorizontalAlignment="Right" Command="{Binding ShowSettingsCommand}">設定</Button>
             <Button HorizontalAlignment="Right" Command="{Binding LogoutCommand}">ログアウト</Button>
         </StackPanel>
-        <Grid>
+        <Grid Margin="8">
             <Grid.ColumnDefinitions>
                 <ColumnDefinition Width="320" MinWidth="320" />
                 <ColumnDefinition Width="Auto" />
                 <ColumnDefinition Width="*" />
             </Grid.ColumnDefinitions>
 
-            <local:UploaderView DataContext="{Binding Uploader}" Grid.Column="0" />
-            <local:MediaFileListView DataContext="{Binding MediaFileList}" Grid.Column="2" />
+            <local:UploaderView Grid.Column="0" DataContext="{Binding Uploader}" />
+            <local:MediaFileListView Grid.Column="2" DataContext="{Binding MediaFileList}" />
             <GridSplitter
-            Grid.Column="1"
-            Width="3"
-            HorizontalAlignment="Stretch"
-            VerticalAlignment="Stretch"
-            Background="LightGray"
-            ResizeDirection="Columns"
-            ShowsPreview="True" />
+                Grid.Column="1" Width="3" HorizontalAlignment="Stretch"
+                VerticalAlignment="Stretch" Background="LightGray" ResizeDirection="Columns"
+                ShowsPreview="True"
+                />
         </Grid>
     </DockPanel>
-</Window>
+</ctls:MetroWindow>

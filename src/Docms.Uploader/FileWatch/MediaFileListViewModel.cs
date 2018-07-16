@@ -1,11 +1,11 @@
-﻿using Docms.Uploader.Common;
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.IO;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
+using Docms.Uploader.Common;
 
 namespace Docms.Uploader.FileWatch
 {
@@ -23,7 +23,7 @@ namespace Docms.Uploader.FileWatch
                         return false;
                     }
                 }
-                this.Add(MediaFile.Create(filepath));
+                Add(MediaFile.Create(filepath));
                 return true;
             }
 
@@ -39,7 +39,7 @@ namespace Docms.Uploader.FileWatch
                 {
                     if (file.FullPath == filepath)
                     {
-                        this.Remove(file);
+                        Remove(file);
                         return;
                     }
                 }
@@ -63,11 +63,11 @@ namespace Docms.Uploader.FileWatch
             _pathToWatch = pathToWatch;
             _watcher = new FileSystemWatcher(_pathToWatch);
             _watcher.IncludeSubdirectories = true;
-            _watcher.Created += new FileSystemEventHandler(_watcher_Created);
-            _watcher.Deleted += new FileSystemEventHandler(_watcher_Deleted);
-            _watcher.Renamed += new RenamedEventHandler(_watcher_Renamed);
-            _watcher.Changed += new FileSystemEventHandler(_watcher_Changed);
-            _watcher.Error += new ErrorEventHandler(_watcher_Error);
+            _watcher.Created += _watcher_Created;
+            _watcher.Deleted += _watcher_Deleted;
+            _watcher.Renamed += _watcher_Renamed;
+            _watcher.Changed += _watcher_Changed;
+            _watcher.Error += _watcher_Error;
 
             Files = new FileList();
             SelectedFiles = new FileList();
@@ -109,11 +109,10 @@ namespace Docms.Uploader.FileWatch
         {
             try
             {
-                using (var fs = new FileStream(filePath, FileMode.Open, FileAccess.Read))
+                using (new FileStream(filePath, FileMode.Open, FileAccess.Read))
                 {
                     return true;
                 }
-
             }
             catch (Exception)
             {
@@ -139,10 +138,8 @@ namespace Docms.Uploader.FileWatch
                         _context.Post(state => Files.Add(filePath), null);
                         return;
                     }
-                    else
-                    {
-                        await Task.Delay(100);
-                    }
+
+                    await Task.Delay(100);
                 }
             });
         }
@@ -165,10 +162,8 @@ namespace Docms.Uploader.FileWatch
                         _context.Post(state => Files.Update(oldFilePath, newFilePath), null);
                         return;
                     }
-                    else
-                    {
-                        await Task.Delay(100);
-                    }
+
+                    await Task.Delay(100);
                 }
             });
         }

@@ -12,7 +12,7 @@
       <Value Profile="(Default)" />
     </Setting>
     <Setting Name="DocmsWebEndpoint" Type="System.String" Scope="Application">
-      <Value Profile="(Default)">http://localhost:51693/</Value>
+      <Value Profile="(Default)">https://docms-local.azurewebsites.net/</Value>
     </Setting>
   </Settings>
 </SettingsFile>
