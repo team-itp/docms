@@ -14,6 +14,8 @@ namespace Docms.WebJob.ThumbCreator
         // AzureWebJobsDashboard and AzureWebJobsStorage
         static void Main()
         {
+            // Functions.ConvertLocally("../../../Docms.Web/App_Data/Files", "../../../Docms.Web/App_Data/Thumbnails");
+
             var config = new JobHostConfiguration();
 
             if (config.IsDevelopment)
