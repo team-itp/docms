@@ -1,0 +1,9 @@
+﻿@model System.Net.HttpStatusCode
+
+@{
+    ViewData["Title"] = (int)Model;
+}
+
+<h1><i class="fa fa-exclamation-circle"></i>@((int)Model) @Model.ToString()</h1>
+<p>詳細は管理者にご確認願います。</p>
+

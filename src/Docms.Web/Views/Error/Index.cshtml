@@ -1,0 +1,16 @@
+﻿@model ErrorViewModel
+@{
+    ViewData["Title"] = "Error";
+}
+
+<h1 class="text-danger"><i class="fa fa-exclamation-circle"></i>Error</h1>
+<h2 class="text-danger">エラーが発生しました。</h2>
+
+@if (Model.ShowRequestId)
+{
+    <p>
+        <strong>リクエスト ID:</strong> <code>@Model.RequestId</code>
+    </p>
+}
+
+<p>申し訳ございませんが、サーバーの管理者にご連絡ください。</p>

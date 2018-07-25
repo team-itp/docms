@@ -76,9 +76,10 @@ namespace Docms.Web
             }
             else
             {
-                app.UseExceptionHandler("/Home/Error");
+                app.UseExceptionHandler("/error");
             }
 
+            app.UseStatusCodePagesWithRedirects("~/error/{0}");
             app.UseStaticFiles();
             app.UseIdentityServer();
             app.UseMvcWithDefaultRoute();
