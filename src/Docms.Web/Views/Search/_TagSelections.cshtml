@@ -18,10 +18,15 @@
                 </span>
             }
 
+            @{ var firstPanel = Model.Panels.First(); }
             @foreach (var panel in Model.Panels)
             {
-                <h5 class="card-title" type="button" data-toggle="collapse" data-target="#collapse-@panel.Title" aria-expanded="true" aria-controls="collapseOne">@panel.Title</h5>
-                <div id="collapse-@panel.Title" class="collapse show pb-3">
+                @if (panel != firstPanel)
+                {
+                    <hr class="my-2" />
+                }
+                <h5 class="category-title card-title collapsed" data-toggle="collapse" data-target="#collapse-@panel.Title" aria-expanded="true" aria-controls="collapseOne">@panel.Title</h5>
+                <div id="collapse-@panel.Title" class="collapse collapsed">
                     @foreach (var tag in panel.Tags)
                     {
                         <div class="form-check">

@@ -10,6 +10,26 @@
     padding-right: 15px;
 }
 
+
+.category-title::before {
+    -moz-osx-font-smoothing: grayscale;
+    -webkit-font-smoothing: antialiased;
+    display: inline-block;
+    font-style: normal;
+    font-variant: normal;
+    text-rendering: auto;
+    line-height: 1;
+    font-family: "Font Awesome 5 Free";
+    float: right
+}
+
+.category-title:not(.collapsed)::before {
+    content: "\f151"; /* caret-square-up */
+}
+.category-title.collapsed::before {
+    content: "\f150"; /* caret-square-down */
+}
+
 @media screen and (min-width: 768px) {
     .card-img-container {
         height: 280px;
