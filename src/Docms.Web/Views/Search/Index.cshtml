@@ -31,9 +31,11 @@
                 {
                     <div class="col-md-auto">
                         <div class="card box-shadow my-2">
-                            <a href="@(document.Links.Self + "?r=" + referer)">
-                                <img class="card-img-top" alt="@document.FileName" src="@document.Links.SmallThumb" data-holder-rendered="true">
-                            </a>
+                            <div class="card-img-container">
+                                <a href="@(document.Links.Self + "?r=" + referer)">
+                                    <img class="card-img-top" alt="@document.FileName" src="@document.Links.SmallThumb" data-holder-rendered="true">
+                                </a>
+                            </div>
                             <div class="card-body">
                                 <p class="card-text">@document.FileName</p>
                             </div>

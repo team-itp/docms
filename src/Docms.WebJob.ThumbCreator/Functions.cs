@@ -48,6 +48,10 @@ namespace Docms.WebJob.ThumbCreator
 
         public static void ConvertLocally(string filesPath, string thumbnailsPath)
         {
+            if (!Directory.Exists(thumbnailsPath))
+            {
+                Directory.CreateDirectory(thumbnailsPath);
+            }
             foreach (var file in Directory.GetFiles(filesPath))
             {
                 try
