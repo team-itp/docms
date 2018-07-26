@@ -23,10 +23,10 @@
     float: right
 }
 
-.category-title:not(.collapsed)::before {
+:not(.collapsed) > .category-title::before {
     content: "\f151"; /* caret-square-up */
 }
-.category-title.collapsed::before {
+.collapsed > .category-title::before {
     content: "\f150"; /* caret-square-down */
 }
 
