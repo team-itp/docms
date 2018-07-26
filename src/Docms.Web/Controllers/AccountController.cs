@@ -33,9 +33,15 @@ namespace Docms.Web.Controllers
         [AllowAnonymous]
         public async Task<IActionResult> Login(string returnUrl = null)
         {
-            // Clear the existing external cookie to ensure a clean login process
-            await HttpContext.SignOutAsync(IdentityConstants.ExternalScheme);
-
+            if (User != null && User.Identity.Name != null)
+            {
+                var user = await _userManager.FindByNameAsync(User.Identity.Name);
+                var canSignIn = await _signInManager.CanSignInAsync(user);
+                if (canSignIn)
+                {
+                    return Redirect(returnUrl ?? "~/");
+                }
+            }
             ViewData["ReturnUrl"] = returnUrl;
             return View();
         }

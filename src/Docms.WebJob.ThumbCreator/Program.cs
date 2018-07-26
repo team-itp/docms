@@ -1,4 +1,4 @@
-﻿using Microsoft.Azure.WebJobs;
+﻿using System.IO;
 
 namespace Docms.WebJob.ThumbCreator
 {
@@ -9,18 +9,19 @@ namespace Docms.WebJob.ThumbCreator
         // AzureWebJobsDashboard and AzureWebJobsStorage
         static void Main(string[] args)
         {
-            // Functions.ConvertLocally(Path.Combine(args[0], "App_Data/Files"), Path.Combine(args[0], "App_Data/Thumbnails"));
+            var pathToApp = args.Length > 0 ? args[0] : "../../../Docms.Web";
+            Functions.ConvertLocally(Path.Combine(pathToApp, "App_Data/Files"), Path.Combine(pathToApp, "App_Data/Thumbnails"));
 
-            var config = new JobHostConfiguration();
+            //var config = new JobHostConfiguration();
 
-            if (config.IsDevelopment)
-            {
-                config.UseDevelopmentSettings();
-            }
+            //if (config.IsDevelopment)
+            //{
+            //    config.UseDevelopmentSettings();
+            //}
 
-            var host = new JobHost(config);
-            // The following code ensures that the WebJob will be running continuously
-            host.RunAndBlock();
+            //var host = new JobHost(config);
+            //// The following code ensures that the WebJob will be running continuously
+            //host.RunAndBlock();
         }
     }
 }
