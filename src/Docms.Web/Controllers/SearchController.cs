@@ -61,7 +61,7 @@ namespace Docms.Web.Controllers
                     .Any(t => t.Tag.Name.Contains(keyword)) || e.FileName.Contains(keyword));
             }
 
-            var totalPages = ((await documents.CountAsync()) / CONTENT_PER_PAGE) + 1;
+            var totalPages = ((await documents.CountAsync()) + 1) / CONTENT_PER_PAGE;
 
             documents = documents.OrderByDescending(d => d.UploadedAt);
 
