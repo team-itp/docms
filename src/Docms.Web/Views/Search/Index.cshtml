@@ -16,10 +16,25 @@
 </h2>
 <hr />
 <div class="row">
-    <div class="col-sm-5 col-md-4 col-lg-3">
+    <div class="col-sm-auto col-md-4 col-lg-3">
         @await Html.PartialAsync("_TagSelections", tagSelections)
     </div>
-    <div class="col-sm-7 col-md-8 col-lg-9">
+    <div class="col-sm col-md-8 col-lg-9">
+        @if (Model.SearchTags.Any())
+        {
+            <div class="my-3 mt-sm-0">
+                @foreach (var tag in Model.SearchTags)
+                {
+                    <span class="badge badge-success p-2 mb-2 mr-2 font-weight-normal" style="font-size:0.9rem;">
+                        <i class="fa fa-tag align-middle"></i>
+                        <span class="align-middle">@tag.Name</span>
+                        <a href="@tag.Links.Delete" class="badge badge-success align-middle">
+                            <i class="fa fa-times p-0"></i>
+                        </a>
+                    </span>
+                }
+            </div>
+        }
         @if (!Model.Results.Any())
         {
             <p>検索結果は見つかりませんでした。</p>
@@ -30,7 +45,7 @@
                 @foreach (var document in Model.Results)
                 {
                     <div class="col-md-auto">
-                        <div class="card box-shadow my-2">
+                        <div class="card box-shadow mb-2">
                             <div class="card-img-container">
                                 <a href="@(document.Links.Self + "?r=" + referer)">
                                     <img class="card-img-top" alt="@document.FileName" src="@document.Links.SmallThumb" data-holder-rendered="true">
