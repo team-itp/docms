@@ -92,8 +92,8 @@
     <Compile Include="ApplicationSettings\SettingsViewModel.cs" />
     <Compile Include="Common\ViewModelBase.cs" />
     <Compile Include="ApplicationSettings\WatchDirecotrySettingsViewModel.cs" />
-    <Compile Include="FileWatch\MediaFileListViewModel.cs" />
-    <Compile Include="FileWatch\MediaFiles.cs" />
+    <Compile Include="FileWatch\WatchingFileListViewModel.cs" />
+    <Compile Include="FileWatch\WatchingFileViewModel.cs" />
     <Compile Include="Upload\Tags.cs" />
     <Compile Include="Upload\UploaderViewModel.cs" />
     <Compile Include="Views\LoginWindow.xaml.cs">
@@ -115,11 +115,8 @@
       <DependentUpon>MainWindow.xaml</DependentUpon>
       <SubType>Code</SubType>
     </Compile>
-    <Compile Include="Views\MediaFileListView.xaml.cs">
-      <DependentUpon>MediaFileListView.xaml</DependentUpon>
-    </Compile>
-    <Compile Include="Views\MediaFileView.xaml.cs">
-      <DependentUpon>MediaFileView.xaml</DependentUpon>
+    <Compile Include="Views\WatchingFileListView.xaml.cs">
+      <DependentUpon>WatchingFileListView.xaml</DependentUpon>
     </Compile>
     <Compile Include="Views\WatchDirectorySettingsView.xaml.cs">
       <DependentUpon>WatchDirectorySettingsView.xaml</DependentUpon>
@@ -161,11 +158,7 @@
       <SubType>Designer</SubType>
       <Generator>XamlIntelliSenseFileGenerator</Generator>
     </Page>
-    <Page Include="Views\MediaFileListView.xaml">
-      <Generator>MSBuild:Compile</Generator>
-      <SubType>Designer</SubType>
-    </Page>
-    <Page Include="Views\MediaFileView.xaml">
+    <Page Include="Views\WatchingFileListView.xaml">
       <Generator>MSBuild:Compile</Generator>
       <SubType>Designer</SubType>
     </Page>

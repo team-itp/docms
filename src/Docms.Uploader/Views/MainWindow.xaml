@@ -22,7 +22,7 @@
             </Grid.ColumnDefinitions>
 
             <local:UploaderView Grid.Column="0" DataContext="{Binding Uploader}" />
-            <local:MediaFileListView Grid.Column="2" DataContext="{Binding MediaFileList}" />
+            <local:WatchingFileListView Grid.Column="2" DataContext="{Binding MediaFileList}" />
             <GridSplitter
                 Grid.Column="1" Width="3" HorizontalAlignment="Stretch"
                 VerticalAlignment="Stretch" Background="LightGray" ResizeDirection="Columns"

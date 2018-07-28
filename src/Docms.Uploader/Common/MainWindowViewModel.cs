@@ -14,7 +14,7 @@ namespace Docms.Uploader.Common
         public event EventHandler<EventArgs> ShowSettingsRequested;
 
         private UploaderViewModel _uploader;
-        private MediaFileListViewModel _mediaFileList;
+        private WatchingFileListViewModel _mediaFileList;
         private DocmsClient _client;
 
         public UploaderViewModel Uploader
@@ -27,7 +27,7 @@ namespace Docms.Uploader.Common
             }
         }
 
-        public MediaFileListViewModel MediaFileList
+        public WatchingFileListViewModel MediaFileList
         {
             get { return _mediaFileList; }
             set
@@ -70,7 +70,7 @@ namespace Docms.Uploader.Common
             if (e.OldItems == null)
             {
                 e.NewItems
-                    .Cast<MediaFile>()
+                    .Cast<WatchingFileViewModel>()
                     .ToList()
                     .ForEach(vm => Uploader.SelectedMediaFiles.Add(vm));
 
@@ -78,20 +78,20 @@ namespace Docms.Uploader.Common
             else if (e.NewItems == null)
             {
                 e.OldItems
-                    .Cast<MediaFile>()
+                    .Cast<WatchingFileViewModel>()
                     .ToList()
                     .ForEach(vm => Uploader.SelectedMediaFiles.Remove(vm));
             }
             else
             {
                 e.OldItems
-                    .Cast<MediaFile>()
-                    .Except(e.NewItems.Cast<MediaFile>())
+                    .Cast<WatchingFileViewModel>()
+                    .Except(e.NewItems.Cast<WatchingFileViewModel>())
                     .ToList()
                     .ForEach(vm => Uploader.SelectedMediaFiles.Remove(vm));
                 e.NewItems
-                    .Cast<MediaFile>()
-                    .Except(e.OldItems.Cast<MediaFile>())
+                    .Cast<WatchingFileViewModel>()
+                    .Except(e.OldItems.Cast<WatchingFileViewModel>())
                     .ToList()
                     .ForEach(vm => Uploader.SelectedMediaFiles.Add(vm));
             }
@@ -100,7 +100,7 @@ namespace Docms.Uploader.Common
         public void Initialize()
         {
             var pathToWatch = Settings.Default.DirectoryToWatch;
-            MediaFileList = new MediaFileListViewModel(pathToWatch);
+            MediaFileList = new WatchingFileListViewModel(pathToWatch);
             Uploader = new UploaderViewModel(_client);
 
             MediaFileList.Startwatch();

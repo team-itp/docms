@@ -5,26 +5,26 @@ using System.Windows.Controls;
 namespace Docms.Uploader.Views
 {
     /// <summary>
-    /// MediaFileListView.xaml の相互作用ロジック
+    /// WatchingFileListView.xaml の相互作用ロジック
     /// </summary>
-    public partial class MediaFileListView : UserControl
+    public partial class WatchingFileListView : UserControl
     {
-        public MediaFileListView()
+        public WatchingFileListView()
         {
             InitializeComponent();
         }
 
         private void flow_SelectionChanged(object sender, SelectionChangedEventArgs e)
         {
-            var vm = DataContext as MediaFileListViewModel;
+            var vm = DataContext as WatchingFileListViewModel;
             if (vm != null)
             {
                 e.RemovedItems
-                    .Cast<MediaFile>()
+                    .Cast<WatchingFileViewModel>()
                     .ToList()
                     .ForEach(item => vm.SelectedFiles.Remove(item));
                 e.AddedItems
-                    .Cast<MediaFile>()
+                    .Cast<WatchingFileViewModel>()
                     .ToList()
                     .ForEach(item => vm.SelectedFiles.Add(item));
             }

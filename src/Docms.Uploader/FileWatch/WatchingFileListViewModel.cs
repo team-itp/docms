@@ -1,19 +1,26 @@
-﻿using System;
+﻿using Docms.Uploader.Common;
+using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.IO;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
-using Docms.Uploader.Common;
 
 namespace Docms.Uploader.FileWatch
 {
 
-    public class MediaFileListViewModel : ViewModelBase
+    public class WatchingFileListViewModel : ViewModelBase
     {
-        public class FileList : ObservableCollection<MediaFile>
+        public class WatchingFiles : ObservableCollection<WatchingFileViewModel>
         {
+            private string _watchingRootPath;
+
+            public WatchingFiles(string watchingRootPath)
+            {
+                _watchingRootPath = watchingRootPath;
+            }
+
             public bool Add(string filepath)
             {
                 foreach (var file in this.ToArray())
@@ -23,7 +30,7 @@ namespace Docms.Uploader.FileWatch
                         return false;
                     }
                 }
-                Add(MediaFile.Create(filepath));
+                this.Add(WatchingFileViewModel.Create(filepath, _watchingRootPath));
                 return true;
             }
 
@@ -39,15 +46,15 @@ namespace Docms.Uploader.FileWatch
                 {
                     if (file.FullPath == filepath)
                     {
-                        Remove(file);
+                        this.Remove(file);
                         return;
                     }
                 }
             }
         }
 
-        public FileList Files { get; }
-        public FileList SelectedFiles { get; }
+        public WatchingFiles Files { get; }
+        public WatchingFiles SelectedFiles { get; }
 
         public bool IsWatching { get; private set; }
         public Task WatchTask { get; private set; }
@@ -57,25 +64,20 @@ namespace Docms.Uploader.FileWatch
         private FileSystemWatcher _watcher;
         private TaskCompletionSource<object> _tcs;
 
-        public MediaFileListViewModel(string pathToWatch)
+        public WatchingFileListViewModel(string pathToWatch)
         {
             _context = SynchronizationContext.Current;
             _pathToWatch = pathToWatch;
             _watcher = new FileSystemWatcher(_pathToWatch);
             _watcher.IncludeSubdirectories = true;
-            _watcher.Created += _watcher_Created;
-            _watcher.Deleted += _watcher_Deleted;
-            _watcher.Renamed += _watcher_Renamed;
-            _watcher.Changed += _watcher_Changed;
-            _watcher.Error += _watcher_Error;
+            _watcher.Created += new FileSystemEventHandler(_watcher_Created);
+            _watcher.Deleted += new FileSystemEventHandler(_watcher_Deleted);
+            _watcher.Renamed += new RenamedEventHandler(_watcher_Renamed);
+            _watcher.Changed += new FileSystemEventHandler(_watcher_Changed);
+            _watcher.Error += new ErrorEventHandler(_watcher_Error);
 
-            Files = new FileList();
-            SelectedFiles = new FileList();
-        }
-
-        public static bool IsMediaFile(string path)
-        {
-            return MediaFile.IsMediaFile(path);
+            Files = new WatchingFiles(_pathToWatch);
+            SelectedFiles = new WatchingFiles(_pathToWatch);
         }
 
         private void _watcher_Error(object sender, ErrorEventArgs e)
@@ -122,11 +124,6 @@ namespace Docms.Uploader.FileWatch
 
         public Task AddFileAsync(string filePath)
         {
-            if (!IsMediaFile(filePath))
-            {
-                return Task.CompletedTask;
-            }
-
             return Task.Run(async () =>
             {
                 await Task.Delay(200);
@@ -146,11 +143,6 @@ namespace Docms.Uploader.FileWatch
 
         public Task UpdateFileAsync(string oldFilePath, string newFilePath)
         {
-            if (!IsMediaFile(newFilePath))
-            {
-                return DeleteFileAsync(oldFilePath);
-            }
-
             return Task.Run(async () =>
             {
                 await Task.Delay(200);
@@ -170,11 +162,6 @@ namespace Docms.Uploader.FileWatch
 
         public Task DeleteFileAsync(string filePath)
         {
-            if (!IsMediaFile(filePath))
-            {
-                return Task.CompletedTask;
-            }
-
             _context.Send(state => Files.Remove(filePath), null);
 
             return Task.CompletedTask;
@@ -193,11 +180,8 @@ namespace Docms.Uploader.FileWatch
             var filesInDirectory = new List<string>();
             foreach (var filePath in Directory.GetFiles(_pathToWatch, "*", SearchOption.AllDirectories))
             {
-                if (IsMediaFile(filePath))
-                {
-                    filesInDirectory.Add(filePath);
-                    Files.Add(filePath);
-                }
+                filesInDirectory.Add(filePath);
+                Files.Add(filePath);
             }
 
             foreach (var filePath in Files.Select(mf => mf.FullPath).Except(filesInDirectory).ToArray())

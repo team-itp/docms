@@ -2,7 +2,6 @@
 using Docms.Client.Models;
 using Docms.Uploader.Common;
 using Docms.Uploader.FileWatch;
-using Docms.Uploader.Properties;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Linq;
@@ -21,7 +20,7 @@ namespace Docms.Uploader.Upload
         private bool _Loading;
         private DocmsClient _client;
 
-        public class MediaFilesCollection : ObservableCollection<MediaFile> { }
+        public class MediaFilesCollection : ObservableCollection<WatchingFileViewModel> { }
         public class TagsCollection : ObservableCollection<Tag> { }
 
 
@@ -160,7 +159,7 @@ namespace Docms.Uploader.Upload
             await Task.WhenAll(tasks);
         }
 
-        public void SelectFile(MediaFile file)
+        public void SelectFile(WatchingFileViewModel file)
         {
             var index = SelectedMediaFiles.IndexOf(file);
             if (index < 0)
@@ -176,7 +175,7 @@ namespace Docms.Uploader.Upload
             foreach (var f in SelectedMediaFiles)
             {
                 await _client.CreateDocumentAsync(f.FullPath,
-                    f.Name,
+                    f.FileName,
                     PersonInCharge?.Name ?? PersonInChargeText,
                     Customer?.Name ?? CustomerText,
                     Project?.Name ?? ProjectText,
