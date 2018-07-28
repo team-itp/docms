@@ -7,6 +7,8 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Docms.Uploader", "Docms.Upl
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Docms.Client", "Docms.Client\Docms.Client.csproj", "{1D02293A-20B9-4C3D-88BC-D100FEA1D435}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Docms.Uploader.Tests", "Docms.Uploader.Tests\Docms.Uploader.Tests.csproj", "{27768946-FF7D-46FA-949B-9890998D4E58}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -41,6 +43,18 @@ Global
 		{1D02293A-20B9-4C3D-88BC-D100FEA1D435}.Release|x64.Build.0 = Release|Any CPU
 		{1D02293A-20B9-4C3D-88BC-D100FEA1D435}.Release|x86.ActiveCfg = Release|Any CPU
 		{1D02293A-20B9-4C3D-88BC-D100FEA1D435}.Release|x86.Build.0 = Release|Any CPU
+		{27768946-FF7D-46FA-949B-9890998D4E58}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{27768946-FF7D-46FA-949B-9890998D4E58}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{27768946-FF7D-46FA-949B-9890998D4E58}.Debug|x64.ActiveCfg = Debug|Any CPU
+		{27768946-FF7D-46FA-949B-9890998D4E58}.Debug|x64.Build.0 = Debug|Any CPU
+		{27768946-FF7D-46FA-949B-9890998D4E58}.Debug|x86.ActiveCfg = Debug|Any CPU
+		{27768946-FF7D-46FA-949B-9890998D4E58}.Debug|x86.Build.0 = Debug|Any CPU
+		{27768946-FF7D-46FA-949B-9890998D4E58}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{27768946-FF7D-46FA-949B-9890998D4E58}.Release|Any CPU.Build.0 = Release|Any CPU
+		{27768946-FF7D-46FA-949B-9890998D4E58}.Release|x64.ActiveCfg = Release|Any CPU
+		{27768946-FF7D-46FA-949B-9890998D4E58}.Release|x64.Build.0 = Release|Any CPU
+		{27768946-FF7D-46FA-949B-9890998D4E58}.Release|x86.ActiveCfg = Release|Any CPU
+		{27768946-FF7D-46FA-949B-9890998D4E58}.Release|x86.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
