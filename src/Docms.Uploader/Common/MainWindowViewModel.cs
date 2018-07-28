@@ -106,5 +106,10 @@ namespace Docms.Uploader.Common
             MediaFileList.Startwatch();
             MediaFileList.SelectedFiles.CollectionChanged += MediaFileListSelectedFiles_CollectionChanged;
         }
+
+        public void Terminate()
+        {
+            MediaFileList.Stopwatch();
+        }
     }
 }

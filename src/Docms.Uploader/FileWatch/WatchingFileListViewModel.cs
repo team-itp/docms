@@ -57,7 +57,6 @@ namespace Docms.Uploader.FileWatch
         public WatchingFiles SelectedFiles { get; }
 
         public bool IsWatching { get; private set; }
-        public Task WatchTask { get; private set; }
 
         private SynchronizationContext _context;
         private string _pathToWatch;
@@ -66,7 +65,7 @@ namespace Docms.Uploader.FileWatch
 
         public WatchingFileListViewModel(string pathToWatch)
         {
-            _context = SynchronizationContext.Current;
+            _context = SynchronizationContext.Current ?? new SynchronizationContext();
             _pathToWatch = pathToWatch;
             _watcher = new FileSystemWatcher(_pathToWatch);
             _watcher.IncludeSubdirectories = true;
