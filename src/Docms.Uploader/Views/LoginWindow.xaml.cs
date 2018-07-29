@@ -1,7 +1,6 @@
 ﻿using Docms.Uploader.Common;
 using System.Windows;
 using System.Windows.Controls;
-using MahApps.Metro.Controls;
 
 namespace Docms.Uploader.Views
 {
@@ -21,7 +20,7 @@ namespace Docms.Uploader.Views
             var pb = sender as PasswordBox;
             if (vm != null && pb != null)
             {
-                vm.Password = pb.Password;
+                vm.Password = pb.SecurePassword;
             }
         }
     }

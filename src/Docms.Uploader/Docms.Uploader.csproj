@@ -28,6 +28,7 @@
     <DefineConstants>DEBUG;TRACE</DefineConstants>
     <ErrorReport>prompt</ErrorReport>
     <WarningLevel>4</WarningLevel>
+    <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
     <PlatformTarget>AnyCPU</PlatformTarget>
@@ -88,6 +89,7 @@
     <Compile Include="Common\LoginViewModel.cs" />
     <Compile Include="Common\MainWindowViewModel.cs" />
     <Compile Include="Common\RelayCommand.cs" />
+    <Compile Include="Common\SecureStringExtension.cs" />
     <Compile Include="Common\SettingsExtension.cs" />
     <Compile Include="ApplicationSettings\SettingsViewModel.cs" />
     <Compile Include="Common\ViewModelBase.cs" />

@@ -54,14 +54,14 @@ namespace Docms.Uploader.Common
         [TestMethod]
         public void パスワードが空欄の場合エラーとなる()
         {
-            sut.Password = "";
+            sut.Password = "".ConvertToSecureString();
             Assert.IsTrue(sut.HasErrors);
         }
 
         [TestMethod]
         public void パスワードが空欄ではない場合エラーとはならない()
         {
-            sut.Password = "invalidpassword";
+            sut.Password = "invalidpassword".ConvertToSecureString();
             Assert.IsFalse(sut.HasErrors);
         }
 
@@ -69,7 +69,7 @@ namespace Docms.Uploader.Common
         public void 誤ったログイン情報でログインボタンを押下するとモデルのエラーとはならないがエラーメッセージが表示される()
         {
             sut.Username = "invalidusername";
-            sut.Password = "invalidpassword";
+            sut.Password = "invalidpassword".ConvertToSecureString();
             sut.Login();
             Assert.IsFalse(sut.HasErrors);
             Assert.IsNotNull(sut.ErrorMessage);
@@ -79,7 +79,7 @@ namespace Docms.Uploader.Common
         public void 誤ったログイン情報でログインボタンを押下したあとユーザー名を変更するとエラーメッセージが消える()
         {
             sut.Username = "invalidusername";
-            sut.Password = "invalidpassword";
+            sut.Password = "invalidpassword".ConvertToSecureString();
             sut.Login();
             sut.Username = "invalidusername2";
             Assert.IsNull(sut.ErrorMessage);
@@ -89,9 +89,9 @@ namespace Docms.Uploader.Common
         public void 誤ったログイン情報でログインボタンを押下したあとパスワードを変更するとエラーメッセージが消える()
         {
             sut.Username = "invalidusername";
-            sut.Password = "invalidpassword";
+            sut.Password = "invalidpassword".ConvertToSecureString();
             sut.Login();
-            sut.Password = "invalidpassword2";
+            sut.Password = "invalidpassword2".ConvertToSecureString();
             Assert.IsNull(sut.ErrorMessage);
         }
 
@@ -101,7 +101,7 @@ namespace Docms.Uploader.Common
             var isLoginSucceeded = false;
             sut.LoginSucceeded += (s, e) => isLoginSucceeded = true;
             sut.Username = "validusername";
-            sut.Password = "validpassword";
+            sut.Password = "validpassword".ConvertToSecureString();
             sut.Login();
             Assert.IsNull(sut.ErrorMessage);
             Assert.IsFalse(sut.HasErrors);

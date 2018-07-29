@@ -2,6 +2,7 @@
 using Docms.Uploader.Properties;
 using System;
 using System.ComponentModel.DataAnnotations;
+using System.Security;
 
 namespace Docms.Uploader.Common
 {
@@ -10,7 +11,7 @@ namespace Docms.Uploader.Common
         public event EventHandler<EventArgs> LoginSucceeded;
 
         private string _Username;
-        private string _Password;
+        private SecureString _Password;
         private string _ErrorMessage;
         private IDocmsClient _client;
 
@@ -26,7 +27,7 @@ namespace Docms.Uploader.Common
         }
 
         [Required]
-        public string Password
+        public SecureString Password
         {
             get { return _Password; }
             set
@@ -72,15 +73,15 @@ namespace Docms.Uploader.Common
 
             try
             {
-                await _client.LoginAsync(Username, Password);
+                await _client.LoginAsync(Username, Password.ConvertToUnsecureString());
                 Settings.Default.UserId = Username;
-                Settings.Default.SetPasswordHash(Password);
+                Settings.Default.SetPasswordHash(Password.ConvertToUnsecureString());
                 Settings.Default.Save();
                 LoginSucceeded?.Invoke(this, EventArgs.Empty);
             }
             catch (Exception ex)
             {
-                Password = "";
+                Password = "".ConvertToSecureString();
                 ErrorMessage = ex.Message;
                 Reset();
             }
