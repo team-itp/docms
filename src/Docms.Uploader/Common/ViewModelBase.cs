@@ -27,7 +27,7 @@ namespace Docms.Uploader.Common
     public abstract class ValidationViewModelBase : ViewModelBase, IDataErrorInfo, INotifyDataErrorInfo
     {
         private ValidationContext context;
-        private bool _startValidation;
+        private Dictionary<string, string> _errors = new Dictionary<string, string>();
 
         public event EventHandler<DataErrorsChangedEventArgs> ErrorsChanged;
 
@@ -36,32 +36,26 @@ namespace Docms.Uploader.Common
             Reset();
         }
 
-        string IDataErrorInfo.this[string propertyName] => GetErrors(propertyName)?.Cast<string>().FirstOrDefault();
-        string IDataErrorInfo.Error => GetErrors("")?.Cast<string>().FirstOrDefault();
+        string IDataErrorInfo.this[string propertyName] => _errors.TryGetValue(propertyName, out var value) ? value : null;
+        string IDataErrorInfo.Error => _errors.Values.FirstOrDefault();
         public bool HasErrors => !string.IsNullOrEmpty(((IDataErrorInfo)this).Error);
 
         public void Reset()
         {
             context = new ValidationContext(this);
-            _startValidation = false;
+            _errors.Clear();
         }
 
         public void Validate()
         {
-            _startValidation = true;
             foreach (var prop in GetType().GetProperties())
             {
-                OnErrosChanged(prop.Name);
+                OnPropertyChanged(prop.Name);
             }
         }
 
         public IEnumerable GetErrors(string propertyName)
         {
-            if (!_startValidation)
-            {
-                return null;
-            }
-
             var results = new List<ValidationResult>();
             if (string.IsNullOrEmpty(propertyName))
             {
@@ -81,10 +75,32 @@ namespace Docms.Uploader.Common
             }
         }
 
+        public void SetError(string propertyName, string error)
+        {
+            _errors[propertyName] = error;
+            OnErrosChanged(propertyName);
+        }
+
+        public void ResetError(string propertyName)
+        {
+            _errors.Remove(propertyName);
+            OnErrosChanged(propertyName);
+        }
+
         protected override void OnPropertyChanged(string propertyName)
         {
-            _startValidation = true;
             base.OnPropertyChanged(propertyName);
+            var error = GetErrors(propertyName)?
+                .Cast<string>()
+                .FirstOrDefault();
+            if (string.IsNullOrEmpty(error))
+            {
+                ResetError(propertyName);
+            }
+            else
+            {
+                _errors[propertyName] = error;
+            }
             OnErrosChanged(propertyName);
         }
 

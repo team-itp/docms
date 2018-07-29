@@ -21,6 +21,7 @@ namespace Docms.Uploader.Common
             set
             {
                 SetProperty(ref _Username, value);
+                ErrorMessage = null;
             }
         }
 
@@ -31,6 +32,7 @@ namespace Docms.Uploader.Common
             set
             {
                 SetProperty(ref _Password, value);
+                ErrorMessage = null;
             }
         }
 
@@ -59,13 +61,15 @@ namespace Docms.Uploader.Common
 
         public async void Login()
         {
+            _isExecutingLogin = true;
+
             Validate();
             if (HasErrors)
             {
+                _isExecutingLogin = false;
                 return;
             }
 
-            _isExecutingLogin = true;
             try
             {
                 await _client.LoginAsync(Username, Password);
@@ -76,8 +80,9 @@ namespace Docms.Uploader.Common
             }
             catch (Exception ex)
             {
-                ErrorMessage = ex.Message;
                 Password = "";
+                ErrorMessage = ex.Message;
+                Reset();
             }
             finally
             {
