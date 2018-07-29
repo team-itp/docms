@@ -29,7 +29,7 @@ namespace Docms.Uploader.Common
         [Required]
         public SecureString Password
         {
-            get { return _Password; }
+            get { return (_Password?.Length ?? 0) == 0 ? null : _Password; }
             set
             {
                 SetProperty(ref _Password, value);
@@ -81,7 +81,7 @@ namespace Docms.Uploader.Common
             }
             catch (Exception ex)
             {
-                Password = "".ConvertToSecureString();
+                Password = null;
                 ErrorMessage = ex.Message;
                 Reset();
             }

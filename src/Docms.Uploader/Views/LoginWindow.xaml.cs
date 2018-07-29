@@ -1,4 +1,5 @@
 ﻿using Docms.Uploader.Common;
+using Docms.Uploader.Views.Utils;
 using System.Windows;
 using System.Windows.Controls;
 
@@ -14,13 +15,12 @@ namespace Docms.Uploader.Views
             InitializeComponent();
         }
 
-        private void PasswordBox_PasswordChanged(object sender, RoutedEventArgs e)
+        private void PasswordBox_KeyDown(object sender, System.Windows.Input.KeyEventArgs e)
         {
-            var vm = DataContext as LoginViewModel;
-            var pb = sender as PasswordBox;
-            if (vm != null && pb != null)
+            if(e.Key == System.Windows.Input.Key.Enter)
             {
-                vm.Password = pb.SecurePassword;
+                PasswordBoxHelper.SetPassword(PasswordBox, PasswordBox.SecurePassword);
+                LoginButton.Command?.Execute(LoginButton.CommandParameter);
             }
         }
     }
