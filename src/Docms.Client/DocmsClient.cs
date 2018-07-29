@@ -50,8 +50,7 @@ namespace Docms.Client
             var response = await client.RequestResourceOwnerPasswordAsync(username, password, "docmsapi").ConfigureAwait(false);
             if (response.IsError)
             {
-                // TODO message
-                throw new Exception("ログインができません。ユーザー名とパスワードを確認してください。");
+                throw new InvalidLoginException();
             }
             _username = username;
             _password = password;
@@ -177,8 +176,7 @@ namespace Docms.Client
         {
             if (!result.IsSuccessful)
             {
-                // message
-                throw new Exception();
+                throw new ServerException((int)result.StatusCode, result.Content);
             }
         }
     }

@@ -18,7 +18,7 @@ namespace Docms.Uploader.Upload
         private string _ProjectText;
         private string _PersonInChargeText;
         private bool _Loading;
-        private DocmsClient _client;
+        private IDocmsClient _client;
 
         public class MediaFilesCollection : ObservableCollection<WatchingFileViewModel> { }
         public class TagsCollection : ObservableCollection<Tag> { }
@@ -106,7 +106,7 @@ namespace Docms.Uploader.Upload
 
         }
 
-        public UploaderViewModel(DocmsClient client)
+        public UploaderViewModel(IDocmsClient client)
         {
             _client = client;
             SelectedMediaFiles = new MediaFilesCollection();
