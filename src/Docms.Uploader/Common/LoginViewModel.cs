@@ -12,7 +12,7 @@ namespace Docms.Uploader.Common
         private string _Username;
         private string _Password;
         private string _ErrorMessage;
-        private DocmsClient _client;
+        private IDocmsClient _client;
 
         [Required]
         public string Username
@@ -49,7 +49,7 @@ namespace Docms.Uploader.Common
         [Obsolete]
         public LoginViewModel() { }
 
-        public LoginViewModel(DocmsClient client)
+        public LoginViewModel(IDocmsClient client)
         {
             _client = client;
             LoginCommand = new RelayCommand(Login, () => !_isExecutingLogin && !HasErrors);
@@ -59,6 +59,12 @@ namespace Docms.Uploader.Common
 
         public async void Login()
         {
+            Validate();
+            if (HasErrors)
+            {
+                return;
+            }
+
             _isExecutingLogin = true;
             try
             {

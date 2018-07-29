@@ -27,20 +27,41 @@ namespace Docms.Uploader.Common
     public abstract class ValidationViewModelBase : ViewModelBase, IDataErrorInfo, INotifyDataErrorInfo
     {
         private ValidationContext context;
+        private bool _startValidation;
 
         public event EventHandler<DataErrorsChangedEventArgs> ErrorsChanged;
 
         public ValidationViewModelBase()
         {
-            context = new ValidationContext(this);
+            Reset();
         }
 
         string IDataErrorInfo.this[string propertyName] => GetErrors(propertyName)?.Cast<string>().FirstOrDefault();
         string IDataErrorInfo.Error => GetErrors("")?.Cast<string>().FirstOrDefault();
         public bool HasErrors => !string.IsNullOrEmpty(((IDataErrorInfo)this).Error);
 
+        public void Reset()
+        {
+            context = new ValidationContext(this);
+            _startValidation = false;
+        }
+
+        public void Validate()
+        {
+            _startValidation = true;
+            foreach (var prop in GetType().GetProperties())
+            {
+                OnErrosChanged(prop.Name);
+            }
+        }
+
         public IEnumerable GetErrors(string propertyName)
         {
+            if (!_startValidation)
+            {
+                return null;
+            }
+
             var results = new List<ValidationResult>();
             if (string.IsNullOrEmpty(propertyName))
             {
@@ -62,6 +83,7 @@ namespace Docms.Uploader.Common
 
         protected override void OnPropertyChanged(string propertyName)
         {
+            _startValidation = true;
             base.OnPropertyChanged(propertyName);
             OnErrosChanged(propertyName);
         }

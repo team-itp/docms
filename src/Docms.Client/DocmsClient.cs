@@ -9,7 +9,7 @@ using System.Threading.Tasks;
 
 namespace Docms.Client
 {
-    public class DocmsClient
+    public class DocmsClient : IDocmsClient
     {
         private string _serverUri;
         private string _tokenEndpoint;

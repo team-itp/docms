@@ -48,6 +48,8 @@
     <Reference Include="System.Core" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="Common\LoginViewModelTests.cs" />
+    <Compile Include="Common\MockDocmsClient.cs" />
     <Compile Include="FileWatch\WatchingFileListViewModelTests.cs" />
     <Compile Include="FileWatch\WatchingFileViewModelTests.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
@@ -57,6 +59,10 @@
   </ItemGroup>
   <ItemGroup />
   <ItemGroup>
+    <ProjectReference Include="..\Docms.Client\Docms.Client.csproj">
+      <Project>{1D02293A-20B9-4C3D-88BC-D100FEA1D435}</Project>
+      <Name>Docms.Client</Name>
+    </ProjectReference>
     <ProjectReference Include="..\Docms.Uploader\Docms.Uploader.csproj">
       <Project>{fc2aaed9-0445-4c06-887d-eca5da03a744}</Project>
       <Name>Docms.Uploader</Name>

@@ -45,6 +45,7 @@ namespace Docms.Uploader
                 {
                     Username = userid,
                 };
+                loginVM.Reset();
                 loginWindow.DataContext = loginVM;
 
                 var loginSuccess = false;
