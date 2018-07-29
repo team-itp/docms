@@ -48,6 +48,7 @@
     <Reference Include="System.Core" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="ApplicationSettings\WatchDirecotrySettingsViewModelTests.cs" />
     <Compile Include="Common\LoginViewModelTests.cs" />
     <Compile Include="Common\MockDocmsClient.cs" />
     <Compile Include="FileWatch\WatchingFileListViewModelTests.cs" />

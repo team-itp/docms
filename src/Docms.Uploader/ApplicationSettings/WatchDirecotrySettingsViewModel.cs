@@ -19,6 +19,7 @@ namespace Docms.Uploader.ApplicationSettings
         public WatchDirecotrySettingsViewModel()
         {
             OnPropertyChanged(nameof(WatchDirectory));
+            Reset();
         }
     }
 }

@@ -29,31 +29,19 @@ namespace Docms.Uploader.Common
         private ValidationContext context;
         private Dictionary<string, string> _errors = new Dictionary<string, string>();
 
-        public event EventHandler<DataErrorsChangedEventArgs> ErrorsChanged;
-
         public ValidationViewModelBase()
         {
             Reset();
         }
 
+        #region IDataErrorInfo
         string IDataErrorInfo.this[string propertyName] => _errors.TryGetValue(propertyName, out var value) ? value : null;
         string IDataErrorInfo.Error => _errors.Values.FirstOrDefault();
+        #endregion
+
+        #region INotifyDataErrorInfo
         public bool HasErrors => !string.IsNullOrEmpty(((IDataErrorInfo)this).Error);
-
-        public void Reset()
-        {
-            context = new ValidationContext(this);
-            _errors.Clear();
-        }
-
-        public void Validate()
-        {
-            foreach (var prop in GetType().GetProperties())
-            {
-                OnPropertyChanged(prop.Name);
-            }
-        }
-
+        public event EventHandler<DataErrorsChangedEventArgs> ErrorsChanged;
         public IEnumerable GetErrors(string propertyName)
         {
             var results = new List<ValidationResult>();
@@ -74,14 +62,29 @@ namespace Docms.Uploader.Common
                 return results.Select(e => e.ErrorMessage);
             }
         }
+        #endregion
 
-        public void SetError(string propertyName, string error)
+        public void Reset()
+        {
+            context = new ValidationContext(this);
+            _errors.Clear();
+        }
+
+        public void Validate()
+        {
+            foreach (var prop in GetType().GetProperties())
+            {
+                OnPropertyChanged(prop.Name);
+            }
+        }
+
+        protected void SetError(string propertyName, string error)
         {
             _errors[propertyName] = error;
             OnErrosChanged(propertyName);
         }
 
-        public void ResetError(string propertyName)
+        protected void ResetError(string propertyName)
         {
             _errors.Remove(propertyName);
             OnErrosChanged(propertyName);

@@ -44,6 +44,15 @@ namespace Docms.Uploader.ApplicationSettings
 
         public void Confirm()
         {
+            _viewModels.ForEach(model => model.Validate());
+
+            var errorVM = _viewModels.FirstOrDefault(vm => vm.HasErrors);
+            if (errorVM != null)
+            {
+                ViewModel = errorVM;
+                return;
+            }
+
             Properties.Settings.Default.Save();
             SettingsConfirmed?.Invoke(this, EventArgs.Empty);
         }
