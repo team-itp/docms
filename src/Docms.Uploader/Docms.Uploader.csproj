@@ -86,6 +86,7 @@
       <DependentUpon>App.xaml</DependentUpon>
       <SubType>Code</SubType>
     </Compile>
+    <Compile Include="Common\Cipher.cs" />
     <Compile Include="Common\LoginViewModel.cs" />
     <Compile Include="Common\MainWindowViewModel.cs" />
     <Compile Include="Common\RelayCommand.cs" />

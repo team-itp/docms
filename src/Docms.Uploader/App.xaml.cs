@@ -30,7 +30,7 @@ namespace Docms.Uploader
             {
                 try
                 {
-                    Task.Run(async () => await client.LoginAsync(userid, password)).Wait();
+                    Task.Run(async () => await client.LoginAsync(userid, password?.ConvertToUnsecureString())).Wait();
                 }
                 catch
                 {

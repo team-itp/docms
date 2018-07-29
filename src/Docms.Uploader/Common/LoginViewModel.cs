@@ -75,7 +75,7 @@ namespace Docms.Uploader.Common
             {
                 await _client.LoginAsync(Username, Password.ConvertToUnsecureString());
                 Settings.Default.UserId = Username;
-                Settings.Default.SetPasswordHash(Password.ConvertToUnsecureString());
+                Settings.Default.SetPasswordHash(Password);
                 Settings.Default.Save();
                 LoginSucceeded?.Invoke(this, EventArgs.Empty);
             }

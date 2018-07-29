@@ -60,7 +60,8 @@ namespace Docms.Uploader.Common
         {
             await _client.LogoutAsync();
             Settings.Default.UserId = "";
-            Settings.Default.SetPasswordHash("");
+            Settings.Default.SetPasswordHash(null);
+            Settings.Default.DirectoryToWatch = "";
             Settings.Default.Save();
             SessionEnded?.Invoke(this, EventArgs.Empty);
         }

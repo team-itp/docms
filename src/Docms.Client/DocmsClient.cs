@@ -34,6 +34,11 @@ namespace Docms.Client
         /// <returns></returns>
         public async Task LoginAsync(string username, string password)
         {
+            if (string.IsNullOrEmpty(username))
+                throw new ArgumentNullException(nameof(username));
+            if (string.IsNullOrEmpty(password))
+                throw new ArgumentNullException(nameof(password));
+
             var discoveryClient = new DiscoveryClient(new Uri(_serverUri).GetLeftPart(UriPartial.Authority).ToString());
             discoveryClient.Policy.RequireHttps = false;
             var doc = await discoveryClient.GetAsync().ConfigureAwait(false);
