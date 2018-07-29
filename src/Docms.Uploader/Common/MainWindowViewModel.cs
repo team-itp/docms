@@ -73,7 +73,7 @@ namespace Docms.Uploader.Common
                 e.NewItems
                     .Cast<WatchingFileViewModel>()
                     .ToList()
-                    .ForEach(vm => Uploader.SelectedMediaFiles.Add(vm));
+                    .ForEach(vm => Uploader.SelectedFiles.Add(vm.FullPath));
 
             }
             else if (e.NewItems == null)
@@ -81,7 +81,7 @@ namespace Docms.Uploader.Common
                 e.OldItems
                     .Cast<WatchingFileViewModel>()
                     .ToList()
-                    .ForEach(vm => Uploader.SelectedMediaFiles.Remove(vm));
+                    .ForEach(vm => Uploader.SelectedFiles.Remove(vm.FullPath));
             }
             else
             {
@@ -89,12 +89,12 @@ namespace Docms.Uploader.Common
                     .Cast<WatchingFileViewModel>()
                     .Except(e.NewItems.Cast<WatchingFileViewModel>())
                     .ToList()
-                    .ForEach(vm => Uploader.SelectedMediaFiles.Remove(vm));
+                    .ForEach(vm => Uploader.SelectedFiles.Remove(vm.FullPath));
                 e.NewItems
                     .Cast<WatchingFileViewModel>()
                     .Except(e.OldItems.Cast<WatchingFileViewModel>())
                     .ToList()
-                    .ForEach(vm => Uploader.SelectedMediaFiles.Add(vm));
+                    .ForEach(vm => Uploader.SelectedFiles.Add(vm.FullPath));
             }
         }
 

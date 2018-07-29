@@ -1,9 +1,9 @@
 ﻿using Docms.Client;
 using Docms.Client.Models;
 using Docms.Uploader.Common;
-using Docms.Uploader.FileWatch;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
+using System.IO;
 using System.Linq;
 using System.Threading.Tasks;
 
@@ -20,11 +20,11 @@ namespace Docms.Uploader.Upload
         private bool _Loading;
         private IDocmsClient _client;
 
-        public class MediaFilesCollection : ObservableCollection<WatchingFileViewModel> { }
+        public class FilesCollection : ObservableCollection<string> { }
         public class TagsCollection : ObservableCollection<Tag> { }
 
 
-        public MediaFilesCollection SelectedMediaFiles { get; }
+        public FilesCollection SelectedFiles { get; }
 
         public ObservableCollection<CustomerResponse> CustomerChoices { get; } = new ObservableCollection<CustomerResponse>();
         public ObservableCollection<ProjectResponse> ProjectChoices { get; } = new ObservableCollection<ProjectResponse>();
@@ -109,7 +109,7 @@ namespace Docms.Uploader.Upload
         public UploaderViewModel(IDocmsClient client)
         {
             _client = client;
-            SelectedMediaFiles = new MediaFilesCollection();
+            SelectedFiles = new FilesCollection();
             SelectedTags = new TagsCollection();
             Loading = true;
             InitializeAsync().ContinueWith(t =>
@@ -159,12 +159,12 @@ namespace Docms.Uploader.Upload
             await Task.WhenAll(tasks);
         }
 
-        public void SelectFile(WatchingFileViewModel file)
+        public void SelectFile(string filePath)
         {
-            var index = SelectedMediaFiles.IndexOf(file);
+            var index = SelectedFiles.IndexOf(filePath);
             if (index < 0)
             {
-                SelectedMediaFiles.Add(file);
+                SelectedFiles.Add(filePath);
             }
         }
 
@@ -172,10 +172,10 @@ namespace Docms.Uploader.Upload
         {
             await _client.VerifyTokenAsync().ConfigureAwait(false);
             var tags = SelectedTags.Select(t => t.Name).ToList();
-            foreach (var f in SelectedMediaFiles)
+            foreach (var f in SelectedFiles)
             {
-                await _client.CreateDocumentAsync(f.FullPath,
-                    f.FileName,
+                await _client.CreateDocumentAsync(f,
+                    Path.GetFileName(f),
                     PersonInCharge?.Name ?? PersonInChargeText,
                     Customer?.Name ?? CustomerText,
                     Project?.Name ?? ProjectText,
@@ -185,7 +185,7 @@ namespace Docms.Uploader.Upload
 
         public bool CanUpload()
         {
-            return SelectedMediaFiles.Any();
+            return SelectedFiles.Any();
         }
     }
 }

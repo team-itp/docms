@@ -19,7 +19,7 @@ namespace Docms.Uploader.Upload
         [TestMethod]
         public void インスタンス化直後ファイルが未選択状態でアップロードボタンが押せない()
         {
-            Assert.AreEqual(0, sut.SelectedMediaFiles.Count);
+            Assert.AreEqual(0, sut.SelectedFiles.Count);
             Assert.IsFalse(sut.CanUpload());
         }
     }
