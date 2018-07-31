@@ -110,7 +110,7 @@ namespace Docms.Uploader.FileWatch
         {
             try
             {
-                using (new FileStream(filePath, FileMode.Open, FileAccess.Read))
+                using (new FileStream(filePath, FileMode.Open, FileAccess.Read, FileShare.ReadWrite | FileShare.Delete))
                 {
                     return true;
                 }
