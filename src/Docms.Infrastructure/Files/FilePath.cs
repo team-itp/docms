@@ -17,7 +17,7 @@ namespace Docms.Infrastructure.Files
         public FilePath DirectoryPath => _parent.Value;
         public string FileName => Path.GetFileName(_path);
         public string FileNameWithoutExtension => Path.GetFileNameWithoutExtension(_path);
-        public string Extension => Path.GetExtension(_path);
+        public string Extension => string.IsNullOrEmpty(Path.GetExtension(_path)) ? null : Path.GetExtension(_path);
 
         public override bool Equals(object obj)
         {
