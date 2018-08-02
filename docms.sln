@@ -1,0 +1,30 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio 15
+VisualStudioVersion = 15.0.27703.2042
+MinimumVisualStudioVersion = 10.0.40219.1
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "src", "src", "{5EC1E2AE-85C6-4F2D-B954-2E42105C4EBF}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Docms.Domain", "src\Docms.Domain\Docms.Domain.csproj", "{FA5A6564-489A-4BAD-8C74-2D08661FE166}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Release|Any CPU = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{FA5A6564-489A-4BAD-8C74-2D08661FE166}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{FA5A6564-489A-4BAD-8C74-2D08661FE166}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{FA5A6564-489A-4BAD-8C74-2D08661FE166}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{FA5A6564-489A-4BAD-8C74-2D08661FE166}.Release|Any CPU.Build.0 = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(NestedProjects) = preSolution
+		{FA5A6564-489A-4BAD-8C74-2D08661FE166} = {5EC1E2AE-85C6-4F2D-B954-2E42105C4EBF}
+	EndGlobalSection
+	GlobalSection(ExtensibilityGlobals) = postSolution
+		SolutionGuid = {3E97A19D-6D1D-48A5-8A6F-2EB7FE6B6CE7}
+	EndGlobalSection
+EndGlobal
