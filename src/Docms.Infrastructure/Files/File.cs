@@ -4,10 +4,13 @@ namespace Docms.Infrastructure.Files
 {
     public class File
     {
-        public FilePath Path { get; set; }
-        public long Size { get; set; }
-        public byte[] Sha1Hash { get; set; }
-        public DateTimeOffset Created { get; set; }
-        public Guid CreatedUserId { get; set; }
+        public FilePath Path { get; internal set; }
+        public string ContentType { get; internal set; }
+        public long Size { get; internal set; }
+        public byte[] Sha1Hash { get; internal set; }
+        public DateTimeOffset Created { get; internal set; }
+        public DateTimeOffset LastModified { get; internal set; }
+        public Guid CreatedUserId { get; internal set; }
+        public Guid LastModifiedUserId { get; internal set; }
     }
 }
