@@ -10,7 +10,5 @@ namespace Docms.Infrastructure.Files
         public byte[] Sha1Hash { get; internal set; }
         public DateTimeOffset Created { get; internal set; }
         public DateTimeOffset LastModified { get; internal set; }
-        public Guid CreatedUserId { get; internal set; }
-        public Guid LastModifiedUserId { get; internal set; }
     }
 }
