@@ -48,7 +48,7 @@ namespace Docms.Infrastructure.Files
                 Path = new FilePath(filepath),
                 ContentType = contentType ?? "application/octet-stream",
                 Size = fileInfo.Length,
-                Sha1Hash = CalculateSha1Hash(fileInfo.OpenRead()),
+                Sha1Hash = CalculateSha1Hash(fileInfo),
                 LastModified = fileInfo.LastWriteTime,
                 Created = fileInfo.CreationTime,
             });
@@ -99,11 +99,12 @@ namespace Docms.Infrastructure.Files
             }
         }
 
-        private byte[] CalculateSha1Hash(FileStream fileStream)
+        private byte[] CalculateSha1Hash(FileInfo fileInfo)
         {
+            using(var fs = fileInfo.OpenRead())
             using (var sha1 = SHA1.Create())
             {
-                var hash = sha1.ComputeHash(fileStream);
+                var hash = sha1.ComputeHash(fs);
                 return hash;
             }
         }

@@ -71,8 +71,10 @@ namespace Docms.Infrastructure.Tests
         public async Task 存在するファイル情報を取得することができる()
         {
             CreateFile("dir2\\content1.txt", "dir2content1");
-            Assert.AreEqual(0, (await sut.GetFilesAsync("test")).Count());
+            var file = await sut.GetFileAsync("dir2\\content1.txt");
+            Assert.AreEqual("dir2/content1.txt", file.Path.ToString());
+            Assert.AreEqual(12, file.Size);
+            Assert.IsNotNull(file.Sha1Hash);
         }
-
     }
 }
