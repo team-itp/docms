@@ -1,4 +1,4 @@
-using Docms.Infrastructure.Files;
+ï»¿using Docms.Infrastructure.Files;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 
 namespace Docms.Infrastructure.Tests
@@ -7,7 +7,7 @@ namespace Docms.Infrastructure.Tests
     public class FilePathTests
     {
         [TestMethod]
-        public void ŠK‘w‚Ì‚È‚¢ƒpƒX‚Ì•¶š—ñ‚©‚çƒCƒ“ƒXƒ^ƒ“ƒX‰»‚µ‚ÄŠg’£q‚Æƒtƒ@ƒCƒ‹–¼‚ªæ“¾‚Å‚«‚é‚±‚Æ()
+        public void éšå±¤ã®ãªã„ãƒ‘ã‚¹ã®æ–‡å­—åˆ—ã‹ã‚‰ã‚¤ãƒ³ã‚¹ã‚¿ãƒ³ã‚¹åŒ–ã—ã¦æ‹¡å¼µå­ã¨ãƒ•ã‚¡ã‚¤ãƒ«åãŒå–å¾—ã§ãã‚‹ã“ã¨()
         {
             var sut = new FilePath("test.txt");
             Assert.AreEqual(null, sut.DirectoryPath);
@@ -17,7 +17,7 @@ namespace Docms.Infrastructure.Tests
         }
 
         [TestMethod]
-        public void ŠK‘w‚Ì‚ ‚éƒpƒX‚Ì•¶š—ñ‚©‚çƒCƒ“ƒXƒ^ƒ“ƒX‰»‚µ‚ÄŠg’£q‚Æƒtƒ@ƒCƒ‹–¼‚ÆƒfƒBƒŒƒNƒgƒŠ–¼‚ªæ“¾‚Å‚«‚é‚±‚Æ()
+        public void éšå±¤ã®ã‚ã‚‹ãƒ‘ã‚¹ã®æ–‡å­—åˆ—ã‹ã‚‰ã‚¤ãƒ³ã‚¹ã‚¿ãƒ³ã‚¹åŒ–ã—ã¦æ‹¡å¼µå­ã¨ãƒ•ã‚¡ã‚¤ãƒ«åã¨ãƒ‡ã‚£ãƒ¬ã‚¯ãƒˆãƒªåãŒå–å¾—ã§ãã‚‹ã“ã¨()
         {
             var sut = new FilePath("path1\\path2\\test.txt");
             Assert.AreEqual(new FilePath("path1\\path2"), sut.DirectoryPath);
@@ -28,7 +28,7 @@ namespace Docms.Infrastructure.Tests
         }
 
         [TestMethod]
-        public void Šg’£q‚Ì‚È‚¢ƒpƒX‚Ì•¶š—ñ‚©‚çƒCƒ“ƒXƒ^ƒ“ƒX‰»‚µ‚Äƒtƒ@ƒCƒ‹–¼‚ÆƒfƒBƒŒƒNƒgƒŠ–¼‚ªæ“¾‚Å‚«‚é‚±‚Æ()
+        public void æ‹¡å¼µå­ã®ãªã„ãƒ‘ã‚¹ã®æ–‡å­—åˆ—ã‹ã‚‰ã‚¤ãƒ³ã‚¹ã‚¿ãƒ³ã‚¹åŒ–ã—ã¦ãƒ•ã‚¡ã‚¤ãƒ«åã¨ãƒ‡ã‚£ãƒ¬ã‚¯ãƒˆãƒªåãŒå–å¾—ã§ãã‚‹ã“ã¨()
         {
             var sut = new FilePath("path1\\test");
             Assert.AreEqual(new FilePath("path1"), sut.DirectoryPath);
