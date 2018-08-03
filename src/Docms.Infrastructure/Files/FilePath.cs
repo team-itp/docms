@@ -16,7 +16,7 @@ namespace Docms.Infrastructure.Files
                 throw new ArgumentNullException(nameof(path));
             if (path.Contains("..") || invalidPathChars.Any(c => path.Contains(c)))
                 throw new ArgumentException(nameof(path));
-            _path = path;
+            _path = path.Replace('/', Path.DirectorySeparatorChar);
             _parent = new Lazy<FilePath>(() => Create(Path.GetDirectoryName(_path)));
         }
 
@@ -43,7 +43,7 @@ namespace Docms.Infrastructure.Files
 
         public override string ToString()
         {
-            return _path;
+            return _path.Replace('\\', '/');
         }
 
         public static FilePath Create(string path)
