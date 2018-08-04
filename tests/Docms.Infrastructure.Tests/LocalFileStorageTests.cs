@@ -23,9 +23,9 @@ namespace Docms.Infrastructure.Tests
         [TestCleanup]
         public void Teardown()
         {
-            if (Directory.Exists(basepath))
+            if (System.IO.Directory.Exists(basepath))
             {
-                Directory.Delete(basepath, true);
+                System.IO.Directory.Delete(basepath, true);
             }
         }
 
@@ -34,9 +34,9 @@ namespace Docms.Infrastructure.Tests
             var fullpath = Path.IsPathFullyQualified(path)
                 ? path
                 : Path.Combine(basepath, path);
-            if (!Directory.Exists(fullpath))
+            if (!System.IO.Directory.Exists(fullpath))
             {
-                Directory.CreateDirectory(fullpath);
+                System.IO.Directory.CreateDirectory(fullpath);
             }
         }
 

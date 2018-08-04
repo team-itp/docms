@@ -2,7 +2,7 @@
 
 namespace Docms.Infrastructure.Files
 {
-    public class File
+    public class FileInfo
     {
         public FilePath Path { get; internal set; }
         public string ContentType { get; internal set; }
