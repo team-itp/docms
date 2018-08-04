@@ -15,6 +15,8 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Docms.Domain", "src\Docms.D
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Docms.Domain.Tests", "tests\Docms.Domain.Tests\Docms.Domain.Tests.csproj", "{18514CC7-7917-4367-B219-F1CFB16811C0}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Docms.Web", "src\Docms.Web\Docms.Web.csproj", "{EB0B44BD-00D2-4F95-80D8-278F21A73492}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -37,6 +39,10 @@ Global
 		{18514CC7-7917-4367-B219-F1CFB16811C0}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{18514CC7-7917-4367-B219-F1CFB16811C0}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{18514CC7-7917-4367-B219-F1CFB16811C0}.Release|Any CPU.Build.0 = Release|Any CPU
+		{EB0B44BD-00D2-4F95-80D8-278F21A73492}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{EB0B44BD-00D2-4F95-80D8-278F21A73492}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{EB0B44BD-00D2-4F95-80D8-278F21A73492}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{EB0B44BD-00D2-4F95-80D8-278F21A73492}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
@@ -46,6 +52,7 @@ Global
 		{D4756570-EDF4-44E1-ABA9-3ADDB60F7B11} = {D5BF118D-AA84-4EED-A9AC-758BD3FA42BD}
 		{0730A035-7BA0-4B57-9295-1739F7EDA5A5} = {5EC1E2AE-85C6-4F2D-B954-2E42105C4EBF}
 		{18514CC7-7917-4367-B219-F1CFB16811C0} = {D5BF118D-AA84-4EED-A9AC-758BD3FA42BD}
+		{EB0B44BD-00D2-4F95-80D8-278F21A73492} = {5EC1E2AE-85C6-4F2D-B954-2E42105C4EBF}
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
 		SolutionGuid = {3E97A19D-6D1D-48A5-8A6F-2EB7FE6B6CE7}
