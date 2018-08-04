@@ -18,36 +18,35 @@ namespace Docms.Infrastructure.Files
 
         public Task<IEnumerable<Entry>> GetFilesAsync(string filepath)
         {
-            var di = GetDirectoryInfo(filepath);
-            if (!di.Exists)
+            var directoryInfo = GetInfo(filepath) as DirectoryInfo;
+            if (!directoryInfo.Exists)
             {
                 return Task.FromResult(Array.Empty<Entry>().AsEnumerable());
             }
 
             var list = new List<Entry>();
-            foreach (var p in di.GetDirectories().Select(d => d.FullName))
+            foreach (var p in directoryInfo.GetDirectories().Select(d => d.FullName))
             {
-                list.Add(new Directory(p.Substring(_basePath.Length + 1)));
+                list.Add(new Directory(p.Substring(_basePath.Length + 1), this));
             }
-            foreach (var p in di.GetFiles().Select(f => f.FullName))
+            foreach (var p in directoryInfo.GetFiles().Select(f => f.FullName))
             {
-                list.Add(new File(p.Substring(_basePath.Length + 1)));
+                list.Add(new File(p.Substring(_basePath.Length + 1), this));
             }
             return Task.FromResult(list.AsEnumerable());
         }
 
-        public Task<FileInfo> GetFileAsync(string filepath)
+        public Task<FileProperties> GetPropertiesAsync(string filepath)
         {
-            var fileInfo = GetFileInfo(filepath);
+            var fileInfo = GetInfo(filepath) as FileInfo;
             if (!fileInfo.Exists)
             {
-                return Task.FromResult(default(FileInfo));
+                return Task.FromResult(default(FileProperties));
             }
 
             ContentTypeProvider.TryGetContentType(fileInfo.Extension, out var contentType);
-            return Task.FromResult(new FileInfo()
+            return Task.FromResult(new FileProperties()
             {
-                Path = new FilePath(filepath),
                 ContentType = contentType ?? "application/octet-stream",
                 Size = fileInfo.Length,
                 Sha1Hash = CalculateSha1Hash(fileInfo.FullName),
@@ -58,24 +57,24 @@ namespace Docms.Infrastructure.Files
 
         public Task<Stream> OpenAsync(string filepath)
         {
-            var fileInfo = GetFileInfo(filepath);
+            var fileInfo = GetInfo(filepath) as FileInfo;
             return Task.FromResult(fileInfo.OpenRead() as Stream);
         }
 
-        public async Task<FileInfo> SaveAsync(string filepath, Stream stream)
+        public async Task<FileProperties> SaveAsync(string filepath, Stream stream)
         {
-            var fi = GetFileInfo(filepath);
-            EnsureDirectoryExists(fi.DirectoryName);
-            using (var fs = fi.OpenWrite())
+            var fileInfo = GetInfo(filepath) as FileInfo;
+            EnsureDirectoryExists(fileInfo.DirectoryName);
+            using (var fs = fileInfo.OpenWrite())
             {
                 await stream.CopyToAsync(fs);
             }
-            return await GetFileAsync(filepath);
+            return await GetPropertiesAsync(filepath);
         }
 
-        public Task DeleteFileAsync(string filepath)
+        public Task DeleteAsync(string filepath)
         {
-            var fi = GetFileInfo(filepath);
+            var fi = GetInfo(filepath);
             if (fi.Exists)
             {
                 fi.Delete();
@@ -83,14 +82,18 @@ namespace Docms.Infrastructure.Files
             return Task.CompletedTask;
         }
 
-        private DirectoryInfo GetDirectoryInfo(string dirpath)
+        private FileSystemInfo GetInfo(string path)
         {
-            return new DirectoryInfo(Path.Combine(_basePath, dirpath));
-        }
-
-        private System.IO.FileInfo GetFileInfo(string filepath)
-        {
-            return new System.IO.FileInfo(Path.Combine(_basePath, filepath));
+            var fullpath = Path.Combine(_basePath, path);
+            var attr = System.IO.File.GetAttributes(fullpath);
+            if ((attr & FileAttributes.Directory) == FileAttributes.Directory)
+            {
+                return new DirectoryInfo(fullpath);
+            }
+            else
+            {
+                return new FileInfo(Path.Combine(_basePath, path));
+            }
         }
 
         private void EnsureDirectoryExists(string directoryName)

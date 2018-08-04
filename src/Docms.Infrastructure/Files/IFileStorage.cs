@@ -7,8 +7,9 @@ namespace Docms.Infrastructure.Files
     public interface IFileStorage
     {
         Task<IEnumerable<Entry>> GetFilesAsync(string path);
-        Task<FileInfo> GetFileAsync(string path);
+        Task<FileProperties> GetPropertiesAsync(string path);
         Task<Stream> OpenAsync(string path);
-        Task<FileInfo> SaveAsync(string path, Stream stream);
+        Task<FileProperties> SaveAsync(string path, Stream stream);
+        Task DeleteAsync(string path);
     }
 }

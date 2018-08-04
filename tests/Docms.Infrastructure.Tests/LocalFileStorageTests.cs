@@ -71,8 +71,7 @@ namespace Docms.Infrastructure.Tests
         public async Task 存在するファイル情報を取得することができる()
         {
             CreateFile("dir2\\content1.txt", "dir2content1");
-            var file = await sut.GetFileAsync("dir2\\content1.txt");
-            Assert.AreEqual("dir2/content1.txt", file.Path.ToString());
+            var file = await sut.GetPropertiesAsync("dir2\\content1.txt");
             Assert.AreEqual(12, file.Size);
             Assert.IsNotNull(file.Sha1Hash);
         }
@@ -96,7 +95,6 @@ namespace Docms.Infrastructure.Tests
             ms.Seek(0, SeekOrigin.Begin);
             var file = await sut.SaveAsync("dir2\\content1.txt", ms);
             Assert.AreEqual("dir2content1", System.IO.File.ReadAllText(Path.Combine(basepath, "dir2\\content1.txt")));
-            Assert.AreEqual("dir2/content1.txt", file.Path.ToString());
             Assert.AreEqual(12, file.Size);
             Assert.IsNotNull(file.Sha1Hash);
         }
@@ -108,7 +106,7 @@ namespace Docms.Infrastructure.Tests
             ms.Seek(0, SeekOrigin.Begin);
             await sut.SaveAsync("dir2\\content1.txt", ms);
             Assert.IsTrue(System.IO.File.Exists(Path.Combine(basepath, "dir2\\content1.txt")));
-            await sut.DeleteFileAsync("dir2\\content1.txt");
+            await sut.DeleteAsync("dir2\\content1.txt");
             Assert.IsFalse(System.IO.File.Exists(Path.Combine(basepath, "dir2\\content1.txt")));
         }
     }
