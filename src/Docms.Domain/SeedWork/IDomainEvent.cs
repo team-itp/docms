@@ -1,6 +1,6 @@
 ﻿namespace Docms.Domain.SeedWork
 {
-    public interface INotification
+    public interface IDomainEvent
     {
     }
 }

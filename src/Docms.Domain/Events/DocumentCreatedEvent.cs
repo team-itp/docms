@@ -4,7 +4,7 @@ using Docms.Domain.SeedWork;
 
 namespace Docms.Domain.Events
 {
-    public class DocumentCreatedEvent : INotification
+    public class DocumentCreatedEvent : IDomainEvent
     {
         private Document document;
         private DocumentPath path;
