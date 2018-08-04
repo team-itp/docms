@@ -16,13 +16,19 @@ namespace Docms.Infrastructure.Files
             _basePath = basePath;
         }
 
-        public Task<IEnumerable<Entry>> GetFilesAsync(string filepath)
+        public Task<IEnumerable<Entry>> GetFilesAsync(string dirpath)
         {
-            var directoryInfo = GetInfo(filepath) as DirectoryInfo;
-            if (!directoryInfo.Exists)
+            if (!Exists(dirpath))
             {
                 return Task.FromResult(Array.Empty<Entry>().AsEnumerable());
             }
+
+            if (IsFile(dirpath))
+            {
+                throw new InvalidOperationException();
+            }
+
+            var directoryInfo = GetDirecotryInfo(dirpath);
 
             var list = new List<Entry>();
             foreach (var p in directoryInfo.GetDirectories().Select(d => d.FullName))
@@ -38,12 +44,12 @@ namespace Docms.Infrastructure.Files
 
         public Task<FileProperties> GetPropertiesAsync(string filepath)
         {
-            var fileInfo = GetInfo(filepath) as FileInfo;
-            if (!fileInfo.Exists)
+            if (!Exists(filepath) || IsDirectory(filepath))
             {
-                return Task.FromResult(default(FileProperties));
+                throw new InvalidOperationException();
             }
 
+            var fileInfo = GetFileInfo(filepath);
             ContentTypeProvider.TryGetContentType(fileInfo.Extension, out var contentType);
             return Task.FromResult(new FileProperties()
             {
@@ -57,13 +63,23 @@ namespace Docms.Infrastructure.Files
 
         public Task<Stream> OpenAsync(string filepath)
         {
-            var fileInfo = GetInfo(filepath) as FileInfo;
+            if (!Exists(filepath) || IsDirectory(filepath))
+            {
+                throw new InvalidOperationException();
+            }
+
+            var fileInfo = GetFileInfo(filepath);
             return Task.FromResult(fileInfo.OpenRead() as Stream);
         }
 
         public async Task<FileProperties> SaveAsync(string filepath, Stream stream)
         {
-            var fileInfo = GetInfo(filepath) as FileInfo;
+            if (Exists(filepath) && IsDirectory(filepath))
+            {
+                throw new InvalidOperationException();
+            }
+
+            var fileInfo = GetFileInfo(filepath);
             EnsureDirectoryExists(fileInfo.DirectoryName);
             using (var fs = fileInfo.OpenWrite())
             {
@@ -74,26 +90,50 @@ namespace Docms.Infrastructure.Files
 
         public Task DeleteAsync(string filepath)
         {
-            var fi = GetInfo(filepath);
-            if (fi.Exists)
+            if (Exists(filepath))
             {
-                fi.Delete();
+                if (IsFile(filepath))
+                {
+                    GetFileInfo(filepath).Delete();
+                }
+                else
+                {
+                    GetDirecotryInfo(filepath).Delete();
+                }
             }
             return Task.CompletedTask;
         }
 
-        private FileSystemInfo GetInfo(string path)
+        private bool Exists(string path)
+        {
+            var fullpath = Path.Combine(_basePath, path);
+            return System.IO.File.Exists(fullpath) || System.IO.Directory.Exists(fullpath);
+        }
+
+        private bool IsDirectory(string path)
         {
             var fullpath = Path.Combine(_basePath, path);
             var attr = System.IO.File.GetAttributes(fullpath);
-            if ((attr & FileAttributes.Directory) == FileAttributes.Directory)
-            {
-                return new DirectoryInfo(fullpath);
-            }
-            else
-            {
-                return new FileInfo(Path.Combine(_basePath, path));
-            }
+            return (attr & FileAttributes.Directory) == FileAttributes.Directory;
+        }
+
+        private bool IsFile(string path)
+        {
+            var fullpath = Path.Combine(_basePath, path);
+            var attr = System.IO.File.GetAttributes(fullpath);
+            return (attr & FileAttributes.Directory) != FileAttributes.Directory;
+        }
+
+        private DirectoryInfo GetDirecotryInfo(string path)
+        {
+            var fullpath = Path.Combine(_basePath, path);
+            return new DirectoryInfo(fullpath);
+        }
+
+        private FileInfo GetFileInfo(string path)
+        {
+            var fullpath = Path.Combine(_basePath, path);
+            return new FileInfo(Path.Combine(_basePath, path));
         }
 
         private void EnsureDirectoryExists(string directoryName)

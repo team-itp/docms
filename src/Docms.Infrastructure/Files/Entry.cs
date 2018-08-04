@@ -14,6 +14,8 @@ namespace Docms.Infrastructure.Files
             Storage = storage;
             Path = new FilePath(path);
         }
+
+        public Entry Parent => Path.DirectoryPath == null ? null : new Directory(Path.DirectoryPath.ToString(), Storage);
     }
 
     public class Directory : Entry
@@ -42,11 +44,6 @@ namespace Docms.Infrastructure.Files
         public Task<Stream> OpenAsync()
         {
             return Storage.OpenAsync(Path.ToString());
-        }
-
-        public Task DeleteAsync()
-        {
-            return Storage.DeleteAsync(Path.ToString());
         }
     }
 }
