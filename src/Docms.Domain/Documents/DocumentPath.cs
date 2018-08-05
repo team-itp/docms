@@ -13,13 +13,13 @@ namespace Docms.Domain.Documents
             if (string.IsNullOrWhiteSpace(value))
                 throw new ArgumentNullException(nameof(value));
             if (value.Contains("..")
-                || value.Any(ch => Path.GetInvalidFileNameChars().Contains(ch))
+                || value.Any(ch => Path.GetInvalidPathChars().Contains(ch))
                 || value.EndsWith('/') || value.EndsWith('\\'))
                 throw new ArgumentException(nameof(value));
             Value = value.Trim().Replace('\\', '/');
         }
 
-        public string Value { get; set; }
+        public string Value { get; }
 
         protected override IEnumerable<object> GetAtomicValues()
         {

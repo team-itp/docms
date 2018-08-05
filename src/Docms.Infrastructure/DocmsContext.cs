@@ -1,4 +1,6 @@
-﻿using Docms.Domain.SeedWork;
+﻿using Docms.Domain.Documents;
+using Docms.Domain.SeedWork;
+using Docms.Infrastructure.EntityConfigurations;
 using Docms.Infrastructure.MediatR;
 using MediatR;
 using Microsoft.EntityFrameworkCore;
@@ -11,6 +13,8 @@ namespace Docms.Infrastructure
 {
     public class DocmsContext : DbContext, IUnitOfWork
     {
+        public DbSet<Document> Documents { get; set; }
+
         private readonly IMediator _mediator;
 
         private DocmsContext(DbContextOptions<DocmsContext> options) : base(options) { }
@@ -27,6 +31,11 @@ namespace Docms.Infrastructure
             var result = await base.SaveChangesAsync();
 
             return true;
+        }
+
+        protected override void OnModelCreating(ModelBuilder modelBuilder)
+        {
+            modelBuilder.ApplyConfiguration(new DocumentTypeConfigurations());
         }
     }
 }

@@ -13,6 +13,13 @@ namespace Docms.Domain.Documents
         private DateTime _created;
         private DateTime _lastModified;
 
+        public DocumentPath Path { get => _path; set => _path = value; }
+        public string ContentType { get => _contentType; set => _contentType = value; }
+        public long FileSize { get => _fileSize; set => _fileSize = value; }
+        public string Sha1Hash { get => _sha1Hash; set => _sha1Hash = value; }
+        public DateTime Created { get => _created; set => _created = value; }
+        public DateTime LastModified { get => _lastModified; set => _lastModified = value; }
+
         protected Document()
         {
         }
@@ -24,9 +31,9 @@ namespace Docms.Domain.Documents
             _fileSize = fileSize;
             _sha1Hash = HashToString(sha1Hash ?? throw new ArgumentNullException(nameof(sha1Hash)));
             _created = DateTime.UtcNow;
-            _lastModified = _created;
+            _lastModified = Created;
 
-            OnDocumentCreated(path, contentType, fileSize, _sha1Hash, _created);
+            OnDocumentCreated(path, contentType, fileSize, Sha1Hash, Created);
         }
 
         private void OnDocumentCreated(DocumentPath path, string contentType, long fileSize, string sha1Hash, DateTime created)

@@ -1,33 +1,55 @@
 ﻿using Docms.Domain.Documents;
 using Docms.Domain.SeedWork;
-using System;
+using Microsoft.EntityFrameworkCore;
 using System.Collections.Generic;
+using System.Linq;
 using System.Threading.Tasks;
 
 namespace Docms.Infrastructure.Repositories
 {
     public class DocumentRepository : IDocumentRepository
     {
-        public IUnitOfWork UnitOfWork => throw new NotImplementedException();
+        private readonly DocmsContext _context;
 
-        public Task<Document> Add(Document file)
+        public IUnitOfWork UnitOfWork => _context;
+
+        public DocumentRepository(DocmsContext context)
         {
-            throw new NotImplementedException();
+            _context = context;
         }
 
-        public Task<Document> GetAsync(string filepath)
+        public async Task<IEnumerable<Document>> GetDocumentsAsync(string containerPath)
         {
-            throw new NotImplementedException();
+            return await _context
+                .Documents
+                .Where(e => e.Path.Value.StartsWith(containerPath))
+                .ToListAsync();
         }
 
-        public Task<IEnumerable<Document>> GetDocumentsAsync(string dirpath)
+        public async Task<Document> GetAsync(int documentId)
         {
-            throw new NotImplementedException();
+            return await _context
+                .Documents
+                .SingleOrDefaultAsync(e => e.Id == documentId);
         }
 
-        public Task Update(Document file)
+        public async Task<Document> GetAsync(string documentPath)
         {
-            throw new NotImplementedException();
+            return await _context
+                .Documents
+                .SingleOrDefaultAsync(e => e.Path.Value == documentPath);
+        }
+
+        public Task<Document> AddAsync(Document document)
+        {
+            _context.Documents.Add(document);
+            return Task.FromResult(document);
+        }
+
+        public Task UpdateAsync(Document document)
+        {
+            _context.Update(document);
+            return Task.CompletedTask;
         }
     }
 }
