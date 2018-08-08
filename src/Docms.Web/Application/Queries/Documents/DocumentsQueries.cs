@@ -14,6 +14,17 @@ namespace Docms.Web.Application.Queries.Documents
 
         public async Task<Entry> GetEntryAsync(string path)
         {
+            if (string.IsNullOrEmpty(path))
+            {
+                return new Container()
+                {
+                    Path = "",
+                    Entries = _db.Entries
+                        .Where(e => string.IsNullOrEmpty(e.ParentPath))
+                        .ToList()
+                };
+            }
+
             var entry = _db.Entries.SingleOrDefault(e => e.Path == path);
             if (entry == null)
                 return null;

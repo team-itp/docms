@@ -55,12 +55,21 @@ namespace Docms.Web.Tests
         }
 
         [TestMethod]
-        public async Task 指定されたパスがコンテナで複数のファイルを含んでいる場合すべて取得できること()
+        public async Task 指定されたパスがコンテナで複数のエントリーを含んでいる場合すべて取得できること()
         {
             var entry = await sut.GetEntryAsync("path1");
             var container = entry as Container;
             Assert.IsNotNull(container);
             Assert.AreEqual(3, container.Entries.Count);
+        }
+
+        [TestMethod]
+        public async Task ルートディレクトリの配下のエントリーがすべて取得できること()
+        {
+            var entry = await sut.GetEntryAsync(null);
+            var container = entry as Container;
+            Assert.IsNotNull(container);
+            Assert.AreEqual(2, container.Entries.Count);
         }
     }
 }
