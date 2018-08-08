@@ -1,24 +1,29 @@
+ï»¿using Docms.Domain.Documents;
+using Docms.Domain.Events;
+using Docms.Infrastructure.MediatR;
+using Docms.Web.Application.DomainEventHandlers.DocumentCreated;
 using Docms.Web.Application.Queries;
 using Docms.Web.Application.Queries.Documents;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
+using System.Linq;
 using System.Threading.Tasks;
 
 namespace Docms.Web.Tests
 {
     [TestClass]
-    public class DocumentsQueriesTests
+    public class DocumentCreated_UpdateQueriesEventHandler
     {
         private DocmsQueriesContext ctx;
-        private DocumentsQueries sut;
+        private UpdateQueriesEventHandler sut;
 
         [TestInitialize]
         public async Task Setup()
         {
             ctx = new DocmsQueriesContext(new DbContextOptionsBuilder<DocmsQueriesContext>()
-                .UseInMemoryDatabase("DocumentsQueriesTests")
+                .UseInMemoryDatabase("DocumentCreated_UpdateQueriesEventHandler")
                 .Options);
-            sut = new DocumentsQueries(ctx);
+            sut = new UpdateQueriesEventHandler(ctx);
 
             ctx.Containers.Add(new Container() { Path = "path1", Name = "path1", ParentPath = null });
             ctx.Containers.Add(new Container() { Path = "path1/subpath1", Name = "subpath1", ParentPath = "path1" });
@@ -38,38 +43,13 @@ namespace Docms.Web.Tests
         }
 
         [TestMethod]
-        public async Task w’è‚³‚ê‚½ƒpƒX‚ªƒtƒ@ƒCƒ‹‚Ìê‡ƒtƒ@ƒCƒ‹‚ªæ“¾‚Å‚«‚é‚±‚Æ()
+        public async Task ãƒ‰ãƒ¡ã‚¤ãƒ³ã‚¤ãƒ™ãƒ³ãƒˆã‹ã‚‰èª­ã¿å–ã‚Šãƒ¢ãƒ‡ãƒ«ã®ãƒ•ã‚¡ã‚¤ãƒ«ã‚’è¿½åŠ ã™ã‚‹()
         {
-            var entry = await sut.GetEntryAsync("path1/document1.txt");
-            Assert.IsNotNull(entry);
-            Assert.IsTrue(entry is File);
-        }
-
-        [TestMethod]
-        public async Task w’è‚³‚ê‚½ƒpƒX‚ªƒRƒ“ƒeƒi‚Ìê‡ƒRƒ“ƒeƒi‚ªæ“¾‚Å‚«‚é‚±‚Æ()
-        {
-            var entry = await sut.GetEntryAsync("path2");
-            var container = entry as Container;
-            Assert.IsNotNull(container);
-            Assert.AreEqual(1, container.Entries.Count);
-        }
-
-        [TestMethod]
-        public async Task w’è‚³‚ê‚½ƒpƒX‚ªƒRƒ“ƒeƒi‚Å•¡”‚ÌƒGƒ“ƒgƒŠ[‚ğŠÜ‚ñ‚Å‚¢‚éê‡‚·‚×‚Äæ“¾‚Å‚«‚é‚±‚Æ()
-        {
-            var entry = await sut.GetEntryAsync("path1");
-            var container = entry as Container;
-            Assert.IsNotNull(container);
-            Assert.AreEqual(3, container.Entries.Count);
-        }
-
-        [TestMethod]
-        public async Task ƒ‹[ƒgƒfƒBƒŒƒNƒgƒŠ‚Ì”z‰º‚ÌƒGƒ“ƒgƒŠ[‚ª‚·‚×‚Äæ“¾‚Å‚«‚é‚±‚Æ()
-        {
-            var entry = await sut.GetEntryAsync(null);
-            var container = entry as Container;
-            Assert.IsNotNull(container);
-            Assert.AreEqual(2, container.Entries.Count);
+            var document = new Document(new DocumentPath("path3/content1.txt"), "text/plain", 10, new byte[] { 1, 2, 3, 4 });
+            var ev = document.DomainEvents.First() as DocumentCreatedEvent;
+            await sut.Handle(new DomainEventNotification<DocumentCreatedEvent>(ev));
+            Assert.IsTrue(await ctx.Files.AnyAsync(f => f.Path == "path3/content1.txt"));
+            Assert.IsTrue(await ctx.Containers.AnyAsync(f => f.Path == "path3"));
         }
     }
 }

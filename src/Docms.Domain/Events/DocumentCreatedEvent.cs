@@ -1,26 +1,26 @@
-﻿using System;
-using Docms.Domain.Documents;
+﻿using Docms.Domain.Documents;
 using Docms.Domain.SeedWork;
+using System;
 
 namespace Docms.Domain.Events
 {
     public class DocumentCreatedEvent : IDomainEvent
     {
-        private Document document;
-        private DocumentPath path;
-        private string contentType;
-        private long fileSize;
-        private string sha1Hash;
-        private DateTime created;
+        public Document Document { get; }
+        public DocumentPath Path { get; }
+        public string ContentType { get; }
+        public long FileSize { get; }
+        public string Hash { get; }
+        public DateTime Created { get; }
 
-        public DocumentCreatedEvent(Document document, DocumentPath path, string contentType, long fileSize, string sha1Hash, DateTime created)
+        public DocumentCreatedEvent(Document document, DocumentPath path, string contentType, long fileSize, string hash, DateTime created)
         {
-            this.document = document;
-            this.path = path;
-            this.contentType = contentType;
-            this.fileSize = fileSize;
-            this.sha1Hash = sha1Hash;
-            this.created = created;
+            Document = document;
+            Path = path;
+            ContentType = contentType;
+            FileSize = fileSize;
+            Hash = hash;
+            Created = created;
         }
     }
 }

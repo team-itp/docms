@@ -8,6 +8,9 @@ namespace Docms.Domain.Documents
 {
     public class DocumentPath : ValueObject
     {
+        private DocumentPath _parentPath;
+        private string _name;
+
         public DocumentPath(string value)
         {
             if (string.IsNullOrWhiteSpace(value))
@@ -20,6 +23,14 @@ namespace Docms.Domain.Documents
         }
 
         public string Value { get; }
+
+        public DocumentPath Parent => _parentPath ?? (_parentPath = Value.Contains('/')
+            ? new DocumentPath(Value.Substring(0, Value.LastIndexOf('/')))
+            : null);
+
+        public string Name => _name ?? (_name = Value.Contains('/')
+            ? Value.Substring(Value.LastIndexOf('/') + 1)
+            : Value);
 
         protected override IEnumerable<object> GetAtomicValues()
         {
