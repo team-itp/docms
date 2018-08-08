@@ -51,5 +51,14 @@ namespace Docms.Web.Tests
             Assert.IsTrue(await ctx.Files.AnyAsync(f => f.Path == "path3/content1.txt"));
             Assert.IsTrue(await ctx.Containers.AnyAsync(f => f.Path == "path3"));
         }
+
+        [TestMethod]
+        public async Task すでに存在するディレクトリのパスに対して読み取りモデルのファイルを追加する()
+        {
+            var document = new Document(new DocumentPath("path1/subpath1/content1.txt"), "text/plain", 10, new byte[] { 1, 2, 3, 4 });
+            var ev = document.DomainEvents.First() as DocumentCreatedEvent;
+            await sut.Handle(new DomainEventNotification<DocumentCreatedEvent>(ev));
+            Assert.IsTrue(await ctx.Files.AnyAsync(f => f.Path == "path1/subpath1/content1.txt"));
+        }
     }
 }
