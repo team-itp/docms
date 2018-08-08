@@ -1,11 +1,11 @@
-﻿using System.Collections.Generic;
+﻿using MediatR;
+using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
-using MediatR;
 
 namespace Docms.Infrastructure.Tests.Utils
 {
-    public class MockMediator : IMediator
+    class MockMediator : IMediator
     {
         public List<INotification> Notifications { get; } = new List<INotification>();
         public List<IBaseRequest> Requests { get; } = new List<IBaseRequest>();
