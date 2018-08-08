@@ -54,5 +54,11 @@ namespace Docms.Infrastructure.Files
             }
             return new FilePath(path);
         }
+
+        public FilePath Combine(string name)
+        {
+            var newPath = System.IO.Path.Combine(_path, name);
+            return new FilePath(newPath);
+        }
     }
 }

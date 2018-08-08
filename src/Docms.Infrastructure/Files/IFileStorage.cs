@@ -6,10 +6,14 @@ namespace Docms.Infrastructure.Files
 {
     public interface IFileStorage
     {
-        Task<IEnumerable<Entry>> GetFilesAsync(string path);
-        Task<FileProperties> GetPropertiesAsync(string path);
-        Task<Stream> OpenAsync(string path);
-        Task<FileProperties> SaveAsync(string path, Stream stream);
-        Task DeleteAsync(string path);
+        Task<Entry> GetEntryAsync(string path);
+        Task<Entry> GetEntryAsync(FilePath path);
+        Task<Directory> GetDirectoryAsync(string path);
+        Task<Directory> GetDirectoryAsync(FilePath path);
+        Task<IEnumerable<Entry>> GetFilesAsync(Directory dir);
+        Task<FileProperties> GetPropertiesAsync(File file);
+        Task<Stream> OpenAsync(File file);
+        Task<FileProperties> SaveAsync(Directory dir, string filename, Stream stream);
+        Task DeleteAsync(Entry entry);
     }
 }

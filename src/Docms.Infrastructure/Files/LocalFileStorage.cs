@@ -16,43 +16,75 @@ namespace Docms.Infrastructure.Files
             _basePath = basePath;
         }
 
-        public Task<IEnumerable<Entry>> GetFilesAsync(string dirpath)
+        public Task<Entry> GetEntryAsync(string path)
         {
-            if (!Exists(dirpath))
+            return GetEntryAsync(new FilePath(path));
+        }
+
+        public Task<Entry> GetEntryAsync(FilePath path)
+        {
+            var fullpath = Path.Combine(_basePath, path.ToString());
+            if (System.IO.Directory.Exists(fullpath))
+            {
+                return Task.FromResult(new Directory(path, this) as Entry);
+            }
+            if (System.IO.File.Exists(fullpath))
+            {
+                return Task.FromResult(new File(path, this) as Entry);
+            }
+            // File not found
+            return Task.FromResult(default(Entry));
+        }
+
+        public Task<Directory> GetDirectoryAsync(string path)
+        {
+            return GetDirectoryAsync(new FilePath(path));
+        }
+
+        public Task<Directory> GetDirectoryAsync(FilePath path)
+        {
+            if (Exists(path) && IsFile(path))
+            {
+                throw new InvalidOperationException();
+            }
+            return Task.FromResult(new Directory(path, this));
+        }
+
+        public Task<IEnumerable<Entry>> GetFilesAsync(Directory dir)
+        {
+            if (!Exists(dir.Path))
             {
                 return Task.FromResult(Array.Empty<Entry>().AsEnumerable());
             }
 
-            if (IsFile(dirpath))
-            {
-                throw new InvalidOperationException();
-            }
-
-            var directoryInfo = GetDirecotryInfo(dirpath);
+            var directoryInfo = GetDirecotryInfo(dir.Path);
 
             var list = new List<Entry>();
             foreach (var p in directoryInfo.GetDirectories().Select(d => d.FullName))
             {
-                list.Add(new Directory(p.Substring(_basePath.Length + 1), this));
+                var path = new FilePath(p.Substring(_basePath.Length + 1));
+                list.Add(new Directory(path, this));
             }
             foreach (var p in directoryInfo.GetFiles().Select(f => f.FullName))
             {
-                list.Add(new File(p.Substring(_basePath.Length + 1), this));
+                var path = new FilePath(p.Substring(_basePath.Length + 1));
+                list.Add(new File(path, this));
             }
             return Task.FromResult(list.AsEnumerable());
         }
 
-        public Task<FileProperties> GetPropertiesAsync(string filepath)
+        public Task<FileProperties> GetPropertiesAsync(File file)
         {
-            if (!Exists(filepath) || IsDirectory(filepath))
+            if (!Exists(file.Path) || IsDirectory(file.Path))
             {
                 throw new InvalidOperationException();
             }
 
-            var fileInfo = GetFileInfo(filepath);
+            var fileInfo = GetFileInfo(file.Path);
             ContentTypeProvider.TryGetContentType(fileInfo.Extension, out var contentType);
             return Task.FromResult(new FileProperties()
             {
+                File = file,
                 ContentType = contentType ?? "application/octet-stream",
                 Size = fileInfo.Length,
                 Sha1Hash = CalculateSha1Hash(fileInfo.FullName),
@@ -61,86 +93,94 @@ namespace Docms.Infrastructure.Files
             });
         }
 
-        public Task<Stream> OpenAsync(string filepath)
+        public Task<Stream> OpenAsync(File file)
         {
-            if (!Exists(filepath) || IsDirectory(filepath))
+            if (!Exists(file.Path) || IsDirectory(file.Path))
             {
                 throw new InvalidOperationException();
             }
 
-            var fileInfo = GetFileInfo(filepath);
+            var fileInfo = GetFileInfo(file.Path);
             return Task.FromResult(fileInfo.OpenRead() as Stream);
         }
 
-        public async Task<FileProperties> SaveAsync(string filepath, Stream stream)
+        public async Task<FileProperties> SaveAsync(Directory dir, string filename, Stream stream)
         {
+            var filepath = dir.Path.Combine(filename);
             if (Exists(filepath) && IsDirectory(filepath))
             {
                 throw new InvalidOperationException();
             }
 
+            if (Exists(dir.Path) && IsFile(dir.Path))
+            {
+                throw new InvalidOperationException();
+            }
+            EnsureDirectoryExists(dir.Path);
+
             var fileInfo = GetFileInfo(filepath);
-            EnsureDirectoryExists(fileInfo.DirectoryName);
             using (var fs = fileInfo.OpenWrite())
             {
                 await stream.CopyToAsync(fs);
             }
-            return await GetPropertiesAsync(filepath);
+            var file = new File(dir.Path.Combine(filename), this);
+            return await GetPropertiesAsync(file);
         }
 
-        public Task DeleteAsync(string filepath)
+        public Task DeleteAsync(Entry entry)
         {
-            if (Exists(filepath))
+            if (Exists(entry.Path))
             {
-                if (IsFile(filepath))
+                if (entry is File)
                 {
-                    GetFileInfo(filepath).Delete();
+                    GetFileInfo(entry.Path).Delete();
                 }
                 else
                 {
-                    GetDirecotryInfo(filepath).Delete();
+                    GetDirecotryInfo(entry.Path).Delete(true);
                 }
             }
             return Task.CompletedTask;
         }
 
-        private bool Exists(string path)
+        private bool Exists(FilePath path)
         {
-            var fullpath = Path.Combine(_basePath, path);
+            var fullpath = Path.Combine(_basePath, path.ToString());
             return System.IO.File.Exists(fullpath) || System.IO.Directory.Exists(fullpath);
         }
 
-        private bool IsDirectory(string path)
+        private bool IsDirectory(FilePath path)
         {
-            var fullpath = Path.Combine(_basePath, path);
+            var fullpath = Path.Combine(_basePath, path.ToString());
             var attr = System.IO.File.GetAttributes(fullpath);
             return (attr & FileAttributes.Directory) == FileAttributes.Directory;
         }
 
-        private bool IsFile(string path)
+        private bool IsFile(FilePath path)
         {
-            var fullpath = Path.Combine(_basePath, path);
+            var fullpath = Path.Combine(_basePath, path.ToString());
             var attr = System.IO.File.GetAttributes(fullpath);
             return (attr & FileAttributes.Directory) != FileAttributes.Directory;
         }
 
-        private DirectoryInfo GetDirecotryInfo(string path)
+        private DirectoryInfo GetDirecotryInfo(FilePath path)
         {
-            var fullpath = Path.Combine(_basePath, path);
+            var fullpath = Path.Combine(_basePath, path.ToString());
             return new DirectoryInfo(fullpath);
         }
 
-        private FileInfo GetFileInfo(string path)
+        private FileInfo GetFileInfo(FilePath path)
         {
-            var fullpath = Path.Combine(_basePath, path);
-            return new FileInfo(Path.Combine(_basePath, path));
+            var fullpath = Path.Combine(_basePath, path.ToString());
+            return new FileInfo(fullpath);
         }
 
-        private void EnsureDirectoryExists(string directoryName)
+        private void EnsureDirectoryExists(FilePath path)
         {
-            if (!System.IO.Directory.Exists(directoryName))
+            var fullpath = Path.Combine(_basePath, path.ToString());
+            if (!System.IO.Directory.Exists(fullpath))
             {
-                System.IO.Directory.CreateDirectory(directoryName);
+                System.IO.Directory.CreateDirectory(fullpath);
             }
         }
 

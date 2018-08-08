@@ -4,6 +4,7 @@ namespace Docms.Infrastructure.Files
 {
     public class FileProperties
     {
+        public File File { get; internal set; }
         public string ContentType { get; internal set; }
         public long Size { get; internal set; }
         public byte[] Sha1Hash { get; internal set; }

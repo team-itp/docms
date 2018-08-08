@@ -9,41 +9,46 @@ namespace Docms.Infrastructure.Files
         protected IFileStorage Storage { get; }
         public FilePath Path { get; }
 
-        protected Entry(string path, IFileStorage storage)
+        protected Entry(FilePath path, IFileStorage storage)
         {
             Storage = storage;
-            Path = new FilePath(path);
+            Path = path;
         }
 
-        public Entry Parent => Path.DirectoryPath == null ? null : new Directory(Path.DirectoryPath.ToString(), Storage);
+        public Entry Parent => Path.DirectoryPath == null ? null : new Directory(Path.DirectoryPath, Storage);
     }
 
     public class Directory : Entry
     {
-        internal Directory(string path, IFileStorage storage) : base(path, storage)
+        internal Directory(FilePath path, IFileStorage storage) : base(path, storage)
         {
         }
 
         public Task<IEnumerable<Entry>> GetFilesAsync()
         {
-            return Storage.GetFilesAsync(Path.ToString());
+            return Storage.GetFilesAsync(this);
+        }
+
+        public Task<FileProperties> SaveAsync(string filename, Stream stream)
+        {
+            return Storage.SaveAsync(this, filename, stream);
         }
     }
 
     public class File : Entry
     {
-        internal File(string path, IFileStorage storage) : base(path, storage)
+        internal File(FilePath path, IFileStorage storage) : base(path, storage)
         {
         }
 
         public Task<FileProperties> GetPropertiesAsync()
         {
-            return Storage.GetPropertiesAsync(Path.ToString());
+            return Storage.GetPropertiesAsync(this);
         }
 
         public Task<Stream> OpenAsync()
         {
-            return Storage.OpenAsync(Path.ToString());
+            return Storage.OpenAsync(this);
         }
     }
 }
