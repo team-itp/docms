@@ -112,7 +112,7 @@ namespace Docms.Infrastructure.Files
 
         public async Task<FileProperties> SaveAsync(Directory dir, string filename, Stream stream)
         {
-            var filepath = dir.Path.Combine(filename);
+            var filepath = dir.Path == null ? new FilePath(filename) : dir.Path.Combine(filename);
             if (Exists(filepath) && IsDirectory(filepath))
             {
                 throw new InvalidOperationException();
@@ -129,7 +129,7 @@ namespace Docms.Infrastructure.Files
             {
                 await stream.CopyToAsync(fs);
             }
-            var file = new File(dir.Path.Combine(filename), this);
+            var file = new File(filepath, this);
             return await GetPropertiesAsync(file);
         }
 
@@ -151,39 +151,39 @@ namespace Docms.Infrastructure.Files
 
         private bool Exists(FilePath path)
         {
-            var fullpath = Path.Combine(_basePath, path.ToString());
+            var fullpath = path == null ? _basePath : Path.Combine(_basePath, path.ToString());
             return System.IO.File.Exists(fullpath) || System.IO.Directory.Exists(fullpath);
         }
 
         private bool IsDirectory(FilePath path)
         {
-            var fullpath = Path.Combine(_basePath, path.ToString());
+            var fullpath = path == null ? _basePath : Path.Combine(_basePath, path.ToString());
             var attr = System.IO.File.GetAttributes(fullpath);
             return (attr & FileAttributes.Directory) == FileAttributes.Directory;
         }
 
         private bool IsFile(FilePath path)
         {
-            var fullpath = Path.Combine(_basePath, path.ToString());
+            var fullpath = path == null ? _basePath : Path.Combine(_basePath, path.ToString());
             var attr = System.IO.File.GetAttributes(fullpath);
             return (attr & FileAttributes.Directory) != FileAttributes.Directory;
         }
 
         private DirectoryInfo GetDirecotryInfo(FilePath path)
         {
-            var fullpath = Path.Combine(_basePath, path.ToString());
+            var fullpath = path == null ? _basePath : Path.Combine(_basePath, path.ToString());
             return new DirectoryInfo(fullpath);
         }
 
         private FileInfo GetFileInfo(FilePath path)
         {
-            var fullpath = Path.Combine(_basePath, path.ToString());
+            var fullpath = path == null ? _basePath : Path.Combine(_basePath, path.ToString());
             return new FileInfo(fullpath);
         }
 
         private void EnsureDirectoryExists(FilePath path)
         {
-            var fullpath = Path.Combine(_basePath, path.ToString());
+            var fullpath = path == null ? _basePath : Path.Combine(_basePath, path.ToString());
             if (!System.IO.Directory.Exists(fullpath))
             {
                 System.IO.Directory.CreateDirectory(fullpath);

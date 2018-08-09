@@ -74,8 +74,7 @@ namespace Docms.Web
 
         public static IServiceCollection RegisterMediators(this IServiceCollection services, IConfiguration configuration)
         {
-            services.AddMediatR(typeof(CreateDocumentCommandHandler));
-            services.AddMediatR(typeof(UpdateQueriesEventHandler));
+            services.AddMediatR();
             return services;
         }
     }

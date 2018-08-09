@@ -33,7 +33,7 @@ namespace Docms.Web.Application.DomainEventHandlers.DocumentCreated
             {
                 Path = ev.Path.Value,
                 Name = ev.Path.Name,
-                ParentPath = ev.Path.Parent.Value,
+                ParentPath = ev.Path.Parent?.Value,
                 ContentType = ev.ContentType,
                 LastModified = ev.Created,
                 Hash = ev.Hash

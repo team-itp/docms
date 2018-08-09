@@ -35,7 +35,7 @@ namespace Docms.Web.Controllers
                 command.Path = request.Path;
                 command.Stream = ms;
                 var response = await mediator.Send(command);
-                return View(response);
+                return Redirect("~/files/view/" + command.Path);
             }
         }
     }

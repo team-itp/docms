@@ -21,6 +21,7 @@ namespace Docms.Web.Application.Queries.Documents
                     Path = "",
                     Entries = _db.Entries
                         .Where(e => string.IsNullOrEmpty(e.ParentPath))
+                        .OrderBy(e => e is Container ? "00" + e.Path : e.Path)
                         .ToList()
                 };
             }
@@ -31,8 +32,10 @@ namespace Docms.Web.Application.Queries.Documents
 
             if (entry is Container)
             {
-                await _db.Entry(entry as Container)
+                var container = entry as Container;
+                await _db.Entry(container)
                     .Collection(e => e.Entries).LoadAsync();
+                container.Entries = container.Entries.OrderBy(e => e is Container ? "00" + e.Path : e.Path).ToList();
             }
 
             return entry;
