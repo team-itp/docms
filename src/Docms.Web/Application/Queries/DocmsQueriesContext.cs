@@ -1,4 +1,5 @@
-﻿using Docms.Web.Application.Queries.Documents;
+﻿using System.Diagnostics;
+using Docms.Web.Application.Queries.Documents;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Design;
 
@@ -6,8 +7,9 @@ namespace Docms.Web.Application.Queries
 {
     public class DocmsQueriesContext : DbContext
     {
-        public DocmsQueriesContext(DbContextOptions options) : base(options)
+        public DocmsQueriesContext(DbContextOptions<DocmsQueriesContext> options) : base(options)
         {
+            Debug.WriteLine("DocmsQueriesContext::ctor ->" + this.GetHashCode());
         }
 
         public DbSet<Entry> Entries { get; set; }

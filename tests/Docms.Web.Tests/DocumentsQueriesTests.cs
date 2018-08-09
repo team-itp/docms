@@ -1,4 +1,4 @@
-using Docms.Web.Application.Queries;
+ï»¿using Docms.Web.Application.Queries;
 using Docms.Web.Application.Queries.Documents;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
@@ -38,7 +38,7 @@ namespace Docms.Web.Tests
         }
 
         [TestMethod]
-        public async Task w’è‚³‚ê‚½ƒpƒX‚ªƒtƒ@ƒCƒ‹‚Ìê‡ƒtƒ@ƒCƒ‹‚ªæ“¾‚Å‚«‚é‚±‚Æ()
+        public async Task æŒ‡å®šã•ã‚ŒãŸãƒ‘ã‚¹ãŒãƒ•ã‚¡ã‚¤ãƒ«ã®å ´åˆãƒ•ã‚¡ã‚¤ãƒ«ãŒå–å¾—ã§ãã‚‹ã“ã¨()
         {
             var entry = await sut.GetEntryAsync("path1/document1.txt");
             Assert.IsNotNull(entry);
@@ -46,7 +46,7 @@ namespace Docms.Web.Tests
         }
 
         [TestMethod]
-        public async Task w’è‚³‚ê‚½ƒpƒX‚ªƒRƒ“ƒeƒi‚Ìê‡ƒRƒ“ƒeƒi‚ªæ“¾‚Å‚«‚é‚±‚Æ()
+        public async Task æŒ‡å®šã•ã‚ŒãŸãƒ‘ã‚¹ãŒã‚³ãƒ³ãƒ†ãƒŠã®å ´åˆã‚³ãƒ³ãƒ†ãƒŠãŒå–å¾—ã§ãã‚‹ã“ã¨()
         {
             var entry = await sut.GetEntryAsync("path2");
             var container = entry as Container;
@@ -55,7 +55,7 @@ namespace Docms.Web.Tests
         }
 
         [TestMethod]
-        public async Task w’è‚³‚ê‚½ƒpƒX‚ªƒRƒ“ƒeƒi‚Å•¡”‚ÌƒGƒ“ƒgƒŠ[‚ğŠÜ‚ñ‚Å‚¢‚éê‡‚·‚×‚Äæ“¾‚Å‚«‚é‚±‚Æ()
+        public async Task æŒ‡å®šã•ã‚ŒãŸãƒ‘ã‚¹ãŒã‚³ãƒ³ãƒ†ãƒŠã§è¤‡æ•°ã®ã‚¨ãƒ³ãƒˆãƒªãƒ¼ã‚’å«ã‚“ã§ã„ã‚‹å ´åˆã™ã¹ã¦å–å¾—ã§ãã‚‹ã“ã¨()
         {
             var entry = await sut.GetEntryAsync("path1");
             var container = entry as Container;
@@ -64,7 +64,7 @@ namespace Docms.Web.Tests
         }
 
         [TestMethod]
-        public async Task ƒ‹[ƒgƒfƒBƒŒƒNƒgƒŠ‚Ì”z‰º‚ÌƒGƒ“ƒgƒŠ[‚ª‚·‚×‚Äæ“¾‚Å‚«‚é‚±‚Æ()
+        public async Task ãƒ«ãƒ¼ãƒˆãƒ‡ã‚£ãƒ¬ã‚¯ãƒˆãƒªã®é…ä¸‹ã®ã‚¨ãƒ³ãƒˆãƒªãƒ¼ãŒã™ã¹ã¦å–å¾—ã§ãã‚‹ã“ã¨()
         {
             var entry = await sut.GetEntryAsync(null);
             var container = entry as Container;

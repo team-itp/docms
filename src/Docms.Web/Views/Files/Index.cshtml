@@ -1,0 +1,27 @@
+@using Docms.Web.Application.Queries.Documents
+@model Entry
+
+@{
+    ViewData["Title"] = Model.Name;
+}
+
+<h1>/@(Model.Name)</h1>
+
+@if (@Model.ParentPath != null)
+{
+    <a asp-action="Index" asp-route-path="@Model.ParentPath">親フォルダ</a>
+}
+
+@if (Model is Container)
+{
+    @foreach (var entry in (Model as Container).Entries)
+    {
+        <div>@entry.Name</div>
+    }
+}
+else
+{
+    <div>
+        ファイル
+    </div>
+}
