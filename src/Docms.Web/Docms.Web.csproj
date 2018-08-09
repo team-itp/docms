@@ -5,6 +5,13 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <Compile Remove="Views\新しいフォルダー\**" />
+    <Content Remove="Views\新しいフォルダー\**" />
+    <EmbeddedResource Remove="Views\新しいフォルダー\**" />
+    <None Remove="Views\新しいフォルダー\**" />
+  </ItemGroup>
+
+  <ItemGroup>
     <PackageReference Include="MediatR.Extensions.Microsoft.DependencyInjection" Version="5.1.0" />
     <PackageReference Include="Microsoft.AspNetCore.App" />
     <PackageReference Include="Microsoft.EntityFrameworkCore.Sqlite" Version="2.1.1" />
@@ -16,7 +23,7 @@
   </ItemGroup>
 
   <ItemGroup>
-    <Folder Include="Views\新しいフォルダー\" />
+    <Folder Include="App_Data\" />
   </ItemGroup>
 
 </Project>

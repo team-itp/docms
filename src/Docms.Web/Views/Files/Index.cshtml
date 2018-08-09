@@ -8,23 +8,24 @@
 <nav>
     <ul class="breadcrumb">
         <li class="breadcrumb-item">
-            <a href="~/files/">TOP</a>
+            <a href="~/files/view/">TOP</a>
         </li>
-        @if (Model.ParentPath != null)
+        @if (Model.Path != null)
         {
             var sb = new System.Text.StringBuilder();
-            @foreach (var pathComponent in Model.ParentPath.Split('/'))
+            @foreach (var pathComponent in Model.Path.Split('/'))
             {
                 <li class="breadcrumb-item">
-                    <a href="~/files@(sb.Append('/').Append(pathComponent).ToString())">@pathComponent</a>
+                    @if (sb.Append('/').Append(pathComponent).ToString() == "/" + Model.Path)
+                    {
+                        <span class="active">@pathComponent</span>
+                    }
+                    else
+                    {
+                        <a href="~/files/view@(sb.ToString())">@pathComponent</a>
+                    }
                 </li>
             }
-        }
-        @if (@Model.Path != null && Model is Container)
-        {
-            <li class="breadcrumb-item">
-                <a href="~/files/@Model.Path">@Model.Name</a>
-            </li>
         }
     </ul>
 </nav>
@@ -40,14 +41,21 @@
                     <div class="mr-3">
                         <i class="fa fa-2x fa-folder-o"></i>
                     </div>
-                    <a href="~/files/@entry.Path">@entry.Name</a>
+                    <a href="~/files/view/@entry.Path">@entry.Name</a>
+                }
+                else if (entry is Document && (entry as Document).ContentType.StartsWith("image"))
+                {
+                    <div class="mr-3">
+                        <i class="fa fa-2x fa-file-o"></i>
+                    </div>
+                    <a href="~/files/view/@entry.Path">@entry.Name</a>
                 }
                 else
                 {
                     <div class="mr-3">
                         <i class="fa fa-2x fa-file-o"></i>
                     </div>
-                    <a href="~/files/@entry.Path">@entry.Name</a>
+                    <a href="~/files/download/@entry.Path">@entry.Name</a>
                 }
             </div>
         }
@@ -55,7 +63,7 @@
 }
 else
 {
-    <div>
-        ファイル
+    <div class="border text-center">
+        <img class="mw-100" alt="@Model.Name" src="~/files/download/@Model.Path" />
     </div>
 }

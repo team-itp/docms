@@ -24,18 +24,21 @@ namespace Docms.Web.Application.DomainEventHandlers.DocumentCreated
         {
             var ev = notification.Event;
 
-            if (_db.Files.Any(e => e.Path == ev.Path.Value))
+            if (_db.Documents.Any(e => e.Path == ev.Path.Value))
             {
                 throw new InvalidOperationException();
             }
 
-            var file = new File()
+            var file = new Document()
             {
                 Path = ev.Path.Value,
                 Name = ev.Path.Name,
-                ParentPath = ev.Path.Parent.Value
+                ParentPath = ev.Path.Parent.Value,
+                ContentType = ev.ContentType,
+                LastModified = ev.Created,
+                Hash = ev.Hash
             };
-            _db.Files.Add(file);
+            _db.Documents.Add(file);
 
             var parent = ev.Path.Parent;
             while (parent != null)

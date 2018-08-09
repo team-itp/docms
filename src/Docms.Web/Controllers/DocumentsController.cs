@@ -2,6 +2,7 @@
 using Docms.Web.Models;
 using MediatR;
 using Microsoft.AspNetCore.Mvc;
+using System.IO;
 using System.Threading.Tasks;
 
 namespace Docms.Web.Controllers
@@ -26,9 +27,10 @@ namespace Docms.Web.Controllers
                 return BadRequest();
             }
 
-            using (var ms = new System.IO.MemoryStream())
+            using (var ms = new MemoryStream())
             {
                 await request.File.OpenReadStream().CopyToAsync(ms);
+                ms.Seek(0, SeekOrigin.Begin);
                 var command = new CreateDocumentCommand();
                 command.Path = request.Path;
                 command.Stream = ms;

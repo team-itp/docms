@@ -101,7 +101,13 @@ namespace Docms.Infrastructure.Files
             }
 
             var fileInfo = GetFileInfo(file.Path);
-            return Task.FromResult(fileInfo.OpenRead() as Stream);
+            using (var fs = fileInfo.OpenRead())
+            {
+                var ms = new MemoryStream();
+                fs.CopyTo(ms);
+                ms.Seek(0, SeekOrigin.Begin);
+                return Task.FromResult(ms as Stream);
+            }
         }
 
         public async Task<FileProperties> SaveAsync(Directory dir, string filename, Stream stream)

@@ -8,7 +8,7 @@ namespace Docms.Web.Controllers
         [HttpGet]
         public IActionResult Index()
         {
-            return View();
+            return Redirect("~/files/view");
         }
     }
 }

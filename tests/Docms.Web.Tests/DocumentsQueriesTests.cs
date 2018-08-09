@@ -23,9 +23,9 @@ namespace Docms.Web.Tests
             ctx.Containers.Add(new Container() { Path = "path1", Name = "path1", ParentPath = null });
             ctx.Containers.Add(new Container() { Path = "path1/subpath1", Name = "subpath1", ParentPath = "path1" });
             ctx.Containers.Add(new Container() { Path = "path2", Name = "path2", ParentPath = null });
-            ctx.Files.Add(new File() { Path = "path1/document1.txt", Name = "document1.txt", ParentPath = "path1" });
-            ctx.Files.Add(new File() { Path = "path1/document2.txt", Name = "document2.txt", ParentPath = "path1" });
-            ctx.Files.Add(new File() { Path = "path2/document1.txt", Name = "document1.txt", ParentPath = "path2" });
+            ctx.Documents.Add(new Document() { Path = "path1/document1.txt", Name = "document1.txt", ParentPath = "path1" });
+            ctx.Documents.Add(new Document() { Path = "path1/document2.txt", Name = "document2.txt", ParentPath = "path1" });
+            ctx.Documents.Add(new Document() { Path = "path2/document1.txt", Name = "document1.txt", ParentPath = "path2" });
             await ctx.SaveChangesAsync();
         }
 
@@ -33,7 +33,7 @@ namespace Docms.Web.Tests
         public async Task Teardown()
         {
             ctx.Containers.RemoveRange(ctx.Containers);
-            ctx.Files.RemoveRange(ctx.Files);
+            ctx.Documents.RemoveRange(ctx.Documents);
             await ctx.SaveChangesAsync();
         }
 
@@ -42,7 +42,7 @@ namespace Docms.Web.Tests
         {
             var entry = await sut.GetEntryAsync("path1/document1.txt");
             Assert.IsNotNull(entry);
-            Assert.IsTrue(entry is File);
+            Assert.IsTrue(entry is Document);
         }
 
         [TestMethod]

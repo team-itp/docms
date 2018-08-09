@@ -14,7 +14,7 @@ namespace Docms.Web.Application.Queries
 
         public DbSet<Entry> Entries { get; set; }
         public DbSet<Container> Containers { get; set; }
-        public DbSet<File> Files { get; set; }
+        public DbSet<Document> Documents { get; set; }
     }
 
     public class DocmsQueriesContextDesignFactory : IDesignTimeDbContextFactory<DocmsQueriesContext>

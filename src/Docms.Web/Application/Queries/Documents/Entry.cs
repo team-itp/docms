@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
 
@@ -21,8 +22,10 @@ namespace Docms.Web.Application.Queries.Documents
         public List<Entry> Entries { get; set; }
     }
 
-    public sealed class File : Entry
+    public sealed class Document : Entry
     {
-
+        public string ContentType { get; set; }
+        public string Hash { get; set; }
+        public DateTime LastModified { get; set; }
     }
 }

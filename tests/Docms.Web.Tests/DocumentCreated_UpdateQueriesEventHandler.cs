@@ -28,9 +28,9 @@ namespace Docms.Web.Tests
             ctx.Containers.Add(new Container() { Path = "path1", Name = "path1", ParentPath = null });
             ctx.Containers.Add(new Container() { Path = "path1/subpath1", Name = "subpath1", ParentPath = "path1" });
             ctx.Containers.Add(new Container() { Path = "path2", Name = "path2", ParentPath = null });
-            ctx.Files.Add(new File() { Path = "path1/document1.txt", Name = "document1.txt", ParentPath = "path1" });
-            ctx.Files.Add(new File() { Path = "path1/document2.txt", Name = "document2.txt", ParentPath = "path1" });
-            ctx.Files.Add(new File() { Path = "path2/document1.txt", Name = "document1.txt", ParentPath = "path2" });
+            ctx.Documents.Add(new Application.Queries.Documents.Document() { Path = "path1/document1.txt", Name = "document1.txt", ParentPath = "path1" });
+            ctx.Documents.Add(new Application.Queries.Documents.Document() { Path = "path1/document2.txt", Name = "document2.txt", ParentPath = "path1" });
+            ctx.Documents.Add(new Application.Queries.Documents.Document() { Path = "path2/document1.txt", Name = "document1.txt", ParentPath = "path2" });
             await ctx.SaveChangesAsync();
         }
 
@@ -38,27 +38,27 @@ namespace Docms.Web.Tests
         public async Task Teardown()
         {
             ctx.Containers.RemoveRange(ctx.Containers);
-            ctx.Files.RemoveRange(ctx.Files);
+            ctx.Documents.RemoveRange(ctx.Documents);
             await ctx.SaveChangesAsync();
         }
 
         [TestMethod]
         public async Task ドメインイベントから読み取りモデルのファイルを追加する()
         {
-            var document = new Document(new DocumentPath("path3/content1.txt"), "text/plain", 10, new byte[] { 1, 2, 3, 4 });
+            var document = new Domain.Documents.Document(new DocumentPath("path3/content1.txt"), "text/plain", 10, new byte[] { 1, 2, 3, 4 });
             var ev = document.DomainEvents.First() as DocumentCreatedEvent;
             await sut.Handle(new DomainEventNotification<DocumentCreatedEvent>(ev));
-            Assert.IsTrue(await ctx.Files.AnyAsync(f => f.Path == "path3/content1.txt"));
+            Assert.IsTrue(await ctx.Documents.AnyAsync(f => f.Path == "path3/content1.txt"));
             Assert.IsTrue(await ctx.Containers.AnyAsync(f => f.Path == "path3"));
         }
 
         [TestMethod]
         public async Task すでに存在するディレクトリのパスに対して読み取りモデルのファイルを追加する()
         {
-            var document = new Document(new DocumentPath("path1/subpath1/content1.txt"), "text/plain", 10, new byte[] { 1, 2, 3, 4 });
+            var document = new Domain.Documents.Document(new DocumentPath("path1/subpath1/content1.txt"), "text/plain", 10, new byte[] { 1, 2, 3, 4 });
             var ev = document.DomainEvents.First() as DocumentCreatedEvent;
             await sut.Handle(new DomainEventNotification<DocumentCreatedEvent>(ev));
-            Assert.IsTrue(await ctx.Files.AnyAsync(f => f.Path == "path1/subpath1/content1.txt"));
+            Assert.IsTrue(await ctx.Documents.AnyAsync(f => f.Path == "path1/subpath1/content1.txt"));
         }
     }
 }
