@@ -31,6 +31,10 @@ namespace Docms.Web.Controllers
         public async Task<IActionResult> Index(string path)
         {
             var entry = await _queries.GetEntryAsync(path);
+            if (entry == null)
+            {
+                return NotFound();
+            }
             return View(entry);
         }
 

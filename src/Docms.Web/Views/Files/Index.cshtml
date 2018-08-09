@@ -2,7 +2,7 @@
 @model Entry
 
 @{
-    ViewData["Title"] = Model.Name;
+    ViewData["Title"] = Model.Name ?? "ファイル一覧";
 }
 
 <nav>
