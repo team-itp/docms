@@ -1,4 +1,3 @@
-using Docms.Web.Application.Queries;
 using Docms.Web.Application.Queries.Documents;
 using Microsoft.AspNetCore.Mvc;
 using System.Threading.Tasks;
@@ -21,6 +20,7 @@ namespace Docms.Web.Controllers
             var entry = await _queries.GetEntryAsync("");
             return View(entry);
         }
+
 
         [HttpGet("{*path}")]
         public async Task<IActionResult> Index(string path)

@@ -15,4 +15,8 @@
     <ProjectReference Include="..\Docms.Infrastructure\Docms.Infrastructure.csproj" />
   </ItemGroup>
 
+  <ItemGroup>
+    <Folder Include="Views\新しいフォルダー\" />
+  </ItemGroup>
+
 </Project>

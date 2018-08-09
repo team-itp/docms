@@ -68,7 +68,7 @@ namespace Docms.Web
         {
             services.AddScoped<IDocumentRepository, DocumentRepository>();
             services.AddScoped<DocumentsQueries>();
-            services.AddScoped<IFileStorage, LocalFileStorage>();
+            services.AddSingleton<IFileStorage>(sv => new LocalFileStorage("App_Data/flies"));
             return services;
         }
 

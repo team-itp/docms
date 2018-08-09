@@ -1,0 +1,34 @@
+@model UploadRequest
+
+@{
+    ViewData["Title"] = "アップロード";
+}
+
+<h2>アップロード</h2>
+
+<h4>書類・画像ファイルをアップロードしてください</h4>
+<p><small>50 MB 以下ならば複数のファイルをアップロードできます。</small></p>
+<hr />
+
+<div class="row">
+    <div class="col-md-6">
+        <form asp-action="Upload" enctype="multipart/form-data">
+            <div asp-validation-summary="ModelOnly" class="text-danger"></div>
+            <div class="form-group">
+                <label asp-for="Path" class="control-label"></label>
+                <input asp-for="Path" class="form-control" />
+                <span asp-validation-for="Path" class="text-danger"></span>
+            </div>
+            <div class="form-group">
+                <label asp-for="File" class="control-label"></label>
+                <input asp-for="File" class="form-control-file" />
+                <span asp-validation-for="File" class="text-danger"></span>
+            </div>
+            <button type="submit" class="btn btn-primary">アップロード</button>
+        </form>
+    </div>
+</div>
+
+@section Scripts {
+    @{await Html.RenderPartialAsync("_ValidationScriptsPartial");}
+}

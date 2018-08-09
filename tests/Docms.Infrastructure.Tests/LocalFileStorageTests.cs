@@ -109,7 +109,7 @@ namespace Docms.Infrastructure.Tests
             var file = await sut.GetEntryAsync("dir2\\content1.txt") as Files.File;
             var fileProps = await file.GetPropertiesAsync();
             Assert.AreEqual(12, fileProps.Size);
-            Assert.IsNotNull(fileProps.Sha1Hash);
+            Assert.IsNotNull(fileProps.Hash);
         }
 
         [TestMethod]
@@ -144,7 +144,7 @@ namespace Docms.Infrastructure.Tests
             var fileProps = await dir.SaveAsync("content1.txt", ms);
             Assert.AreEqual("dir2content1", System.IO.File.ReadAllText(Path.Combine(basepath, "dir2\\content1.txt")));
             Assert.AreEqual(12, fileProps.Size);
-            Assert.IsNotNull(fileProps.Sha1Hash);
+            Assert.IsNotNull(fileProps.Hash);
         }
 
         [TestMethod]

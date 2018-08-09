@@ -87,7 +87,7 @@ namespace Docms.Infrastructure.Files
                 File = file,
                 ContentType = contentType ?? "application/octet-stream",
                 Size = fileInfo.Length,
-                Sha1Hash = CalculateSha1Hash(fileInfo.FullName),
+                Hash = CalculateSha1Hash(fileInfo.FullName),
                 LastModified = fileInfo.LastWriteTime,
                 Created = fileInfo.CreationTime,
             });
