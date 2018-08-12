@@ -10,9 +10,9 @@ using System.Threading.Tasks;
 
 namespace docmssync
 {
-    public partial class Service1 : ServiceBase
+    public partial class SyncService : ServiceBase
     {
-        public Service1()
+        public SyncService()
         {
             InitializeComponent();
         }

@@ -1,6 +1,6 @@
 ﻿namespace docmssync
 {
-    partial class Service1
+    partial class SyncService
     {
         /// <summary> 
         /// 必要なデザイナー変数です。
