@@ -21,10 +21,10 @@ namespace Docms.Web.Application.Commands
 
         public async Task<bool> Handle(CreateDocumentCommand request, CancellationToken cancellationToken = default(CancellationToken))
         {
-            var path = new FilePath(request.Path);
+            var path = request.Path;
             var dir = await _fileStorage.GetDirectoryAsync(path.DirectoryPath);
             var fileProps = await _fileStorage.SaveAsync(dir, path.FileName, request.Stream);
-            var document = new Document(new DocumentPath(request.Path), fileProps.ContentType, fileProps.Size, fileProps.Hash);
+            var document = new Document(new DocumentPath(request.Path.ToString()), fileProps.ContentType, fileProps.Size, fileProps.Hash);
             await _documentRepository.AddAsync(document);
 
             await _documentRepository.UnitOfWork.SaveEntitiesAsync();

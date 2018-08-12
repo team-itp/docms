@@ -17,7 +17,13 @@ namespace Docms.Infrastructure.Files
             if (path.Contains("..") || invalidPathChars.Any(c => path.Contains(c)))
                 throw new ArgumentException(nameof(path));
             _path = path.Replace('/', Path.DirectorySeparatorChar);
+            _path = _path.StartsWith('/') ? _path.Substring(1) : _path;
             _parent = new Lazy<FilePath>(() => Create(Path.GetDirectoryName(_path)));
+        }
+
+        public FilePath(params string[] paths)
+            : this(Path.Combine(paths.Where(p => !string.IsNullOrEmpty(p)).ToArray()))
+        {
         }
 
         public FilePath DirectoryPath => _parent.Value;

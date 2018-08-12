@@ -6,8 +6,8 @@ namespace Docms.Web.Models
 {
     public class UploadRequest
     {
-        [DisplayName("パス")]
-        public string Path { get; set; }
+        [DisplayName("ファイル名")]
+        public string FileNameOverride { get; set; }
 
         [DisplayName("ファイル")]
         [Required]
