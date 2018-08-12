@@ -1,18 +1,15 @@
 ﻿using Docms.Domain.Documents;
+using Docms.Infrastructure;
 using Docms.Infrastructure.Files;
 using Docms.Infrastructure.Repositories;
-using Docms.Infrastructure;
-using Docms.Web.Application.Queries.Documents;
 using Docms.Web.Application.Queries;
+using Docms.Web.Application.Queries.Documents;
 using MediatR;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
-using System;
 using Microsoft.Extensions.DependencyInjection;
-using Docms.Web.Application.DomainEventHandlers.DocumentCreated;
-using Docms.Web.Application.Commands;
 
 namespace Docms.Web
 {

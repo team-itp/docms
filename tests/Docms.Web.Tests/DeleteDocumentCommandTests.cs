@@ -9,10 +9,10 @@ using System.Threading.Tasks;
 namespace Docms.Web.Tests
 {
     [TestClass]
-    public class CreateDocumentCommandTests
+    public class DeleteDocumentCommandTests
     {
         [TestMethod]
-        public async Task コマンドを発行してドキュメントが作成されること()
+        public async Task コマンドを発行してドキュメントが削除されること()
         {
             var repository = new MockDocumentRepository();
             var localFileStorage = new LocalFileStorage("tmp");

@@ -6,19 +6,13 @@ namespace Docms.Domain.Documents
 {
     public class Document : Entity, IAggregateRoot
     {
-        private DocumentPath _path;
-        private string _contentType;
-        private long _fileSize;
-        private string _hash;
-        private DateTime _created;
-        private DateTime _lastModified;
-
-        public DocumentPath Path { get => _path; set => _path = value; }
-        public string ContentType { get => _contentType; set => _contentType = value; }
-        public long FileSize { get => _fileSize; set => _fileSize = value; }
-        public string Hash { get => _hash; set => _hash = value; }
-        public DateTime Created { get => _created; set => _created = value; }
-        public DateTime LastModified { get => _lastModified; set => _lastModified = value; }
+        public DocumentPath Path { get; set; }
+        public string ContentType { get; set; }
+        public long FileSize { get; set; }
+        public string Hash { get; set; }
+        public DateTime Created { get; set; }
+        public DateTime LastModified { get; set; }
+        public DateTime? Deleted { get; set; }
 
         protected Document()
         {
@@ -26,19 +20,32 @@ namespace Docms.Domain.Documents
 
         public Document(DocumentPath path, string contentType, long fileSize, byte[] hash) : this()
         {
-            _path = path ?? throw new ArgumentNullException(nameof(path));
-            _contentType = contentType ?? throw new ArgumentNullException(nameof(contentType));
-            _fileSize = fileSize;
-            _hash = HashToString(hash ?? throw new ArgumentNullException(nameof(hash)));
-            _created = DateTime.UtcNow;
-            _lastModified = Created;
+            Path = path ?? throw new ArgumentNullException(nameof(path));
+            ContentType = contentType ?? throw new ArgumentNullException(nameof(contentType));
+            FileSize = fileSize;
+            Hash = HashToString(hash ?? throw new ArgumentNullException(nameof(hash)));
+            Created = DateTime.UtcNow;
+            LastModified = Created;
 
             OnDocumentCreated(path, contentType, fileSize, Hash, Created);
+        }
+
+        public void Delete()
+        {
+            OnDocumentDeleted();
         }
 
         private void OnDocumentCreated(DocumentPath path, string contentType, long fileSize, string sha1Hash, DateTime created)
         {
             var ev = new DocumentCreatedEvent(this, path, contentType, fileSize, sha1Hash, created);
+            AddDomainEvent(ev);
+        }
+
+        private void OnDocumentDeleted()
+        {
+            Deleted = DateTime.UtcNow;
+
+            var ev = new DocumentDeletedEvent(this, Path, Deleted.Value);
             AddDomainEvent(ev);
         }
 
