@@ -11,31 +11,40 @@ namespace Docms.Web.Tests
     [TestClass]
     public class CreateDocumentCommandTests
     {
+        private MockDocumentRepository repository;
+        private LocalFileStorage localFileStorage;
+        private CreateDocumentCommandHandler sut;
+
+        [TestInitialize]
+        public void Setup()
+        {
+            repository = new MockDocumentRepository();
+            localFileStorage = new LocalFileStorage("tmp");
+            sut = new CreateDocumentCommandHandler(repository, localFileStorage);
+        }
+
+        [TestCleanup]
+        public void Teardown()
+        {
+            if (System.IO.Directory.Exists("tmp"))
+            {
+                System.IO.Directory.Delete("tmp", true);
+            }
+        }
+
         [TestMethod]
         public async Task コマンドを発行してドキュメントが作成されること()
         {
-            var repository = new MockDocumentRepository();
-            var localFileStorage = new LocalFileStorage("tmp");
-            try
+            using (var ms = new MemoryStream(Encoding.UTF8.GetBytes("Hello, world")))
             {
-                var sut = new CreateDocumentCommandHandler(repository, localFileStorage);
-                using (var ms = new MemoryStream(Encoding.UTF8.GetBytes("Hello, world")))
+                await sut.Handle(new CreateDocumentCommand()
                 {
-                    await sut.Handle(new CreateDocumentCommand()
-                    {
-                        Path = new FilePath("document.txt"),
-                        Stream = ms
-                    });
-                    Assert.AreEqual(1, repository.Documents.Count);
-                }
+                    Path = new FilePath("document.txt"),
+                    Stream = ms
+                });
             }
-            catch
-            {
-                if (System.IO.Directory.Exists("tmp"))
-                {
-                    System.IO.Directory.Delete("tmp");
-                }
-            }
+            Assert.AreEqual(1, repository.Documents.Count);
+            Assert.IsTrue((await localFileStorage.GetEntryAsync("document.txt")) is Docms.Infrastructure.Files.File);
         }
     }
 }

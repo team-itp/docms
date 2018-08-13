@@ -12,22 +12,42 @@ namespace Docms.Domain.Documents
         public string Hash { get; set; }
         public DateTime Created { get; set; }
         public DateTime LastModified { get; set; }
+        public DateTime Registered { get; set; }
         public DateTime? Deleted { get; set; }
 
         protected Document()
         {
         }
 
-        public Document(DocumentPath path, string contentType, long fileSize, byte[] hash) : this()
+        public Document(DocumentPath path, string contentType, long fileSize, byte[] hash)
+         : this(path, contentType, fileSize, hash, DateTime.UtcNow)
+        {
+        }
+
+        public Document(DocumentPath path, string contentType, long fileSize, byte[] hash, DateTime created)
+         : this(path, contentType, fileSize, hash, created, created)
+        {
+        }
+
+        public Document(DocumentPath path, string contentType, long fileSize, byte[] hash, DateTime created, DateTime lastModified) : this()
         {
             Path = path ?? throw new ArgumentNullException(nameof(path));
             ContentType = contentType ?? throw new ArgumentNullException(nameof(contentType));
             FileSize = fileSize;
             Hash = HashToString(hash ?? throw new ArgumentNullException(nameof(hash)));
-            Created = DateTime.UtcNow;
-            LastModified = Created;
+            Created = created;
+            LastModified = lastModified;
+            Registered = DateTime.UtcNow;
 
-            OnDocumentCreated(path, contentType, fileSize, Hash, Created);
+            OnDocumentCreated(path, contentType, fileSize, Hash, created, lastModified);
+        }
+
+        public void MoveTo(DocumentPath destinationPath)
+        {
+            var originalPath = Path;
+            Path = destinationPath;
+
+            OnDocumentMoved(originalPath, destinationPath);
         }
 
         public void Delete()
@@ -35,9 +55,15 @@ namespace Docms.Domain.Documents
             OnDocumentDeleted();
         }
 
-        private void OnDocumentCreated(DocumentPath path, string contentType, long fileSize, string sha1Hash, DateTime created)
+        private void OnDocumentCreated(DocumentPath path, string contentType, long fileSize, string sha1Hash, DateTime created, DateTime lastModified)
         {
-            var ev = new DocumentCreatedEvent(this, path, contentType, fileSize, sha1Hash, created);
+            var ev = new DocumentCreatedEvent(this, path, contentType, fileSize, sha1Hash, created, lastModified);
+            AddDomainEvent(ev);
+        }
+
+        private void OnDocumentMoved(DocumentPath originalPath, DocumentPath destinationPath)
+        {
+            var ev = new DocumentMovedEvent(this, originalPath, destinationPath);
             AddDomainEvent(ev);
         }
 

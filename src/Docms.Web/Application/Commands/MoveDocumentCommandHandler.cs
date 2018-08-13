@@ -1,4 +1,4 @@
-﻿using Docms.Domain.Documents;
+using Docms.Domain.Documents;
 using Docms.Infrastructure.Files;
 using MediatR;
 using System;
@@ -7,12 +7,12 @@ using System.Threading.Tasks;
 
 namespace Docms.Web.Application.Commands
 {
-    public class DeleteDocumentCommandHandler : IRequestHandler<DeleteDocumentCommand, bool>
+    public class MoveDocumentCommandHandler : IRequestHandler<MoveDocumentCommand, bool>
     {
         private readonly IDocumentRepository _documentRepository;
         private readonly IFileStorage _fileStorage;
 
-        public DeleteDocumentCommandHandler(
+        public MoveDocumentCommandHandler(
             IDocumentRepository documentRepository,
             IFileStorage fileStorage)
         {
@@ -20,16 +20,14 @@ namespace Docms.Web.Application.Commands
             _fileStorage = fileStorage;
         }
 
-        public async Task<bool> Handle(DeleteDocumentCommand request, CancellationToken cancellationToken = default(CancellationToken))
+        public async Task<bool> Handle(MoveDocumentCommand request, CancellationToken cancellationToken = default(CancellationToken))
         {
-            var document = await _documentRepository.GetAsync(request.Path.ToString());
+            var document = await _documentRepository.GetAsync(request.OriginalPath.ToString());
             if (document == null || document.Deleted != null)
             {
                 throw new InvalidOperationException();
             }
-            document.Delete();
-            var file = (await _fileStorage.GetEntryAsync(request.Path)) as File;
-            await _fileStorage.DeleteAsync(file);
+            document.MoveTo(new DocumentPath(request.DestinationPath.ToString()));
             await _documentRepository.UpdateAsync(document);
             await _documentRepository.UnitOfWork.SaveEntitiesAsync();
             return true;

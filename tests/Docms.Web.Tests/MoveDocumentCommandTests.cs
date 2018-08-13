@@ -11,18 +11,18 @@ using System.Threading.Tasks;
 namespace Docms.Web.Tests
 {
     [TestClass]
-    public class DeleteDocumentCommandTests
+    public class MoveDocumentCommandTests
     {
         private MockDocumentRepository repository;
         private LocalFileStorage localFileStorage;
-        private DeleteDocumentCommandHandler sut;
+        private MoveDocumentCommandHandler sut;
 
         [TestInitialize]
         public void Setup()
         {
             repository = new MockDocumentRepository();
             localFileStorage = new LocalFileStorage("tmp");
-            sut = new DeleteDocumentCommandHandler(repository, localFileStorage);
+            sut = new MoveDocumentCommandHandler(repository, localFileStorage);
         }
 
         [TestCleanup]
@@ -35,20 +35,20 @@ namespace Docms.Web.Tests
         }
 
         [TestMethod]
-        public async Task コマンドを発行してドキュメントが削除されること()
+        public async Task コマンドを発行してファイルが移動すること()
         {
             var dir = await localFileStorage.GetDirectoryAsync("test1");
             var prop = await localFileStorage.SaveAsync(dir, "document1.txt", new MemoryStream(Encoding.UTF8.GetBytes("Hello, world")));
             await repository.AddAsync(new Document(new DocumentPath("test1/document1.txt"), prop.ContentType, prop.Size, prop.Hash));
             using (var ms = new MemoryStream(Encoding.UTF8.GetBytes("Hello, world")))
             {
-                await sut.Handle(new DeleteDocumentCommand()
+                await sut.Handle(new MoveDocumentCommand()
                 {
-                    Path = new FilePath("test1/document1.txt"),
+                    OriginalPath = new FilePath("test1/document1.txt"),
+                    DestinationPath = new FilePath("test2/document2.txt"),
                 });
             }
-            Assert.IsNotNull(repository.Documents.First().Deleted);
-            Assert.IsNull(await localFileStorage.GetEntryAsync("test1/document1.txt"));
+            Assert.AreEqual("test2/document2.txt", repository.Documents.First().Path.Value);
         }
     }
 }
