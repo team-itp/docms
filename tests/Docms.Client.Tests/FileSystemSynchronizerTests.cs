@@ -10,12 +10,12 @@ using System.Threading.Tasks;
 namespace Docms.Client.Tests
 {
     [TestClass]
-    public class InitializerTests
+    public class FileSystemSynchronizerTests
     {
         private MockDocmsApiClient mockClient;
         private LocalFileStorage localFileStorage;
         private FileSyncingContext db;
-        private Initializer sut;
+        private FileSystemSynchronizer sut;
 
         [TestInitialize]
         public void Setup()
@@ -29,7 +29,7 @@ namespace Docms.Client.Tests
             db = new FileSyncingContext(new DbContextOptionsBuilder<FileSyncingContext>()
                 .UseInMemoryDatabase("InitializerTests")
                 .Options);
-            sut = new Initializer(mockClient, localFileStorage, db);
+            sut = new FileSystemSynchronizer(mockClient, localFileStorage, db);
         }
 
         [TestCleanup]

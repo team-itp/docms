@@ -15,12 +15,16 @@ namespace docmssync
 {
     public partial class SyncService : ServiceBase
     {
+        private string watchPath;
         private DocmsApiClinet client;
         private LocalFileStorage localFileStorage;
         private FileSyncingContext context;
+        private FileSystemSynchronizer synchronizer;
         private FileSystemWatcher watcher;
+        private Timer timer;
         private CancellationTokenSource cts;
         private Task processTask;
+        private ConcurrentQueue<Func<Task>> actions;
 
         public SyncService()
         {
@@ -29,14 +33,15 @@ namespace docmssync
 
         protected override void OnStart(string[] args)
         {
+            watchPath = Settings.Default.WatchPath;
             client = new DocmsApiClinet("http://localhost:51693", "api/v1");
-            localFileStorage = new LocalFileStorage(Settings.Default.WatchPath);
+            localFileStorage = new LocalFileStorage(watchPath);
             context = new FileSyncingContext(new DbContextOptionsBuilder<FileSyncingContext>()
                 .UseSqlite(string.Format("Data Source={0}", Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData), "docmssync", "sync.db")))
                 .Options);
             if (watcher == null)
             {
-                watcher = new FileSystemWatcher(Settings.Default.WatchPath);
+                watcher = new FileSystemWatcher(watchPath);
                 watcher.IncludeSubdirectories = true;
                 watcher.Created += new FileSystemEventHandler(watcher_Created);
                 watcher.Changed += new FileSystemEventHandler(watcher_Changed);
@@ -44,24 +49,48 @@ namespace docmssync
                 watcher.Deleted += new FileSystemEventHandler(watcher_Deleted);
                 watcher.Error += new ErrorEventHandler(watcher_Error);
             }
+            if (timer == null)
+            {
+                timer = new Timer(new TimerCallback(timer_Ticks), null, Timeout.Infinite, 1000);
+            }
             cts = new CancellationTokenSource();
+            actions = new ConcurrentQueue<Func<Task>>();
             StartAsync();
         }
 
         private async void StartAsync()
         {
-            var initializer = new Initializer(client, localFileStorage, context);
-            await initializer.InitializeAsync(cts.Token);
+            synchronizer = new FileSystemSynchronizer(client, localFileStorage, context);
+            await synchronizer.InitializeAsync(cts.Token);
             processTask = ProcessFileSync(cts.Token);
             watcher.EnableRaisingEvents = true;
+            timer.Change(0, 10000);
         }
 
         private async Task ProcessFileSync(CancellationToken token = default(CancellationToken))
         {
             while(!token.IsCancellationRequested)
             {
-
+                if (actions.TryDequeue(out var action))
+                {
+                    token.WaitHandle.WaitOne(1000);
+                    await action.Invoke();
+                }
+                token.WaitHandle.WaitOne(100);
             }
+        }
+
+        private string ResolvePath(string fullPath)
+        {
+            return fullPath.Substring(watchPath.Length + 1);
+        }
+
+        private void timer_Ticks(object state)
+        {
+            actions.Enqueue(async () =>
+            {
+                await synchronizer.RequestSyncFromHistory();
+            });
         }
 
         private void watcher_Error(object sender, ErrorEventArgs e)
@@ -72,26 +101,39 @@ namespace docmssync
 
         private void watcher_Deleted(object sender, FileSystemEventArgs e)
         {
-            throw new NotImplementedException();
+            actions.Enqueue(async () =>
+            {
+                await synchronizer.RequestDeleteAsync(ResolvePath(e.FullPath));
+            });
         }
 
         private void watcher_Renamed(object sender, RenamedEventArgs e)
         {
-            throw new NotImplementedException();
+            actions.Enqueue(async () =>
+            {
+                await synchronizer.RequestMoveAsync(ResolvePath(e.OldFullPath), ResolvePath(e.FullPath));
+            });
         }
 
         private void watcher_Changed(object sender, FileSystemEventArgs e)
         {
-            throw new NotImplementedException();
+            actions.Enqueue(async () =>
+            {
+                await synchronizer.RequestChangeAsync(ResolvePath(e.FullPath));
+            });
         }
 
         private void watcher_Created(object sender, FileSystemEventArgs e)
         {
-            throw new NotImplementedException();
+            actions.Enqueue(async () =>
+            {
+                await synchronizer.RequestCreatedAsync(ResolvePath(e.FullPath));
+            });
         }
 
         protected override void OnStop()
         {
+            timer.Change(Timeout.Infinite, 10000);
             watcher.EnableRaisingEvents = false;
             cts.Cancel();
             processTask.Wait();

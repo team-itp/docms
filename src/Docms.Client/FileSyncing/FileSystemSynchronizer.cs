@@ -1,17 +1,18 @@
 ﻿using Docms.Client.Api;
 using Docms.Client.FileStorage;
+using System;
 using System.Threading;
 using System.Threading.Tasks;
 
 namespace Docms.Client.FileSyncing
 {
-    public class Initializer
+    public class FileSystemSynchronizer
     {
         private IDocmsApiClient _client;
         private ILocalFileStorage _storage;
         private FileSyncingContext _db;
 
-        public Initializer(IDocmsApiClient client, ILocalFileStorage storage, FileSyncingContext db)
+        public FileSystemSynchronizer(IDocmsApiClient client, ILocalFileStorage storage, FileSyncingContext db)
         {
             _client = client;
             _storage = storage;
@@ -45,6 +46,31 @@ namespace Docms.Client.FileSyncing
                     await DownloadFiles(con.Path, cancellationToken);
                 }
             }
+        }
+
+        public Task RequestSyncFromHistory(CancellationToken cancellationToken = default(CancellationToken))
+        {
+            throw new NotImplementedException();
+        }
+
+        public Task RequestDeleteAsync(string v, CancellationToken cancellationToken = default(CancellationToken))
+        {
+            throw new NotImplementedException();
+        }
+
+        public Task RequestMoveAsync(string v1, string v2, CancellationToken cancellationToken = default(CancellationToken))
+        {
+            throw new NotImplementedException();
+        }
+
+        public Task RequestChangeAsync(string v, CancellationToken cancellationToken = default(CancellationToken))
+        {
+            throw new NotImplementedException();
+        }
+
+        public Task RequestCreatedAsync(string v, CancellationToken cancellationToken = default(CancellationToken))
+        {
+            throw new NotImplementedException();
         }
     }
 }
