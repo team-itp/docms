@@ -110,7 +110,7 @@ namespace Docms.Infrastructure.Files
             }
         }
 
-        public async Task<FileProperties> SaveAsync(Directory dir, string filename, Stream stream)
+        public async Task<FileProperties> SaveAsync(Directory dir, string filename, Stream stream, DateTime created, DateTime lastModified)
         {
             var filepath = dir.Path == null ? new FilePath(filename) : dir.Path.Combine(filename);
             if (Exists(filepath) && IsDirectory(filepath))
@@ -129,6 +129,8 @@ namespace Docms.Infrastructure.Files
             {
                 await stream.CopyToAsync(fs);
             }
+            fileInfo.CreationTimeUtc = created;
+            fileInfo.LastWriteTimeUtc = lastModified;
             var file = new File(filepath, this);
             return await GetPropertiesAsync(file);
         }

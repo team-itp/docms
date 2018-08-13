@@ -1,6 +1,7 @@
 ﻿using Docms.Domain.Documents;
 using Docms.Infrastructure.Files;
 using MediatR;
+using System;
 using System.Threading;
 using System.Threading.Tasks;
 
@@ -23,8 +24,9 @@ namespace Docms.Web.Application.Commands
         {
             var path = request.Path;
             var dir = await _fileStorage.GetDirectoryAsync(path.DirectoryPath);
-            var fileProps = await _fileStorage.SaveAsync(dir, path.FileName, request.Stream);
-            var document = new Document(new DocumentPath(request.Path.ToString()), fileProps.ContentType, fileProps.Size, fileProps.Hash);
+            var utcNow = DateTime.UtcNow;
+            var fileProps = await _fileStorage.SaveAsync(dir, path.FileName, request.Stream, request.Created ?? utcNow, request.LastModified ?? utcNow);
+            var document = new Document(new DocumentPath(request.Path.ToString()), fileProps.ContentType, fileProps.Size, fileProps.Hash, fileProps.Created, fileProps.LastModified);
             await _documentRepository.AddAsync(document);
 
             await _documentRepository.UnitOfWork.SaveEntitiesAsync();

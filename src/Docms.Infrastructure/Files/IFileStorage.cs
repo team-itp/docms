@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using System.IO;
 using System.Threading.Tasks;
 
@@ -13,7 +14,7 @@ namespace Docms.Infrastructure.Files
         Task<IEnumerable<Entry>> GetFilesAsync(Directory dir);
         Task<FileProperties> GetPropertiesAsync(File file);
         Task<Stream> OpenAsync(File file);
-        Task<FileProperties> SaveAsync(Directory dir, string filename, Stream stream);
+        Task<FileProperties> SaveAsync(Directory dir, string filename, Stream stream, DateTime created, DateTime lastModified);
         Task DeleteAsync(Entry entry);
     }
 }

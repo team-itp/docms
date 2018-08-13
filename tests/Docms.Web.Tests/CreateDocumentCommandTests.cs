@@ -40,7 +40,7 @@ namespace Docms.Web.Tests
                 await sut.Handle(new CreateDocumentCommand()
                 {
                     Path = new FilePath("document.txt"),
-                    Stream = ms
+                    Stream = ms,
                 });
             }
             Assert.AreEqual(1, repository.Documents.Count);

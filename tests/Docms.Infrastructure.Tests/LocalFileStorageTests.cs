@@ -18,7 +18,10 @@ namespace Docms.Infrastructure.Tests
         public void Setup()
         {
             basepath = Path.GetFullPath("tmp");
-            MakeDirectory(basepath);
+            if (!System.IO.Directory.Exists(basepath))
+            {
+                System.IO.Directory.CreateDirectory(basepath);
+            }
             sut = new LocalFileStorage(basepath);
         }
 
@@ -33,9 +36,7 @@ namespace Docms.Infrastructure.Tests
 
         private void MakeDirectory(string path)
         {
-            var fullpath = Path.IsPathFullyQualified(path)
-                ? path
-                : Path.Combine(basepath, path);
+            var fullpath = Path.Combine(basepath, path);
             if (!System.IO.Directory.Exists(fullpath))
             {
                 System.IO.Directory.CreateDirectory(fullpath);
@@ -44,9 +45,7 @@ namespace Docms.Infrastructure.Tests
 
         private void DeleteDirectory(string path)
         {
-            var fullpath = Path.IsPathFullyQualified(path)
-                ? path
-                : Path.Combine(basepath, path);
+            var fullpath = Path.Combine(basepath, path);
             if (System.IO.Directory.Exists(fullpath))
             {
                 System.IO.Directory.Delete(fullpath, true);
@@ -55,18 +54,14 @@ namespace Docms.Infrastructure.Tests
 
         private void CreateFile(string path, string content)
         {
-            var fullpath = Path.IsPathFullyQualified(path)
-                ? path
-                : Path.Combine(basepath, path);
-            MakeDirectory(Path.GetDirectoryName(fullpath));
+            var fullpath = Path.Combine(basepath, path);
+            MakeDirectory(Path.GetDirectoryName(path));
             System.IO.File.WriteAllText(fullpath, content);
         }
 
         private void DeleteFile(string path)
         {
-            var fullpath = Path.IsPathFullyQualified(path)
-                ? path
-                : Path.Combine(basepath, path);
+            var fullpath = Path.Combine(basepath, path);
             if (System.IO.File.Exists(fullpath))
             {
                 System.IO.File.Delete(fullpath);
@@ -141,10 +136,12 @@ namespace Docms.Infrastructure.Tests
             var ms = new MemoryStream(Encoding.UTF8.GetBytes("dir2content1"));
             ms.Seek(0, SeekOrigin.Begin);
             var dir = await sut.GetDirectoryAsync("dir2") as Files.Directory;
-            var fileProps = await dir.SaveAsync("content1.txt", ms);
+            var fileProps = await dir.SaveAsync("content1.txt", ms, DateTime.Today, DateTime.Today);
             Assert.AreEqual("dir2content1", System.IO.File.ReadAllText(Path.Combine(basepath, "dir2\\content1.txt")));
             Assert.AreEqual(12, fileProps.Size);
             Assert.IsNotNull(fileProps.Hash);
+            Assert.AreEqual(DateTime.Today, fileProps.Created);
+            Assert.AreEqual(DateTime.Today, fileProps.LastModified);
         }
 
         [TestMethod]
