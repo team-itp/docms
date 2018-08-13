@@ -140,7 +140,7 @@ namespace Docms.Client.Api
             throw new NotImplementedException();
         }
 
-        public Task<IEnumerable<History>> GetHistoriesAsync(DateTimeOffset? lastSynced)
+        public Task<IEnumerable<History>> GetHistoriesAsync(string path, DateTime? lastSynced = null)
         {
             throw new NotImplementedException();
         }

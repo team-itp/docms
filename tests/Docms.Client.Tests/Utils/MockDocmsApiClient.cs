@@ -13,6 +13,7 @@ namespace Docms.Client.Tests.Utils
     {
         public Dictionary<string, List<Entry>> entries = new Dictionary<string, List<Entry>>();
         public Dictionary<string, byte[]> streams = new Dictionary<string, byte[]>();
+        public Dictionary<string, List<History>> histories = new Dictionary<string, List<History>>();
 
         internal void AddFile(string path, string contentType, byte[] data)
         {
@@ -37,8 +38,10 @@ namespace Docms.Client.Tests.Utils
             }
             var hash = CalculateHash(data);
             entries.TryAdd(dirPath, new List<Entry>());
-            entries[dirPath].Add(new Document(path, contentType, hash, DateTimeOffset.Now, DateTimeOffset.Now, this));
+            var now = DateTime.UtcNow;
+            entries[dirPath].Add(new Document(path, contentType, hash, now, now, this));
             streams.Add(path, data);
+            histories.Add(path, new List<History>() { new DocumentCreated() { Id = Guid.NewGuid(), Timestamp = DateTime.UtcNow, Path = path, ContentType = contentType, FileSize = data.Length, Hash = hash, Created = now, LastModified = now } });
         }
 
         private string CalculateHash(byte[] data)
@@ -66,6 +69,11 @@ namespace Docms.Client.Tests.Utils
             await CreateDocumentAsync(path, stream);
         }
 
+        public Task MoveDocumentAsync(string originalPath, string destinationPath)
+        {
+            throw new NotImplementedException();
+        }
+
         public Task DeleteDocumentAsync(string path)
         {
             var es = entries.FirstOrDefault(kv => kv.Value.Any(e => e.Path == path));
@@ -73,6 +81,7 @@ namespace Docms.Client.Tests.Utils
             {
                 es.Value.Remove(es.Value.FirstOrDefault(e => e.Path == path));
                 streams.Remove(path);
+                histories.Remove(path);
             }
             return Task.CompletedTask;
         }
@@ -101,9 +110,9 @@ namespace Docms.Client.Tests.Utils
             return Task.FromResult(entries.TryGetValue(path, out var es) ? es : Array.Empty<Entry>() as IEnumerable<Entry>);
         }
 
-        public Task<IEnumerable<History>> GetHistoriesAsync(DateTimeOffset? lastSynced)
+        public Task<IEnumerable<History>> GetHistoriesAsync(string path, DateTime? lastSynced)
         {
-            throw new NotImplementedException();
+            return Task.FromResult(histories[path] as IEnumerable<History>);
         }
 
         public Task LoginAsync(string username, string password)
@@ -112,11 +121,6 @@ namespace Docms.Client.Tests.Utils
         }
 
         public Task LogoutAsync()
-        {
-            throw new NotImplementedException();
-        }
-
-        public Task MoveDocumentAsync(string originalPath, string destinationPath)
         {
             throw new NotImplementedException();
         }

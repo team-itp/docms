@@ -32,7 +32,7 @@ namespace Docms.Client.Api
 
     public class Document : Entry
     {
-        public Document(string path, string contentType, string hash, DateTimeOffset created, DateTimeOffset lastModified, IDocmsApiClient client) : base(path, client)
+        public Document(string path, string contentType, string hash, DateTime created, DateTime lastModified, IDocmsApiClient client) : base(path, client)
         {
             ContentType = contentType;
             Hash = hash;
@@ -42,8 +42,8 @@ namespace Docms.Client.Api
 
         public string ContentType { get; }
         public string Hash { get; }
-        public DateTimeOffset Created { get; }
-        public DateTimeOffset LastModified { get; }
+        public DateTime Created { get; }
+        public DateTime LastModified { get; }
 
         public async Task<Stream> OpenStreamAsync()
         {

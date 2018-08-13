@@ -14,7 +14,7 @@ namespace Docms.Client.Api
         Task<IEnumerable<Entry>> GetEntriesAsync(string path);
         Task<Document> GetDocumentAsync(string path);
         Task<Stream> DownloadAsync(string path);
-        Task<IEnumerable<History>> GetHistoriesAsync(DateTimeOffset? lastSynced);
+        Task<IEnumerable<History>> GetHistoriesAsync(string path, DateTime? lastSynced = default(DateTime?));
         Task LoginAsync(string username, string password);
         Task LogoutAsync();
         Task VerifyTokenAsync();

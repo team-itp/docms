@@ -14,7 +14,7 @@ namespace Docms.Client.FileStorage
             _basePath = basePath;
         }
 
-        public async Task Create(string path, Stream stream, DateTimeOffset created, DateTimeOffset lastModified)
+        public async Task Create(string path, Stream stream, DateTime created, DateTime lastModified)
         {
             var fullpath = Path.Combine(_basePath, path);
             EnsureDirectoryExists(Path.GetDirectoryName(fullpath));
@@ -23,8 +23,8 @@ namespace Docms.Client.FileStorage
             {
                 await stream.CopyToAsync(fs);
             }
-            File.SetCreationTimeUtc(fullpath, created.UtcDateTime);
-            File.SetLastWriteTimeUtc(fullpath, lastModified.UtcDateTime);
+            File.SetCreationTimeUtc(fullpath, created);
+            File.SetLastWriteTimeUtc(fullpath, lastModified);
         }
 
         public string CalculateHash(string path)
@@ -38,7 +38,7 @@ namespace Docms.Client.FileStorage
             }
         }
 
-        public async Task Update(string path, Stream stream, DateTimeOffset lastModified)
+        public async Task Update(string path, Stream stream, DateTime lastModified)
         {
             var fullpath = Path.Combine(_basePath, path);
             EnsureDirectoryExists(Path.GetDirectoryName(fullpath));
@@ -47,7 +47,7 @@ namespace Docms.Client.FileStorage
             {
                 await stream.CopyToAsync(fs);
             }
-            File.SetLastWriteTimeUtc(fullpath, lastModified.UtcDateTime);
+            File.SetLastWriteTimeUtc(fullpath, lastModified);
         }
 
         public void Delete(string path)

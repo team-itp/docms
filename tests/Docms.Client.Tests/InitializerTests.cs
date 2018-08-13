@@ -1,10 +1,8 @@
-﻿using Docms.Client.Api;
-using Docms.Client.FileStorage;
+﻿using Docms.Client.FileStorage;
 using Docms.Client.FileSyncing;
 using Docms.Client.Tests.Utils;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
-using System;
-using System.Collections.Generic;
 using System.IO;
 using System.Text;
 using System.Threading.Tasks;
@@ -16,6 +14,7 @@ namespace Docms.Client.Tests
     {
         private MockDocmsApiClient mockClient;
         private LocalFileStorage localFileStorage;
+        private FileSyncingContext db;
         private Initializer sut;
 
         [TestInitialize]
@@ -27,7 +26,10 @@ namespace Docms.Client.Tests
             }
             mockClient = new MockDocmsApiClient();
             localFileStorage = new LocalFileStorage(Path.GetFullPath("tmp"));
-            sut = new Initializer(mockClient, localFileStorage);
+            db = new FileSyncingContext(new DbContextOptionsBuilder<FileSyncingContext>()
+                .UseInMemoryDatabase("InitializerTests")
+                .Options);
+            sut = new Initializer(mockClient, localFileStorage, db);
         }
 
         [TestCleanup]
