@@ -16,7 +16,7 @@ namespace Docms.Infrastructure.Files
             Path = path;
         }
 
-        public Entry Parent => Path.DirectoryPath == null ? null : new Directory(Path.DirectoryPath, Storage);
+        public Directory Parent => Path.DirectoryPath == null ? null : new Directory(Path.DirectoryPath, Storage);
     }
 
     public class Directory : Entry

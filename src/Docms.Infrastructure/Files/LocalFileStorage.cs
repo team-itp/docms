@@ -87,7 +87,7 @@ namespace Docms.Infrastructure.Files
                 File = file,
                 ContentType = contentType ?? "application/octet-stream",
                 Size = fileInfo.Length,
-                Hash = CalculateSha1Hash(fileInfo.FullName),
+                Hash = Hash.CalculateHash(fileInfo.FullName),
                 LastModified = fileInfo.LastWriteTime,
                 Created = fileInfo.CreationTime,
             });
@@ -125,7 +125,7 @@ namespace Docms.Infrastructure.Files
             EnsureDirectoryExists(dir.Path);
 
             var fileInfo = GetFileInfo(filepath);
-            using (var fs = fileInfo.OpenWrite())
+            using (var fs = new FileStream(fileInfo.FullName, FileMode.Create, FileAccess.Write, FileShare.None))
             {
                 await stream.CopyToAsync(fs);
             }
@@ -189,16 +189,6 @@ namespace Docms.Infrastructure.Files
             if (!System.IO.Directory.Exists(fullpath))
             {
                 System.IO.Directory.CreateDirectory(fullpath);
-            }
-        }
-
-        private byte[] CalculateSha1Hash(string fullpath)
-        {
-            using (var fs = System.IO.File.OpenRead(fullpath))
-            using (var sha1 = SHA1.Create())
-            {
-                var hash = sha1.ComputeHash(fs);
-                return hash;
             }
         }
     }

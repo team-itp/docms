@@ -145,6 +145,21 @@ namespace Docms.Infrastructure.Tests
         }
 
         [TestMethod]
+        public async Task すでに存在するパスに対してストリームからファイルに保存できること()
+        {
+            var ms1 = new MemoryStream(Encoding.UTF8.GetBytes("dir2content1"));
+            var dir = await sut.GetDirectoryAsync("dir2") as Files.Directory;
+            await dir.SaveAsync("content1.txt", ms1, DateTime.Today, DateTime.Today);
+            Assert.AreEqual("dir2content1", System.IO.File.ReadAllText(Path.Combine(basepath, "dir2\\content1.txt")));
+            var ms2 = new MemoryStream(Encoding.UTF8.GetBytes("dir2content1new"));
+            var fileProps = await dir.SaveAsync("content1.txt", ms2, DateTime.Today, DateTime.Today);
+            Assert.AreEqual(15, fileProps.Size);
+            Assert.IsNotNull(fileProps.Hash);
+            Assert.AreEqual(DateTime.Today, fileProps.Created);
+            Assert.AreEqual(DateTime.Today, fileProps.LastModified);
+        }
+
+        [TestMethod]
         [ExpectedException(typeof(InvalidOperationException))]
         public async Task ディレクトリに対して保存しようとして失敗する()
         {
