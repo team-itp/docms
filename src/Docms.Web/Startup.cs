@@ -1,15 +1,23 @@
-﻿using Docms.Domain.Documents;
+﻿using System;
+using System.Collections.Generic;
+using System.IdentityModel.Tokens.Jwt;
+using Docms.Domain.Documents;
 using Docms.Infrastructure;
 using Docms.Infrastructure.Files;
 using Docms.Infrastructure.Repositories;
+using Docms.Web.Application.Identity;
 using Docms.Web.Application.Queries;
 using Docms.Web.Application.Queries.Documents;
+using IdentityServer4.Models;
 using MediatR;
+using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
+using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
+using VisualizationSystem.Infrastructure;
 
 namespace Docms.Web
 {
@@ -24,7 +32,9 @@ namespace Docms.Web
 
         public void ConfigureServices(IServiceCollection services)
         {
-            services.AddCustomDbContext(Configuration);
+            services.AddCustomDbContext(Configuration)
+                .AddCustomIdentity(Configuration)
+                .AddCustomAuthentication(Configuration);
             services.AddMvc();
 
             services.RegisterServices(Configuration);
@@ -46,6 +56,7 @@ namespace Docms.Web
             app.UseCustomDbContext();
             app.UseStatusCodePagesWithRedirects("~/error/{0}");
             app.UseStaticFiles();
+            app.UseIdentityServer();
             app.UseMvcWithDefaultRoute();
         }
     }
@@ -58,8 +69,77 @@ namespace Docms.Web
                 options.UseSqlite(configuration.GetConnectionString("DocmsQueriesConnection")));
             services.AddDbContext<DocmsContext>(options =>
                 options.UseSqlite(configuration.GetConnectionString("DocmsConnection")));
+            services.AddDbContext<VisualizationSystemContext>(options =>
+                options.UseSqlite(configuration.GetConnectionString("VisualizationSystemConnection")));
             return services;
         }
+        public static IServiceCollection AddCustomIdentity(this IServiceCollection services, IConfiguration configuration)
+        {
+            services.AddTransient<IUserStore<ApplicationUser>, ApplicationUserStore>();
+            services.AddTransient<IRoleStore<ApplicationRole>, ApplicationRoleStore>();
+
+            services.AddIdentity<ApplicationUser, ApplicationRole>();
+            services.ConfigureApplicationCookie(options =>
+            {
+                options.Cookie.HttpOnly = true;
+                options.ExpireTimeSpan = TimeSpan.FromMinutes(30);
+                options.LoginPath = "/account/login";
+                options.AccessDeniedPath = "/account/accessdenied";
+                options.SlidingExpiration = true;
+            });
+
+            services.AddIdentityServer()
+                .AddDeveloperSigningCredential()
+                .AddInMemoryClients(new List<Client>()
+                {
+                    new Client()
+                    {
+                        ClientId = "docms-client",
+                        ClientSecrets = new List<Secret>()
+                        {
+                            new Secret("docms-client-secret".Sha256())
+                        },
+                        AllowedScopes = { "docmsapi" },
+                        AllowedGrantTypes = GrantTypes.ResourceOwnerPassword,
+                        AllowAccessTokensViaBrowser = true,
+                    }
+                })
+                .AddInMemoryApiResources(new List<ApiResource>()
+                {
+                    new ApiResource("docmsapi", "文書管理システム API")
+                    {
+                        Scopes = new List<Scope>() {
+                            new Scope("docmsapi", "文書管理システム API")
+                        },
+                        ApiSecrets = new List<Secret>()
+                        {
+                            new Secret("docmsapi-secret".Sha256())
+                        }
+                    }
+                })
+                .AddAspNetIdentity<ApplicationUser>();
+
+            return services;
+        }
+
+        public static IServiceCollection AddCustomAuthentication(this IServiceCollection services, IConfiguration configuration)
+        {
+            // prevent from mapping "sub" claim to nameidentifier.
+            JwtSecurityTokenHandler.DefaultInboundClaimTypeMap.Remove("sub");
+
+            var identityUrl = configuration.GetValue<string>("IdentityUrl");
+
+            services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
+                .AddJwtBearer(options =>
+                {
+                    options.Authority = identityUrl;
+                    options.RequireHttpsMetadata = false;
+                    options.Audience = "docmsapi";
+                });
+
+            return services;
+        }
+
 
         public static IServiceCollection RegisterServices(this IServiceCollection services, IConfiguration configuration)
         {
@@ -94,6 +174,10 @@ namespace Docms.Web
                     .EnsureCreated();
                 serviceScope.ServiceProvider
                     .GetService<DocmsQueriesContext>()
+                    .Database
+                    .EnsureCreated();
+                serviceScope.ServiceProvider
+                    .GetService<VisualizationSystemContext>()
                     .Database
                     .EnsureCreated();
             }

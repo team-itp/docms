@@ -5,25 +5,19 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <Compile Remove="Views\Documents\**" />
-    <Compile Remove="Views\新しいフォルダー\**" />
-    <Content Remove="Views\Documents\**" />
-    <Content Remove="Views\新しいフォルダー\**" />
-    <EmbeddedResource Remove="Views\Documents\**" />
-    <EmbeddedResource Remove="Views\新しいフォルダー\**" />
-    <None Remove="Views\Documents\**" />
-    <None Remove="Views\新しいフォルダー\**" />
-  </ItemGroup>
-
-  <ItemGroup>
+    <PackageReference Include="IdentityServer4" Version="2.2.0" />
+    <PackageReference Include="IdentityServer4.AspNetIdentity" Version="2.1.0" />
+    <PackageReference Include="MediatR" Version="5.1.0" />
     <PackageReference Include="MediatR.Extensions.Microsoft.DependencyInjection" Version="5.1.0" />
-    <PackageReference Include="Microsoft.AspNetCore.App" />
+    <PackageReference Include="Microsoft.AspNetCore.App" Version="2.1.1" />
+    <PackageReference Include="Microsoft.EntityFrameworkCore" Version="2.1.1" />
     <PackageReference Include="Microsoft.EntityFrameworkCore.Sqlite" Version="2.1.1" />
   </ItemGroup>
 
   <ItemGroup>
     <ProjectReference Include="..\Docms.Domain\Docms.Domain.csproj" />
     <ProjectReference Include="..\Docms.Infrastructure\Docms.Infrastructure.csproj" />
+    <ProjectReference Include="..\VisualizationSystem.Infrastructure\VisualizationSystem.Infrastructure.csproj" />
   </ItemGroup>
 
   <ItemGroup>

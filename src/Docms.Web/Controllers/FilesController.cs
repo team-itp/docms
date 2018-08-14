@@ -1,16 +1,20 @@
 using Docms.Infrastructure.Files;
 using Docms.Web.Application.Commands;
 using Docms.Web.Application.Queries.Documents;
+using Docms.Web.Extensions;
 using Docms.Web.Models;
 using MediatR;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Net.Http.Headers;
 using System;
+using System.Linq;
 using System.Threading.Tasks;
 using System.Web;
 
 namespace Docms.Web.Controllers
 {
+    [Authorize]
     [Route("files")]
     public class FilesController : Controller
     {
@@ -27,6 +31,7 @@ namespace Docms.Web.Controllers
         public async Task<IActionResult> Index()
         {
             var entry = await _queries.GetEntryAsync("");
+            ViewData["Path"] = "";
             return View(entry);
         }
 
@@ -39,6 +44,7 @@ namespace Docms.Web.Controllers
             {
                 return NotFound();
             }
+            ViewData["Path"] = path;
             return View(entry);
         }
 
@@ -86,7 +92,7 @@ namespace Docms.Web.Controllers
                 command.Path = filepath;
                 command.Stream = stream;
                 var response = await mediator.Send(command);
-                return Redirect("~/files/view/" + HttpUtility.UrlEncode(command.Path.ToString()));
+                return Redirect(Url.ViewFile(command.Path.ToString()));
             }
         }
     }

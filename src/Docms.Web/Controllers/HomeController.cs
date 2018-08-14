@@ -1,7 +1,9 @@
-﻿using Microsoft.AspNetCore.Mvc;
+﻿using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Mvc;
 
 namespace Docms.Web.Controllers
 {
+    [Authorize]
     [Route("")]
     public class HomeController : Controller
     {
