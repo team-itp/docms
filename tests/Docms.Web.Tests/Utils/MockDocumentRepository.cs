@@ -52,12 +52,12 @@ namespace Docms.Web.Tests.Utils
 
         public Task<Document> GetAsync(string documentPath)
         {
-            return Task.FromResult(Documents.FirstOrDefault(e => e.Path.Value == documentPath));
+            return Task.FromResult(Documents.FirstOrDefault(e => e.Path?.Value == documentPath));
         }
 
         public Task<IEnumerable<Document>> GetDocumentsAsync(string containerPath)
         {
-            return Task.FromResult(Documents.Where(e => e.Path.Parent?.Value == containerPath));
+            return Task.FromResult(Documents.Where(e => e.Path?.Parent?.Value == containerPath));
         }
 
         public Task UpdateAsync(Document document)

@@ -12,7 +12,6 @@ namespace Docms.Domain.Documents
         public string Hash { get; set; }
         public DateTime Created { get; set; }
         public DateTime LastModified { get; set; }
-        public DateTime? Deleted { get; set; }
 
         protected Document()
         {
@@ -67,7 +66,10 @@ namespace Docms.Domain.Documents
 
         public void Delete()
         {
-            OnDocumentDeleted();
+            var path = Path;
+            Path = null;
+
+            OnDocumentDeleted(path);
         }
 
         private void OnDocumentCreated(DocumentPath path, string contentType, long fileSize, string hash, DateTime created, DateTime lastModified)
@@ -88,11 +90,9 @@ namespace Docms.Domain.Documents
             AddDomainEvent(ev);
         }
 
-        private void OnDocumentDeleted()
+        private void OnDocumentDeleted(DocumentPath path)
         {
-            Deleted = DateTime.UtcNow;
-
-            var ev = new DocumentDeletedEvent(this, Path, Deleted.Value);
+            var ev = new DocumentDeletedEvent(this, path);
             AddDomainEvent(ev);
         }
 

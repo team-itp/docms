@@ -8,13 +8,11 @@ namespace Docms.Domain.Events
     {
         public Document Document { get; }
         public DocumentPath Path { get; }
-        public DateTime Deleted { get; }
 
-        public DocumentDeletedEvent(Document document, DocumentPath path, DateTime deleted)
+        public DocumentDeletedEvent(Document document, DocumentPath path)
         {
             Document = document;
             Path = path;
-            Deleted = deleted;
         }
     }
 }

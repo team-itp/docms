@@ -92,7 +92,7 @@ namespace Docms.Web.Controllers
                 command.Path = filepath;
                 command.Stream = stream;
                 var response = await mediator.Send(command);
-                return Redirect(Url.ViewFile(command.Path.ToString()));
+                return Redirect(Url.ViewFile(command.Path.DirectoryPath?.ToString()));
             }
         }
     }

@@ -23,7 +23,7 @@ namespace Docms.Web.Application.Commands
         public async Task<bool> Handle(MoveDocumentCommand request, CancellationToken cancellationToken = default(CancellationToken))
         {
             var document = await _documentRepository.GetAsync(request.OriginalPath.ToString());
-            if (document == null || document.Deleted != null)
+            if (document == null)
             {
                 throw new InvalidOperationException();
             }

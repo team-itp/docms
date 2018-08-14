@@ -47,7 +47,7 @@ namespace Docms.Web.Tests
                     Path = new FilePath("test1/document1.txt"),
                 });
             }
-            Assert.IsNotNull(repository.Documents.First().Deleted);
+            Assert.IsNull(await repository.GetAsync("test1/document1.txt"));
             Assert.IsNull(await localFileStorage.GetEntryAsync("test1/document1.txt"));
         }
     }
