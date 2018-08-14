@@ -48,6 +48,12 @@ namespace Docms.Domain.Documents
             OnDocumentMoved(originalPath, destinationPath);
         }
 
+        public void Update(string contentType, long fileSize, byte[] hash)
+        {
+            var now = DateTime.UtcNow;
+            Update(contentType, fileSize, hash, Created, now);
+        }
+
         public void Update(string contentType, long fileSize, byte[] hash, DateTime created, DateTime lastModified)
         {
             ContentType = contentType ?? throw new ArgumentNullException(nameof(contentType));
