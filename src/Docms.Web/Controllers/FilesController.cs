@@ -88,7 +88,7 @@ namespace Docms.Web.Controllers
             var filepath = new FilePath(path, request.FileNameOverride ?? System.IO.Path.GetFileName(request.File.FileName));
             using (var stream = request.File.OpenReadStream())
             {
-                var command = new CreateDocumentCommand();
+                var command = new CreateOrUpdateDocumentCommand();
                 command.Path = filepath;
                 command.Stream = stream;
                 var response = await mediator.Send(command);

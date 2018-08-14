@@ -1,11 +1,10 @@
-using System.Threading.Tasks;
-using System.Web;
 using Docms.Infrastructure.Files;
 using Docms.Web.Application.Commands;
 using Docms.Web.Application.Queries.Documents;
-using Docms.Web.Models;
 using MediatR;
 using Microsoft.AspNetCore.Mvc;
+using System.Threading.Tasks;
+using System.Web;
 
 namespace Docms.Web.Api.V1
 {
@@ -43,9 +42,11 @@ namespace Docms.Web.Api.V1
             var filepath = new FilePath(request.Path);
             using (var stream = request.File.OpenReadStream())
             {
-                var command = new CreateDocumentCommand();
+                var command = new CreateOrUpdateDocumentCommand();
                 command.Path = filepath;
                 command.Stream = stream;
+                command.Created = request.Created;
+                command.LastModified = request.LastModified;
                 var response = await mediator.Send(command);
                 return CreatedAtAction("Get", new { path = HttpUtility.UrlEncode(command.Path.ToString()) });
             }
