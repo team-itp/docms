@@ -1,8 +1,12 @@
-﻿using IdentityModel.Client;
+﻿using Docms.Client.Api.Responses;
+using Docms.Client.Api.Serialization;
+using IdentityModel.Client;
+using Newtonsoft.Json;
 using RestSharp;
 using System;
 using System.Collections.Generic;
 using System.IO;
+using System.Linq;
 using System.Threading.Tasks;
 
 namespace Docms.Client.Api
@@ -10,6 +14,7 @@ namespace Docms.Client.Api
     public class DocmsApiClinet : IDocmsApiClient
     {
         private string _serverUri;
+        private string _defaultPath;
         private string _tokenEndpoint;
         private string _introspectionEndpoint;
         private string _revocationEndpoint;
@@ -18,18 +23,23 @@ namespace Docms.Client.Api
         private string _accessToken;
         private RestClient _client;
 
-        public DocmsApiClinet(string uri, string defaultPath)
+        public JsonSerializerSettings DefaultJsonSerializerSettings { get; set; }
+
+        public DocmsApiClinet(string uri, string defaultPath = "api/v1")
         {
             if (string.IsNullOrWhiteSpace(uri))
             {
                 throw new ArgumentNullException(nameof(uri));
             }
-            if (!uri.EndsWith("/"))
-            {
-                uri += "/";
-            }
             _serverUri = uri.EndsWith("/") ? uri : uri + "/";
-            _client = new RestClient(uri);
+            _defaultPath = (defaultPath ?? "").EndsWith("/") ? defaultPath : defaultPath + "/";
+            _client = new RestClient(_serverUri);
+            DefaultJsonSerializerSettings = new JsonSerializerSettings()
+            {
+                TypeNameHandling = TypeNameHandling.Objects,
+                SerializationBinder = new DocmsJsonTypeBinder(),
+                NullValueHandling = NullValueHandling.Ignore,
+            };
         }
 
         /// <summary>
@@ -115,44 +125,100 @@ namespace Docms.Client.Api
             }
         }
 
-        public Task CreateDocumentAsync(string path, Stream stream)
+        public async Task<IEnumerable<Entry>> GetEntriesAsync(string path)
         {
-            throw new NotImplementedException();
+            var request = new RestRequest(_defaultPath + "files", Method.GET);
+            if (!string.IsNullOrEmpty(path))
+            {
+                request.AddQueryParameter("path", path);
+            }
+            //request.AddHeader("Authorization", "Bearer " + _accessToken);
+            var result = await _client.ExecuteGetTaskAsync(request).ConfigureAwait(false);
+            ThrowIfNotSuccessfulStatus(result);
+            var container = JsonConvert.DeserializeObject<ContainerResponse>(result.Content, DefaultJsonSerializerSettings);
+            return container.Entries
+                .Select(e => e is ContainerResponse
+                    ? new Container(e as ContainerResponse, this) as Entry
+                    : new Document(e as DocumentResponse, this) as Entry);
         }
 
-        public Task DeleteDocumentAsync(string path)
+        public async Task<Document> GetDocumentAsync(string path)
         {
-            throw new NotImplementedException();
+            var request = new RestRequest(_defaultPath + "files", Method.GET);
+            request.AddQueryParameter("path", path ?? throw new ArgumentNullException(nameof(path)));
+            //request.AddHeader("Authorization", "Bearer " + _accessToken);
+            var result = await _client.ExecuteGetTaskAsync(request).ConfigureAwait(false);
+            ThrowIfNotSuccessfulStatus(result);
+            var document = JsonConvert.DeserializeObject<DocumentResponse>(result.Content, DefaultJsonSerializerSettings);
+            return new Document(document, this);
         }
 
-        public Task<Stream> DownloadAsync(string path)
+        public async Task<Stream> DownloadAsync(string path)
         {
-            throw new NotImplementedException();
+            var request = new RestRequest(_defaultPath + "files", Method.GET);
+            if (!string.IsNullOrEmpty(path))
+            {
+                request.AddQueryParameter("path", path);
+            }
+            //request.AddHeader("Authorization", "Bearer " + _accessToken);
+            var result = await _client.ExecuteGetTaskAsync(request).ConfigureAwait(false);
+            ThrowIfNotSuccessfulStatus(result);
+            return new MemoryStream(result.RawBytes);
         }
 
-        public Task<IEnumerable<Entry>> GetEntriesAsync(string path)
+        public async Task CreateOrUpdateDocumentAsync(string path, Stream stream, DateTime? created = null, DateTime? lastModified = null)
         {
-            throw new NotImplementedException();
+            var request = new RestRequest(_defaultPath + "files", Method.POST);
+            request.AddParameter("path", path ?? throw new ArgumentNullException(nameof(path)));
+            using (var ms = new MemoryStream())
+            {
+                await stream.CopyToAsync(ms);
+                ms.Seek(0, SeekOrigin.Begin);
+                request.AddFile("file", ms.ToArray(), path.Substring(path.LastIndexOf('/')));
+            }
+            if (created != null)
+            {
+                request.AddParameter("created", created.Value);
+            }
+            if (lastModified != null)
+            {
+                request.AddParameter("lastModified", lastModified.Value);
+            }
+            //request.AddHeader("Authorization", "Bearer " + _accessToken);
+            var result = await _client.ExecutePostTaskAsync(request).ConfigureAwait(false);
+            ThrowIfNotSuccessfulStatus(result);
         }
 
-        public Task<Document> GetDocumentAsync(string path)
+        public async Task MoveDocumentAsync(string originalPath, string destinationPath)
         {
-            throw new NotImplementedException();
+            var request = new RestRequest(_defaultPath + "files/move", Method.POST);
+            request.AddParameter("destinationPath", destinationPath);
+            request.AddParameter("originalPath", originalPath);
+            //request.AddHeader("Authorization", "Bearer " + _accessToken);
+            var result = await _client.ExecutePostTaskAsync(request).ConfigureAwait(false);
+            ThrowIfNotSuccessfulStatus(result);
         }
 
-        public Task<IEnumerable<History>> GetHistoriesAsync(string path, DateTime? lastSynced = null)
+        public async Task DeleteDocumentAsync(string path)
         {
-            throw new NotImplementedException();
+            var request = new RestRequest(_defaultPath + "files", Method.DELETE);
+            request.AddQueryParameter("path", path);
+            //request.AddHeader("Authorization", "Bearer " + _accessToken);
+            var result = await _client.ExecuteTaskAsync(request).ConfigureAwait(false);
+            ThrowIfNotSuccessfulStatus(result);
         }
 
-        public Task MoveDocumentAsync(string originalPath, string destinationPath)
+        public async Task<IEnumerable<History>> GetHistoriesAsync(string path, DateTime? since = null)
         {
-            throw new NotImplementedException();
-        }
-
-        public Task UpdateDocumentAsync(string path, Stream stream)
-        {
-            throw new NotImplementedException();
+            var request = new RestRequest(_defaultPath + "histories", Method.GET);
+            if (!string.IsNullOrEmpty(path))
+            {
+                request.AddQueryParameter("path", path);
+            }
+            //request.AddHeader("Authorization", "Bearer " + _accessToken);
+            var result = await _client.ExecuteGetTaskAsync(request).ConfigureAwait(false);
+            ThrowIfNotSuccessfulStatus(result);
+            return JsonConvert.DeserializeObject<List<History>>(result.Content, DefaultJsonSerializerSettings);
         }
     }
 }

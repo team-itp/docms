@@ -7,8 +7,7 @@ namespace Docms.Client.Api
 {
     public interface IDocmsApiClient
     {
-        Task CreateDocumentAsync(string path, Stream stream);
-        Task UpdateDocumentAsync(string path, Stream stream);
+        Task CreateOrUpdateDocumentAsync(string path, Stream stream, DateTime? created, DateTime? lastModified);
         Task MoveDocumentAsync(string originalPath, string destinationPath);
         Task DeleteDocumentAsync(string path);
         Task<IEnumerable<Entry>> GetEntriesAsync(string path);

@@ -56,7 +56,7 @@ namespace Docms.Client.FileSyncing
                     {
                         using (var fs = fileInfo.OpenRead())
                         {
-                            await _client.UpdateDocumentAsync(file.Path, fs);
+                            await _client.CreateOrUpdateDocumentAsync(file.Path, fs, fileInfo.CreationTimeUtc, fileInfo.LastWriteTimeUtc);
                         }
                     }
                     else

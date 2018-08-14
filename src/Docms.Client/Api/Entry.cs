@@ -1,4 +1,5 @@
-﻿using System;
+﻿using Docms.Client.Api.Responses;
+using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Threading.Tasks;
@@ -7,42 +8,42 @@ namespace Docms.Client.Api
 {
     public abstract class Entry
     {
-        public Entry(string path, IDocmsApiClient client)
+        public Entry(EntryResponse entry, IDocmsApiClient client)
         {
             Client = client;
-            Path = path;
+            Path = entry.Path;
+            ParentPath = entry.ParentPath;
         }
 
         protected IDocmsApiClient Client { get; }
 
         public string Path { get; }
+        public string ParentPath { get; }
     }
 
     public class Container : Entry
     {
-        public Container(string path, IDocmsApiClient client) : base(path, client)
+        public Container(ContainerResponse entry, IDocmsApiClient client) : base(entry, client)
         {
         }
 
-        public async Task<IEnumerable<Entry>> GetEntriesAsync()
+        public Task<IEnumerable<Entry>> GetEntriesAsync()
         {
-            return await Client.GetEntriesAsync(Path);
+            return Client.GetEntriesAsync(Path);
         }
     }
 
     public class Document : Entry
     {
-        public Document(string path, string contentType, string hash, DateTime created, DateTime lastModified, IDocmsApiClient client) : base(path, client)
+        public Document(DocumentResponse entry, IDocmsApiClient client) : base(entry, client)
         {
-            ContentType = contentType;
-            Hash = hash;
-            Created = created;
-            LastModified = lastModified;
+            ContentType = entry.ContentType;
+            Hash = entry.Hash;
+            LastModified = entry.LastModified;
         }
 
         public string ContentType { get; }
         public string Hash { get; }
-        public DateTime Created { get; }
         public DateTime LastModified { get; }
 
         public async Task<Stream> OpenStreamAsync()

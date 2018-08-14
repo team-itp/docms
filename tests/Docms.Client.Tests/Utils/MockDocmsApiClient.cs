@@ -1,4 +1,5 @@
 ﻿using Docms.Client.Api;
+using Docms.Client.Api.Responses;
 using System;
 using System.Collections.Generic;
 using System.IO;
@@ -27,19 +28,19 @@ namespace Docms.Client.Tests.Utils
                 {
                     if (!es.Any(e => e.Path == entryPath))
                     {
-                        es.Add(new Container(entryPath, this));
+                        es.Add(new Container(new ContainerResponse() { Path = entryPath }, this));
                     }
                 }
                 else
                 {
-                    entries.Add(parentPath, new List<Entry>() { new Container(entryPath, this) });
+                    entries.Add(parentPath, new List<Entry>() { new Container(new ContainerResponse() { Path = entryPath, ParentPath = parentPath }, this) });
                 }
                 tmpPathSb.Append('/');
             }
             var hash = CalculateHash(data);
             entries.TryAdd(dirPath, new List<Entry>());
             var now = DateTime.UtcNow;
-            entries[dirPath].Add(new Document(path, contentType, hash, now, now, this));
+            entries[dirPath].Add(new Document(new DocumentResponse() { Path = path, ContentType = contentType, Hash = hash, LastModified = now }, this));
             streams.Add(path, data);
             histories.Add(path, new List<History>() { new DocumentCreated() { Id = Guid.NewGuid(), Timestamp = DateTime.UtcNow, Path = path, ContentType = contentType, FileSize = data.Length, Hash = hash, Created = now, LastModified = now } });
         }
@@ -53,20 +54,21 @@ namespace Docms.Client.Tests.Utils
             }
         }
 
-        public async Task CreateDocumentAsync(string path, Stream stream)
+        public async Task CreateOrUpdateDocumentAsync(string path, Stream stream, DateTime? created = null, DateTime? lastModified = null)
         {
+            var es = entries.FirstOrDefault(kv => kv.Value.Any(e => e.Path == path));
+            if (es.Key != null)
+            {
+                es.Value.Remove(es.Value.FirstOrDefault(e => e.Path == path));
+                streams.Remove(path);
+                histories.Remove(path);
+            }
             using (var ms = new MemoryStream())
             {
                 await stream.CopyToAsync(ms);
                 ms.Seek(0, SeekOrigin.Begin);
                 AddFile(path, "application/octet-stream", ms.ToArray());
             }
-        }
-
-        public async Task UpdateDocumentAsync(string path, Stream stream)
-        {
-            await DeleteDocumentAsync(path);
-            await CreateDocumentAsync(path, stream);
         }
 
         public Task MoveDocumentAsync(string originalPath, string destinationPath)
