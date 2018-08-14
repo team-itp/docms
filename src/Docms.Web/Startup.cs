@@ -1,12 +1,10 @@
-﻿using System;
-using System.Collections.Generic;
-using System.IdentityModel.Tokens.Jwt;
-using Docms.Domain.Documents;
+﻿using Docms.Domain.Documents;
 using Docms.Infrastructure;
 using Docms.Infrastructure.Files;
 using Docms.Infrastructure.Repositories;
 using Docms.Web.Application.Identity;
 using Docms.Web.Application.Queries;
+using Docms.Web.Application.Queries.DocumentHistories;
 using Docms.Web.Application.Queries.Documents;
 using IdentityServer4.Models;
 using MediatR;
@@ -17,6 +15,9 @@ using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
+using System;
+using System.Collections.Generic;
+using System.IdentityModel.Tokens.Jwt;
 using VisualizationSystem.Infrastructure;
 
 namespace Docms.Web
@@ -144,7 +145,8 @@ namespace Docms.Web
         public static IServiceCollection RegisterServices(this IServiceCollection services, IConfiguration configuration)
         {
             services.AddScoped<IDocumentRepository, DocumentRepository>();
-            services.AddScoped<DocumentsQueries>();
+            services.AddTransient<DocumentsQueries>();
+            services.AddTransient<DocumentHistoriesQueries>();
             services.AddSingleton<IFileStorage>(sv => new LocalFileStorage("App_Data/flies"));
             return services;
         }

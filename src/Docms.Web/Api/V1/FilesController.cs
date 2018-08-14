@@ -8,8 +8,7 @@ using System.Web;
 
 namespace Docms.Web.Api.V1
 {
-    [Area("api")]
-    [Route("v1/files")]
+    [Route("api/v1/files")]
     [ApiController]
     public class FilesController : ControllerBase
     {
@@ -23,8 +22,8 @@ namespace Docms.Web.Api.V1
         }
 
 
-        [HttpGet("{*path=''}")]
-        public async Task<IActionResult> Get(string path)
+        [HttpGet]
+        public async Task<IActionResult> Get([FromQuery] string path)
         {
             var entry = await _queries.GetEntryAsync(path ?? "");
             if (entry == null)
@@ -66,9 +65,9 @@ namespace Docms.Web.Api.V1
             return CreatedAtAction("Get", new { path = HttpUtility.UrlEncode(command.DestinationPath.ToString()) });
         }
 
-        [HttpDelete("{*path=''}")]
+        [HttpDelete]
         public async Task<IActionResult> Delete(
-            string path,
+            [FromQuery] string path,
             [FromServices] IMediator mediator)
         {
             var filePath = new FilePath(path);

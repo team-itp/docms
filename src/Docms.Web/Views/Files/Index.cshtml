@@ -41,21 +41,21 @@
                     <div class="mr-3">
                         <i class="fa fa-2x fa-folder-o"></i>
                     </div>
-                    <a href="~/files/view/@entry.Path">@entry.Name</a>
+                    <a href="@Url.ViewFile(entry.Path)">@entry.Name</a>
                 }
                 else if (entry is Document && (entry as Document).ContentType.StartsWith("image"))
                 {
                     <div class="mr-3">
                         <i class="fa fa-2x fa-file-image-o"></i>
                     </div>
-                    <a href="~/files/view/@entry.Path">@entry.Name</a>
+                    <a href="@Url.ViewFile(entry.Path)">@entry.Name</a>
                 }
                 else
                 {
                     <div class="mr-3">
                         <i class="fa fa-2x fa-file-o"></i>
                     </div>
-                    <a href="~/files/download/@entry.Path">@entry.Name</a>
+                    <a href="@Url.DownloadFile(entry.Path)">@entry.Name</a>
                 }
             </div>
         }
@@ -64,6 +64,6 @@
 else
 {
     <div class="border text-center">
-        <img class="mw-100" alt="@Model.Name" src="~/files/download/@Model.Path" />
+        <img class="mw-100" alt="@Model.Name" src="@Url.DownloadFile(Model.Path)" />
     </div>
 }

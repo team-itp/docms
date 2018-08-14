@@ -1,3 +1,4 @@
+using System;
 using System.Linq;
 using System.Web;
 using Microsoft.AspNetCore.Mvc;
@@ -13,6 +14,14 @@ namespace Docms.Web.Extensions
 
             var escapedPath = string.Join('/', path.Split('/').Select(HttpUtility.UrlEncode));
             return Url.Content("~/files/view/" + escapedPath);
+        }
+        public static string DownloadFile(this IUrlHelper Url, string path)
+        {
+            if (path == null)
+                new ArgumentNullException();
+
+            var escapedPath = string.Join('/', path.Split('/').Select(HttpUtility.UrlEncode));
+            return Url.Content("~/files/download/" + escapedPath);
         }
     }
 }
