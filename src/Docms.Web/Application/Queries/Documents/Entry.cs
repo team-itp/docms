@@ -11,9 +11,6 @@ namespace Docms.Web.Application.Queries.Documents
         public string Path { get; set; }
         public string Name { get; set; }
         public string ParentPath { get; set; }
-
-        [ForeignKey("ParentPath")]
-        public virtual Container Container { get; }
     }
 
     public sealed class Container : Entry
