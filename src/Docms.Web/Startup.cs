@@ -2,6 +2,7 @@
 using Docms.Infrastructure;
 using Docms.Infrastructure.Files;
 using Docms.Infrastructure.Repositories;
+using Docms.Web.Api.Serialization;
 using Docms.Web.Application.Identity;
 using Docms.Web.Application.Queries;
 using Docms.Web.Application.Queries.DocumentHistories;
@@ -15,6 +16,7 @@ using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
+using Newtonsoft.Json;
 using System;
 using System.Collections.Generic;
 using System.IdentityModel.Tokens.Jwt;
@@ -36,7 +38,12 @@ namespace Docms.Web
             services.AddCustomDbContext(Configuration)
                 .AddCustomIdentity(Configuration)
                 .AddCustomAuthentication(Configuration);
-            services.AddMvc();
+            services.AddMvc()
+                .AddJsonOptions(options =>
+                {
+                    options.SerializerSettings.TypeNameHandling = TypeNameHandling.Objects;
+                    options.SerializerSettings.SerializationBinder = new DocmsJsonTypeBinder();
+                });
 
             services.RegisterServices(Configuration);
             services.RegisterMediators(Configuration);
