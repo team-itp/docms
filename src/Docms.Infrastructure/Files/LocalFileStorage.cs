@@ -2,7 +2,6 @@
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
-using System.Security.Cryptography;
 using System.Threading.Tasks;
 
 namespace Docms.Infrastructure.Files
@@ -82,15 +81,18 @@ namespace Docms.Infrastructure.Files
 
             var fileInfo = GetFileInfo(file.Path);
             ContentTypeProvider.TryGetContentType(fileInfo.Extension, out var contentType);
-            return Task.FromResult(new FileProperties()
+            using(var fs = fileInfo.OpenRead())
             {
-                File = file,
-                ContentType = contentType ?? "application/octet-stream",
-                Size = fileInfo.Length,
-                Hash = Hash.CalculateHash(fileInfo.FullName),
-                LastModified = fileInfo.LastWriteTime,
-                Created = fileInfo.CreationTime,
-            });
+                return Task.FromResult(new FileProperties()
+                {
+                    File = file,
+                    ContentType = contentType ?? "application/octet-stream",
+                    Size = fileInfo.Length,
+                    Hash = Hash.CalculateHash(fs),
+                    LastModified = fileInfo.LastWriteTime,
+                    Created = fileInfo.CreationTime,
+                });
+            }
         }
 
         public Task<Stream> OpenAsync(File file)

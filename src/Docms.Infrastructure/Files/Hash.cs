@@ -6,11 +6,12 @@ namespace Docms.Infrastructure.Files
 {
     public class Hash
     {
-        public static byte[] CalculateHash(string fullpath)
+        public static byte[] CalculateHash(byte[] data)
         {
-            using (var fs = System.IO.File.OpenRead(fullpath))
+            using (var sha1 = SHA1.Create())
             {
-                return CalculateHash(fs);
+                var hash = sha1.ComputeHash(data);
+                return hash;
             }
         }
 
@@ -28,9 +29,9 @@ namespace Docms.Infrastructure.Files
             return BitConverter.ToString(hash).Replace("-", "");
         }
 
-        public static string CalculateHashString(string filePath)
+        public static string CalculateHashString(byte[] data)
         {
-            return ConvertHashString(CalculateHash(filePath));
+            return ConvertHashString(CalculateHash(data));
         }
 
         public static string CalculateHashString(Stream stream)
