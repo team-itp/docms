@@ -15,6 +15,7 @@ namespace Docms.Infrastructure.Files
         Task<FileProperties> GetPropertiesAsync(File file);
         Task<Stream> OpenAsync(File file);
         Task<FileProperties> SaveAsync(Directory dir, string filename, Stream stream, DateTime created, DateTime lastModified);
+        Task MoveAsync(FilePath originalPath, FilePath destinationPath);
         Task DeleteAsync(Entry entry);
     }
 }

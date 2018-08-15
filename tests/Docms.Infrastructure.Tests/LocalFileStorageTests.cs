@@ -171,6 +171,32 @@ namespace Docms.Infrastructure.Tests
         }
 
         [TestMethod]
+        public async Task ファイルが移動できること()
+        {
+            var ms = new MemoryStream(Encoding.UTF8.GetBytes("dir2content1"));
+            ms.Seek(0, SeekOrigin.Begin);
+            var dir = await sut.GetDirectoryAsync("dir2");
+            var fileProps = await dir.SaveAsync("content1.txt", ms);
+            Assert.IsTrue(System.IO.File.Exists(Path.Combine(basepath, "dir2\\content1.txt")));
+            await sut.MoveAsync(fileProps.File.Path, new FilePath("content1.txt"));
+            Assert.IsFalse(System.IO.File.Exists(Path.Combine(basepath, "dir2\\content1.txt")));
+            Assert.IsTrue(System.IO.File.Exists(Path.Combine(basepath, "content1.txt")));
+        }
+
+        [TestMethod]
+        public async Task 移動左記にディレクトリがない場合でもファイルの移動ができること()
+        {
+            var ms = new MemoryStream(Encoding.UTF8.GetBytes("dir2content1"));
+            ms.Seek(0, SeekOrigin.Begin);
+            var dir = await sut.GetDirectoryAsync("dir2");
+            var fileProps = await dir.SaveAsync("content1.txt", ms);
+            Assert.IsTrue(System.IO.File.Exists(Path.Combine(basepath, "dir2\\content1.txt")));
+            await sut.MoveAsync(fileProps.File.Path, new FilePath("dir1/subdir1/content1.txt"));
+            Assert.IsFalse(System.IO.File.Exists(Path.Combine(basepath, "dir2\\content1.txt")));
+            Assert.IsTrue(System.IO.File.Exists(Path.Combine(basepath, "dir1/subdir1/content1.txt")));
+        }
+
+        [TestMethod]
         public async Task ファイルを削除できること()
         {
             var ms = new MemoryStream(Encoding.UTF8.GetBytes("dir2content1"));

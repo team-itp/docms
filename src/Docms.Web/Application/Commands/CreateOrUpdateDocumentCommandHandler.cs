@@ -24,7 +24,13 @@ namespace Docms.Web.Application.Commands
         public async Task<bool> Handle(CreateOrUpdateDocumentCommand request, CancellationToken cancellationToken = default(CancellationToken))
         {
             var path = request.Path;
-            var file = (await _fileStorage.GetEntryAsync(request.Path)) as Infrastructure.Files.File;
+            var entry = await _fileStorage.GetEntryAsync(request.Path);
+            if (entry is Docms.Infrastructure.Files.Directory)
+            {
+                throw new InvalidOperationException();
+            }
+
+            var file = entry as Docms.Infrastructure.Files.File;
             if (file == null)
             {
                 var dir = await _fileStorage.GetDirectoryAsync(path.DirectoryPath);

@@ -27,6 +27,8 @@ namespace Docms.Web.Application.Commands
             {
                 throw new InvalidOperationException();
             }
+
+            await _fileStorage.MoveAsync(request.OriginalPath, request.DestinationPath);
             document.MoveTo(new DocumentPath(request.DestinationPath.ToString()));
             await _documentRepository.UpdateAsync(document);
             await _documentRepository.UnitOfWork.SaveEntitiesAsync();

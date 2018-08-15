@@ -27,7 +27,7 @@ namespace Docms.Web.Tests
             Created(ctx, "path1/subpath1/document1.txt", 1);
             Created(ctx, "path1/subpath1/document2.txt", 2);
             Created(ctx, "path1/subpath1document2.txt", 3);
-            Moved(ctx, "path1/subpath1/document2.txt", "path2/subpath1/document1.txt");
+            Moved(ctx, "path1/subpath1/document2.txt", "path2/subpath1/document1.txt", 2);
             Updated(ctx, "path1/subpath1/document1.txt", 4);
             Deleted(ctx, "path1/subpath1/document1.txt");
             Created(ctx, "path2/document1.txt", 4);
@@ -57,14 +57,20 @@ namespace Docms.Web.Tests
             });
         }
 
-        private void Moved(DocmsQueriesContext ctx, string from, string to)
+        private void Moved(DocmsQueriesContext ctx, string from, string to, int contentId)
         {
+            var now = DateTime.UtcNow;
             ctx.DocumentMovedFromOldPath.Add(new DocumentMovedFromOldPath()
             {
                 Id = Guid.NewGuid(),
                 Timestamp = DateTime.UtcNow,
                 Path = to,
-                OldPath = from
+                OldPath = from,
+                ContentType = "text/plain",
+                FileSize = 5 + contentId.ToString().Length,
+                Hash = Hash.CalculateHashString(Encoding.UTF8.GetBytes("Hello" + contentId)),
+                Created = now,
+                LastModified = now
             });
             ctx.DocumentMovedToNewPath.Add(new DocumentMovedToNewPath()
             {
@@ -119,6 +125,7 @@ namespace Docms.Web.Tests
         public async Task 期間を指定してデータが取得できること()
         {
             var since = DateTime.UtcNow;
+            await Task.Delay(1);
             Created(ctx, "path1/newdocument.txt", 1);
             await ctx.SaveChangesAsync();
             var histories = await sut.GetHistoriesAsync("", since);

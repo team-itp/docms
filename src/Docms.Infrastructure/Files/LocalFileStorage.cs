@@ -81,7 +81,7 @@ namespace Docms.Infrastructure.Files
 
             var fileInfo = GetFileInfo(file.Path);
             ContentTypeProvider.TryGetContentType(fileInfo.Extension, out var contentType);
-            using(var fs = fileInfo.OpenRead())
+            using (var fs = fileInfo.OpenRead())
             {
                 return Task.FromResult(new FileProperties()
                 {
@@ -135,6 +135,19 @@ namespace Docms.Infrastructure.Files
             fileInfo.LastWriteTimeUtc = lastModified;
             var file = new File(filepath, this);
             return await GetPropertiesAsync(file);
+        }
+
+        public Task MoveAsync(FilePath originalPath, FilePath destinationPath)
+        {
+            if (!Exists(originalPath) || Exists(destinationPath))
+            {
+                throw new InvalidOperationException();
+            }
+            var origFileInfo = GetFileInfo(originalPath);
+            var destFileInfo = GetFileInfo(destinationPath);
+            EnsureDirectoryExists(destinationPath.DirectoryPath);
+            origFileInfo.MoveTo(destFileInfo.FullName);
+            return Task.CompletedTask;
         }
 
         public Task DeleteAsync(Entry entry)

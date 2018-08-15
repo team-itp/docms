@@ -27,9 +27,9 @@ namespace Docms.Web.Application.Commands
             {
                 throw new InvalidOperationException();
             }
-            document.Delete();
             var file = (await _fileStorage.GetEntryAsync(request.Path)) as File;
             await _fileStorage.DeleteAsync(file);
+            document.Delete();
             await _documentRepository.UpdateAsync(document);
             await _documentRepository.UnitOfWork.SaveEntitiesAsync();
             return true;
