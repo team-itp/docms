@@ -23,6 +23,11 @@ namespace Docms.Web.Application.Queries.DocumentHistories
     public class DocumentMovedFromOldPath : DocumentHistory
     {
         public string OldPath { get; set; }
+        public string ContentType { get; set; }
+        public long FileSize { get; set; }
+        public string Hash { get; set; }
+        public DateTime Created { get; set; }
+        public DateTime LastModified { get; set; }
     }
 
     public class DocumentMovedToNewPath : DocumentHistory

@@ -65,6 +65,11 @@ namespace Docms.Web.Application.DomainEventHandlers
                 Timestamp = DateTime.UtcNow,
                 Path = ev.Path.ToString(),
                 OldPath = ev.OldPath.ToString(),
+                ContentType = ev.Document.ContentType,
+                FileSize = ev.Document.FileSize,
+                Hash = ev.Document.Hash,
+                Created = ev.Document.Created,
+                LastModified = ev.Document.LastModified,
             });
             _db.DocumentMovedToNewPath.Add(new DocumentMovedToNewPath()
             {

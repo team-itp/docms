@@ -49,6 +49,8 @@ namespace Docms.Web.Tests
                 });
             }
             Assert.AreEqual("test2/document2.txt", repository.Documents.First().Path.Value);
+            Assert.IsNull(await localFileStorage.GetEntryAsync("test1/document1.txt"));
+            Assert.IsNotNull(await localFileStorage.GetEntryAsync("test2/document2.txt"));
         }
     }
 }
