@@ -2,6 +2,7 @@
 using Docms.Client.SeedWork;
 using System;
 using System.Collections.Generic;
+using System.Linq;
 
 namespace Docms.Client.FileSyncing
 {
@@ -24,8 +25,17 @@ namespace Docms.Client.FileSyncing
 
         public void Apply(History history)
         {
+            if (_histories.Any(h => h.Id == history.Id))
+            {
+                return;
+            }
+
             var ts = new TypeSwitch()
-                .Case((DocumentCreated x) => Apply(x));
+                .Case((DocumentCreated x) => Apply(x))
+                .Case((DocumentUpdated x) => Apply(x))
+                .Case((DocumentMovedFrom x) => Apply(x))
+                .Case((DocumentMovedTo x) => Apply(x))
+                .Case((DocumentDeleted x) => Apply(x));
             ts.Switch(history);
         }
 
@@ -38,6 +48,46 @@ namespace Docms.Client.FileSyncing
             Hash = history.Hash;
             Created = history.Created;
             LastModified = history.LastModified;
+
+            _histories.Add(history);
+        }
+
+        public void Apply(DocumentUpdated history)
+        {
+            LastHistoryId = history.Id;
+            ContentType = history.ContentType;
+            FileSize = history.FileSize;
+            Hash = history.Hash;
+            Created = history.Created;
+            LastModified = history.LastModified;
+
+            _histories.Add(history);
+        }
+
+        public void Apply(DocumentMovedFrom history)
+        {
+            LastHistoryId = history.Id;
+            ContentType = history.ContentType;
+            FileSize = history.FileSize;
+            Hash = history.Hash;
+            Created = history.Created;
+            LastModified = history.LastModified;
+
+            _histories.Add(history);
+        }
+
+        public void Apply(DocumentMovedTo history)
+        {
+            LastHistoryId = history.Id;
+            Path = history.Path;
+
+            _histories.Add(history);
+        }
+
+        public void Apply(DocumentDeleted history)
+        {
+            LastHistoryId = history.Id;
+            Path = null;
 
             _histories.Add(history);
         }

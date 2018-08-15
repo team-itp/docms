@@ -88,6 +88,7 @@ namespace Docms.Client.Tests
         public async Task ファイルがローカルに存在し内容が異なる場合ファイルの日時比較でローカル側の方が新しい場合サーバー側のファイルが上書きされる()
         {
             mockClient.AddFile("test/document1.txt", "text/plain", Encoding.UTF8.GetBytes("Hello"));
+            await Task.Delay(1);
             var now = DateTime.UtcNow;
             await localFileStorage.Create("test/document1.txt", new MemoryStream(Encoding.UTF8.GetBytes("Hello New")), now, now);
             await sut.SyncAsync("test/document1.txt");

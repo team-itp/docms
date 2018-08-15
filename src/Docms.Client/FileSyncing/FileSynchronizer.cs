@@ -23,18 +23,21 @@ namespace Docms.Client.FileSyncing
             _db = db;
         }
 
-        public async Task SyncAsync(string path)
+        public async Task SyncAsync(string path, List<History> serverHistories = null)
         {
             var histories = await _db.Histories.Where(e => e.Path == path).ToListAsync();
 
-            var serverHistories = new List<History>();
-            if (histories.Any())
+            if (serverHistories == null)
             {
-                serverHistories.AddRange(await _client.GetHistoriesAsync(path, histories.Max(e => e.Timestamp)));
-            }
-            else
-            {
-                serverHistories.AddRange(await _client.GetHistoriesAsync(path));
+                serverHistories = new List<History>();
+                if (histories.Any())
+                {
+                    serverHistories.AddRange(await _client.GetHistoriesAsync(path, histories.Max(e => e.Timestamp)));
+                }
+                else
+                {
+                    serverHistories.AddRange(await _client.GetHistoriesAsync(path));
+                }
             }
 
             var file = new SyncingFile(histories);
@@ -44,11 +47,11 @@ namespace Docms.Client.FileSyncing
                 _db.Histories.Add(history);
             }
 
-            var fileInfo = _storage.GetFile(file.Path);
+            var fileInfo = _storage.GetFile(path);
             if (fileInfo.Exists)
             {
                 var isSameFile = fileInfo.Length == file.FileSize
-                    && _storage.CalculateHash(file.Path) == file.Hash;
+                    && _storage.CalculateHash(path) == file.Hash;
 
                 if (!isSameFile)
                 {
@@ -56,24 +59,24 @@ namespace Docms.Client.FileSyncing
                     {
                         using (var fs = fileInfo.OpenRead())
                         {
-                            await _client.CreateOrUpdateDocumentAsync(file.Path, fs, fileInfo.CreationTimeUtc, fileInfo.LastWriteTimeUtc);
+                            await _client.CreateOrUpdateDocumentAsync(path, fs, fileInfo.CreationTimeUtc, fileInfo.LastWriteTimeUtc);
                         }
                     }
                     else
                     {
-                        _storage.MoveDocument(file.Path, file.Path + ".bk");
-                        using (var stream = await _client.DownloadAsync(file.Path))
+                        _storage.MoveDocument(path, path + ".bk");
+                        using (var stream = await _client.DownloadAsync(path))
                         {
-                            await _storage.Create(file.Path, stream, file.Created, file.LastModified);
+                            await _storage.Create(path, stream, file.Created, file.LastModified);
                         }
                     }
                 }
             }
             else
             {
-                using (var stream = await _client.DownloadAsync(file.Path))
+                using (var stream = await _client.DownloadAsync(path))
                 {
-                    await _storage.Create(file.Path, stream, file.Created, file.LastModified);
+                    await _storage.Create(path, stream, file.Created, file.LastModified);
                 }
             }
             await _db.SaveChangesAsync();

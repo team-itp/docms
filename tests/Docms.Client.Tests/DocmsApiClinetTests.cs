@@ -1,4 +1,4 @@
-using Docms.Client.Api;
+ï»¿using Docms.Client.Api;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using System.IO;
 using System.Text;
@@ -18,19 +18,19 @@ namespace Docms.Client.Tests
         }
 
         [TestMethod]
-        public async Task ƒT[ƒo[‚æ‚èƒ‹[ƒgƒfƒBƒŒƒNƒgƒŠ“à‚Ìƒtƒ@ƒCƒ‹‚Ìˆê——‚ğæ“¾‚·‚é()
+        public async Task ã‚µãƒ¼ãƒãƒ¼ã‚ˆã‚Šãƒ«ãƒ¼ãƒˆãƒ‡ã‚£ãƒ¬ã‚¯ãƒˆãƒªå†…ã®ãƒ•ã‚¡ã‚¤ãƒ«ã®ä¸€è¦§ã‚’å–å¾—ã™ã‚‹()
         {
             var entries = await sut.GetEntriesAsync("");
         }
 
         [TestMethod]
-        public async Task ƒT[ƒo[‚Éƒtƒ@ƒCƒ‹‚ğƒAƒbƒvƒ[ƒh‚·‚é()
+        public async Task ã‚µãƒ¼ãƒãƒ¼ã«ãƒ•ã‚¡ã‚¤ãƒ«ã‚’ã‚¢ãƒƒãƒ—ãƒ­ãƒ¼ãƒ‰ã™ã‚‹()
         {
             await sut.CreateOrUpdateDocumentAsync("test1/subtest1/test.txt", new MemoryStream(Encoding.UTF8.GetBytes("test1")));
         }
 
         [TestMethod]
-        public async Task ƒT[ƒo[‚Ìƒtƒ@ƒCƒ‹‚ğˆÚ“®‚·‚é()
+        public async Task ã‚µãƒ¼ãƒãƒ¼ã®ãƒ•ã‚¡ã‚¤ãƒ«ã‚’ç§»å‹•ã™ã‚‹()
         {
             await sut.CreateOrUpdateDocumentAsync("test1/subtest1/test1.txt", new MemoryStream(Encoding.UTF8.GetBytes("test1")));
             await sut.CreateOrUpdateDocumentAsync("test1/subtest1/test2.txt", new MemoryStream(Encoding.UTF8.GetBytes("test2")));
