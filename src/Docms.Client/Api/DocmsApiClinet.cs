@@ -13,8 +13,8 @@ namespace Docms.Client.Api
 {
     public class DocmsApiClinet : IDocmsApiClient
     {
-        private string _serverUri;
-        private string _defaultPath;
+        private readonly string _serverUri;
+        private readonly string _defaultPath;
         private string _tokenEndpoint;
         private string _introspectionEndpoint;
         private string _revocationEndpoint;

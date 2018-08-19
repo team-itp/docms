@@ -12,10 +12,10 @@ namespace Docms.Client.FileSyncing
 {
     public class FileSystemSynchronizer
     {
-        private IDocmsApiClient _client;
-        private ILocalFileStorage _storage;
-        private FileSyncingContext _db;
-        private FileSynchronizer _synchronizer;
+        private readonly IDocmsApiClient _client;
+        private readonly ILocalFileStorage _storage;
+        private readonly FileSyncingContext _db;
+        private readonly FileSynchronizer _synchronizer;
 
         public FileSystemSynchronizer(IDocmsApiClient client, ILocalFileStorage storage, FileSyncingContext db)
         {
@@ -49,14 +49,11 @@ namespace Docms.Client.FileSyncing
             foreach (var item in await _client.GetEntriesAsync(path))
             {
                 cancellationToken.ThrowIfCancellationRequested();
-                var doc = item as Document;
-                if (doc != null)
+                if (item is Document doc)
                 {
                     await _synchronizer.SyncAsync(doc.Path);
                 }
-
-                var con = item as Container;
-                if (con != null)
+                if (item is Container con)
                 {
                     await DownloadFiles(con.Path, cancellationToken);
                 }

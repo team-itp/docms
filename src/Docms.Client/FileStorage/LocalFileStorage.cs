@@ -7,7 +7,7 @@ namespace Docms.Client.FileStorage
 {
     public class LocalFileStorage : ILocalFileStorage
     {
-        private string _basePath;
+        private readonly string _basePath;
 
         public LocalFileStorage(string basePath)
         {

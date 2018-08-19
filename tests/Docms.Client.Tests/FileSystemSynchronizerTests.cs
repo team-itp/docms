@@ -51,7 +51,9 @@ namespace Docms.Client.Tests
         {
             await mockClient.CreateOrUpdateDocumentAsync("日本語/日本語.txt", CreateStream("日本語/日本語.txt"));
             await mockClient.CreateOrUpdateDocumentAsync("test/test1.txt", CreateStream("test/test1.txt"));
+            await mockClient.MoveDocumentAsync("test/test1.txt", "test/test2.txt");
             await mockClient.CreateOrUpdateDocumentAsync("test/test2.txt", CreateStream("test/test2.txt"));
+            await mockClient.CreateOrUpdateDocumentAsync("test/test1.txt", CreateStream("test/test1.txt"));
             await sut.InitializeAsync();
             var file1 = localFileStorage.GetFile("日本語/日本語.txt");
             Assert.AreEqual("日本語/日本語.txt", File.ReadAllText(file1.FullName));
