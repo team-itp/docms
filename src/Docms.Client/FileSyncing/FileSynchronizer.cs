@@ -47,24 +47,38 @@ namespace Docms.Client.FileSyncing
                 _db.Histories.Add(history);
             }
 
+            // 削除・移動された場合以外
             var fileInfo = _storage.GetFile(path);
             if (fileInfo.Exists)
             {
                 var isSameFile = fileInfo.Length == file.FileSize
                     && _storage.CalculateHash(path) == file.Hash;
 
-                if (!isSameFile)
+                if (isSameFile)
                 {
-                    if (fileInfo.LastWriteTimeUtc > file.LastModified)
+                    if (file.Path == null)
                     {
-                        using (var fs = fileInfo.OpenRead())
+                        fileInfo.Delete();
+                    }
+                    else if (file.Path != path)
+                    {
+                        var fileInfoMoveTo = _storage.GetFile(file.Path);
+                        if (fileInfoMoveTo.Exists)
                         {
-                            await _client.CreateOrUpdateDocumentAsync(path, fs, fileInfo.CreationTimeUtc, fileInfo.LastWriteTimeUtc);
+                            fileInfo.Delete();
+                        }
+                        else
+                        {
+                            fileInfoMoveTo.Directory.Create();
+                            fileInfo.MoveTo(fileInfoMoveTo.FullName);
                         }
                     }
-                    else
+                }
+                else
+                {
+                    if (fileInfo.LastWriteTimeUtc <= file.LastHistorTimestamp)
                     {
-                        _storage.MoveDocument(path, path + ".bk");
+                        _storage.Delete(path);
                         using (var stream = await _client.DownloadAsync(path))
                         {
                             await _storage.Create(path, stream, file.Created, file.LastModified);
@@ -74,9 +88,12 @@ namespace Docms.Client.FileSyncing
             }
             else
             {
-                using (var stream = await _client.DownloadAsync(path))
+                if (file.Path != null && file.Path == path)
                 {
-                    await _storage.Create(path, stream, file.Created, file.LastModified);
+                    using (var stream = await _client.DownloadAsync(path))
+                    {
+                        await _storage.Create(path, stream, file.Created, file.LastModified);
+                    }
                 }
             }
             await _db.SaveChangesAsync();

@@ -89,7 +89,7 @@ namespace docmssync
         {
             actions.Enqueue(async () =>
             {
-                await synchronizer.RequestSyncFromHistory();
+                await synchronizer.SyncFromHistoryAsync();
             });
         }
 

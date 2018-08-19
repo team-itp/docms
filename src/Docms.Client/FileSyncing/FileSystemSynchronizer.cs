@@ -22,6 +22,7 @@ namespace Docms.Client.FileSyncing
             _client = client;
             _storage = storage;
             _db = db;
+            _synchronizer = new FileSynchronizer(_client, _storage, _db);
         }
 
         public async Task InitializeAsync(CancellationToken cancellationToken = default(CancellationToken))
@@ -31,7 +32,6 @@ namespace Docms.Client.FileSyncing
 
             try
             {
-                _synchronizer = new FileSynchronizer(_client, _storage, _db);
                 await DownloadFiles("", cancellationToken);
                 _db.FileSyncHistories.Add(new FileSyncHistory(FileSyncStatus.InitializeCompleted));
                 await _db.SaveChangesAsync();
@@ -63,7 +63,7 @@ namespace Docms.Client.FileSyncing
             }
         }
 
-        public async Task RequestSyncFromHistory(CancellationToken cancellationToken = default(CancellationToken))
+        public async Task SyncFromHistoryAsync(CancellationToken cancellationToken = default(CancellationToken))
         {
             _db.FileSyncHistories.Add(new FileSyncHistory(FileSyncStatus.SyncStarted));
             await _db.SaveChangesAsync();
@@ -83,7 +83,7 @@ namespace Docms.Client.FileSyncing
                     serverHistories.AddRange(await _client.GetHistoriesAsync(""));
                 }
 
-                if (!serverHistories.Any())
+                if (serverHistories.Any())
                 {
                     foreach (var histories in serverHistories.GroupBy(h => h.Path))
                     {

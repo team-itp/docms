@@ -16,6 +16,7 @@ namespace Docms.Client.FileSyncing
         }
 
         public Guid LastHistoryId { get; set; }
+        public DateTime LastHistorTimestamp { get; internal set; }
         public string Path { get; set; }
         public string ContentType { get; set; }
         public long FileSize { get; set; }
@@ -42,6 +43,8 @@ namespace Docms.Client.FileSyncing
         public void Apply(DocumentCreated history)
         {
             LastHistoryId = history.Id;
+            LastHistorTimestamp = history.Timestamp;
+
             Path = history.Path;
             ContentType = history.ContentType;
             FileSize = history.FileSize;
@@ -55,6 +58,8 @@ namespace Docms.Client.FileSyncing
         public void Apply(DocumentUpdated history)
         {
             LastHistoryId = history.Id;
+            LastHistorTimestamp = history.Timestamp;
+
             ContentType = history.ContentType;
             FileSize = history.FileSize;
             Hash = history.Hash;
@@ -66,6 +71,10 @@ namespace Docms.Client.FileSyncing
 
         public void Apply(DocumentMovedFrom history)
         {
+            LastHistoryId = history.Id;
+            LastHistorTimestamp = history.Timestamp;
+
+            Path = history.Path;
             LastHistoryId = history.Id;
             ContentType = history.ContentType;
             FileSize = history.FileSize;
@@ -79,7 +88,9 @@ namespace Docms.Client.FileSyncing
         public void Apply(DocumentMovedTo history)
         {
             LastHistoryId = history.Id;
-            Path = history.Path;
+            LastHistorTimestamp = history.Timestamp;
+
+            Path = history.NewPath;
 
             _histories.Add(history);
         }
@@ -87,6 +98,8 @@ namespace Docms.Client.FileSyncing
         public void Apply(DocumentDeleted history)
         {
             LastHistoryId = history.Id;
+            LastHistorTimestamp = history.Timestamp;
+
             Path = null;
 
             _histories.Add(history);
