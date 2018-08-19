@@ -15,37 +15,37 @@ namespace Docms.Client.Tests
         public async Task Setup()
         {
             sut = new DocmsApiClinet("http://localhost:51693");
-            await sut.LoginAsync("testuser", "Passw0rd");
+            await sut.LoginAsync("testuser", "Passw0rd").ConfigureAwait(false);
         }
 
         [TestCleanup]
         public async Task Teardown()
         {
-            await sut.LogoutAsync();
+            await sut.LogoutAsync().ConfigureAwait(false);
         }
 
         [TestMethod]
         public async Task サーバーよりルートディレクトリ内のファイルの一覧を取得する()
         {
-            await sut.VerifyTokenAsync();
-            var entries = await sut.GetEntriesAsync("");
+            await sut.VerifyTokenAsync().ConfigureAwait(false);
+            var entries = await sut.GetEntriesAsync("").ConfigureAwait(false);
         }
 
         [TestMethod]
         public async Task サーバーにファイルをアップロードする()
         {
-            await sut.VerifyTokenAsync();
-            await sut.CreateOrUpdateDocumentAsync("test1/subtest1/test.txt", new MemoryStream(Encoding.UTF8.GetBytes("test1")));
+            await sut.VerifyTokenAsync().ConfigureAwait(false);
+            await sut.CreateOrUpdateDocumentAsync("test1/subtest1/test.txt", new MemoryStream(Encoding.UTF8.GetBytes("test1"))).ConfigureAwait(false);
         }
 
         [TestMethod]
         public async Task サーバーのファイルを移動する()
         {
-            await sut.VerifyTokenAsync();
-            await sut.CreateOrUpdateDocumentAsync("test1/subtest1/test1.txt", new MemoryStream(Encoding.UTF8.GetBytes("test1")));
-            await sut.CreateOrUpdateDocumentAsync("test1/subtest1/test2.txt", new MemoryStream(Encoding.UTF8.GetBytes("test2")));
-            await sut.DeleteDocumentAsync("test1/subtest1/test2.txt");
-            await sut.MoveDocumentAsync("test1/subtest1/test1.txt", "test1/subtest1/test2.txt");
+            await sut.VerifyTokenAsync().ConfigureAwait(false);
+            await sut.CreateOrUpdateDocumentAsync("test1/subtest1/test1.txt", new MemoryStream(Encoding.UTF8.GetBytes("test1"))).ConfigureAwait(false);
+            await sut.CreateOrUpdateDocumentAsync("test1/subtest1/test2.txt", new MemoryStream(Encoding.UTF8.GetBytes("test2"))).ConfigureAwait(false);
+            await sut.DeleteDocumentAsync("test1/subtest1/test2.txt").ConfigureAwait(false);
+            await sut.MoveDocumentAsync("test1/subtest1/test1.txt", "test1/subtest1/test2.txt").ConfigureAwait(false);
         }
     }
 }

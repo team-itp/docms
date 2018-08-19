@@ -49,12 +49,12 @@ namespace Docms.Client.Tests
         [TestMethod]
         public async Task サーバーの現在状態よりファイルを一括ダウンロードする()
         {
-            await mockClient.CreateOrUpdateDocumentAsync("日本語/日本語.txt", CreateStream("日本語/日本語.txt"));
-            await mockClient.CreateOrUpdateDocumentAsync("test/test1.txt", CreateStream("test/test1.txt"));
-            await mockClient.MoveDocumentAsync("test/test1.txt", "test/test2.txt");
-            await mockClient.CreateOrUpdateDocumentAsync("test/test2.txt", CreateStream("test/test2.txt"));
-            await mockClient.CreateOrUpdateDocumentAsync("test/test1.txt", CreateStream("test/test1.txt"));
-            await sut.InitializeAsync();
+            await mockClient.CreateOrUpdateDocumentAsync("日本語/日本語.txt", CreateStream("日本語/日本語.txt")).ConfigureAwait(false);
+            await mockClient.CreateOrUpdateDocumentAsync("test/test1.txt", CreateStream("test/test1.txt")).ConfigureAwait(false);
+            await mockClient.MoveDocumentAsync("test/test1.txt", "test/test2.txt").ConfigureAwait(false);
+            await mockClient.CreateOrUpdateDocumentAsync("test/test2.txt", CreateStream("test/test2.txt")).ConfigureAwait(false);
+            await mockClient.CreateOrUpdateDocumentAsync("test/test1.txt", CreateStream("test/test1.txt")).ConfigureAwait(false);
+            await sut.InitializeAsync().ConfigureAwait(false);
             var file1 = localFileStorage.GetFile("日本語/日本語.txt");
             Assert.AreEqual("日本語/日本語.txt", File.ReadAllText(file1.FullName));
             var file2 = localFileStorage.GetFile("test/test1.txt");

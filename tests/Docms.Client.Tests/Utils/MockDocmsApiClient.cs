@@ -163,7 +163,7 @@ namespace Docms.Client.Tests.Utils
                 RemoveFile(path);
                 using (var ms = new MemoryStream())
                 {
-                    await stream.CopyToAsync(ms);
+                    await stream.CopyToAsync(ms).ConfigureAwait(false);
                     ms.Seek(0, SeekOrigin.Begin);
                     AddFile(path, "application/octet-stream", ms.ToArray());
                     AddUpdated(path, "application/octet-stream", ms.ToArray());
@@ -173,7 +173,7 @@ namespace Docms.Client.Tests.Utils
             {
                 using (var ms = new MemoryStream())
                 {
-                    await stream.CopyToAsync(ms);
+                    await stream.CopyToAsync(ms).ConfigureAwait(false);
                     ms.Seek(0, SeekOrigin.Begin);
                     AddFile(path, "application/octet-stream", ms.ToArray());
                     AddCreated(path, "application/octet-stream", ms.ToArray());

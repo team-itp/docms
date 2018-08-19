@@ -33,20 +33,20 @@ namespace Docms.Client.FileSyncing
         public async Task InitializeAsync(CancellationToken cancellationToken = default(CancellationToken))
         {
             _db.FileSyncHistories.Add(new FileSyncHistory(FileSyncStatus.InitializingStarted));
-            await _db.SaveChangesAsync();
+            await _db.SaveChangesAsync().ConfigureAwait(false);
 
             try
             {
-                await DownloadFiles("", cancellationToken);
-                await UploadLocalFiles("", cancellationToken);
+                await DownloadFiles("", cancellationToken).ConfigureAwait(false);
+                await UploadLocalFiles("", cancellationToken).ConfigureAwait(false);
                 _db.FileSyncHistories.Add(new FileSyncHistory(FileSyncStatus.InitializeCompleted));
-                await _db.SaveChangesAsync();
+                await _db.SaveChangesAsync().ConfigureAwait(false);
             }
             catch (Exception ex)
             {
                 Trace.WriteLine(ex);
                 _db.FileSyncHistories.Add(new FileSyncHistory(FileSyncStatus.InitializeFailed));
-                await _db.SaveChangesAsync();
+                await _db.SaveChangesAsync().ConfigureAwait(false);
             }
         }
 
@@ -57,11 +57,11 @@ namespace Docms.Client.FileSyncing
                 cancellationToken.ThrowIfCancellationRequested();
                 if (item is Document doc)
                 {
-                    await _synchronizer.SyncAsync(doc.Path);
+                    await _synchronizer.SyncAsync(doc.Path).ConfigureAwait(false);
                 }
                 if (item is Container con)
                 {
-                    await DownloadFiles(con.Path, cancellationToken);
+                    await DownloadFiles(con.Path, cancellationToken).ConfigureAwait(false);
                 }
             }
         }
@@ -73,19 +73,19 @@ namespace Docms.Client.FileSyncing
                 cancellationToken.ThrowIfCancellationRequested();
                 if (!IgnorePatterns.Any(e => Regex.IsMatch(item, e)))
                 {
-                    await _synchronizer.SyncAsync(item);
+                    await _synchronizer.SyncAsync(item).ConfigureAwait(false);
                 }
             }
             foreach (var item in _storage.GetDirectories(path))
             {
-                await UploadLocalFiles(item);
+                await UploadLocalFiles(item).ConfigureAwait(false);
             }
         }
 
         public async Task SyncFromHistoryAsync(CancellationToken cancellationToken = default(CancellationToken))
         {
             _db.FileSyncHistories.Add(new FileSyncHistory(FileSyncStatus.SyncStarted));
-            await _db.SaveChangesAsync();
+            await _db.SaveChangesAsync().ConfigureAwait(false);
 
             try
             {
@@ -95,29 +95,29 @@ namespace Docms.Client.FileSyncing
                 var serverHistories = new List<History>();
                 if (await completedHistories.AnyAsync())
                 {
-                    serverHistories.AddRange(await _client.GetHistoriesAsync("", await completedHistories.MaxAsync(h => h.Timestamp)));
+                    serverHistories.AddRange(await _client.GetHistoriesAsync("", await completedHistories.MaxAsync(h => h.Timestamp).ConfigureAwait(false)).ConfigureAwait(false));
                 }
                 else
                 {
-                    serverHistories.AddRange(await _client.GetHistoriesAsync(""));
+                    serverHistories.AddRange(await _client.GetHistoriesAsync("").ConfigureAwait(false));
                 }
 
                 if (serverHistories.Any())
                 {
                     foreach (var histories in serverHistories.GroupBy(h => h.Path))
                     {
-                        await _synchronizer.SyncAsync(histories.Key, histories.ToList());
+                        await _synchronizer.SyncAsync(histories.Key, histories.ToList()).ConfigureAwait(false);
                     }
                 }
 
                 _db.FileSyncHistories.Add(new FileSyncHistory(FileSyncStatus.SyncCompleted));
-                await _db.SaveChangesAsync();
+                await _db.SaveChangesAsync().ConfigureAwait(false);
             }
             catch (Exception ex)
             {
                 Trace.WriteLine(ex);
                 _db.FileSyncHistories.Add(new FileSyncHistory(FileSyncStatus.SyncFailed));
-                await _db.SaveChangesAsync();
+                await _db.SaveChangesAsync().ConfigureAwait(false);
             }
         }
 
@@ -125,7 +125,7 @@ namespace Docms.Client.FileSyncing
         {
             try
             {
-                var file = await _client.GetDocumentAsync(path);
+                var file = await _client.GetDocumentAsync(path).ConfigureAwait(false);
 
                 var fileInfo = _storage.GetFile(path);
                 if (!File.Exists(fileInfo.FullName))
@@ -143,7 +143,7 @@ namespace Docms.Client.FileSyncing
 
                 using (var fs = fileInfo.OpenRead())
                 {
-                    await _client.CreateOrUpdateDocumentAsync(path, fs, fileInfo.CreationTimeUtc, fileInfo.LastWriteTimeUtc);
+                    await _client.CreateOrUpdateDocumentAsync(path, fs, fileInfo.CreationTimeUtc, fileInfo.LastWriteTimeUtc).ConfigureAwait(false);
                 }
             }
             catch (NotFoundException)

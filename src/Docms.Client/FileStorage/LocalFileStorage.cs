@@ -23,7 +23,7 @@ namespace Docms.Client.FileStorage
 
             using (var fs = new FileStream(fullpath, FileMode.Create, FileAccess.Write, FileShare.None))
             {
-                await stream.CopyToAsync(fs);
+                await stream.CopyToAsync(fs).ConfigureAwait(false);
             }
             File.SetCreationTimeUtc(fullpath, created);
             File.SetLastWriteTimeUtc(fullpath, lastModified);
@@ -47,7 +47,7 @@ namespace Docms.Client.FileStorage
 
             using (var fs = new FileStream(fullpath, FileMode.Create, FileAccess.Write, FileShare.None))
             {
-                await stream.CopyToAsync(fs);
+                await stream.CopyToAsync(fs).ConfigureAwait(false);
             }
             File.SetLastWriteTimeUtc(fullpath, lastModified);
         }

@@ -69,10 +69,10 @@ namespace docmssync
         {
             try
             {
-                await _context.Database.EnsureCreatedAsync();
-                await _client.LoginAsync(Settings.Default.UploadUserName, Settings.Default.UploadUserPassword);
+                await _context.Database.EnsureCreatedAsync().ConfigureAwait(false);
+                await _client.LoginAsync(Settings.Default.UploadUserName, Settings.Default.UploadUserPassword).ConfigureAwait(false);
                 _synchronizer = new FileSystemSynchronizer(_client, _localFileStorage, _context);
-                await _synchronizer.InitializeAsync(_cts.Token);
+                await _synchronizer.InitializeAsync(_cts.Token).ConfigureAwait(false);
                 _processTask = ProcessFileSync(_cts.Token);
                 _watcher.EnableRaisingEvents = true;
                 _timer.Change(0, 10000);
@@ -86,12 +86,13 @@ namespace docmssync
 
         private async Task ProcessFileSync(CancellationToken token = default(CancellationToken))
         {
+            await Task.Yield();
             while (!token.IsCancellationRequested)
             {
                 if (_actions.TryDequeue(out var action))
                 {
                     token.WaitHandle.WaitOne(1000);
-                    await action.Invoke();
+                    await action.Invoke().ConfigureAwait(false);
                 }
                 token.WaitHandle.WaitOne(100);
             }
@@ -107,7 +108,7 @@ namespace docmssync
             _timer.Change(-1, Timeout.Infinite);
             _actions.Enqueue(async () =>
             {
-                await _synchronizer.SyncFromHistoryAsync();
+                await _synchronizer.SyncFromHistoryAsync().ConfigureAwait(false);
             });
             _timer.Change(Timeout.Infinite, 10000);
         }
@@ -122,7 +123,8 @@ namespace docmssync
         {
             _actions.Enqueue(async () =>
             {
-                await _synchronizer.RequestDeleteAsync(ResolvePath(e.FullPath));
+                await Task.Delay(1000);
+                await _synchronizer.RequestDeleteAsync(ResolvePath(e.FullPath)).ConfigureAwait(false);
             });
         }
 
@@ -130,7 +132,8 @@ namespace docmssync
         {
             _actions.Enqueue(async () =>
             {
-                await _synchronizer.RequestMoveAsync(ResolvePath(e.OldFullPath), ResolvePath(e.FullPath));
+                await Task.Delay(1000);
+                await _synchronizer.RequestMoveAsync(ResolvePath(e.OldFullPath), ResolvePath(e.FullPath)).ConfigureAwait(false);
             });
         }
 
@@ -138,7 +141,8 @@ namespace docmssync
         {
             _actions.Enqueue(async () =>
             {
-                await _synchronizer.RequestChangeAsync(ResolvePath(e.FullPath));
+                await Task.Delay(1000);
+                await _synchronizer.RequestChangeAsync(ResolvePath(e.FullPath)).ConfigureAwait(false);
             });
         }
 
@@ -146,7 +150,8 @@ namespace docmssync
         {
             _actions.Enqueue(async () =>
             {
-                await _synchronizer.RequestCreatedAsync(ResolvePath(e.FullPath));
+                await Task.Delay(1000);
+                await _synchronizer.RequestCreatedAsync(ResolvePath(e.FullPath)).ConfigureAwait(false);
             });
         }
 

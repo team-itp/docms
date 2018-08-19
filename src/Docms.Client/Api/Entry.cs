@@ -50,7 +50,7 @@ namespace Docms.Client.Api
 
         public async Task<Stream> OpenStreamAsync()
         {
-            return await Client.DownloadAsync(Path);
+            return await Client.DownloadAsync(Path).ConfigureAwait(false);
         }
     }
 }

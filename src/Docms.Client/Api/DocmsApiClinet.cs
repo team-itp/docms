@@ -114,7 +114,7 @@ namespace Docms.Client.Api
 
             if (!response.IsActive)
             {
-                await LoginAsync(_username, _password);
+                await LoginAsync(_username, _password).ConfigureAwait(false);
             }
         }
 
@@ -177,7 +177,7 @@ namespace Docms.Client.Api
             {
                 var request = new RestRequest(_defaultPath + "files", Method.POST);
                 request.AddParameter("path", path ?? throw new ArgumentNullException(nameof(path)));
-                await stream.CopyToAsync(ms);
+                await stream.CopyToAsync(ms).ConfigureAwait(false);
                 ms.Seek(0, SeekOrigin.Begin);
                 request.AddFile("file", ms.ToArray(), path.Substring(path.LastIndexOf('/') > -1 ? path.LastIndexOf('/') : 0));
                 if (created != null)
