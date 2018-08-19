@@ -44,8 +44,8 @@ namespace Docms.Client.FileSyncing
             foreach (var history in serverHistories)
             {
                 file.Apply(history);
-                _db.Histories.Add(history);
             }
+            _db.Histories.AddRange(file.AppliedHistories);
 
             // 削除・移動された場合以外
             var fileInfo = _storage.GetFile(path);
@@ -76,7 +76,14 @@ namespace Docms.Client.FileSyncing
                 }
                 else
                 {
-                    if (fileInfo.LastWriteTimeUtc <= file.LastHistorTimestamp)
+                    if (fileInfo.LastWriteTimeUtc > file.LastHistorTimestamp)
+                    {
+                        using (var fs = fileInfo.OpenRead())
+                        {
+                            await _client.CreateOrUpdateDocumentAsync(path, fs, fileInfo.CreationTimeUtc, fileInfo.LastWriteTimeUtc);
+                        }
+                    }
+                    else
                     {
                         _storage.Delete(path);
                         using (var stream = await _client.DownloadAsync(path))

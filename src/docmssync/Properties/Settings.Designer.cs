@@ -25,13 +25,49 @@ namespace docmssync.Properties {
         
         [global::System.Configuration.UserScopedSettingAttribute()]
         [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
-        [global::System.Configuration.DefaultSettingValueAttribute("C:\\tmp\\Images")]
+        [global::System.Configuration.DefaultSettingValueAttribute("C:\\temp\\Images")]
         public string WatchPath {
             get {
                 return ((string)(this["WatchPath"]));
             }
             set {
                 this["WatchPath"] = value;
+            }
+        }
+        
+        [global::System.Configuration.UserScopedSettingAttribute()]
+        [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
+        [global::System.Configuration.DefaultSettingValueAttribute("http://localhost:51693")]
+        public string ServerUrl {
+            get {
+                return ((string)(this["ServerUrl"]));
+            }
+            set {
+                this["ServerUrl"] = value;
+            }
+        }
+        
+        [global::System.Configuration.UserScopedSettingAttribute()]
+        [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
+        [global::System.Configuration.DefaultSettingValueAttribute("testuser")]
+        public string UploadUserName {
+            get {
+                return ((string)(this["UploadUserName"]));
+            }
+            set {
+                this["UploadUserName"] = value;
+            }
+        }
+        
+        [global::System.Configuration.UserScopedSettingAttribute()]
+        [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
+        [global::System.Configuration.DefaultSettingValueAttribute("Passw0rd")]
+        public string UploadUserPassword {
+            get {
+                return ((string)(this["UploadUserPassword"]));
+            }
+            set {
+                this["UploadUserPassword"] = value;
             }
         }
     }

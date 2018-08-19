@@ -4,7 +4,9 @@ using Microsoft.EntityFrameworkCore;
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
+using System.IO;
 using System.Linq;
+using System.Text.RegularExpressions;
 using System.Threading;
 using System.Threading.Tasks;
 
@@ -17,12 +19,15 @@ namespace Docms.Client.FileSyncing
         private readonly FileSyncingContext _db;
         private readonly FileSynchronizer _synchronizer;
 
+        public IEnumerable<string> IgnorePatterns { get; private set; }
+
         public FileSystemSynchronizer(IDocmsApiClient client, ILocalFileStorage storage, FileSyncingContext db)
         {
             _client = client;
             _storage = storage;
             _db = db;
             _synchronizer = new FileSynchronizer(_client, _storage, _db);
+            IgnorePatterns = new[] { ".bk$" };
         }
 
         public async Task InitializeAsync(CancellationToken cancellationToken = default(CancellationToken))
@@ -33,6 +38,7 @@ namespace Docms.Client.FileSyncing
             try
             {
                 await DownloadFiles("", cancellationToken);
+                await UploadLocalFiles("", cancellationToken);
                 _db.FileSyncHistories.Add(new FileSyncHistory(FileSyncStatus.InitializeCompleted));
                 await _db.SaveChangesAsync();
             }
@@ -57,6 +63,22 @@ namespace Docms.Client.FileSyncing
                 {
                     await DownloadFiles(con.Path, cancellationToken);
                 }
+            }
+        }
+
+        private async Task UploadLocalFiles(string path, CancellationToken cancellationToken = default(CancellationToken))
+        {
+            foreach (var item in _storage.GetFiles(path))
+            {
+                cancellationToken.ThrowIfCancellationRequested();
+                if (!IgnorePatterns.Any(e => Regex.IsMatch(item, e)))
+                {
+                    await _synchronizer.SyncAsync(item);
+                }
+            }
+            foreach (var item in _storage.GetDirectories(path))
+            {
+                await UploadLocalFiles(item);
             }
         }
 

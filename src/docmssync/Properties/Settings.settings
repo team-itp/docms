@@ -3,7 +3,16 @@
   <Profiles />
   <Settings>
     <Setting Name="WatchPath" Type="System.String" Scope="User">
-      <Value Profile="(Default)">C:\tmp\Images</Value>
+      <Value Profile="(Default)">C:\temp\Images</Value>
+    </Setting>
+    <Setting Name="ServerUrl" Type="System.String" Scope="User">
+      <Value Profile="(Default)">http://localhost:51693</Value>
+    </Setting>
+    <Setting Name="UploadUserName" Type="System.String" Scope="User">
+      <Value Profile="(Default)">testuser</Value>
+    </Setting>
+    <Setting Name="UploadUserPassword" Type="System.String" Scope="User">
+      <Value Profile="(Default)">Passw0rd</Value>
     </Setting>
   </Settings>
 </SettingsFile>

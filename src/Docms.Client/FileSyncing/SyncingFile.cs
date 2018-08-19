@@ -9,10 +9,12 @@ namespace Docms.Client.FileSyncing
     public class SyncingFile
     {
         private List<History> _histories = new List<History>();
+        public List<History> AppliedHistories { get; } = new List<History>();
 
         public SyncingFile(List<History> histories)
         {
             histories.ForEach(Apply);
+            AppliedHistories.Clear();
         }
 
         public Guid LastHistoryId { get; set; }
@@ -38,6 +40,7 @@ namespace Docms.Client.FileSyncing
                 .Case((DocumentMovedTo x) => Apply(x))
                 .Case((DocumentDeleted x) => Apply(x));
             ts.Switch(history);
+            AppliedHistories.Add(history);
         }
 
         public void Apply(DocumentCreated history)

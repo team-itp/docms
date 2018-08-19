@@ -132,7 +132,7 @@ namespace Docms.Client.Api
             {
                 request.AddQueryParameter("path", path);
             }
-            //request.AddHeader("Authorization", "Bearer " + _accessToken);
+            request.AddHeader("Authorization", "Bearer " + _accessToken);
             var result = await _client.ExecuteGetTaskAsync(request).ConfigureAwait(false);
             ThrowIfNotSuccessfulStatus(result);
             var container = JsonConvert.DeserializeObject<ContainerResponse>(result.Content, DefaultJsonSerializerSettings);
@@ -160,7 +160,7 @@ namespace Docms.Client.Api
             {
                 request.AddQueryParameter("path", path);
             }
-            //request.AddHeader("Authorization", "Bearer " + _accessToken);
+            request.AddHeader("Authorization", "Bearer " + _accessToken);
             var result = await _client.ExecuteGetTaskAsync(request).ConfigureAwait(false);
             ThrowIfNotSuccessfulStatus(result);
             return new MemoryStream(result.RawBytes);
@@ -168,25 +168,25 @@ namespace Docms.Client.Api
 
         public async Task CreateOrUpdateDocumentAsync(string path, Stream stream, DateTime? created = null, DateTime? lastModified = null)
         {
-            var request = new RestRequest(_defaultPath + "files", Method.POST);
-            request.AddParameter("path", path ?? throw new ArgumentNullException(nameof(path)));
             using (var ms = new MemoryStream())
             {
+                var request = new RestRequest(_defaultPath + "files", Method.POST);
+                request.AddParameter("path", path ?? throw new ArgumentNullException(nameof(path)));
                 await stream.CopyToAsync(ms);
                 ms.Seek(0, SeekOrigin.Begin);
-                request.AddFile("file", ms.ToArray(), path.Substring(path.LastIndexOf('/')));
+                request.AddFile("file", ms.ToArray(), path.Substring(path.LastIndexOf('/') > -1 ? path.LastIndexOf('/') : 0));
+                if (created != null)
+                {
+                    request.AddParameter("created", created.Value);
+                }
+                if (lastModified != null)
+                {
+                    request.AddParameter("lastModified", lastModified.Value);
+                }
+                request.AddHeader("Authorization", "Bearer " + _accessToken);
+                var result = await _client.ExecutePostTaskAsync(request).ConfigureAwait(false);
+                ThrowIfNotSuccessfulStatus(result);
             }
-            if (created != null)
-            {
-                request.AddParameter("created", created.Value);
-            }
-            if (lastModified != null)
-            {
-                request.AddParameter("lastModified", lastModified.Value);
-            }
-            //request.AddHeader("Authorization", "Bearer " + _accessToken);
-            var result = await _client.ExecutePostTaskAsync(request).ConfigureAwait(false);
-            ThrowIfNotSuccessfulStatus(result);
         }
 
         public async Task MoveDocumentAsync(string originalPath, string destinationPath)
@@ -194,7 +194,7 @@ namespace Docms.Client.Api
             var request = new RestRequest(_defaultPath + "files/move", Method.POST);
             request.AddParameter("destinationPath", destinationPath);
             request.AddParameter("originalPath", originalPath);
-            //request.AddHeader("Authorization", "Bearer " + _accessToken);
+            request.AddHeader("Authorization", "Bearer " + _accessToken);
             var result = await _client.ExecutePostTaskAsync(request).ConfigureAwait(false);
             ThrowIfNotSuccessfulStatus(result);
         }
@@ -203,7 +203,7 @@ namespace Docms.Client.Api
         {
             var request = new RestRequest(_defaultPath + "files", Method.DELETE);
             request.AddQueryParameter("path", path);
-            //request.AddHeader("Authorization", "Bearer " + _accessToken);
+            request.AddHeader("Authorization", "Bearer " + _accessToken);
             var result = await _client.ExecuteTaskAsync(request).ConfigureAwait(false);
             ThrowIfNotSuccessfulStatus(result);
         }
@@ -215,7 +215,7 @@ namespace Docms.Client.Api
             {
                 request.AddQueryParameter("path", path);
             }
-            //request.AddHeader("Authorization", "Bearer " + _accessToken);
+            request.AddHeader("Authorization", "Bearer " + _accessToken);
             var result = await _client.ExecuteGetTaskAsync(request).ConfigureAwait(false);
             ThrowIfNotSuccessfulStatus(result);
             return JsonConvert.DeserializeObject<List<History>>(result.Content, DefaultJsonSerializerSettings);

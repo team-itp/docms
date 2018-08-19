@@ -1,5 +1,7 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.IO;
+using System.Linq;
 using System.Security.Cryptography;
 using System.Threading.Tasks;
 
@@ -72,6 +74,18 @@ namespace Docms.Client.FileStorage
         {
             var fullpath = Path.Combine(_basePath, path);
             return new FileInfo(fullpath);
+        }
+
+        public IEnumerable<string> GetFiles(string path)
+        {
+            var fullpath = Path.Combine(_basePath, path);
+            return Directory.GetFiles(fullpath).Select(fp => fp.Substring(_basePath.Length + 1));
+        }
+
+        public IEnumerable<string> GetDirectories(string path)
+        {
+            var fullpath = Path.Combine(_basePath, path);
+            return Directory.GetDirectories(fullpath).Select(fp => fp.Substring(_basePath.Length + 1));
         }
 
         private void EnsureDirectoryExists(string fullpath)

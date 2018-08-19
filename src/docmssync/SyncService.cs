@@ -34,10 +34,15 @@ namespace docmssync
         protected override void OnStart(string[] args)
         {
             _watchPath = Settings.Default.WatchPath;
-            _client = new DocmsApiClinet("http://localhost:51693", "api/v1");
+            _client = new DocmsApiClinet(Settings.Default.ServerUrl, "api/v1");
             _localFileStorage = new LocalFileStorage(_watchPath);
+            var dbDir = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData), "docmssync");
+            if (!Directory.Exists(dbDir))
+            {
+                Directory.CreateDirectory(dbDir);
+            }
             _context = new FileSyncingContext(new DbContextOptionsBuilder<FileSyncingContext>()
-                .UseSqlite(string.Format("Data Source={0}", Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData), "docmssync", "sync.db")))
+                .UseSqlite(string.Format("Data Source={0}", Path.Combine(dbDir, "sync.db")))
                 .Options);
             if (_watcher == null)
             {
@@ -62,16 +67,26 @@ namespace docmssync
 
         private async void StartAsync()
         {
-            _synchronizer = new FileSystemSynchronizer(_client, _localFileStorage, _context);
-            await _synchronizer.InitializeAsync(_cts.Token);
-            _processTask = ProcessFileSync(_cts.Token);
-            _watcher.EnableRaisingEvents = true;
-            _timer.Change(0, 10000);
+            try
+            {
+                await _context.Database.EnsureCreatedAsync();
+                await _client.LoginAsync(Settings.Default.UploadUserName, Settings.Default.UploadUserPassword);
+                _synchronizer = new FileSystemSynchronizer(_client, _localFileStorage, _context);
+                await _synchronizer.InitializeAsync(_cts.Token);
+                _processTask = ProcessFileSync(_cts.Token);
+                _watcher.EnableRaisingEvents = true;
+                _timer.Change(0, 10000);
+            }
+            catch (Exception ex)
+            {
+                Trace.WriteLine(ex);
+                Stop();
+            }
         }
 
         private async Task ProcessFileSync(CancellationToken token = default(CancellationToken))
         {
-            while(!token.IsCancellationRequested)
+            while (!token.IsCancellationRequested)
             {
                 if (_actions.TryDequeue(out var action))
                 {
@@ -89,10 +104,12 @@ namespace docmssync
 
         private void _timer_Ticks(object state)
         {
+            _timer.Change(-1, Timeout.Infinite);
             _actions.Enqueue(async () =>
             {
                 await _synchronizer.SyncFromHistoryAsync();
             });
+            _timer.Change(Timeout.Infinite, 10000);
         }
 
         private void _watcher_Error(object sender, ErrorEventArgs e)
