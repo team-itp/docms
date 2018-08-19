@@ -38,11 +38,13 @@ namespace Docms.Client.Api
         public Document(DocumentResponse entry, IDocmsApiClient client) : base(entry, client)
         {
             ContentType = entry.ContentType;
+            FileSize = entry.FileSize;
             Hash = entry.Hash;
             LastModified = entry.LastModified;
         }
 
         public string ContentType { get; }
+        public long FileSize { get; }
         public string Hash { get; }
         public DateTime LastModified { get; }
 

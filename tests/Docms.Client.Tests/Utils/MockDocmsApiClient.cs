@@ -23,7 +23,7 @@ namespace Docms.Client.Tests.Utils
             var hash = CalculateHash(data);
             entries.TryAdd(dirPath, new List<Entry>());
             var now = DateTime.UtcNow;
-            entries[dirPath].Add(new Document(new DocumentResponse() { Path = path, ContentType = contentType, Hash = hash, LastModified = now }, this));
+            entries[dirPath].Add(new Document(new DocumentResponse() { Path = path, ContentType = contentType, FileSize = data.Length, Hash = hash, LastModified = now }, this));
             streams.Add(path, data);
         }
 

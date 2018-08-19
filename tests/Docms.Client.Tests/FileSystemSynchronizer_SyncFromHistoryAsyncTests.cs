@@ -10,7 +10,7 @@ using System.Threading.Tasks;
 namespace Docms.Client.Tests
 {
     [TestClass]
-    public class FileSystemSynchronizerTests
+    public class FileSystemSynchronizer_SyncFromHistoryAsyncTests
     {
         private MockDocmsApiClient mockClient;
         private LocalFileStorage localFileStorage;
@@ -27,7 +27,7 @@ namespace Docms.Client.Tests
             mockClient = new MockDocmsApiClient();
             localFileStorage = new LocalFileStorage(Path.GetFullPath("tmp"));
             db = new FileSyncingContext(new DbContextOptionsBuilder<FileSyncingContext>()
-                .UseInMemoryDatabase("InitializerTests")
+                .UseInMemoryDatabase("FileSystemSynchronizer_SyncFromHistoryAsyncTests")
                 .Options);
             sut = new FileSystemSynchronizer(mockClient, localFileStorage, db);
         }
@@ -44,23 +44,6 @@ namespace Docms.Client.Tests
         private Stream CreateStream(string streamContent)
         {
             return new MemoryStream(Encoding.UTF8.GetBytes(streamContent));
-        }
-
-        [TestMethod]
-        public async Task サーバーの現在状態よりファイルを一括ダウンロードする()
-        {
-            await mockClient.CreateOrUpdateDocumentAsync("日本語/日本語.txt", CreateStream("日本語/日本語.txt"));
-            await mockClient.CreateOrUpdateDocumentAsync("test/test1.txt", CreateStream("test/test1.txt"));
-            await mockClient.MoveDocumentAsync("test/test1.txt", "test/test2.txt");
-            await mockClient.CreateOrUpdateDocumentAsync("test/test2.txt", CreateStream("test/test2.txt"));
-            await mockClient.CreateOrUpdateDocumentAsync("test/test1.txt", CreateStream("test/test1.txt"));
-            await sut.InitializeAsync();
-            var file1 = localFileStorage.GetFile("日本語/日本語.txt");
-            Assert.AreEqual("日本語/日本語.txt", File.ReadAllText(file1.FullName));
-            var file2 = localFileStorage.GetFile("test/test1.txt");
-            Assert.AreEqual("test/test1.txt", File.ReadAllText(file2.FullName));
-            var file3 = localFileStorage.GetFile("test/test2.txt");
-            Assert.AreEqual("test/test2.txt", File.ReadAllText(file3.FullName));
         }
 
         [TestMethod]

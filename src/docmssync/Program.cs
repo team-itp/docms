@@ -14,12 +14,24 @@ namespace docmssync
         /// </summary>
         static void Main()
         {
-            ServiceBase[] ServicesToRun;
-            ServicesToRun = new ServiceBase[]
+            var service = new SyncService();
+            var method = typeof(SyncService).GetMethod("OnStart", System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance);
+            method.Invoke(service, new object[] { null });
+            Console.CancelKeyPress += (s, e) =>
             {
-                new SyncService()
+                Environment.Exit(0);
             };
-            ServiceBase.Run(ServicesToRun);
+            while(true)
+            {
+                System.Threading.Thread.Sleep(1000);
+            }
+
+            //ServiceBase[] ServicesToRun;
+            //ServicesToRun = new ServiceBase[]
+            //{
+            //    new SyncService()
+            //};
+            //ServiceBase.Run(ServicesToRun);
         }
     }
 }

@@ -121,6 +121,37 @@ namespace Docms.Client.FileSyncing
             }
         }
 
+        public async Task RequestCreatedAsync(string path, CancellationToken cancellationToken = default(CancellationToken))
+        {
+            try
+            {
+                var file = await _client.GetDocumentAsync(path);
+
+                var fileInfo = _storage.GetFile(path);
+                if (!File.Exists(fileInfo.FullName))
+                {
+                    return;
+                }
+
+                var isSameFile = fileInfo.Length == file.FileSize
+                   && _storage.CalculateHash(path) == file.Hash;
+
+                if (isSameFile)
+                {
+                    return;
+                }
+
+                using (var fs = fileInfo.OpenRead())
+                {
+                    await _client.CreateOrUpdateDocumentAsync(path, fs, fileInfo.CreationTimeUtc, fileInfo.LastWriteTimeUtc);
+                }
+            }
+            catch (NotFoundException)
+            {
+                return;
+            }
+        }
+
         public Task RequestDeleteAsync(string v, CancellationToken cancellationToken = default(CancellationToken))
         {
             throw new NotImplementedException();
@@ -132,11 +163,6 @@ namespace Docms.Client.FileSyncing
         }
 
         public Task RequestChangeAsync(string v, CancellationToken cancellationToken = default(CancellationToken))
-        {
-            throw new NotImplementedException();
-        }
-
-        public Task RequestCreatedAsync(string v, CancellationToken cancellationToken = default(CancellationToken))
         {
             throw new NotImplementedException();
         }

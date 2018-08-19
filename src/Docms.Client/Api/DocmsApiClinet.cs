@@ -7,6 +7,7 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using System.Net;
 using System.Threading.Tasks;
 
 namespace Docms.Client.Api
@@ -121,6 +122,10 @@ namespace Docms.Client.Api
         {
             if (!result.IsSuccessful)
             {
+                if (result.StatusCode == HttpStatusCode.NotFound)
+                {
+                    throw new NotFoundException(result.ResponseUri.ToString());
+                }
                 throw new ServerException((int)result.StatusCode, result.Content);
             }
         }
@@ -146,7 +151,7 @@ namespace Docms.Client.Api
         {
             var request = new RestRequest(_defaultPath + "files", Method.GET);
             request.AddQueryParameter("path", path ?? throw new ArgumentNullException(nameof(path)));
-            //request.AddHeader("Authorization", "Bearer " + _accessToken);
+            request.AddHeader("Authorization", "Bearer " + _accessToken);
             var result = await _client.ExecuteGetTaskAsync(request).ConfigureAwait(false);
             ThrowIfNotSuccessfulStatus(result);
             var document = JsonConvert.DeserializeObject<DocumentResponse>(result.Content, DefaultJsonSerializerSettings);

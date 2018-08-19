@@ -18,6 +18,7 @@ namespace Docms.Client.Api.Responses
     public sealed class DocumentResponse : EntryResponse
     {
         public string ContentType { get; set; }
+        public long FileSize { get; set; }
         public string Hash { get; set; }
         public DateTime LastModified { get; set; }
     }

@@ -1,6 +1,7 @@
 ﻿using Docms.Client.Api;
 using Docms.Client.FileStorage;
 using Microsoft.EntityFrameworkCore;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
@@ -25,27 +26,7 @@ namespace Docms.Client.FileSyncing
 
         public async Task SyncAsync(string path, List<History> serverHistories = null)
         {
-            var histories = await _db.Histories.Where(e => e.Path == path).ToListAsync();
-
-            if (serverHistories == null)
-            {
-                serverHistories = new List<History>();
-                if (histories.Any())
-                {
-                    serverHistories.AddRange(await _client.GetHistoriesAsync(path, histories.Max(e => e.Timestamp)));
-                }
-                else
-                {
-                    serverHistories.AddRange(await _client.GetHistoriesAsync(path));
-                }
-            }
-
-            var file = new SyncingFile(histories);
-            foreach (var history in serverHistories)
-            {
-                file.Apply(history);
-            }
-            _db.Histories.AddRange(file.AppliedHistories);
+            SyncingFile file = await LoadFileAsync(path, serverHistories);
 
             // 削除・移動された場合以外
             var fileInfo = _storage.GetFile(path);
@@ -103,7 +84,34 @@ namespace Docms.Client.FileSyncing
                     }
                 }
             }
+
+            _db.Histories.AddRange(file.AppliedHistories);
             await _db.SaveChangesAsync();
+        }
+
+        public async Task<SyncingFile> LoadFileAsync(string path, List<History> serverHistories = null)
+        {
+            var histories = await _db.Histories.Where(e => e.Path == path).ToListAsync();
+
+            if (serverHistories == null)
+            {
+                serverHistories = new List<History>();
+                if (histories.Any())
+                {
+                    serverHistories.AddRange(await _client.GetHistoriesAsync(path, histories.Max(e => e.Timestamp)));
+                }
+                else
+                {
+                    serverHistories.AddRange(await _client.GetHistoriesAsync(path));
+                }
+            }
+
+            var file = new SyncingFile(histories);
+            foreach (var history in serverHistories)
+            {
+                file.Apply(history);
+            }
+            return file;
         }
     }
 }

@@ -17,6 +17,13 @@ namespace Docms.Client.Api
         }
     }
 
+    public class NotFoundException : DocmsApiClientException
+    {
+        public NotFoundException(string uri) : base($"指定のURI({uri})にデータがありません。(HTTPステータスコード: 404)")
+        {
+        }
+    }
+
     public class InvalidLoginException : DocmsApiClientException
     {
         public InvalidLoginException() : base("ログインができません。ユーザー名とパスワードを確認してください。")
