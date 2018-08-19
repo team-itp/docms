@@ -163,7 +163,13 @@ namespace Docms.Client.FileSyncing
             }
         }
 
-        public async Task RequestMovementAsync(string originalPath, string destinationPath, CancellationToken cancellationToken = default(CancellationToken))
+        public async Task RequestDirectoryMovementAsync(string originalPath, string destinationPath, CancellationToken cancellationToken = default(CancellationToken))
+        {
+            await UploadLocalFiles(destinationPath);
+            await _client.DeleteDocumentAsync(originalPath);
+        }
+
+        public async Task RequestFileMovementAsync(string originalPath, string destinationPath, CancellationToken cancellationToken = default(CancellationToken))
         {
             var originalFile = await _client.GetDocumentAsync(originalPath).ConfigureAwait(false);
             var destinationFileInfo = _storage.GetFile(destinationPath);

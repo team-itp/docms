@@ -132,17 +132,27 @@ namespace docmssync
         {
             _actions.Enqueue(async () =>
             {
-                await Task.Delay(1000);
-                await _synchronizer.RequestMovementAsync(ResolvePath(e.OldFullPath), ResolvePath(e.FullPath)).ConfigureAwait(false);
+                if (Directory.Exists(e.FullPath))
+                {
+                    await _synchronizer.RequestDirectoryMovementAsync(ResolvePath(e.OldFullPath), ResolvePath(e.FullPath)).ConfigureAwait(false);
+                }
+                else
+                {
+                    await _synchronizer.RequestFileMovementAsync(ResolvePath(e.OldFullPath), ResolvePath(e.FullPath)).ConfigureAwait(false);
+                }
             });
         }
 
         private void _watcher_Changed(object sender, FileSystemEventArgs e)
         {
+
             _actions.Enqueue(async () =>
             {
                 await Task.Delay(1000);
-                await _synchronizer.RequestChangingAsync(ResolvePath(e.FullPath)).ConfigureAwait(false);
+                if (!Directory.Exists(e.FullPath) && File.Exists(e.FullPath))
+                {
+                    await _synchronizer.RequestChangingAsync(ResolvePath(e.FullPath)).ConfigureAwait(false);
+                }
             });
         }
 
@@ -151,7 +161,10 @@ namespace docmssync
             _actions.Enqueue(async () =>
             {
                 await Task.Delay(1000);
-                await _synchronizer.RequestCreationAsync(ResolvePath(e.FullPath)).ConfigureAwait(false);
+                if (!Directory.Exists(e.FullPath) && File.Exists(e.FullPath))
+                {
+                    await _synchronizer.RequestCreationAsync(ResolvePath(e.FullPath)).ConfigureAwait(false);
+                }
             });
         }
 

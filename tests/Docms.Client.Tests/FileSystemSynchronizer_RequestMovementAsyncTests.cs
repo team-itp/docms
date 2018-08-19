@@ -50,7 +50,7 @@ namespace Docms.Client.Tests
         [TestMethod]
         public async Task コピー先にファイルが存在しない場合何もしない()
         {
-            await sut.RequestMovementAsync("test/test1.txt", "test/test2.txt").ConfigureAwait(false);
+            await sut.RequestFileMovementAsync("test/test1.txt", "test/test2.txt").ConfigureAwait(false);
             Assert.AreEqual(0, mockClient.histories.Count);
         }
 
