@@ -121,50 +121,104 @@ namespace Docms.Client.FileSyncing
             }
         }
 
-        public async Task RequestCreatedAsync(string path, CancellationToken cancellationToken = default(CancellationToken))
+        public async Task RequestCreationAsync(string path, CancellationToken cancellationToken = default(CancellationToken))
         {
-            try
+            var file = await _client.GetDocumentAsync(path).ConfigureAwait(false);
+
+            var fileInfo = _storage.GetFile(path);
+            if (!File.Exists(fileInfo.FullName))
             {
-                var file = await _client.GetDocumentAsync(path).ConfigureAwait(false);
+                return;
+            }
 
-                var fileInfo = _storage.GetFile(path);
-                if (!File.Exists(fileInfo.FullName))
-                {
-                    return;
-                }
-
-                var isSameFile = fileInfo.Length == file.FileSize
-                   && _storage.CalculateHash(path) == file.Hash;
-
-                if (isSameFile)
-                {
-                    return;
-                }
-
+            if (file == null
+                || fileInfo.Length != file.FileSize
+                || _storage.CalculateHash(path) != file.Hash)
+            {
                 using (var fs = fileInfo.OpenRead())
                 {
                     await _client.CreateOrUpdateDocumentAsync(path, fs, fileInfo.CreationTimeUtc, fileInfo.LastWriteTimeUtc).ConfigureAwait(false);
                 }
             }
-            catch (NotFoundException)
+        }
+
+        public async Task RequestDeletionAsync(string path, CancellationToken cancellationToken = default(CancellationToken))
+        {
+            var file = await _client.GetDocumentAsync(path).ConfigureAwait(false);
+            if (file == null)
             {
                 return;
             }
+
+            var fileInfo = _storage.GetFile(path);
+            if (!File.Exists(fileInfo.FullName))
+            {
+                return;
+            }
+
+            if (fileInfo.Length == file.FileSize
+                && _storage.CalculateHash(path) == file.Hash)
+            {
+                await _client.DeleteDocumentAsync(path).ConfigureAwait(false);
+            }
         }
 
-        public Task RequestDeleteAsync(string v, CancellationToken cancellationToken = default(CancellationToken))
+        public async Task RequestMovementAsync(string originalPath, string destinationPath, CancellationToken cancellationToken = default(CancellationToken))
         {
-            throw new NotImplementedException();
+            var originalFile = await _client.GetDocumentAsync(originalPath).ConfigureAwait(false);
+            var destinationFileInfo = _storage.GetFile(destinationPath);
+
+            if (originalFile == null)
+            {
+                if (destinationFileInfo.Exists)
+                {
+                    using (var fs = destinationFileInfo.OpenRead())
+                    {
+                        await _client.CreateOrUpdateDocumentAsync(destinationPath, fs, destinationFileInfo.CreationTimeUtc, destinationFileInfo.LastWriteTimeUtc).ConfigureAwait(false);
+                    }
+                }
+                return;
+            }
+
+            if (!destinationFileInfo.Exists)
+            {
+                return;
+            }
+
+            if (originalFile.FileSize == destinationFileInfo.Length
+                && originalFile.Hash == _storage.CalculateHash(destinationPath))
+            {
+                await _client.MoveDocumentAsync(originalPath, destinationPath).ConfigureAwait(false);
+            }
+            else
+            {
+                using (var fs = destinationFileInfo.OpenRead())
+                {
+                    await _client.CreateOrUpdateDocumentAsync(destinationPath, fs, destinationFileInfo.CreationTimeUtc, destinationFileInfo.LastWriteTimeUtc).ConfigureAwait(false);
+                }
+                await _client.DeleteDocumentAsync(originalPath).ConfigureAwait(false);
+            }
         }
 
-        public Task RequestMoveAsync(string v1, string v2, CancellationToken cancellationToken = default(CancellationToken))
+        public async Task RequestChangingAsync(string path, CancellationToken cancellationToken = default(CancellationToken))
         {
-            throw new NotImplementedException();
-        }
+            var file = await _client.GetDocumentAsync(path).ConfigureAwait(false);
 
-        public Task RequestChangeAsync(string v, CancellationToken cancellationToken = default(CancellationToken))
-        {
-            throw new NotImplementedException();
+            var fileInfo = _storage.GetFile(path);
+            if (!File.Exists(fileInfo.FullName))
+            {
+                return;
+            }
+
+            if (file == null
+                || fileInfo.Length != file.FileSize
+                || _storage.CalculateHash(path) != file.Hash)
+            {
+                using (var fs = fileInfo.OpenRead())
+                {
+                    await _client.CreateOrUpdateDocumentAsync(path, fs, fileInfo.CreationTimeUtc, fileInfo.LastWriteTimeUtc).ConfigureAwait(false);
+                }
+            }
         }
     }
 }

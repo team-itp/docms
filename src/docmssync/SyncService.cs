@@ -124,7 +124,7 @@ namespace docmssync
             _actions.Enqueue(async () =>
             {
                 await Task.Delay(1000);
-                await _synchronizer.RequestDeleteAsync(ResolvePath(e.FullPath)).ConfigureAwait(false);
+                await _synchronizer.RequestDeletionAsync(ResolvePath(e.FullPath)).ConfigureAwait(false);
             });
         }
 
@@ -133,7 +133,7 @@ namespace docmssync
             _actions.Enqueue(async () =>
             {
                 await Task.Delay(1000);
-                await _synchronizer.RequestMoveAsync(ResolvePath(e.OldFullPath), ResolvePath(e.FullPath)).ConfigureAwait(false);
+                await _synchronizer.RequestMovementAsync(ResolvePath(e.OldFullPath), ResolvePath(e.FullPath)).ConfigureAwait(false);
             });
         }
 
@@ -142,7 +142,7 @@ namespace docmssync
             _actions.Enqueue(async () =>
             {
                 await Task.Delay(1000);
-                await _synchronizer.RequestChangeAsync(ResolvePath(e.FullPath)).ConfigureAwait(false);
+                await _synchronizer.RequestChangingAsync(ResolvePath(e.FullPath)).ConfigureAwait(false);
             });
         }
 
@@ -151,7 +151,7 @@ namespace docmssync
             _actions.Enqueue(async () =>
             {
                 await Task.Delay(1000);
-                await _synchronizer.RequestCreatedAsync(ResolvePath(e.FullPath)).ConfigureAwait(false);
+                await _synchronizer.RequestCreationAsync(ResolvePath(e.FullPath)).ConfigureAwait(false);
             });
         }
 

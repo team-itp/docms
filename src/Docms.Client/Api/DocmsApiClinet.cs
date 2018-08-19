@@ -35,6 +35,7 @@ namespace Docms.Client.Api
             _serverUri = uri.EndsWith("/") ? uri : uri + "/";
             _defaultPath = (defaultPath ?? "").EndsWith("/") ? defaultPath : defaultPath + "/";
             _client = new RestClient(_serverUri);
+            _client.FollowRedirects = false;
             DefaultJsonSerializerSettings = new JsonSerializerSettings()
             {
                 TypeNameHandling = TypeNameHandling.Objects,
@@ -122,10 +123,6 @@ namespace Docms.Client.Api
         {
             if (!result.IsSuccessful)
             {
-                if (result.StatusCode == HttpStatusCode.NotFound)
-                {
-                    throw new NotFoundException(result.ResponseUri.ToString());
-                }
                 throw new ServerException((int)result.StatusCode, result.Content);
             }
         }
@@ -153,9 +150,16 @@ namespace Docms.Client.Api
             request.AddQueryParameter("path", path ?? throw new ArgumentNullException(nameof(path)));
             request.AddHeader("Authorization", "Bearer " + _accessToken);
             var result = await _client.ExecuteGetTaskAsync(request).ConfigureAwait(false);
-            ThrowIfNotSuccessfulStatus(result);
-            var document = JsonConvert.DeserializeObject<DocumentResponse>(result.Content, DefaultJsonSerializerSettings);
-            return new Document(document, this);
+            if (result.StatusCode == HttpStatusCode.NotFound)
+            {
+                return null;
+            }
+            else
+            {
+                ThrowIfNotSuccessfulStatus(result);
+                var document = JsonConvert.DeserializeObject<DocumentResponse>(result.Content, DefaultJsonSerializerSettings);
+                return new Document(document, this);
+            }
         }
 
         public async Task<Stream> DownloadAsync(string path)

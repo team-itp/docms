@@ -21,7 +21,7 @@ namespace docmssync
             {
                 Environment.Exit(0);
             };
-            while(true)
+            while (true)
             {
                 System.Threading.Thread.Sleep(1000);
             }

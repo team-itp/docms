@@ -47,5 +47,14 @@ namespace Docms.Client.Tests
             await sut.DeleteDocumentAsync("test1/subtest1/test2.txt").ConfigureAwait(false);
             await sut.MoveDocumentAsync("test1/subtest1/test1.txt", "test1/subtest1/test2.txt").ConfigureAwait(false);
         }
+
+        [TestMethod]
+        public async Task 存在しないファイルを取得する()
+        {
+            await sut.VerifyTokenAsync().ConfigureAwait(false);
+            await sut.CreateOrUpdateDocumentAsync("test1/subtest1/test1.txt", new MemoryStream(Encoding.UTF8.GetBytes("test1"))).ConfigureAwait(false);
+            await sut.DeleteDocumentAsync("test1/subtest1/test1.txt").ConfigureAwait(false);
+            Assert.IsNull(await sut.GetDocumentAsync("test1/subtest1/test1.txt").ConfigureAwait(false));
+        }
     }
 }
