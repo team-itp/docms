@@ -75,8 +75,9 @@ namespace Docms.Web.Application.DomainEventHandlers
                 Name = ev.Path.Name,
                 ParentPath = ev.Path.Parent?.Value,
                 ContentType = ev.ContentType,
+                FileSize = ev.FileSize,
+                Hash = ev.Hash,
                 LastModified = ev.LastModified,
-                Hash = ev.Hash
             };
             _db.Documents.Add(file);
             await AddParentContainerAsync(ev.Path.Parent);
@@ -112,8 +113,9 @@ namespace Docms.Web.Application.DomainEventHandlers
                 Name = ev.Path.Name,
                 ParentPath = ev.Path.Parent?.Value,
                 ContentType = oldDocument.ContentType,
+                FileSize = oldDocument.FileSize,
+                Hash = oldDocument.Hash,
                 LastModified = oldDocument.LastModified,
-                Hash = oldDocument.Hash
             };
 
             _db.Documents.Add(document);
@@ -130,8 +132,9 @@ namespace Docms.Web.Application.DomainEventHandlers
 
             var document = await _db.Documents.FirstOrDefaultAsync(e => e.Path == ev.Document.Path.Value);
             document.ContentType = ev.ContentType;
-            document.LastModified = ev.LastModified;
+            document.FileSize = ev.FileSize;
             document.Hash = ev.Hash;
+            document.LastModified = ev.LastModified;
 
             _db.Update(document);
             await _db.SaveChangesAsync();

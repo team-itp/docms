@@ -2,12 +2,15 @@ using Docms.Infrastructure.Files;
 using Docms.Web.Application.Commands;
 using Docms.Web.Application.Queries.Documents;
 using MediatR;
+using Microsoft.AspNetCore.Authentication.JwtBearer;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using System.Threading.Tasks;
 using System.Web;
 
 namespace Docms.Web.Api.V1
 {
+    [Authorize(AuthenticationSchemes = JwtBearerDefaults.AuthenticationScheme)]
     [Route("api/v1/files")]
     [ApiController]
     public class FilesController : ControllerBase

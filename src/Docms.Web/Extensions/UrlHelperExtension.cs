@@ -12,7 +12,7 @@ namespace Docms.Web.Extensions
             if (path == null)
                 return Url.Content("~/files/view/");
 
-            var escapedPath = string.Join('/', path.Split('/').Select(HttpUtility.UrlEncode));
+            var escapedPath = string.Join('/', path.Split('/').Select(Uri.EscapeDataString));
             return Url.Content("~/files/view/" + escapedPath);
         }
         public static string DownloadFile(this IUrlHelper Url, string path)
@@ -20,7 +20,7 @@ namespace Docms.Web.Extensions
             if (path == null)
                 new ArgumentNullException();
 
-            var escapedPath = string.Join('/', path.Split('/').Select(HttpUtility.UrlEncode));
+            var escapedPath = string.Join('/', path.Split('/').Select(Uri.EscapeDataString));
             return Url.Content("~/files/download/" + escapedPath);
         }
     }

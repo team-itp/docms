@@ -63,7 +63,7 @@ namespace Docms.Web
             }
 
             app.UseCustomDbContext();
-            app.UseStatusCodePagesWithRedirects("~/error/{0}");
+            app.UseStatusCodePagesWithReExecute("/error/{0}");
             app.UseStaticFiles();
             app.UseIdentityServer();
             app.UseMvcWithDefaultRoute();

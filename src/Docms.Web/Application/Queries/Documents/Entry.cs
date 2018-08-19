@@ -22,6 +22,7 @@ namespace Docms.Web.Application.Queries.Documents
     public sealed class Document : Entry
     {
         public string ContentType { get; set; }
+        public long FileSize { get; set; }
         public string Hash { get; set; }
         public DateTime LastModified { get; set; }
     }
