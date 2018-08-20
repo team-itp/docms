@@ -75,12 +75,19 @@ namespace Docms.Client.FileSyncing
             }
             else
             {
-                if (file.Path != null && file.Path == path)
+                if (file.AppliedHistories.Any())
                 {
-                    using (var stream = await _client.DownloadAsync(path))
+                    if (file.Path != null && file.Path == path)
                     {
-                        await _storage.Create(path, stream, file.Created, file.LastModified).ConfigureAwait(false);
+                        using (var stream = await _client.DownloadAsync(path))
+                        {
+                            await _storage.Create(path, stream, file.Created, file.LastModified).ConfigureAwait(false);
+                        }
                     }
+                }
+                else
+                {
+                    await _client.DeleteDocumentAsync(path);
                 }
             }
 

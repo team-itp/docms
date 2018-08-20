@@ -156,5 +156,17 @@ namespace Docms.Client.Tests
             var fiNew = localFileStorage.GetFile("test/testsub/document1.txt");
             Assert.IsTrue(fiNew.Exists);
         }
+
+        [TestMethod]
+        public async Task ファイルがローカルに存在せず履歴がすべて適用済みの場合削除される()
+        {
+            await mockClient.CreateOrUpdateDocumentAsync("test/document1.txt", CreateStream("Hello")).ConfigureAwait(false);
+            await sut.SyncAsync("test/document1.txt");
+            var fi = localFileStorage.GetFile("test/document1.txt");
+            fi.Delete();
+            
+            await sut.SyncAsync("test/document1.txt");
+            Assert.IsNull(await mockClient.GetDocumentAsync("test/document1.txt"));
+        }
     }
 }
