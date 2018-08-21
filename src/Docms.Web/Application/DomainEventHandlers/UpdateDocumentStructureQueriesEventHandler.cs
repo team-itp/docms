@@ -106,6 +106,9 @@ namespace Docms.Web.Application.DomainEventHandlers
 
             var oldDocument = await _db.Documents.FirstOrDefaultAsync(e => e.Path == ev.OldPath.Value);
             _db.Documents.Remove(oldDocument);
+            await _db.SaveChangesAsync();
+            await RemoveEmptyContainerAsync(ev.OldPath.Parent);
+            await _db.SaveChangesAsync();
 
             var document = new Queries.Documents.Document()
             {
@@ -119,9 +122,7 @@ namespace Docms.Web.Application.DomainEventHandlers
             };
 
             _db.Documents.Add(document);
-            await _db.SaveChangesAsync();
 
-            await RemoveEmptyContainerAsync(ev.OldPath.Parent);
             await AddParentContainerAsync(ev.Path.Parent);
             await _db.SaveChangesAsync();
         }
