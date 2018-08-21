@@ -60,7 +60,7 @@ namespace Docms.Client.Tests
         {
             await mockClient.CreateOrUpdateDocumentAsync("test/test1.txt", CreateStream("Hello")).ConfigureAwait(false);
             await sut.RequestMovementAsync("test/test1.txt", "test/test2.txt").ConfigureAwait(false);
-            Assert.AreEqual(0, mockClient.histories.Count);
+            Assert.AreEqual(1, mockClient.histories.Count);
         }
 
         [TestMethod]
@@ -82,7 +82,7 @@ namespace Docms.Client.Tests
             await sut.RequestMovementAsync("test/test1.txt", "test/test2.txt").ConfigureAwait(false);
             Assert.IsFalse(mockClient.entries["test"].Any(e => e.Path == "test/test1.txt"));
             Assert.IsTrue(mockClient.entries["test"].Any(e => e.Path == "test/test2.txt"));
-            Assert.AreEqual(1, mockClient.histories["test/test1.txt"].Count);
+            Assert.AreEqual(2, mockClient.histories["test/test1.txt"].Count);
             Assert.AreEqual(1, mockClient.histories["test/test2.txt"].Count);
         }
 
@@ -91,11 +91,11 @@ namespace Docms.Client.Tests
         {
             await mockClient.CreateOrUpdateDocumentAsync("test/test1.txt", CreateStream("Hello")).ConfigureAwait(false);
             var now = DateTime.UtcNow;
-            await localFileStorage.Create("test/test1.txt", CreateStream("Hello new"), now, now).ConfigureAwait(false);
+            await localFileStorage.Create("test/test2.txt", CreateStream("Hello new"), now, now).ConfigureAwait(false);
             await sut.RequestMovementAsync("test/test1.txt", "test/test2.txt").ConfigureAwait(false);
             Assert.IsFalse(mockClient.entries["test"].Any(e => e.Path == "test/test1.txt"));
             Assert.IsTrue(mockClient.entries["test"].Any(e => e.Path == "test/test2.txt"));
-            Assert.AreEqual(1, mockClient.histories["test/test1.txt"].Count);
+            Assert.AreEqual(2, mockClient.histories["test/test1.txt"].Count);
             Assert.AreEqual(1, mockClient.histories["test/test2.txt"].Count);
         }
     }
