@@ -34,16 +34,16 @@ namespace Docms.Client.FileSyncing
             }
 
             var ts = new TypeSwitch()
-                .Case((DocumentCreated x) => Apply(x))
-                .Case((DocumentUpdated x) => Apply(x))
-                .Case((DocumentMovedFrom x) => Apply(x))
-                .Case((DocumentMovedTo x) => Apply(x))
-                .Case((DocumentDeleted x) => Apply(x));
+                .Case((DocumentCreatedHistory x) => Apply(x))
+                .Case((DocumentUpdatedHistory x) => Apply(x))
+                .Case((DocumentMovedFromHistory x) => Apply(x))
+                .Case((DocumentMovedToHistory x) => Apply(x))
+                .Case((DocumentDeletedHistory x) => Apply(x));
             ts.Switch(history);
             AppliedHistories.Add(history);
         }
 
-        public void Apply(DocumentCreated history)
+        public void Apply(DocumentCreatedHistory history)
         {
             LastHistoryId = history.Id;
             LastHistorTimestamp = history.Timestamp;
@@ -58,7 +58,7 @@ namespace Docms.Client.FileSyncing
             _histories.Add(history);
         }
 
-        public void Apply(DocumentUpdated history)
+        public void Apply(DocumentUpdatedHistory history)
         {
             LastHistoryId = history.Id;
             LastHistorTimestamp = history.Timestamp;
@@ -72,7 +72,7 @@ namespace Docms.Client.FileSyncing
             _histories.Add(history);
         }
 
-        public void Apply(DocumentMovedFrom history)
+        public void Apply(DocumentMovedFromHistory history)
         {
             LastHistoryId = history.Id;
             LastHistorTimestamp = history.Timestamp;
@@ -88,7 +88,7 @@ namespace Docms.Client.FileSyncing
             _histories.Add(history);
         }
 
-        public void Apply(DocumentMovedTo history)
+        public void Apply(DocumentMovedToHistory history)
         {
             LastHistoryId = history.Id;
             LastHistorTimestamp = history.Timestamp;
@@ -98,7 +98,7 @@ namespace Docms.Client.FileSyncing
             _histories.Add(history);
         }
 
-        public void Apply(DocumentDeleted history)
+        public void Apply(DocumentDeletedHistory history)
         {
             LastHistoryId = history.Id;
             LastHistorTimestamp = history.Timestamp;

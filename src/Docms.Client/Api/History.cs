@@ -9,7 +9,7 @@ namespace Docms.Client.Api
         public string Path { get; set; }
     }
 
-    public class DocumentCreated : History
+    public class DocumentCreatedHistory : History
     {
         public string ContentType { get; set; }
         public long FileSize { get; set; }
@@ -18,7 +18,7 @@ namespace Docms.Client.Api
         public DateTime LastModified { get; set; }
     }
 
-    public class DocumentMovedFrom : History
+    public class DocumentMovedFromHistory : History
     {
         public string OldPath { get; set; }
         public string ContentType { get; set; }
@@ -28,12 +28,12 @@ namespace Docms.Client.Api
         public DateTime LastModified { get; set; }
     }
 
-    public class DocumentMovedTo : History
+    public class DocumentMovedToHistory : History
     {
         public string NewPath { get; set; }
     }
 
-    public class DocumentUpdated : History
+    public class DocumentUpdatedHistory : History
     {
         public string ContentType { get; set; }
         public long FileSize { get; set; }
@@ -42,7 +42,7 @@ namespace Docms.Client.Api
         public DateTime LastModified { get; set; }
     }
 
-    public class DocumentDeleted : History
+    public class DocumentDeletedHistory : History
     {
     }
 }

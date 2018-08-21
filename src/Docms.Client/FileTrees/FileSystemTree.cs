@@ -1,13 +1,45 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Threading;
+using System.Threading.Tasks;
+using Docms.Client.FileStorage;
 
 namespace Docms.Client.FileTrees
 {
     public class FileSystemTree
     {
         private List<FileTreeEvent> Events = new List<FileTreeEvent>();
+        private ILocalFileStorage _localFileStorage;
+
+        public FileSystemTree(ILocalFileStorage localFileStorage)
+        {
+            _localFileStorage = localFileStorage;
+        }
+
         public DirectoryNode Root { get; } = new DirectoryNode("");
+
+        public Task InitializeAsync(CancellationToken token)
+        {
+            CreateLocalFileStructure(new PathString(""));
+            ClearDelta();
+            return Task.CompletedTask;
+        }
+
+        private void CreateLocalFileStructure(PathString path)
+        {
+            foreach (var dirPath in _localFileStorage.GetDirectories(path.ToString()))
+            {
+                var ps = new PathString(dirPath);
+                AddDirectory(ps);
+                CreateLocalFileStructure(ps);
+            }
+            foreach (var filePath in _localFileStorage.GetFiles(path.ToString()))
+            {
+                var ps = new PathString(filePath);
+                AddFile(ps);
+            }
+        }
 
         public Node GetNode(PathString path)
         {

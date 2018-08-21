@@ -9,11 +9,11 @@ namespace Docms.Client.Api.Serialization
     {
         Dictionary<string, Type> matches = new Dictionary<string, Type>()
         {
-            {"document_created", typeof(DocumentCreated) },
-            {"document_updated", typeof(DocumentUpdated) },
-            {"document_moved_from", typeof(DocumentMovedFrom) },
-            {"document_moved_to", typeof(DocumentMovedTo)  },
-            {"document_deleted", typeof(DocumentDeleted)  },
+            {"document_created", typeof(DocumentCreatedHistory) },
+            {"document_updated", typeof(DocumentUpdatedHistory) },
+            {"document_moved_from", typeof(DocumentMovedFromHistory) },
+            {"document_moved_to", typeof(DocumentMovedToHistory)  },
+            {"document_deleted", typeof(DocumentDeletedHistory)  },
             {"container", typeof(ContainerResponse) },
             {"document", typeof(DocumentResponse) },
         };

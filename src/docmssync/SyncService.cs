@@ -1,6 +1,7 @@
 ﻿using Docms.Client.Api;
 using Docms.Client.FileStorage;
 using Docms.Client.FileSyncing;
+using Docms.Client.FileTrees;
 using docmssync.Properties;
 using Microsoft.EntityFrameworkCore;
 using System;
@@ -18,6 +19,7 @@ namespace docmssync
         private string _watchPath;
         private DocmsApiClinet _client;
         private LocalFileStorage _localFileStorage;
+        private FileSystemTree _fsTree;
         private FileSyncingContext _context;
         private FileSystemSynchronizer _synchronizer;
         private FileSystemWatcher _watcher;
@@ -72,7 +74,9 @@ namespace docmssync
                 await _context.Database.EnsureCreatedAsync().ConfigureAwait(false);
                 await _client.LoginAsync(Settings.Default.UploadUserName, Settings.Default.UploadUserPassword).ConfigureAwait(false);
                 _synchronizer = new FileSystemSynchronizer(_client, _localFileStorage, _context);
+                _fsTree = new FileSystemTree(_localFileStorage);
                 await _synchronizer.InitializeAsync(_cts.Token).ConfigureAwait(false);
+                await _fsTree.InitializeAsync(_cts.Token).ConfigureAwait(false);
                 _processTask = ProcessFileSync(_cts.Token);
                 _watcher.EnableRaisingEvents = true;
                 _timer.Change(0, 10000);
@@ -98,9 +102,9 @@ namespace docmssync
             }
         }
 
-        private string ResolvePath(string fullPath)
+        private PathString ResolvePath(string fullPath)
         {
-            return fullPath.Substring(_watchPath.Length + 1);
+            return new PathString(fullPath.Substring(_watchPath.Length + 1));
         }
 
         private void _timer_Ticks(object state)
@@ -108,6 +112,25 @@ namespace docmssync
             _timer.Change(-1, Timeout.Infinite);
             _actions.Enqueue(async () =>
             {
+                foreach (var change in _fsTree.GetDelta())
+                {
+                    if (change is DocumentCreated)
+                    {
+                        await _synchronizer.RequestCreationAsync(change.Path.ToString(), _cts.Token).ConfigureAwait(false);
+                    }
+                    else if (change is DocumentUpdated)
+                    {
+                        await _synchronizer.RequestChangingAsync(change.Path.ToString(), _cts.Token).ConfigureAwait(false);
+                    }
+                    else if (change is DocumentUpdated)
+                    {
+                        await _synchronizer.RequestFileMovementAsync(change.Path.ToString(), _cts.Token).ConfigureAwait(false);
+                    }
+                    else if (change is DocumentUpdated)
+                    {
+                        await _synchronizer.RequestChangingAsync(change.Path.ToString(), _cts.Token).ConfigureAwait(false);
+                    }
+                }
                 await _synchronizer.SyncFromHistoryAsync().ConfigureAwait(false);
             });
             _timer.Change(Timeout.Infinite, 10000);
@@ -121,51 +144,46 @@ namespace docmssync
 
         private void _watcher_Deleted(object sender, FileSystemEventArgs e)
         {
-            _actions.Enqueue(async () =>
+            _actions.Enqueue(() =>
             {
-                await Task.Delay(1000);
-                await _synchronizer.RequestDeletionAsync(ResolvePath(e.FullPath)).ConfigureAwait(false);
+                _fsTree.Delete(ResolvePath(e.FullPath));
+                return Task.CompletedTask;
             });
         }
 
         private void _watcher_Renamed(object sender, RenamedEventArgs e)
         {
-            _actions.Enqueue(async () =>
+            _actions.Enqueue(() =>
             {
-                if (Directory.Exists(e.FullPath))
-                {
-                    await _synchronizer.RequestDirectoryMovementAsync(ResolvePath(e.OldFullPath), ResolvePath(e.FullPath)).ConfigureAwait(false);
-                }
-                else
-                {
-                    await _synchronizer.RequestFileMovementAsync(ResolvePath(e.OldFullPath), ResolvePath(e.FullPath)).ConfigureAwait(false);
-                }
+                _fsTree.Move(ResolvePath(e.FullPath), ResolvePath(e.OldFullPath));
+                return Task.CompletedTask;
             });
         }
 
         private void _watcher_Changed(object sender, FileSystemEventArgs e)
         {
 
-            _actions.Enqueue(async () =>
+            _actions.Enqueue(() =>
             {
-                await Task.Delay(1000);
-                if (!Directory.Exists(e.FullPath) && File.Exists(e.FullPath))
-                {
-                    await _synchronizer.RequestChangingAsync(ResolvePath(e.FullPath)).ConfigureAwait(false);
-                }
+                _fsTree.Update(ResolvePath(e.FullPath));
+                return Task.CompletedTask;
             });
         }
 
         private void _watcher_Created(object sender, FileSystemEventArgs e)
         {
-            _actions.Enqueue(async () =>
-            {
-                await Task.Delay(1000);
-                if (!Directory.Exists(e.FullPath) && File.Exists(e.FullPath))
-                {
-                    await _synchronizer.RequestCreationAsync(ResolvePath(e.FullPath)).ConfigureAwait(false);
-                }
-            });
+            _actions.Enqueue(() =>
+           {
+               if (Directory.Exists(e.FullPath))
+               {
+                   _fsTree.AddDirectory(ResolvePath(e.FullPath));
+               }
+               if (File.Exists(e.FullPath))
+               {
+                   _fsTree.AddFile(ResolvePath(e.FullPath));
+               }
+               return Task.CompletedTask;
+           });
         }
 
         protected override void OnStop()

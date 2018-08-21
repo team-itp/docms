@@ -101,7 +101,7 @@ namespace Docms.Client.Tests.Utils
         private void AddCreated(string path, string contentType, byte[] data)
         {
             var now = DateTime.UtcNow;
-            AddHisotry(new DocumentCreated()
+            AddHisotry(new DocumentCreatedHistory()
             {
                 Path = path,
                 ContentType = contentType,
@@ -115,7 +115,7 @@ namespace Docms.Client.Tests.Utils
         private void AddUpdated(string path, string contentType, byte[] data)
         {
             var now = DateTime.UtcNow;
-            AddHisotry(new DocumentUpdated()
+            AddHisotry(new DocumentUpdatedHistory()
             {
                 Path = path,
                 ContentType = contentType,
@@ -129,7 +129,7 @@ namespace Docms.Client.Tests.Utils
         private void AddMove(string originalPath, string destinationPath, string contentType, byte[] data)
         {
             var now = DateTime.UtcNow;
-            AddHisotry(new DocumentMovedFrom()
+            AddHisotry(new DocumentMovedFromHistory()
             {
                 Path = destinationPath,
                 OldPath = originalPath,
@@ -139,7 +139,7 @@ namespace Docms.Client.Tests.Utils
                 Created = now,
                 LastModified = now
             });
-            AddHisotry(new DocumentMovedTo()
+            AddHisotry(new DocumentMovedToHistory()
             {
                 Path = originalPath,
                 NewPath = destinationPath,
@@ -149,7 +149,7 @@ namespace Docms.Client.Tests.Utils
         private void AddDelete(string path)
         {
             var now = DateTime.UtcNow;
-            AddHisotry(new DocumentDeleted()
+            AddHisotry(new DocumentDeletedHistory()
             {
                 Path = path,
             });

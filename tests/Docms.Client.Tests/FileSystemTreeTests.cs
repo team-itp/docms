@@ -1,5 +1,7 @@
-﻿using Docms.Client.FileTrees;
+﻿using Docms.Client.FileStorage;
+using Docms.Client.FileTrees;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
+using System.IO;
 using System.Linq;
 
 namespace Docms.Client.Tests
@@ -7,15 +9,26 @@ namespace Docms.Client.Tests
     [TestClass]
     public class FileSystemTreeTests
     {
+        private LocalFileStorage localFileStorage;
         private FileSystemTree sut;
 
         [TestInitialize]
         public void Setup()
         {
-            sut = new FileSystemTree();
+            localFileStorage = new LocalFileStorage("tmp");
+            sut = new FileSystemTree(localFileStorage);
             sut.AddDirectory(new PathString("test1"));
             sut.AddFile(new PathString("test1/content.txt"));
             sut.ClearDelta();
+        }
+
+        [TestCleanup]
+        public void Teardown()
+        {
+            if (Directory.Exists("tmp"))
+            {
+                Directory.Delete("tmp");
+            }
         }
 
         [TestMethod]
