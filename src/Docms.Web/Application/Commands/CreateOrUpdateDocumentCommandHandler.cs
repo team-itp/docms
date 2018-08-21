@@ -35,7 +35,7 @@ namespace Docms.Web.Application.Commands
             {
                 var dir = await _fileStorage.GetDirectoryAsync(path.DirectoryPath);
                 var utcNow = DateTime.UtcNow;
-                var fileProps = await _fileStorage.SaveAsync(dir, path.FileName, request.Stream, request.Created ?? utcNow, request.LastModified ?? utcNow);
+                var fileProps = await _fileStorage.SaveAsync(dir, path.FileName, request.Stream);
                 var document = new Document(new DocumentPath(request.Path.ToString()), fileProps.ContentType, fileProps.Size, fileProps.Hash, fileProps.Created, fileProps.LastModified);
                 await _documentRepository.AddAsync(document);
             }
@@ -46,8 +46,8 @@ namespace Docms.Web.Application.Commands
                 {
                     await request.Stream.CopyToAsync(ms);
                     ms.Seek(0, SeekOrigin.Begin);
-                    var hash = Hash.CalculateHashString(ms);
-                    if (hash == Hash.ConvertHashString(props.Hash))
+                    var hash = Hash.CalculateHash(ms);
+                    if (hash == props.Hash)
                     {
                         return true;
                     }
@@ -55,7 +55,7 @@ namespace Docms.Web.Application.Commands
 
                     var dir = file.Parent;
                     var utcNow = DateTime.UtcNow;
-                    var fileProps = await _fileStorage.SaveAsync(dir, path.FileName, ms, request.Created ?? props.Created, request.LastModified ?? utcNow);
+                    var fileProps = await _fileStorage.SaveAsync(dir, path.FileName, ms);
                     var document = await _documentRepository.GetAsync(request.Path.ToString());
                     document.Update(fileProps.ContentType, fileProps.Size, fileProps.Hash, fileProps.Created, fileProps.LastModified);
                 }

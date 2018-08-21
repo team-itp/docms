@@ -17,22 +17,22 @@ namespace Docms.Domain.Documents
         {
         }
 
-        public Document(DocumentPath path, string contentType, long fileSize, byte[] hash)
+        public Document(DocumentPath path, string contentType, long fileSize, string hash)
          : this(path, contentType, fileSize, hash, DateTime.UtcNow)
         {
         }
 
-        public Document(DocumentPath path, string contentType, long fileSize, byte[] hash, DateTime created)
+        public Document(DocumentPath path, string contentType, long fileSize, string hash, DateTime created)
          : this(path, contentType, fileSize, hash, created, created)
         {
         }
 
-        public Document(DocumentPath path, string contentType, long fileSize, byte[] hash, DateTime created, DateTime lastModified) : this()
+        public Document(DocumentPath path, string contentType, long fileSize, string hash, DateTime created, DateTime lastModified) : this()
         {
             Path = path ?? throw new ArgumentNullException(nameof(path));
             ContentType = contentType ?? throw new ArgumentNullException(nameof(contentType));
             FileSize = fileSize;
-            Hash = HashToString(hash ?? throw new ArgumentNullException(nameof(hash)));
+            Hash = hash ?? throw new ArgumentNullException(nameof(hash));
             Created = created;
             LastModified = lastModified;
 
@@ -47,17 +47,17 @@ namespace Docms.Domain.Documents
             OnDocumentMoved(originalPath, destinationPath);
         }
 
-        public void Update(string contentType, long fileSize, byte[] hash)
+        public void Update(string contentType, long fileSize, string hash)
         {
             var now = DateTime.UtcNow;
             Update(contentType, fileSize, hash, Created, now);
         }
 
-        public void Update(string contentType, long fileSize, byte[] hash, DateTime created, DateTime lastModified)
+        public void Update(string contentType, long fileSize, string hash, DateTime created, DateTime lastModified)
         {
             ContentType = contentType ?? throw new ArgumentNullException(nameof(contentType));
             FileSize = fileSize;
-            Hash = HashToString(hash ?? throw new ArgumentNullException(nameof(hash)));
+            Hash = hash ?? throw new ArgumentNullException(nameof(hash));
             Created = created;
             LastModified = lastModified;
 
@@ -94,11 +94,6 @@ namespace Docms.Domain.Documents
         {
             var ev = new DocumentDeletedEvent(this, path);
             AddDomainEvent(ev);
-        }
-
-        private string HashToString(byte[] hash)
-        {
-            return BitConverter.ToString(hash).Replace("-", "");
         }
     }
 }

@@ -136,12 +136,10 @@ namespace Docms.Infrastructure.Tests
             var ms = new MemoryStream(Encoding.UTF8.GetBytes("dir2content1"));
             ms.Seek(0, SeekOrigin.Begin);
             var dir = await sut.GetDirectoryAsync("dir2") as Files.Directory;
-            var fileProps = await dir.SaveAsync("content1.txt", ms, DateTime.Today, DateTime.Today);
+            var fileProps = await dir.SaveAsync("content1.txt", ms);
             Assert.AreEqual("dir2content1", System.IO.File.ReadAllText(Path.Combine(basepath, "dir2\\content1.txt")));
             Assert.AreEqual(12, fileProps.Size);
             Assert.IsNotNull(fileProps.Hash);
-            Assert.AreEqual(DateTime.Today, fileProps.Created);
-            Assert.AreEqual(DateTime.Today, fileProps.LastModified);
         }
 
         [TestMethod]
@@ -149,14 +147,12 @@ namespace Docms.Infrastructure.Tests
         {
             var ms1 = new MemoryStream(Encoding.UTF8.GetBytes("dir2content1"));
             var dir = await sut.GetDirectoryAsync("dir2") as Files.Directory;
-            await dir.SaveAsync("content1.txt", ms1, DateTime.Today, DateTime.Today);
+            await dir.SaveAsync("content1.txt", ms1);
             Assert.AreEqual("dir2content1", System.IO.File.ReadAllText(Path.Combine(basepath, "dir2\\content1.txt")));
             var ms2 = new MemoryStream(Encoding.UTF8.GetBytes("dir2content1new"));
-            var fileProps = await dir.SaveAsync("content1.txt", ms2, DateTime.Today, DateTime.Today);
+            var fileProps = await dir.SaveAsync("content1.txt", ms2);
             Assert.AreEqual(15, fileProps.Size);
             Assert.IsNotNull(fileProps.Hash);
-            Assert.AreEqual(DateTime.Today, fileProps.Created);
-            Assert.AreEqual(DateTime.Today, fileProps.LastModified);
         }
 
         [TestMethod]
