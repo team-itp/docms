@@ -7,33 +7,107 @@ namespace Docms.Client.FileTrees
     public class FileSystemTree
     {
         private List<FileTreeEvent> Events = new List<FileTreeEvent>();
-        public DirectoryNode Root { get; } = new DirectoryNode();
+        public DirectoryNode Root { get; } = new DirectoryNode("");
 
-        public void AddFile(string path)
+        public Node GetNode(PathString path)
         {
-            var pathComponents = path.Split('/');
-            foreach (var pathComponet in pathComponents.Take(pathComponents.Length - 1))
+            if (path.Name == "")
             {
+                return Root;
+            }
+            return GetDirectory(path.ParentPath)?.Get(path.Name);
+        }
 
+        public FileNode GetFile(PathString path)
+        {
+            return GetNode(path) as FileNode;
+        }
+
+        public DirectoryNode GetDirectory(PathString path)
+        {
+            return GetNode(path) as DirectoryNode;
+        }
+
+        public void AddFile(PathString path)
+        {
+            if (!Exists(path.ParentPath))
+            {
+                AddDirectory(path.ParentPath);
+            }
+            var dir = GetDirectory(path.ParentPath);
+            dir.Add(new FileNode(path.Name));
+            Events.Add(new DocumentCreated(path));
+        }
+
+        public void AddDirectory(PathString path)
+        {
+            if (!Exists(path.ParentPath))
+            {
+                AddDirectory(path.ParentPath);
+            }
+            var dir = GetDirectory(path.ParentPath);
+            dir.Add(new DirectoryNode(path.Name));
+        }
+
+        public void Move(PathString oldPath, PathString path)
+        {
+            var overwritten = Exists(path);
+            var oldNode = GetNode(oldPath);
+            if (oldNode is DirectoryNode oldDir)
+            {
+                foreach (var childItem in oldDir.Children.ToArray())
+                {
+                    Move(oldPath.Combine(childItem.Name), path.Combine(childItem.Name));
+                }
+            }
+            else if (oldNode is FileNode oldFile)
+            {
+                oldFile.Remove();
+                if (!Exists(path.ParentPath))
+                {
+                    AddDirectory(path.ParentPath);
+                }
+                var dir = GetDirectory(path.ParentPath);
+                dir.Add(oldFile);
+                Events.Add(new DocumentMovedFrom(oldPath, path));
+                Events.Add(new DocumentMovedTo(path, oldPath));
             }
         }
 
-        public void AddDirectory(string path)
+        public void Update(PathString path)
         {
-
+            if (!Exists(path))
+            {
+                throw new InvalidOperationException();
+            }
+            Events.Add(new DocumentUpdated(path));
         }
 
-        public void Move(string oldPath, string path)
+        public void Delete(PathString path)
         {
+            if (!Exists(path))
+            {
+                throw new InvalidOperationException();
+            }
+            var node = GetNode(path);
+            if (node is DirectoryNode dir)
+            {
+                foreach (var childItem in dir.Children.ToArray())
+                {
+                    Delete(path.Combine(childItem.Name));
+                }
+                node.Remove();
+            }
+            else if (node is FileNode file)
+            {
+                file.Remove();
+                Events.Add(new DocumentDeleted(path));
+            }
         }
 
-        public void Update(string path)
+        public bool Exists(PathString path)
         {
-        }
-
-        public bool Exists(string v)
-        {
-            throw new NotImplementedException();
+            return GetNode(path) != null;
         }
 
         public IEnumerable<FileTreeEvent> GetDelta()

@@ -4,43 +4,53 @@ namespace Docms.Client.FileTrees
 {
     public abstract class FileTreeEvent
     {
-        public FileTreeEvent(string path)
+        public FileTreeEvent(PathString path)
         {
             Timestamp = DateTime.UtcNow;
             Path = path;
         }
 
         public DateTime Timestamp { get; }
-        public string Path { get; }
+        public PathString Path { get; }
     }
 
     public sealed class DocumentCreated : FileTreeEvent
     {
-        public DocumentCreated(string path) : base(path)
+        public DocumentCreated(PathString path) : base(path)
         {
         }
     }
 
     public sealed class DocumentUpdated : FileTreeEvent
     {
-        public DocumentUpdated(string path) : base(path)
+        public DocumentUpdated(PathString path) : base(path)
         {
         }
     }
 
-    public sealed class DocumentMoved : FileTreeEvent
+    public sealed class DocumentMovedFrom : FileTreeEvent
     {
-        public DocumentMoved(string path, string oldPath) : base(path)
+        public DocumentMovedFrom(PathString path, PathString newPath) : base(path)
+        {
+            NewPath = newPath;
+        }
+
+        public PathString NewPath { get; }
+    }
+
+    public sealed class DocumentMovedTo : FileTreeEvent
+    {
+        public DocumentMovedTo(PathString path, PathString oldPath) : base(path)
         {
             OldPath = oldPath;
         }
 
-        public string OldPath { get; }
+        public PathString OldPath { get; }
     }
 
     public sealed class DocumentDeleted : FileTreeEvent
     {
-        public DocumentDeleted(string path) : base(path)
+        public DocumentDeleted(PathString path) : base(path)
         {
         }
     }

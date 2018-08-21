@@ -6,7 +6,6 @@ using System.Threading.Tasks;
 
 namespace Docms.Client.Tests
 {
-    [TestClass]
     public class DocmsApiClinetTests
     {
         private DocmsApiClinet sut;
