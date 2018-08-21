@@ -1,8 +1,10 @@
 using Docms.Domain.Documents;
+using Docms.Infrastructure.Files;
 using Docms.Infrastructure.Repositories;
 using Docms.Infrastructure.Tests.Utils;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
+using System.Linq;
 using System.Threading.Tasks;
 
 namespace Docms.Infrastructure.Tests
@@ -12,7 +14,7 @@ namespace Docms.Infrastructure.Tests
     {
         private Document BuildDocument(string path)
         {
-            return new Document(new DocumentPath(path), "text/plain", 10, new byte[] { 1, 2, 3, 4 });
+            return new Document(new DocumentPath(path), "text/plain", 10, "abcde");
         }
 
         [TestMethod]

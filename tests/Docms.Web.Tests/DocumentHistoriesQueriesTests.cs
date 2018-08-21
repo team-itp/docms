@@ -51,7 +51,7 @@ namespace Docms.Web.Tests
                 Path = path,
                 ContentType = "text/plain",
                 FileSize = 5 + contentId.ToString().Length,
-                Hash = Hash.CalculateHashString(Encoding.UTF8.GetBytes("Hello" + contentId)),
+                Hash = Hash.CalculateHash(Encoding.UTF8.GetBytes("Hello" + contentId)),
                 Created = now,
                 LastModified = now
             });
@@ -68,7 +68,7 @@ namespace Docms.Web.Tests
                 OldPath = from,
                 ContentType = "text/plain",
                 FileSize = 5 + contentId.ToString().Length,
-                Hash = Hash.CalculateHashString(Encoding.UTF8.GetBytes("Hello" + contentId)),
+                Hash = Hash.CalculateHash(Encoding.UTF8.GetBytes("Hello" + contentId)),
                 Created = now,
                 LastModified = now
             });
@@ -91,7 +91,7 @@ namespace Docms.Web.Tests
                 Path = path,
                 ContentType = "text/plain",
                 FileSize = 5 + contentId.ToString().Length,
-                Hash = Hash.CalculateHashString(Encoding.UTF8.GetBytes("Hello" + contentId)),
+                Hash = Hash.CalculateHash(Encoding.UTF8.GetBytes("Hello" + contentId)),
                 Created = now,
                 LastModified = now
             });

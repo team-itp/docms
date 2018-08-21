@@ -9,7 +9,7 @@ namespace Docms.Domain.Tests
         [TestMethod]
         public void ドキュメントを新規に作成しドキュメントの作成イベントが発生する()
         {
-            var sut = new Document(new DocumentPath("test.txt"), "text/plain", 10, new byte[] { 1, 2, 3, 4 });
+            var sut = new Document(new DocumentPath("test.txt"), "text/plain", 10, "ABCD");
             Assert.AreEqual(1, sut.DomainEvents.Count);
         }
     }

@@ -1,5 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using System.IO;
 using System.Threading.Tasks;
 
@@ -30,16 +29,9 @@ namespace Docms.Infrastructure.Files
             return Storage.GetFilesAsync(this);
         }
 
-        public Task<FileProperties> SaveAsync(string filename, Stream stream, DateTime created, DateTime lastModified)
-        {
-            return Storage.SaveAsync(this, filename, stream, created, lastModified);
-        }
-
         public Task<FileProperties> SaveAsync(string filename, Stream stream)
         {
-            var created = DateTime.UtcNow;
-            var lastModified = created;
-            return Storage.SaveAsync(this, filename, stream, created, lastModified);
+            return Storage.SaveAsync(this, filename, stream);
         }
     }
 
