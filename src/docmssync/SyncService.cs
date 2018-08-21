@@ -44,8 +44,8 @@ namespace docmssync
                 Directory.CreateDirectory(dbDir);
             }
             _context = new FileSyncingContext(new DbContextOptionsBuilder<FileSyncingContext>()
-                .UseSqlite(string.Format("Data Source={0}", Path.Combine(dbDir, "sync.db")))
-                .Options);
+            .UseSqlite(string.Format("Data Source={0}", Path.Combine(dbDir, "sync.db")))
+            .Options);
             if (_watcher == null)
             {
                 _watcher = new FileSystemWatcher(_watchPath)
@@ -91,15 +91,44 @@ namespace docmssync
         private async Task ProcessFileSync(CancellationToken token = default(CancellationToken))
         {
             await Task.Yield();
+            var failCount = 0;
             while (!token.IsCancellationRequested)
             {
                 if (_actions.TryDequeue(out var action))
                 {
                     token.WaitHandle.WaitOne(1000);
-                    await action.Invoke().ConfigureAwait(false);
+                    try
+                    {
+                        await action.Invoke().ConfigureAwait(false);
+                    }
+                    catch (Exception ex)
+                    {
+                        Trace.WriteLine(ex);
+                        failCount++;
+                    }
+
+                    if (failCount >= 3)
+                    {
+                        await ResetProcessAsync(token);
+                        failCount = 0;
+                    }
                 }
                 token.WaitHandle.WaitOne(100);
             }
+        }
+
+        private async Task ResetProcessAsync(CancellationToken token = default(CancellationToken))
+        {
+            _timer.Change(-1, Timeout.Infinite);
+            _watcher.EnableRaisingEvents = false;
+            await Task.Delay(100);
+            while (_actions.TryDequeue(out var action))
+            {
+            }
+            await _synchronizer.InitializeAsync(_cts.Token).ConfigureAwait(false);
+            await _fsTree.InitializeAsync(_cts.Token).ConfigureAwait(false);
+            _watcher.EnableRaisingEvents = true;
+            _timer.Change(10000, 10000);
         }
 
         private PathString ResolvePath(string fullPath)
@@ -112,28 +141,39 @@ namespace docmssync
             _timer.Change(-1, Timeout.Infinite);
             _actions.Enqueue(async () =>
             {
-                foreach (var change in _fsTree.GetDelta())
+                try
                 {
-                    if (change is DocumentCreated)
+                    foreach (var change in _fsTree.GetDelta())
                     {
-                        await _synchronizer.RequestCreationAsync(change.Path.ToString(), _cts.Token).ConfigureAwait(false);
+                        if (change is DocumentCreated)
+                        {
+                            await _synchronizer.RequestCreationAsync(change.Path.ToString(), _cts.Token).ConfigureAwait(false);
+                        }
+                        else if (change is DocumentUpdated)
+                        {
+                            await _synchronizer.RequestChangingAsync(change.Path.ToString(), _cts.Token).ConfigureAwait(false);
+                        }
+                        else if (change is DocumentMovedFrom movedFrom)
+                        {
+                            await _synchronizer.RequestMovementAsync(movedFrom.Path.ToString(), movedFrom.NewPath.ToString(), _cts.Token).ConfigureAwait(false);
+                        }
+                        else if (change is DocumentDeleted)
+                        {
+                            await _synchronizer.RequestDeletionAsync(change.Path.ToString(), _cts.Token).ConfigureAwait(false);
+                        }
                     }
-                    else if (change is DocumentUpdated)
-                    {
-                        await _synchronizer.RequestChangingAsync(change.Path.ToString(), _cts.Token).ConfigureAwait(false);
-                    }
-                    else if (change is DocumentUpdated)
-                    {
-                        await _synchronizer.RequestFileMovementAsync(change.Path.ToString(), _cts.Token).ConfigureAwait(false);
-                    }
-                    else if (change is DocumentUpdated)
-                    {
-                        await _synchronizer.RequestChangingAsync(change.Path.ToString(), _cts.Token).ConfigureAwait(false);
-                    }
+                    _fsTree.ClearDelta();
+                    await _synchronizer.SyncFromHistoryAsync().ConfigureAwait(false);
                 }
-                await _synchronizer.SyncFromHistoryAsync().ConfigureAwait(false);
+                catch (Exception ex)
+                {
+                    Trace.WriteLine(ex);
+                }
+                finally
+                {
+                    _timer.Change(10000, 10000);
+                }
             });
-            _timer.Change(Timeout.Infinite, 10000);
         }
 
         private void _watcher_Error(object sender, ErrorEventArgs e)
@@ -155,7 +195,7 @@ namespace docmssync
         {
             _actions.Enqueue(() =>
             {
-                _fsTree.Move(ResolvePath(e.FullPath), ResolvePath(e.OldFullPath));
+                _fsTree.Move(ResolvePath(e.OldFullPath), ResolvePath(e.FullPath));
                 return Task.CompletedTask;
             });
         }
@@ -173,17 +213,17 @@ namespace docmssync
         private void _watcher_Created(object sender, FileSystemEventArgs e)
         {
             _actions.Enqueue(() =>
-           {
-               if (Directory.Exists(e.FullPath))
-               {
-                   _fsTree.AddDirectory(ResolvePath(e.FullPath));
-               }
-               if (File.Exists(e.FullPath))
-               {
-                   _fsTree.AddFile(ResolvePath(e.FullPath));
-               }
-               return Task.CompletedTask;
-           });
+            {
+                if (Directory.Exists(e.FullPath))
+                {
+                    _fsTree.AddDirectory(ResolvePath(e.FullPath));
+                }
+                if (File.Exists(e.FullPath))
+                {
+                    _fsTree.AddFile(ResolvePath(e.FullPath));
+                }
+                return Task.CompletedTask;
+            });
         }
 
         protected override void OnStop()

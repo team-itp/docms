@@ -108,11 +108,15 @@ namespace Docms.Client.FileTrees
 
         public void Update(PathString path)
         {
-            if (!Exists(path))
+            var node = GetNode(path);
+            if (node == null)
             {
                 throw new InvalidOperationException();
             }
-            Events.Add(new DocumentUpdated(path));
+            if (node is FileNode file)
+            {
+                Events.Add(new DocumentUpdated(path));
+            }
         }
 
         public void Delete(PathString path)

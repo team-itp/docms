@@ -71,9 +71,16 @@ namespace Docms.Client.FileSyncing
             foreach (var item in _storage.GetFiles(path))
             {
                 cancellationToken.ThrowIfCancellationRequested();
-                if (!IgnorePatterns.Any(e => Regex.IsMatch(item, e)))
+                try
                 {
-                    await _synchronizer.SyncAsync(item).ConfigureAwait(false);
+                    if (!IgnorePatterns.Any(e => Regex.IsMatch(item, e)))
+                    {
+                        await _synchronizer.SyncAsync(item).ConfigureAwait(false);
+                    }
+                }
+                catch (Exception ex)
+                {
+                    Trace.WriteLine(ex);
                 }
             }
             foreach (var item in _storage.GetDirectories(path))
