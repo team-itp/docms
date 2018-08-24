@@ -6,8 +6,7 @@
 
 <h2>アップロード</h2>
 
-<h4>書類・画像ファイルをアップロードしてください</h4>
-<p><small>50 MB 以下ならば複数のファイルをアップロードできます。</small></p>
+<p>書類・画像ファイルをアップロードしてください。50 MB 以下ならば複数のファイルをアップロードできます。</p>
 <hr />
 
 <div class="row">
@@ -16,12 +15,22 @@
             <div asp-validation-summary="ModelOnly" class="text-danger"></div>
             <div class="form-group">
                 <label asp-for="DirPath" class="control-label"></label>
-                @if (string.IsNullOrEmpty(Model.DirPath)) {
-                    <span class="form-control-plaintext">TOP ディレクトリ</span>
-                    <input type="hidden" asp-for="DirPath" />
-                } else {
-                    <input asp-for="DirPath" class="form-control-plaintext" readonly />
-                }
+                <button type="button" class="btn btn-dark btn-sm" data-toggle="modal" data-target="#directory-selection">
+                    変更
+                </button>
+                <div class="my-2">
+                    <ul class="breadcrumb" style="background: white">
+                        <li class="breadcrumb-item">TOP</li>
+                        @if (Model.DirPath != null)
+                        {
+                            @foreach (var pathComponent in Model.DirPath.Split('/'))
+                            {
+                                <li class="breadcrumb-item">@pathComponent</li>
+                            }
+                        }
+                    </ul>
+                </div>
+                <input type="hidden" asp-for="DirPath" readonly />
                 <span asp-validation-for="DirPath" class="text-danger"></span>
             </div>
             <div class="form-group">
@@ -34,6 +43,92 @@
     </div>
 </div>
 
+<!-- Modal -->
+<div class="modal fade" id="directory-selection" tabindex="-1" role="dialog" aria-labelledby="directory-selection-label" aria-hidden="true">
+  <div class="modal-dialog" role="document">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title" id="directory-selection-label">ディレクトリの選択</h5>
+        <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+          <span aria-hidden="true">&times;</span>
+        </button>
+      </div>
+      <div class="modal-body">
+        <div id="direcotry-breadcrumb"></div>
+        <div id="directory-list"></div>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-secondary" data-dismiss="modal">閉じる</button>
+        <button type="button" class="btn btn-primary">変更</button>
+      </div>
+    </div>
+  </div>
+</div>
+
 @section Scripts {
     @{await Html.RenderPartialAsync("_ValidationScriptsPartial");}
+    <script>
+        (function($) {
+            var dirPath = undefined;
+            var $dialog = $('#directory-selection');
+            $dialog.on('show.bs.modal', function() {
+                getDirectories('')
+                    .done(showDirectory);
+                dirPath = '';
+            });
+
+            $dialog.on('click', '.select-directory', function(elem) {
+                var $elem = $(elem.currentTarget);
+                getDirectories($elem.attr('data-dirPath'))
+                    .done(showDirectory)
+                dirPath = $elem.attr('data-dirPath');
+            });
+
+            $dialog.on('click', '.btn-primary', function(elem) {
+                window.location.href = '/files/upload/' + dirPath;
+            });
+
+            function getDirectories(dirPath) {
+                return $.get({
+                    url: '/api/v1/files',
+                    data: {
+                        path: dirPath
+                    }
+                });
+
+            }
+
+            function showDirectory(data) {
+                var dirs = [];
+                if (data.entries) {
+                    var $breadcrumb = $dialog.find('#direcotry-breadcrumb');
+                    $breadcrumb.html('');
+                    var $bcUl = $('<ul class="breadcrumb"></ul>').appendTo($breadcrumb);
+                    var path = '';
+                    $('<li class="breadcrumb-item"></li>')
+                        .append('<button type="button" class="btn btn-link select-directory p-0 align-top" data-dirPath="">TOP</button>')
+                        .appendTo($bcUl);
+                    if (data.path) {
+                        data.path.split('/').forEach(function (pathComponent) {
+                            path = path + pathComponent;
+                            $('<li class="breadcrumb-item"></li>')
+                                .append('<button type="button" class="btn btn-link select-directory p-0 align-top" data-dirPath="' + path + '">' + pathComponent + '</button>')
+                                .appendTo($bcUl);
+                            path = path + '/';
+                        });
+                    }
+                    var $list = $dialog.find('#directory-list');
+                    $list.html('');
+                    var $ul = $('<ul class="list-group"/>').appendTo($list);
+                    data.entries.forEach(function(elem) {
+                        if (elem.$type === 'container') {
+                            var $li = $('<li class="list-group-item" />');
+                            $li.append('<button type="button" class="btn btn-link select-directory p-0" data-dirPath="' + elem.path + '">' + elem.name + '</li>')
+                                .appendTo($ul);
+                        }
+                    });
+                }
+            }
+        })(jQuery);
+    </script>
 }
