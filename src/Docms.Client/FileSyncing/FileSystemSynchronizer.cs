@@ -100,9 +100,14 @@ namespace Docms.Client.FileSyncing
                     .Where(h => h.Status == FileSyncStatus.InitializeCompleted || h.Status == FileSyncStatus.SyncCompleted);
 
                 var serverHistories = new List<History>();
-                if (await completedHistories.AnyAsync())
+                if (await completedHistories.AnyAsync().ConfigureAwait(false))
                 {
-                    serverHistories.AddRange(await _client.GetHistoriesAsync("", await completedHistories.MaxAsync(h => h.Timestamp).ConfigureAwait(false)).ConfigureAwait(false));
+                    var maxCompletedTimestamp = await completedHistories.MaxAsync(h => h.Timestamp).ConfigureAwait(false);
+                    var maxStartedTimestamp = await _db.FileSyncHistories
+                        .Where(h => h.Status == FileSyncStatus.InitializingStarted || h.Status == FileSyncStatus.SyncStarted)
+                        .Where(h => h.Timestamp < maxCompletedTimestamp)
+                        .MaxAsync(h => h.Timestamp).ConfigureAwait(false);
+                    serverHistories.AddRange(await _client.GetHistoriesAsync("", maxStartedTimestamp).ConfigureAwait(false));
                 }
                 else
                 {

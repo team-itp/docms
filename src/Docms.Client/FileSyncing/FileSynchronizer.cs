@@ -85,7 +85,7 @@ namespace Docms.Client.FileSyncing
                         }
                     }
                 }
-                else
+                else if (file.Path != null && file.Path == path)
                 {
                     await _client.DeleteDocumentAsync(path);
                 }

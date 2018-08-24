@@ -40,10 +40,12 @@ namespace Docms.Client.Api
 
     public class ServerException : DocmsApiClientException
     {
+        public int StatusCode { get; }
         public string Content { get; }
 
         public ServerException(int httpStatusCode, string content) : base("サーバーとの接続に問題があるようです。しばらくたってからやり直してください。ステータスコード:" + httpStatusCode.ToString())
         {
+            StatusCode = httpStatusCode;
             Content = content;
         }
     }

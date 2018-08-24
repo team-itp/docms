@@ -168,6 +168,7 @@ namespace Docms.Client.Api
             if (!string.IsNullOrEmpty(path))
             {
                 request.AddQueryParameter("path", path);
+                request.AddQueryParameter("download", true.ToString());
             }
             request.AddHeader("Authorization", "Bearer " + _accessToken);
             var result = await _client.ExecuteGetTaskAsync(request).ConfigureAwait(false);
@@ -210,11 +211,22 @@ namespace Docms.Client.Api
 
         public async Task DeleteDocumentAsync(string path)
         {
-            var request = new RestRequest(_defaultPath + "files", Method.DELETE);
-            request.AddQueryParameter("path", path);
-            request.AddHeader("Authorization", "Bearer " + _accessToken);
-            var result = await _client.ExecuteTaskAsync(request).ConfigureAwait(false);
-            ThrowIfNotSuccessfulStatus(result);
+            try
+            {
+                var request = new RestRequest(_defaultPath + "files", Method.DELETE);
+                request.AddQueryParameter("path", path);
+                request.AddHeader("Authorization", "Bearer " + _accessToken);
+                var result = await _client.ExecuteTaskAsync(request).ConfigureAwait(false);
+                ThrowIfNotSuccessfulStatus(result);
+            }
+            catch (ServerException ex)
+            {
+                if (ex.StatusCode == (int)HttpStatusCode.BadRequest)
+                {
+                    return;
+                }
+                throw;
+            }
         }
 
         public async Task<IEnumerable<History>> GetHistoriesAsync(string path, DateTime? since = null)

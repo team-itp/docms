@@ -34,8 +34,10 @@ namespace Docms.Client.Tests
         }
 
         [TestCleanup]
-        public void Teardown()
+        public async Task Teardown()
         {
+            db.Histories.RemoveRange(db.Histories);
+            await db.SaveChangesAsync();
             if (Directory.Exists("tmp"))
             {
                 Directory.Delete("tmp", true);
