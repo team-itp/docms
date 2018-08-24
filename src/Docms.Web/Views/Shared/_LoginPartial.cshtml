@@ -1,4 +1,5 @@
 @using Docms.Web.Application.Identity
+@using Docms.Web.Extensions
 @using Microsoft.AspNetCore.Identity
 
 @inject SignInManager<ApplicationUser> SignInManager
@@ -7,7 +8,7 @@
 {
     <ul class="navbar-nav">
         <li class="nav-item">
-            <a asp-controller="Files" asp-action="Upload" asp-route-path="@ViewBag.Path" class="nav-link">
+            <a href="@UrlHelperExtension.UploadFile(Url, ViewBag.DirPath)" class="nav-link">
                 <i class="fa fa-plus"></i><span class="d-sm-none pl-2">アップロード</span>
             </a>
         </li>

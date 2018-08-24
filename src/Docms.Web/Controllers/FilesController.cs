@@ -35,7 +35,7 @@ namespace Docms.Web.Controllers
             {
                 return NotFound();
             }
-            ViewData["Path"] = path;
+            ViewData["DirPath"] = entry is Container ? entry.Path : entry.ParentPath;
             return View(entry);
         }
 
@@ -62,7 +62,10 @@ namespace Docms.Web.Controllers
         public IActionResult Upload(string dirPath)
         {
             ViewData["DirPath"] = dirPath;
-            return View();
+            return View(new UploadRequest()
+            {
+                DirPath = dirPath,
+            });
         }
 
         [HttpPost("upload/{*dirPath=}")]
@@ -76,16 +79,21 @@ namespace Docms.Web.Controllers
                 return BadRequest();
             }
 
-            var filepath = new FilePath(dirPath, System.IO.Path.GetFileName(request.File.FileName ?? "NONAME"));
-            using (var stream = request.File.OpenReadStream())
+            ViewData["DirPath"] = dirPath;
+            var directryPath = new FilePath(dirPath ?? "");
+            foreach (var file in request.Files)
             {
-                var command = new CreateOrUpdateDocumentCommand();
-                command.Path = filepath;
-                command.Stream = stream;
-                command.ForceCreate = true;
-                var response = await mediator.Send(command);
-                return Redirect(Url.ViewFile(command.Path.DirectoryPath?.ToString()));
+                var filePath = directryPath.Combine(System.IO.Path.GetFileName(file.FileName ?? "NONAME"));
+                using (var stream = file.OpenReadStream())
+                {
+                    var command = new CreateOrUpdateDocumentCommand();
+                    command.Path = filePath;
+                    command.Stream = stream;
+                    command.ForceCreate = true;
+                    var response = await mediator.Send(command);
+                }
             }
+            return Redirect(Url.ViewFile(directryPath.ToString()));
         }
     }
 }
