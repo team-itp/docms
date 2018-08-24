@@ -15,6 +15,7 @@ namespace Docms.Web.Extensions
             var escapedPath = string.Join('/', path.Split('/').Select(Uri.EscapeDataString));
             return Url.Content("~/files/view/" + escapedPath);
         }
+
         public static string DownloadFile(this IUrlHelper Url, string path)
         {
             if (path == null)
@@ -22,6 +23,12 @@ namespace Docms.Web.Extensions
 
             var escapedPath = string.Join('/', path.Split('/').Select(Uri.EscapeDataString));
             return Url.Content("~/files/download/" + escapedPath);
+        }
+
+        public static string UploadFile(this IUrlHelper Url, string path)
+        {
+            var escapedPath = string.Join('/', (path ?? "").Split('/').Select(Uri.EscapeDataString));
+            return Url.Content("~/files/upload/" + escapedPath);
         }
     }
 }

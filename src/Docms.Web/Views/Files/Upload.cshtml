@@ -12,17 +12,22 @@
 
 <div class="row">
     <div class="col-md-6">
-        <form asp-action="Upload" enctype="multipart/form-data">
+        <form action="@Url.UploadFile(Model.DirPath)" method="POST" enctype="multipart/form-data">
             <div asp-validation-summary="ModelOnly" class="text-danger"></div>
             <div class="form-group">
-                <label asp-for="FileNameOverride" class="control-label"></label>
-                <input asp-for="FileNameOverride" class="form-control" />
-                <span asp-validation-for="FileNameOverride" class="text-danger"></span>
+                <label asp-for="DirPath" class="control-label"></label>
+                @if (string.IsNullOrEmpty(Model.DirPath)) {
+                    <span class="form-control-plaintext">TOP ディレクトリ</span>
+                    <input type="hidden" asp-for="DirPath" />
+                } else {
+                    <input asp-for="DirPath" class="form-control-plaintext" readonly />
+                }
+                <span asp-validation-for="DirPath" class="text-danger"></span>
             </div>
             <div class="form-group">
-                <label asp-for="File" class="control-label"></label>
-                <input asp-for="File" class="form-control-file" />
-                <span asp-validation-for="File" class="text-danger"></span>
+                <label asp-for="Files" class="control-label"></label>
+                <input asp-for="Files" class="form-control-file" />
+                <span asp-validation-for="Files" class="text-danger"></span>
             </div>
             <button type="submit" class="btn btn-primary">アップロード</button>
         </form>
