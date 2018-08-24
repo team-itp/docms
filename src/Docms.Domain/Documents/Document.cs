@@ -18,25 +18,30 @@ namespace Docms.Domain.Documents
         }
 
         public Document(DocumentPath path, string contentType, long fileSize, string hash)
-         : this(path, contentType, fileSize, hash, DateTime.UtcNow)
-        {
-        }
-
-        public Document(DocumentPath path, string contentType, long fileSize, string hash, DateTime created)
-         : this(path, contentType, fileSize, hash, created, created)
-        {
-        }
-
-        public Document(DocumentPath path, string contentType, long fileSize, string hash, DateTime created, DateTime lastModified) : this()
         {
             Path = path ?? throw new ArgumentNullException(nameof(path));
             ContentType = contentType ?? throw new ArgumentNullException(nameof(contentType));
             FileSize = fileSize;
             Hash = hash ?? throw new ArgumentNullException(nameof(hash));
+
+            var now = DateTime.UtcNow;
+            Created = now;
+            LastModified = now;
+
+            OnDocumentCreated(Path, ContentType, FileSize, Hash, Created, LastModified);
+        }
+
+        public Document(DocumentPath path, string contentType, long fileSize, string hash, DateTime created, DateTime lastModified)
+        {
+            Path = path ?? throw new ArgumentNullException(nameof(path));
+            ContentType = contentType ?? throw new ArgumentNullException(nameof(contentType));
+            FileSize = fileSize;
+            Hash = hash ?? throw new ArgumentNullException(nameof(hash));
+
             Created = created;
             LastModified = lastModified;
 
-            OnDocumentCreated(path, contentType, fileSize, Hash, created, lastModified);
+            OnDocumentCreated(Path, ContentType, FileSize, Hash, Created, LastModified);
         }
 
         public void MoveTo(DocumentPath destinationPath)

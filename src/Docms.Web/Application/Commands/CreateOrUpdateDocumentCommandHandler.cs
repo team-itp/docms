@@ -36,7 +36,7 @@ namespace Docms.Web.Application.Commands
                 var dir = await _fileStorage.GetDirectoryAsync(path.DirectoryPath);
                 var utcNow = DateTime.UtcNow;
                 var fileProps = await _fileStorage.SaveAsync(dir, path.FileName, request.Stream);
-                var document = new Document(new DocumentPath(request.Path.ToString()), fileProps.ContentType, fileProps.Size, fileProps.Hash, fileProps.Created, fileProps.LastModified);
+                var document = new Document(new DocumentPath(request.Path.ToString()), fileProps.ContentType, fileProps.Size, fileProps.Hash, request.Created ?? utcNow, request.LastModified ?? request.Created ?? utcNow);
                 await _documentRepository.AddAsync(document);
             }
             else
@@ -57,7 +57,7 @@ namespace Docms.Web.Application.Commands
                     var utcNow = DateTime.UtcNow;
                     var fileProps = await _fileStorage.SaveAsync(dir, path.FileName, ms);
                     var document = await _documentRepository.GetAsync(request.Path.ToString());
-                    document.Update(fileProps.ContentType, fileProps.Size, fileProps.Hash, fileProps.Created, fileProps.LastModified);
+                    document.Update(fileProps.ContentType, fileProps.Size, fileProps.Hash, request.Created ?? document.Created, request.LastModified ?? utcNow);
                 }
             }
             await _documentRepository.UnitOfWork.SaveEntitiesAsync();
