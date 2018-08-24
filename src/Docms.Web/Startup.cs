@@ -11,6 +11,7 @@ using IdentityServer4.Models;
 using MediatR;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Builder;
+using Microsoft.AspNetCore.DataProtection;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
@@ -20,6 +21,7 @@ using Newtonsoft.Json;
 using System;
 using System.Collections.Generic;
 using System.IdentityModel.Tokens.Jwt;
+using System.IO;
 using VisualizationSystem.Infrastructure;
 
 namespace Docms.Web
@@ -91,7 +93,7 @@ namespace Docms.Web
             services.ConfigureApplicationCookie(options =>
             {
                 options.Cookie.HttpOnly = true;
-                options.ExpireTimeSpan = TimeSpan.FromMinutes(30);
+                options.ExpireTimeSpan = TimeSpan.FromDays(14);
                 options.LoginPath = "/account/login";
                 options.AccessDeniedPath = "/account/accessdenied";
                 options.SlidingExpiration = true;
@@ -104,9 +106,9 @@ namespace Docms.Web
                     new Client()
                     {
                         ClientId = "docms-client",
-                        ClientSecrets = new List<Secret>()
+                        ClientSecrets = new List<IdentityServer4.Models.Secret>()
                         {
-                            new Secret("docms-client-secret".Sha256())
+                            new IdentityServer4.Models.Secret("docms-client-secret".Sha256())
                         },
                         AllowedScopes = { "docmsapi" },
                         AllowedGrantTypes = GrantTypes.ResourceOwnerPassword,
@@ -120,13 +122,19 @@ namespace Docms.Web
                         Scopes = new List<Scope>() {
                             new Scope("docmsapi", "文書管理システム API")
                         },
-                        ApiSecrets = new List<Secret>()
+                        ApiSecrets = new List<IdentityServer4.Models.Secret>()
                         {
-                            new Secret("docmsapi-secret".Sha256())
+                            new IdentityServer4.Models.Secret("docmsapi-secret".Sha256())
                         }
                     }
                 })
                 .AddAspNetIdentity<ApplicationUser>();
+
+            // cookie の永続化
+            var environment = services.BuildServiceProvider().GetRequiredService<IHostingEnvironment>();
+            services.AddDataProtection()
+                    .SetApplicationName($"docms-web-{environment.EnvironmentName}")
+                    .PersistKeysToFileSystem(new DirectoryInfo($@"{environment.ContentRootPath}\App_Data\keys"));
 
             return services;
         }
