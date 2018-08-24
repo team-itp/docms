@@ -53,6 +53,7 @@ namespace Docms.Web.Controllers
             }
 
             var file = await _storage.GetEntryAsync(path) as File;
+            Response.Headers.Add("Cache-Control", "max-age=15");
             return File(await file.OpenAsync(), entry.ContentType, entry.Name, new DateTimeOffset(entry.LastModified), new EntityTagHeaderValue("\"" + entry.Hash + "\""));
         }
 
