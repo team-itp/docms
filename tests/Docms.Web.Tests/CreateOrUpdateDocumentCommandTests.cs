@@ -46,7 +46,7 @@ namespace Docms.Web.Tests
                 });
             }
             Assert.AreEqual(1, repository.Documents.Count);
-            Assert.IsTrue((await localFileStorage.GetEntryAsync("document.txt")) is Docms.Infrastructure.Files.File);
+            Assert.AreEqual("Hello, world", await ReadTextAsync("document.txt"));
         }
 
         [TestMethod]
@@ -64,16 +64,37 @@ namespace Docms.Web.Tests
                 });
             }
             Assert.AreEqual("test1/document1.txt", repository.Documents.First().Path.Value);
-            var file = (await localFileStorage.GetEntryAsync("test1/document1.txt")) as Infrastructure.Files.File;
-            using (var fs = await file.OpenAsync())
-            using (var ms = new MemoryStream())
+            Assert.AreEqual("Hello, new world", await ReadTextAsync("test1/document1.txt"));
+        }
+
+        [TestMethod]
+        public async Task ファイルが存在する場合でもコマンドを発行してドキュメントが作成されること()
+        {
+            var dir = await localFileStorage.GetDirectoryAsync("test1");
+            var prop = await dir.SaveAsync("document1.txt", new MemoryStream(Encoding.UTF8.GetBytes("Hello, world")));
+            await repository.AddAsync(new Document(new DocumentPath("test1/document1.txt"), prop.ContentType, prop.Size, prop.Hash));
+            using (var ms = new MemoryStream(Encoding.UTF8.GetBytes("Hello, new world")))
             {
-                await fs.CopyToAsync(ms);
-                ms.Seek(0, SeekOrigin.Begin);
-                using (var sr = new StreamReader(ms))
+                await sut.Handle(new CreateOrUpdateDocumentCommand()
                 {
-                    Assert.AreEqual("Hello, new world", await sr.ReadToEndAsync());
-                }
+                    Path = new FilePath("test1/document1.txt"),
+                    Stream = ms,
+                    ForceCreate = true
+                });
+            }
+            Assert.IsNotNull(repository.Documents.FirstOrDefault(e => e.Path.Value == "test1/document1.txt"));
+            Assert.IsNotNull(repository.Documents.FirstOrDefault(e => e.Path.Value == "test1/document1(1).txt"));
+            Assert.AreEqual("Hello, world", await ReadTextAsync("test1/document1.txt"));
+            Assert.AreEqual("Hello, new world", await ReadTextAsync("test1/document1(1).txt"));
+        }
+
+        private async Task<string> ReadTextAsync(string filePath)
+        {
+            var file = (await localFileStorage.GetEntryAsync(filePath).ConfigureAwait(false)) as Infrastructure.Files.File;
+            using (var fs = await file.OpenAsync().ConfigureAwait(false))
+            using (var sr = new StreamReader(fs))
+            {
+                return await sr.ReadToEndAsync();
             }
         }
     }
