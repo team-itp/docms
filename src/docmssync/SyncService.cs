@@ -92,6 +92,7 @@ namespace docmssync
         {
             await Task.Yield();
             var failCount = 0;
+
             while (!token.IsCancellationRequested)
             {
                 if (_actions.TryDequeue(out var action))
@@ -109,8 +110,17 @@ namespace docmssync
 
                     if (failCount >= 3)
                     {
-                        await ResetProcessAsync(token);
-                        failCount = 0;
+                        try
+                        {
+                            await _client.LogoutAsync().ConfigureAwait(false);
+                            await _client.LoginAsync(Settings.Default.UploadUserName, Settings.Default.UploadUserPassword).ConfigureAwait(false);
+                            await ResetProcessAsync(token).ConfigureAwait(false);
+                            failCount = 0;
+                        }
+                        catch (Exception ex)
+                        {
+                            Trace.WriteLine(ex);
+                        }
                     }
                 }
                 token.WaitHandle.WaitOne(100);
