@@ -12,13 +12,13 @@ namespace Docms.Infrastructure.Files
 
         public FilePath(string path)
         {
-            if (string.IsNullOrEmpty(path))
+            if (path == null)
                 throw new ArgumentNullException(nameof(path));
             if (path.Contains("..") || invalidPathChars.Any(c => path.Contains(c)))
                 throw new ArgumentException(nameof(path));
             _path = path.Replace('/', Path.DirectorySeparatorChar);
             _path = _path.StartsWith('/') ? _path.Substring(1) : _path;
-            _parent = new Lazy<FilePath>(() => Create(Path.GetDirectoryName(_path)));
+            _parent = new Lazy<FilePath>(() => string.IsNullOrEmpty(_path) ? null : Create(Path.GetDirectoryName(_path)));
         }
 
         public FilePath(params string[] paths)
@@ -56,14 +56,14 @@ namespace Docms.Infrastructure.Files
         {
             if (string.IsNullOrEmpty(path))
             {
-                return null;
+                return new FilePath("");
             }
             return new FilePath(path);
         }
 
         public FilePath Combine(string name)
         {
-            var newPath = System.IO.Path.Combine(_path, name);
+            var newPath = string.IsNullOrEmpty(_path) ? name : Path.Combine(_path, name);
             return new FilePath(newPath);
         }
     }

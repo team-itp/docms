@@ -11,7 +11,8 @@ namespace Docms.Infrastructure.Tests
         {
             var sut = new FilePath("test.txt");
             Assert.AreEqual("test.txt", sut.ToString());
-            Assert.AreEqual(null, sut.DirectoryPath);
+            Assert.AreEqual(new FilePath(""), sut.DirectoryPath);
+            Assert.AreEqual(null, sut.DirectoryPath.DirectoryPath);
             Assert.AreEqual("test.txt", sut.FileName);
             Assert.AreEqual("test", sut.FileNameWithoutExtension);
             Assert.AreEqual(".txt", sut.Extension);
@@ -35,7 +36,7 @@ namespace Docms.Infrastructure.Tests
             var sut = new FilePath("path1\\test");
             Assert.AreEqual("path1/test", sut.ToString());
             Assert.AreEqual(new FilePath("path1"), sut.DirectoryPath);
-            Assert.AreEqual(null, sut.DirectoryPath.DirectoryPath);
+            Assert.AreEqual(new FilePath(""), sut.DirectoryPath.DirectoryPath);
             Assert.AreEqual("test", sut.FileName);
             Assert.AreEqual("test", sut.FileNameWithoutExtension);
             Assert.AreEqual(null, sut.Extension);

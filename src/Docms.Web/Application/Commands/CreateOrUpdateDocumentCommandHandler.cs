@@ -39,6 +39,31 @@ namespace Docms.Web.Application.Commands
                 var document = new Document(new DocumentPath(request.Path.ToString()), fileProps.ContentType, fileProps.Size, fileProps.Hash, request.Created ?? utcNow, request.LastModified ?? request.Created ?? utcNow);
                 await _documentRepository.AddAsync(document);
             }
+            else if (request.ForceCreate)
+            {
+                var retryCount = 0;
+                var dirPath = request.Path.DirectoryPath;
+                var fnwoe = request.Path.FileNameWithoutExtension;
+                var ext = request.Path.Extension;
+
+                while (file != null)
+                {
+                    retryCount++;
+                    entry = await _fileStorage.GetEntryAsync(dirPath.Combine(fnwoe + $"({retryCount})" + ext));
+                    if (entry is Docms.Infrastructure.Files.Directory)
+                    {
+                        continue;
+                    }
+                    file = entry as Docms.Infrastructure.Files.File;
+                }
+
+                var filename = fnwoe + $"({retryCount})" + ext;
+                var dir = await _fileStorage.GetDirectoryAsync(path.DirectoryPath);
+                var utcNow = DateTime.UtcNow;
+                var fileProps = await _fileStorage.SaveAsync(dir, filename, request.Stream);
+                var document = new Document(new DocumentPath(dirPath.Combine(filename).ToString()), fileProps.ContentType, fileProps.Size, fileProps.Hash, request.Created ?? utcNow, request.LastModified ?? request.Created ?? utcNow);
+                await _documentRepository.AddAsync(document);
+            }
             else
             {
                 var props = await file.GetPropertiesAsync();

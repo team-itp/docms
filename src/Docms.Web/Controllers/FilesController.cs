@@ -27,16 +27,7 @@ namespace Docms.Web.Controllers
             _queries = queries;
         }
 
-        [HttpGet("view")]
-        public async Task<IActionResult> Index()
-        {
-            var entry = await _queries.GetEntryAsync("");
-            ViewData["Path"] = "";
-            return View(entry);
-        }
-
-
-        [HttpGet("view/{*path}")]
+        [HttpGet("view/{*path=}")]
         public async Task<IActionResult> Index(string path)
         {
             var entry = await _queries.GetEntryAsync(path);
@@ -67,16 +58,16 @@ namespace Docms.Web.Controllers
             return File(await file.OpenAsync(), entry.ContentType, entry.Name, new DateTimeOffset(entry.LastModified), new EntityTagHeaderValue("\"" + entry.Hash + "\""));
         }
 
-        [HttpGet("upload/{*path=''}")]
-        public IActionResult Upload(string path)
+        [HttpGet("upload/{*dirPath=}")]
+        public IActionResult Upload(string dirPath)
         {
-            ViewData["Path"] = path;
+            ViewData["DirPath"] = dirPath;
             return View();
         }
 
-        [HttpPost("upload/{*path}")]
+        [HttpPost("upload/{*dirPath=}")]
         public async Task<IActionResult> Upload(
-            string path,
+            string dirPath,
             [FromForm] UploadRequest request,
             [FromServices] IMediator mediator)
         {
@@ -85,12 +76,13 @@ namespace Docms.Web.Controllers
                 return BadRequest();
             }
 
-            var filepath = new FilePath(path, request.FileNameOverride ?? System.IO.Path.GetFileName(request.File.FileName));
+            var filepath = new FilePath(dirPath, System.IO.Path.GetFileName(request.File.FileName ?? "NONAME"));
             using (var stream = request.File.OpenReadStream())
             {
                 var command = new CreateOrUpdateDocumentCommand();
                 command.Path = filepath;
                 command.Stream = stream;
+                command.ForceCreate = true;
                 var response = await mediator.Send(command);
                 return Redirect(Url.ViewFile(command.Path.DirectoryPath?.ToString()));
             }
