@@ -1,7 +1,11 @@
 @model UploadRequest
 
+@using Docms.Web.Application.Identity
+@inject JwtTokenProvider JwtTokenProvider
+
 @{
     ViewData["Title"] = "アップロード";
+    var token = await JwtTokenProvider.GenerateToken();
 }
 
 <h2>アップロード</h2>
@@ -45,24 +49,24 @@
 
 <!-- Modal -->
 <div class="modal fade" id="directory-selection" tabindex="-1" role="dialog" aria-labelledby="directory-selection-label" aria-hidden="true">
-  <div class="modal-dialog" role="document">
-    <div class="modal-content">
-      <div class="modal-header">
-        <h5 class="modal-title" id="directory-selection-label">ディレクトリの選択</h5>
-        <button type="button" class="close" data-dismiss="modal" aria-label="Close">
-          <span aria-hidden="true">&times;</span>
-        </button>
-      </div>
-      <div class="modal-body">
-        <div id="direcotry-breadcrumb"></div>
-        <div id="directory-list"></div>
-      </div>
-      <div class="modal-footer">
-        <button type="button" class="btn btn-secondary" data-dismiss="modal">閉じる</button>
-        <button type="button" class="btn btn-primary">変更</button>
-      </div>
+    <div class="modal-dialog" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="directory-selection-label">ディレクトリの選択</h5>
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                    <span aria-hidden="true">&times;</span>
+                </button>
+            </div>
+            <div class="modal-body">
+                <div id="direcotry-breadcrumb"></div>
+                <div id="directory-list"></div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-dismiss="modal">閉じる</button>
+                <button type="button" class="btn btn-primary">変更</button>
+            </div>
+        </div>
     </div>
-  </div>
 </div>
 
 @section Scripts {
@@ -85,14 +89,18 @@
             });
 
             $dialog.on('click', '.btn-primary', function(elem) {
-                window.location.href = '/files/upload/' + dirPath;
+                window.location.pathname = '/files/upload/' + encodeURI(dirPath);
             });
 
             function getDirectories(dirPath) {
                 return $.get({
                     url: '/api/v1/files',
+                    dataType: 'json',
+                    headers: {
+                        'Authorization': 'Bearer @token'
+                    },
                     data: {
-                        path: dirPath
+                        "path": dirPath
                     }
                 });
 

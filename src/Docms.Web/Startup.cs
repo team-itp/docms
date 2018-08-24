@@ -88,6 +88,7 @@ namespace Docms.Web
         {
             services.AddTransient<IUserStore<ApplicationUser>, ApplicationUserStore>();
             services.AddTransient<IRoleStore<ApplicationRole>, ApplicationRoleStore>();
+            services.AddTransient<JwtTokenProvider>();
 
             services.AddIdentity<ApplicationUser, ApplicationRole>();
             services.ConfigureApplicationCookie(options =>

@@ -5,12 +5,14 @@ using MediatR;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.Net.Http.Headers;
+using System;
 using System.Threading.Tasks;
 using System.Web;
 
 namespace Docms.Web.Api.V1
 {
-    // [Authorize(AuthenticationSchemes = JwtBearerDefaults.AuthenticationScheme)]
+    [Authorize(AuthenticationSchemes = JwtBearerDefaults.AuthenticationScheme)]
     [Route("api/v1/files")]
     [ApiController]
     public class FilesController : ControllerBase
@@ -26,14 +28,29 @@ namespace Docms.Web.Api.V1
 
 
         [HttpGet]
-        public async Task<IActionResult> Get([FromQuery] string path)
+        public async Task<IActionResult> Get(
+            [FromQuery] string path = "",
+            [FromQuery] bool download = false)
         {
             var entry = await _queries.GetEntryAsync(path ?? "");
             if (entry == null)
             {
                 return NotFound();
             }
-            return Ok(entry);
+            if (download && entry is Document doc)
+            {
+                if (Request.Headers.Keys.Contains("If-None-Match") && Request.Headers["If-None-Match"].ToString() == "\"" + doc.Hash + "\"")
+                {
+                    return new StatusCodeResult(304);
+                }
+
+                var file = await _storage.GetEntryAsync(path) as File;
+                return File(await file.OpenAsync(), doc.ContentType, entry.Name, new DateTimeOffset(doc.LastModified), new EntityTagHeaderValue("\"" + doc.Hash + "\""));
+            }
+            else
+            {
+                return Ok(entry);
+            }
         }
 
         [HttpPost]
@@ -73,11 +90,18 @@ namespace Docms.Web.Api.V1
             [FromQuery] string path,
             [FromServices] IMediator mediator)
         {
-            var filePath = new FilePath(path);
-            var command = new DeleteDocumentCommand();
-            command.Path = filePath;
-            var response = await mediator.Send(command);
-            return Ok();
+            try
+            {
+                var filePath = new FilePath(path);
+                var command = new DeleteDocumentCommand();
+                command.Path = filePath;
+                var response = await mediator.Send(command);
+                return Ok();
+            }
+            catch (InvalidOperationException ex)
+            {
+                return BadRequest(ex.Message);
+            }
         }
     }
 }
