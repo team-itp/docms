@@ -30,5 +30,11 @@ namespace Docms.Web.Extensions
             var escapedPath = string.Join('/', (path ?? "").Split('/').Select(Uri.EscapeDataString));
             return Url.Content("~/files/upload/" + escapedPath);
         }
+
+        public static string GetDirectoriesApi(this IUrlHelper Url, string path)
+        {
+            var escapedPath = string.Join('/', (path ?? "").Split('/').Select(Uri.EscapeDataString));
+            return Url.Content("~/api/directories/" + escapedPath);
+        }
     }
 }
