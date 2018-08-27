@@ -65,12 +65,11 @@ namespace Docms.Client.Tests
             sut.Move(new PathString("test1/content.txt"), new PathString("test2/content.txt"));
             Assert.IsFalse(sut.Exists(new PathString("test1/content.txt")));
             Assert.IsTrue(sut.Exists(new PathString("test2/content.txt")));
-            var delta1 = sut.GetDelta().First();
-            var delta2 = sut.GetDelta().Last();
-            Assert.IsTrue(delta1 is DocumentMovedFrom);
-            Assert.AreEqual("test1/content.txt", delta1.Path.ToString());
-            Assert.IsTrue(delta2 is DocumentMovedTo);
-            Assert.AreEqual("test2/content.txt", delta2.Path.ToString());
+            var delta = sut.GetDelta().First();
+            Assert.IsTrue(delta is DocumentMoved);
+            var moved = delta as DocumentMoved;
+            Assert.AreEqual("test1/content.txt", moved.OldPath.ToString());
+            Assert.AreEqual("test2/content.txt", moved.Path.ToString());
         }
 
         [TestMethod]
@@ -79,12 +78,11 @@ namespace Docms.Client.Tests
             sut.Move(new PathString("test1"), new PathString("test2"));
             Assert.IsFalse(sut.Exists(new PathString("test1/content.txt")));
             Assert.IsTrue(sut.Exists(new PathString("test2/content.txt")));
-            var delta1 = sut.GetDelta().First();
-            var delta2 = sut.GetDelta().Last();
-            Assert.IsTrue(delta1 is DocumentMovedFrom);
-            Assert.AreEqual("test1/content.txt", delta1.Path.ToString());
-            Assert.IsTrue(delta2 is DocumentMovedTo);
-            Assert.AreEqual("test2/content.txt", delta2.Path.ToString());
+            var delta = sut.GetDelta().First();
+            Assert.IsTrue(delta is DocumentMoved);
+            var moved = delta as DocumentMoved;
+            Assert.AreEqual("test1/content.txt", moved.OldPath.ToString());
+            Assert.AreEqual("test2/content.txt", moved.Path.ToString());
         }
 
         [TestMethod]

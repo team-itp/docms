@@ -163,9 +163,9 @@ namespace docmssync
                         {
                             await _synchronizer.RequestChangingAsync(change.Path.ToString(), _cts.Token).ConfigureAwait(false);
                         }
-                        else if (change is DocumentMovedFrom movedFrom)
+                        else if (change is DocumentMoved moved)
                         {
-                            await _synchronizer.RequestMovementAsync(movedFrom.Path.ToString(), movedFrom.NewPath.ToString(), _cts.Token).ConfigureAwait(false);
+                            await _synchronizer.RequestMovementAsync(moved.OldPath.ToString(), moved.Path.ToString(), _cts.Token).ConfigureAwait(false);
                         }
                         else if (change is DocumentDeleted)
                         {

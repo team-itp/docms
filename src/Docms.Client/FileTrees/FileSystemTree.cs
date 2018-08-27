@@ -9,7 +9,7 @@ namespace Docms.Client.FileTrees
 {
     public class FileSystemTree
     {
-        private List<FileTreeEvent> Events = new List<FileTreeEvent>();
+        private FileTreeEventShrinker EventShrinker = new FileTreeEventShrinker();
         private ILocalFileStorage _localFileStorage;
 
         public FileSystemTree(ILocalFileStorage localFileStorage)
@@ -68,7 +68,7 @@ namespace Docms.Client.FileTrees
             }
             var dir = GetDirectory(path.ParentPath);
             dir.Add(new FileNode(path.Name));
-            Events.Add(new DocumentCreated(path));
+            EventShrinker.Apply(new DocumentCreated(path));
         }
 
         public void AddDirectory(PathString path)
@@ -101,8 +101,7 @@ namespace Docms.Client.FileTrees
                 }
                 var dir = GetDirectory(path.ParentPath);
                 dir.Add(oldFile);
-                Events.Add(new DocumentMovedFrom(oldPath, path));
-                Events.Add(new DocumentMovedTo(path, oldPath));
+                EventShrinker.Apply(new DocumentMoved(path, oldPath));
             }
         }
 
@@ -115,7 +114,7 @@ namespace Docms.Client.FileTrees
             }
             if (node is FileNode file)
             {
-                Events.Add(new DocumentUpdated(path));
+                EventShrinker.Apply(new DocumentUpdated(path));
             }
         }
 
@@ -137,7 +136,7 @@ namespace Docms.Client.FileTrees
             else if (node is FileNode file)
             {
                 file.Remove();
-                Events.Add(new DocumentDeleted(path));
+                EventShrinker.Apply(new DocumentDeleted(path));
             }
         }
 
@@ -148,12 +147,12 @@ namespace Docms.Client.FileTrees
 
         public IEnumerable<FileTreeEvent> GetDelta()
         {
-            return Events;
+            return EventShrinker.Events;
         }
 
         public void ClearDelta()
         {
-            Events.Clear();
+            EventShrinker.Reset();
         }
     }
 }

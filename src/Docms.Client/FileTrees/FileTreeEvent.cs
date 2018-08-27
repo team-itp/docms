@@ -28,19 +28,9 @@ namespace Docms.Client.FileTrees
         }
     }
 
-    public sealed class DocumentMovedFrom : FileTreeEvent
+    public sealed class DocumentMoved : FileTreeEvent
     {
-        public DocumentMovedFrom(PathString path, PathString newPath) : base(path)
-        {
-            NewPath = newPath;
-        }
-
-        public PathString NewPath { get; }
-    }
-
-    public sealed class DocumentMovedTo : FileTreeEvent
-    {
-        public DocumentMovedTo(PathString path, PathString oldPath) : base(path)
+        public DocumentMoved(PathString path, PathString oldPath) : base(path)
         {
             OldPath = oldPath;
         }
