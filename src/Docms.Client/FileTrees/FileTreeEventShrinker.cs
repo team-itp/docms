@@ -29,7 +29,7 @@ namespace Docms.Client.FileTrees
 
         private void Apply(DocumentCreated ev)
         {
-            var regEv = _events.FirstOrDefault(e => e.Path.ToString() == ev.Path.ToString());
+            var regEv = _events.LastOrDefault(e => e.Path.ToString() == ev.Path.ToString());
             if (regEv is DocumentUpdated || regEv is DocumentMoved)
             {
                 throw new InvalidOperationException();
@@ -48,7 +48,7 @@ namespace Docms.Client.FileTrees
 
         private void Apply(DocumentUpdated ev)
         {
-            var regEv = _events.FirstOrDefault(e => e.Path.ToString() == ev.Path.ToString());
+            var regEv = _events.LastOrDefault(e => e.Path.ToString() == ev.Path.ToString());
             if (regEv is DocumentDeleted)
             {
                 throw new InvalidOperationException();
@@ -58,17 +58,27 @@ namespace Docms.Client.FileTrees
             {
                 _events.Add(ev);
             }
+            else if (regEv is DocumentMoved regMoved)
+            {
+                _events.Remove(regEv);
+                _events.Add(new DocumentDeleted(regMoved.OldPath));
+                _events.Add(new DocumentCreated(ev.Path));
+            }
         }
 
         private void Apply(DocumentMoved ev)
         {
-            var regEv = _events.FirstOrDefault(e => e.Path.ToString() == ev.OldPath.ToString());
+            var regEv = _events.LastOrDefault(e => e.Path.ToString() == ev.OldPath.ToString());
             if (regEv is DocumentDeleted)
             {
                 throw new InvalidOperationException();
             }
 
-            if (regEv is DocumentMoved regMoved)
+            if (regEv == null)
+            {
+                _events.Add(ev);
+            }
+            else if (regEv is DocumentMoved regMoved)
             {
                 if (regMoved.OldPath.ToString() == ev.Path.ToString())
                 {
@@ -78,18 +88,6 @@ namespace Docms.Client.FileTrees
                 {
                     _events.Remove(regEv);
                     _events.Add(new DocumentMoved(ev.Path, regMoved.OldPath));
-                    var regEvOld = _events.FirstOrDefault(e => e.Path.ToString() == regMoved.OldPath.ToString());
-                    if (regEvOld != null)
-                    {
-                        if (regEvOld is DocumentUpdated || regEvOld is DocumentMoved || regEvOld is DocumentDeleted)
-                        {
-                            throw new InvalidOperationException();
-                        }
-
-
-                        _events.Remove(regEvOld);
-                        _events.Add(new DocumentCreated(regEvOld.Path));
-                    }
                 }
             }
             else if (regEv is DocumentCreated)
@@ -107,34 +105,29 @@ namespace Docms.Client.FileTrees
 
         private void Apply(DocumentDeleted ev)
         {
-            var regEv = _events.FirstOrDefault(e => e.Path.ToString() == ev.Path.ToString());
+            var regEv = _events.LastOrDefault(e => e.Path.ToString() == ev.Path.ToString());
             if (regEv is DocumentDeleted)
             {
                 throw new InvalidOperationException();
             }
 
-            if (regEv is DocumentMoved regMoved)
+            if (regEv == null)
             {
-                if (regMoved.OldPath.ToString() == ev.Path.ToString())
-                {
-                    _events.Remove(regEv);
-                }
-                else
-                {
-                    _events.Remove(regEv);
-                    _events.Add(new DocumentMoved(ev.Path, regMoved.OldPath));
-                }
+                _events.Add(new DocumentDeleted(ev.Path));
+            }
+            else if (regEv is DocumentMoved regMoved)
+            {
+                _events.Remove(regEv);
+                _events.Add(new DocumentDeleted(regMoved.OldPath));
             }
             else if (regEv is DocumentCreated)
             {
                 _events.Remove(regEv);
-                _events.Add(new DocumentCreated(ev.Path));
             }
             else if (regEv is DocumentUpdated)
             {
                 _events.Remove(regEv);
-                _events.Add(new DocumentDeleted(regEv.Path));
-                _events.Add(new DocumentCreated(ev.Path));
+                _events.Add(new DocumentDeleted(ev.Path));
             }
         }
     }
