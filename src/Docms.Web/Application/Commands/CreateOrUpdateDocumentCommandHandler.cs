@@ -49,7 +49,7 @@ namespace Docms.Web.Application.Commands
                 {
                     var dir = await _fileStorage.GetDirectoryAsync(path.DirectoryPath);
                     var utcNow = DateTime.UtcNow;
-                    var fileInfo = await _fileStorage.SaveAsync(dir, path.FileName, contentType, await _temporaryStore.OpenStreamAsync(tempStoreId));
+                    await _fileStorage.SaveAsync(dir, path.FileName, contentType, await _temporaryStore.OpenStreamAsync(tempStoreId));
                     var document = new Document(new DocumentPath(request.Path.ToString()), contentType, fileSize, hash, request.Created ?? utcNow, request.LastModified ?? request.Created ?? utcNow);
                     await _documentRepository.AddAsync(document);
                 }
@@ -88,7 +88,7 @@ namespace Docms.Web.Application.Commands
 
                     var utcNow = DateTime.UtcNow;
                     var dir = file.Parent;
-                    var fileProps = await _fileStorage.SaveAsync(dir, path.FileName, contentType, await _temporaryStore.OpenStreamAsync(tempStoreId));
+                    await _fileStorage.SaveAsync(dir, path.FileName, contentType, await _temporaryStore.OpenStreamAsync(tempStoreId));
                     document.Update(contentType, fileSize, hash, request.Created ?? document.Created, request.LastModified ?? utcNow);
                 }
                 await _documentRepository.UnitOfWork.SaveEntitiesAsync();

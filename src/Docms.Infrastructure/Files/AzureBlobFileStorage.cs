@@ -64,7 +64,7 @@ namespace Docms.Infrastructure.Files
             return new Directory(path, this);
         }
 
-        public async Task<IEnumerable<Entry>> GetFilesAsync(Directory dir)
+        public async Task<IEnumerable<Entry>> GetEntriesAsync(Directory dir)
         {
             var blobDirectory = await GetBlobDirectoryAsync(dir.Path).ConfigureAwait(false);
             BlobContinuationToken continuationToken = null;

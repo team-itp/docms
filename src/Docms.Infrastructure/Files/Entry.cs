@@ -24,9 +24,9 @@ namespace Docms.Infrastructure.Files
         {
         }
 
-        public Task<IEnumerable<Entry>> GetFilesAsync()
+        public Task<IEnumerable<Entry>> GetEntriesAsync()
         {
-            return Storage.GetFilesAsync(this);
+            return Storage.GetEntriesAsync(this);
         }
 
         public Task<File> SaveAsync(string filename, string contentType, Stream stream)

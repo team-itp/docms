@@ -12,7 +12,7 @@ namespace Docms.Infrastructure.Files
 
         public LocalFileStorage(string basePath)
         {
-            _basePath = basePath;
+            _basePath = Path.GetFullPath(basePath);
         }
 
         public Task<Entry> GetEntryAsync(string path)
@@ -49,7 +49,7 @@ namespace Docms.Infrastructure.Files
             return Task.FromResult(new Directory(path, this));
         }
 
-        public Task<IEnumerable<Entry>> GetFilesAsync(Directory dir)
+        public Task<IEnumerable<Entry>> GetEntriesAsync(Directory dir)
         {
             if (!Exists(dir.Path))
             {

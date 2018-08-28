@@ -1,0 +1,16 @@
+﻿
+@{
+    ViewData["Title"] = "リセット";
+}
+
+<h2>リセット</h2>
+<hr />
+<h4>本当にリセットしてよろしいですか？</h4>
+<p>この操作で現在までのファイル履歴がリセットされ、データベースが再構築されます。本当に実行してよろしいですか？</p>
+<form asp-action="ResetHistory">
+    <div class="form-group">
+        <button class="btn btn-danger" type="submit">再構築</button>
+    </div>
+</form>
+
+

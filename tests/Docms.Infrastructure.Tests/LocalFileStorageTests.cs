@@ -92,9 +92,9 @@ namespace Docms.Infrastructure.Tests
             var dir1 = await sut.GetEntryAsync("dir1") as Files.Directory;
             var dir2 = await sut.GetEntryAsync("dir2") as Files.Directory;
             var subdir2 = await sut.GetEntryAsync("dir2\\subdir2") as Files.Directory;
-            Assert.AreEqual(0, (await dir1.GetFilesAsync()).Count());
-            Assert.AreEqual(2, (await dir2.GetFilesAsync()).Count());
-            Assert.AreEqual(2, (await subdir2.GetFilesAsync()).Count());
+            Assert.AreEqual(0, (await dir1.GetEntriesAsync()).Count());
+            Assert.AreEqual(2, (await dir2.GetEntriesAsync()).Count());
+            Assert.AreEqual(2, (await subdir2.GetEntriesAsync()).Count());
         }
 
         [TestMethod]

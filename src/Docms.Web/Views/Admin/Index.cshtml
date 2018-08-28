@@ -1,0 +1,21 @@
+﻿
+@{
+    ViewData["Title"] = "管理メニュー";
+}
+
+@if (!string.IsNullOrEmpty(ViewBag.Message))
+{
+    <div class="alert alert-success">
+        @ViewBag.Message
+    </div>
+}
+
+<h2>管理メニュー</h2>
+<hr />
+
+<ul>
+    <li>
+        <a asp-action="ResetHistory">リセット</a>
+    </li>
+</ul>
+
