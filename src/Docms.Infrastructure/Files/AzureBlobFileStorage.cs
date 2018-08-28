@@ -28,10 +28,13 @@ namespace Docms.Infrastructure.Files
 
         public async Task<Entry> GetEntryAsync(FilePath path)
         {
-            var blockBlob = await GetBlockBlobAsync(path);
-            if (await blockBlob.ExistsAsync())
+            if (path.DirectoryPath != null)
             {
-                return new File(path, this);
+                var blockBlob = await GetBlockBlobAsync(path);
+                if (await blockBlob.ExistsAsync())
+                {
+                    return new File(path, this);
+                }
             }
 
             var blobDir = await GetBlobDirectoryAsync(path);

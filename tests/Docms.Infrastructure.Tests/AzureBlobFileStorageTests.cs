@@ -95,9 +95,11 @@ namespace Docms.Infrastructure.Tests
             await CreateFileAsync("dir2/content1.txt", "dir2content1");
             await CreateFileAsync("dir2/subdir2/content1.txt", "dir2content1");
             await CreateFileAsync("dir2/subdir2/content2.txt", "dir2content2");
+            var root = await sut.GetEntryAsync("") as Files.Directory;
             var dir1 = await sut.GetEntryAsync("dir1") as Files.Directory;
             var dir2 = await sut.GetEntryAsync("dir2") as Files.Directory;
             var subdir2 = await sut.GetEntryAsync("dir2/subdir2") as Files.Directory;
+            Assert.AreEqual(1, (await root.GetEntriesAsync()).Count());
             Assert.IsNull(dir1);
             Assert.AreEqual(2, (await dir2.GetEntriesAsync()).Count());
             Assert.AreEqual(2, (await subdir2.GetEntriesAsync()).Count());
