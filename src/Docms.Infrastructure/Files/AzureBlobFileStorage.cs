@@ -164,8 +164,9 @@ namespace Docms.Infrastructure.Files
 
         private FilePath PathFromUri(Uri uri)
         {
-            var relativeUri = new Uri(_client.BaseUri.ToString() + "/", UriKind.Absolute).MakeRelativeUri(uri);
-            return new FilePath(relativeUri.ToString().Substring(_baseContainerName.Length + 1));
+            var container = _client.GetContainerReference(_baseContainerName);
+            var relativeUri = new Uri(container.Uri.ToString() + "/", UriKind.Absolute).MakeRelativeUri(uri);
+            return new FilePath(relativeUri.ToString());
         }
 
         private async Task<CloudBlockBlob> GetBlockBlobAsync(FilePath path)
