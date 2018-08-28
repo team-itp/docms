@@ -63,7 +63,7 @@
             </div>
             <div class="modal-footer">
                 <button type="button" class="btn btn-secondary" data-dismiss="modal">閉じる</button>
-                <button type="button" class="btn btn-primary">変更</button>
+                <button type="button" class="btn btn-primary change-directory">変更</button>
             </div>
         </div>
     </div>
@@ -76,20 +76,23 @@
             var dirPath = undefined;
             var $dialog = $('#directory-selection');
             $dialog.on('show.bs.modal', function() {
-                getDirectories('')
-                    .done(showDirectory);
-                dirPath = '';
+                selectNewDirPath('@Html.Raw(Model.DirPath)');
             });
 
             $dialog.on('click', '.select-directory', function(elem) {
                 var $elem = $(elem.currentTarget);
-                getDirectories($elem.attr('data-dirPath'))
-                    .done(showDirectory)
-                dirPath = $elem.attr('data-dirPath');
+                selectNewDirPath($elem.attr('data-dirPath'))
             });
 
-            $dialog.on('click', '.btn-primary', function(elem) {
+            $dialog.on('click', '.change-directory', function(elem) {
                 window.location.pathname = '/files/upload/' + encodeURI(dirPath);
+            });
+
+            $dialog.on('click', '.add-directory', function(elem) {
+                var $elem = $(elem.currentTarget);
+                var $parent = $elem.parents('.directory-input');
+                var dirPath = ($elem.attr('data-dirPath') ? $elem.attr('data-dirPath') + '/' : '') + $parent.find('input').val();
+                selectNewDirPath(dirPath)
             });
 
             function getDirectories(dirPath) {
@@ -103,39 +106,65 @@
                         "path": dirPath
                     }
                 });
-
             }
 
-            function showDirectory(data) {
+            var $breadcrumb = $dialog.find('#direcotry-breadcrumb');
+            var $list = $dialog.find('#directory-list');
+
+            function selectNewDirPath(newDirPath) {
+                dirPath = newDirPath;
+                $list.html('');
+                showDirectoryBreadcrumb(dirPath);
+                getDirectories(dirPath)
+                    .done(showDirectoryList)
+                    .fail(function(jqXHR, textStatus, errorThrown) {
+                        if (jqXHR.status === 404) {
+                            showDirectoryList(null);
+                        }
+                    })
+            }
+
+            function showDirectoryBreadcrumb(dirPath) {
+                $breadcrumb.html('');
+                var $bcUl = $('<ul class="breadcrumb"></ul>').appendTo($breadcrumb);
+                var path = '';
+                $('<li class="breadcrumb-item"></li>')
+                    .append('<button type="button" class="btn btn-link select-directory p-0 align-top" data-dirPath="">TOP</button>')
+                    .appendTo($bcUl);
+                if (dirPath) {
+                    dirPath.split('/').forEach(function (pathComponent) {
+                        path = path + pathComponent;
+                        $('<li class="breadcrumb-item"></li>')
+                            .append('<button type="button" class="btn btn-link select-directory p-0 align-top" data-dirPath="' + path + '">' + pathComponent + '</button>')
+                            .appendTo($bcUl);
+                        path = path + '/';
+                    });
+                }
+            }
+
+            function showDirectoryList(data) {
                 var dirs = [];
-                if (data.entries) {
-                    var $breadcrumb = $dialog.find('#direcotry-breadcrumb');
-                    $breadcrumb.html('');
-                    var $bcUl = $('<ul class="breadcrumb"></ul>').appendTo($breadcrumb);
-                    var path = '';
-                    $('<li class="breadcrumb-item"></li>')
-                        .append('<button type="button" class="btn btn-link select-directory p-0 align-top" data-dirPath="">TOP</button>')
-                        .appendTo($bcUl);
-                    if (data.path) {
-                        data.path.split('/').forEach(function (pathComponent) {
-                            path = path + pathComponent;
-                            $('<li class="breadcrumb-item"></li>')
-                                .append('<button type="button" class="btn btn-link select-directory p-0 align-top" data-dirPath="' + path + '">' + pathComponent + '</button>')
-                                .appendTo($bcUl);
-                            path = path + '/';
-                        });
-                    }
-                    var $list = $dialog.find('#directory-list');
-                    $list.html('');
-                    var $ul = $('<ul class="list-group"/>').appendTo($list);
+                $list.html('');
+                var $ul = $('<ul class="list-group"/>').appendTo($list);
+                if (data && data.entries) {
                     data.entries.forEach(function(elem) {
                         if (elem.$type === 'container') {
                             var $li = $('<li class="list-group-item" />');
-                            $li.append('<button type="button" class="btn btn-link select-directory p-0" data-dirPath="' + elem.path + '">' + elem.name + '</li>')
+                            $li.append('<button type="button" class="btn btn-link select-directory p-0" data-dirPath="' + elem.path + '">' + elem.name + '</button>')
                                 .appendTo($ul);
                         }
                     });
                 }
+                $('<li class="list-group-item" />')
+                    .append(
+                        $('<div class="directory-input input-group" />')
+                            .append('<input type="text" class="form-control" placeholder="新しいディレクトリ" />')
+                            .append(
+                                $('<div class="input-group-append" />')
+                                    .append('<button type="button" class="btn btn-dark add-directory" data-dirPath="' + dirPath + '"><i class="fa fa-plus"></i></button>')
+                            )
+                        )
+                    .appendTo($ul);
             }
         })(jQuery);
     </script>
