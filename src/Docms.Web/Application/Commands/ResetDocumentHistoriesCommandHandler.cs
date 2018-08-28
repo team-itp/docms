@@ -34,10 +34,11 @@ namespace Docms.Web.Application.Commands
 
         public async Task<bool> Handle(ResetDocumentHistoriesCommand request, CancellationToken cancellationToken = default(CancellationToken))
         {
-            await _context.Database.EnsureDeletedAsync();
-            await _context.Database.EnsureCreatedAsync();
-            await _queriesContext.Database.EnsureDeletedAsync();
-            await _queriesContext.Database.EnsureCreatedAsync();
+            _context.Documents.RemoveRange(_context.Documents);
+            await _context.SaveChangesAsync();
+            _queriesContext.Entries.RemoveRange(_queriesContext.Entries);
+            _queriesContext.DocumentHistories.RemoveRange(_queriesContext.DocumentHistories);
+            await _queriesContext.SaveChangesAsync();
 
             var dir = await _fileStorage.GetDirectoryAsync("");
             await RecreateAllFilesAsync(dir);
