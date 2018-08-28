@@ -1,31 +1,46 @@
 ﻿using Docms.Client.Api;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
+using System;
 using System.IO;
 using System.Text;
 using System.Threading.Tasks;
 
 namespace Docms.Client.Tests
 {
+    [TestClass]
     public class DocmsApiClinetTests
     {
+        private static bool noConnection;
+
         private DocmsApiClinet sut;
 
         [TestInitialize]
         public async Task Setup()
         {
-            sut = new DocmsApiClinet("http://localhost:51693");
-            await sut.LoginAsync("testuser", "Passw0rd").ConfigureAwait(false);
+            if (noConnection) return;
+
+            try
+            {
+                sut = new DocmsApiClinet("http://localhost:51693");
+                await sut.LoginAsync("testuser", "Passw0rd").ConfigureAwait(false);
+            }
+            catch (Exception)
+            {
+                noConnection = true;
+            }
         }
 
         [TestCleanup]
         public async Task Teardown()
         {
+            if (noConnection) return;
             await sut.LogoutAsync().ConfigureAwait(false);
         }
 
         [TestMethod]
         public async Task サーバーよりルートディレクトリ内のファイルの一覧を取得する()
         {
+            if (noConnection) Assert.Fail("接続不良のため失敗");
             await sut.VerifyTokenAsync().ConfigureAwait(false);
             var entries = await sut.GetEntriesAsync("").ConfigureAwait(false);
         }
@@ -33,6 +48,7 @@ namespace Docms.Client.Tests
         [TestMethod]
         public async Task サーバーにファイルをアップロードする()
         {
+            if (noConnection) Assert.Fail("接続不良のため失敗");
             await sut.VerifyTokenAsync().ConfigureAwait(false);
             await sut.CreateOrUpdateDocumentAsync("test1/subtest1/test.txt", new MemoryStream(Encoding.UTF8.GetBytes("test1"))).ConfigureAwait(false);
         }
@@ -40,6 +56,7 @@ namespace Docms.Client.Tests
         [TestMethod]
         public async Task サーバーのファイルを移動する()
         {
+            if (noConnection) Assert.Fail("接続不良のため失敗");
             await sut.VerifyTokenAsync().ConfigureAwait(false);
             await sut.CreateOrUpdateDocumentAsync("test1/subtest1/test1.txt", new MemoryStream(Encoding.UTF8.GetBytes("test1"))).ConfigureAwait(false);
             await sut.CreateOrUpdateDocumentAsync("test1/subtest1/test2.txt", new MemoryStream(Encoding.UTF8.GetBytes("test2"))).ConfigureAwait(false);
@@ -50,6 +67,7 @@ namespace Docms.Client.Tests
         [TestMethod]
         public async Task 存在しないファイルを取得する()
         {
+            if (noConnection) Assert.Fail("接続不良のため失敗");
             await sut.VerifyTokenAsync().ConfigureAwait(false);
             await sut.CreateOrUpdateDocumentAsync("test1/subtest1/test1.txt", new MemoryStream(Encoding.UTF8.GetBytes("test1"))).ConfigureAwait(false);
             await sut.DeleteDocumentAsync("test1/subtest1/test1.txt").ConfigureAwait(false);
