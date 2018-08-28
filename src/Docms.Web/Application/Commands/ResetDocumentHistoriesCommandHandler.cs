@@ -41,7 +41,6 @@ namespace Docms.Web.Application.Commands
 
             var dir = await _fileStorage.GetDirectoryAsync("");
             await RecreateAllFilesAsync(dir);
-            await _documentRepository.UnitOfWork.SaveEntitiesAsync();
 
             return true;
         }
@@ -76,6 +75,7 @@ namespace Docms.Web.Application.Commands
                 var utcNow = DateTime.UtcNow;
                 var document = new Document(new DocumentPath(fileEntry.Path.ToString()), contentType, fileSize, hash, utcNow, utcNow);
                 await _documentRepository.AddAsync(document);
+                await _documentRepository.UnitOfWork.SaveEntitiesAsync();
             }
             finally
             {
