@@ -30,7 +30,7 @@ namespace Docms.Infrastructure.Files
         {
             if (path.DirectoryPath != null)
             {
-                var blockBlob = await GetBlockBlobAsync(path);
+                var blockBlob = await GetBlockBlobAsync(path).ConfigureAwait(false);
                 if (await blockBlob.ExistsAsync())
                 {
                     return new File(path, this);
@@ -59,10 +59,13 @@ namespace Docms.Infrastructure.Files
 
         public async Task<Directory> GetDirectoryAsync(FilePath path)
         {
-            var blockBlob = await GetBlockBlobAsync(path).ConfigureAwait(false);
-            if (await blockBlob.ExistsAsync())
+            if (path.DirectoryPath != null)
             {
-                throw new InvalidOperationException();
+                var blockBlob = await GetBlockBlobAsync(path).ConfigureAwait(false);
+                if (await blockBlob.ExistsAsync())
+                {
+                    throw new InvalidOperationException();
+                }
             }
             return new Directory(path, this);
         }
@@ -131,10 +134,13 @@ namespace Docms.Infrastructure.Files
 
         public async Task DeleteAsync(Entry entry)
         {
-            var blockBlob = await GetBlockBlobAsync(entry.Path).ConfigureAwait(false);
-            if (await blockBlob.DeleteIfExistsAsync())
+            if (entry.Path.DirectoryPath != null)
             {
-                return;
+                var blockBlob = await GetBlockBlobAsync(entry.Path).ConfigureAwait(false);
+                if (await blockBlob.DeleteIfExistsAsync())
+                {
+                    return;
+                }
             }
 
             var blobDir = await GetBlobDirectoryAsync(entry.Path).ConfigureAwait(false);
