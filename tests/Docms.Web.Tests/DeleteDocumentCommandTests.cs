@@ -38,8 +38,9 @@ namespace Docms.Web.Tests
         public async Task コマンドを発行してドキュメントが削除されること()
         {
             var dir = await localFileStorage.GetDirectoryAsync("test1");
-            var prop = await dir.SaveAsync("document1.txt", new MemoryStream(Encoding.UTF8.GetBytes("Hello, world")));
-            await repository.AddAsync(new Document(new DocumentPath("test1/document1.txt"), prop.ContentType, prop.Size, prop.Hash));
+            var bytes = Encoding.UTF8.GetBytes("Hello, world");
+            await dir.SaveAsync("document1.txt", "text/plain", new MemoryStream());
+            await repository.AddAsync(new Document(new DocumentPath("test1/document1.txt"), "text/plain", bytes.Length, Hash.CalculateHash(bytes)));
             using (var ms = new MemoryStream(Encoding.UTF8.GetBytes("Hello, world")))
             {
                 await sut.Handle(new DeleteDocumentCommand()

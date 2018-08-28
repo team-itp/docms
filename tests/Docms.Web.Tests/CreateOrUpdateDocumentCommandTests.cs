@@ -1,4 +1,5 @@
 ﻿using Docms.Domain.Documents;
+using Docms.Infrastructure.DataStores;
 using Docms.Infrastructure.Files;
 using Docms.Web.Application.Commands;
 using Docms.Web.Tests.Utils;
@@ -15,6 +16,7 @@ namespace Docms.Web.Tests
     {
         private MockDocumentRepository repository;
         private LocalFileStorage localFileStorage;
+        private InMemoryTemporaryStore temporaryStore;
         private CreateOrUpdateDocumentCommandHandler sut;
 
         [TestInitialize]
@@ -22,7 +24,8 @@ namespace Docms.Web.Tests
         {
             repository = new MockDocumentRepository();
             localFileStorage = new LocalFileStorage("tmp");
-            sut = new CreateOrUpdateDocumentCommandHandler(repository, localFileStorage);
+            temporaryStore = new InMemoryTemporaryStore();
+            sut = new CreateOrUpdateDocumentCommandHandler(repository, localFileStorage, temporaryStore);
         }
 
         [TestCleanup]
@@ -53,8 +56,9 @@ namespace Docms.Web.Tests
         public async Task コマンドを発行してドキュメントが更新されること()
         {
             var dir = await localFileStorage.GetDirectoryAsync("test1");
-            var prop = await dir.SaveAsync("document1.txt", new MemoryStream(Encoding.UTF8.GetBytes("Hello, world")));
-            await repository.AddAsync(new Document(new DocumentPath("test1/document1.txt"), prop.ContentType, prop.Size, prop.Hash));
+            var bytes = Encoding.UTF8.GetBytes("Hello, world");
+            await dir.SaveAsync("document1.txt", "text/plain", new MemoryStream(bytes));
+            await repository.AddAsync(new Document(new DocumentPath("test1/document1.txt"), "text/plain", bytes.Length, Hash.CalculateHash(bytes)));
             using (var ms = new MemoryStream(Encoding.UTF8.GetBytes("Hello, new world")))
             {
                 await sut.Handle(new CreateOrUpdateDocumentCommand()
@@ -71,8 +75,9 @@ namespace Docms.Web.Tests
         public async Task ファイルが存在する場合でもコマンドを発行してドキュメントが作成されること()
         {
             var dir = await localFileStorage.GetDirectoryAsync("test1");
-            var prop = await dir.SaveAsync("document1.txt", new MemoryStream(Encoding.UTF8.GetBytes("Hello, world")));
-            await repository.AddAsync(new Document(new DocumentPath("test1/document1.txt"), prop.ContentType, prop.Size, prop.Hash));
+            var bytes = Encoding.UTF8.GetBytes("Hello, world");
+            await dir.SaveAsync("document1.txt", "text/plain", new MemoryStream(bytes));
+            await repository.AddAsync(new Document(new DocumentPath("test1/document1.txt"), "text/plain", bytes.Length, Hash.CalculateHash(bytes)));
             using (var ms = new MemoryStream(Encoding.UTF8.GetBytes("Hello, new world")))
             {
                 await sut.Handle(new CreateOrUpdateDocumentCommand()

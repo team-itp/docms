@@ -90,37 +90,20 @@ namespace Docms.Infrastructure.Files
             });
         }
 
-        public async Task<FileProperties> GetPropertiesAsync(File file)
-        {
-            var blockBlob = await  GetBlockBlobAsync(file.Path).ConfigureAwait(false);
-            await blockBlob.FetchAttributesAsync();
-            var props = blockBlob.Properties;
-            return new FileProperties()
-            {
-                File = file,
-                ContentType = props.ContentType ?? "application/octet-stream",
-                Size = props.Length,
-                Hash = props.ContentMD5,
-                LastModified = props.LastModified.Value.UtcDateTime,
-                Created = props.Created.Value.UtcDateTime,
-            };
-        }
-
         public async Task<Stream> OpenAsync(File file)
         {
             var blockBlob = await GetBlockBlobAsync(file.Path).ConfigureAwait(false);
             return await blockBlob.OpenReadAsync().ConfigureAwait(false);
         }
 
-        public async Task<FileProperties> SaveAsync(Directory dir, string filename, Stream stream)
+        public async Task<File> SaveAsync(Directory dir, string filename, string contentType, Stream stream)
         {
             var filePath = dir.Path.Combine(filename);
             var blockBlob = await GetBlockBlobAsync(filePath).ConfigureAwait(false);
             await blockBlob.UploadFromStreamAsync(stream).ConfigureAwait(false);
-            ContentTypeProvider.TryGetContentType(filePath.Extension, out var contentType);
             blockBlob.Properties.ContentType = contentType;
             await blockBlob.SetPropertiesAsync().ConfigureAwait(false);
-            return await GetPropertiesAsync(new File(filePath, this)).ConfigureAwait(false);
+            return new File(filePath, this);
         }
 
         public async Task MoveAsync(FilePath originalPath, FilePath destinationPath)

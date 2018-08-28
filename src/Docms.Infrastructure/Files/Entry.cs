@@ -29,9 +29,9 @@ namespace Docms.Infrastructure.Files
             return Storage.GetFilesAsync(this);
         }
 
-        public Task<FileProperties> SaveAsync(string filename, Stream stream)
+        public Task<File> SaveAsync(string filename, string contentType, Stream stream)
         {
-            return Storage.SaveAsync(this, filename, stream);
+            return Storage.SaveAsync(this, filename, contentType, stream);
         }
     }
 
@@ -39,11 +39,6 @@ namespace Docms.Infrastructure.Files
     {
         internal File(FilePath path, IFileStorage storage) : base(path, storage)
         {
-        }
-
-        public Task<FileProperties> GetPropertiesAsync()
-        {
-            return Storage.GetPropertiesAsync(this);
         }
 
         public Task<Stream> OpenAsync()

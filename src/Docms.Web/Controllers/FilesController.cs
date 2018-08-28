@@ -85,10 +85,12 @@ namespace Docms.Web.Controllers
                 var filePath = directryPath.Combine(System.IO.Path.GetFileName(file.FileName ?? "NONAME"));
                 using (var stream = file.OpenReadStream())
                 {
-                    var command = new CreateOrUpdateDocumentCommand();
-                    command.Path = filePath;
-                    command.Stream = stream;
-                    command.ForceCreate = true;
+                    var command = new CreateOrUpdateDocumentCommand
+                    {
+                        Path = filePath,
+                        Stream = stream,
+                        ForceCreate = true
+                    };
                     var response = await mediator.Send(command);
                 }
             }

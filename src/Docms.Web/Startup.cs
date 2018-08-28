@@ -1,5 +1,6 @@
 ﻿using Docms.Domain.Documents;
 using Docms.Infrastructure;
+using Docms.Infrastructure.DataStores;
 using Docms.Infrastructure.Files;
 using Docms.Infrastructure.Repositories;
 using Docms.Web.Api.Serialization;
@@ -165,6 +166,7 @@ namespace Docms.Web
             services.AddTransient<DocumentsQueries>();
             services.AddTransient<DocumentHistoriesQueries>();
             services.AddSingleton<IFileStorage>(sv => new LocalFileStorage("App_Data/flies"));
+            services.AddSingleton<ITemporaryStore, InMemoryTemporaryStore>();
             return services;
         }
 

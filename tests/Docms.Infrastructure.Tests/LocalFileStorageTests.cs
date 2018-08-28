@@ -98,16 +98,6 @@ namespace Docms.Infrastructure.Tests
         }
 
         [TestMethod]
-        public async Task 存在するファイル情報を取得することができる()
-        {
-            CreateFile("dir2\\content1.txt", "dir2content1");
-            var file = await sut.GetEntryAsync("dir2\\content1.txt") as Files.File;
-            var fileProps = await file.GetPropertiesAsync();
-            Assert.AreEqual(12, fileProps.Size);
-            Assert.IsNotNull(fileProps.Hash);
-        }
-
-        [TestMethod]
         public async Task ファイルのストリームがオープン出来ること()
         {
             CreateFile("dir2\\content1.txt", "dir2content1");
@@ -136,10 +126,9 @@ namespace Docms.Infrastructure.Tests
             var ms = new MemoryStream(Encoding.UTF8.GetBytes("dir2content1"));
             ms.Seek(0, SeekOrigin.Begin);
             var dir = await sut.GetDirectoryAsync("dir2") as Files.Directory;
-            var fileProps = await dir.SaveAsync("content1.txt", ms);
+            var file = await dir.SaveAsync("content1.txt", "text/plain", ms);
             Assert.AreEqual("dir2content1", System.IO.File.ReadAllText(Path.Combine(basepath, "dir2\\content1.txt")));
-            Assert.AreEqual(12, fileProps.Size);
-            Assert.IsNotNull(fileProps.Hash);
+            Assert.AreEqual("dir2/content1.txt", file.Path.ToString());
         }
 
         [TestMethod]
@@ -147,12 +136,11 @@ namespace Docms.Infrastructure.Tests
         {
             var ms1 = new MemoryStream(Encoding.UTF8.GetBytes("dir2content1"));
             var dir = await sut.GetDirectoryAsync("dir2") as Files.Directory;
-            await dir.SaveAsync("content1.txt", ms1);
+            await dir.SaveAsync("content1.txt", "text/plain", ms1);
             Assert.AreEqual("dir2content1", System.IO.File.ReadAllText(Path.Combine(basepath, "dir2\\content1.txt")));
             var ms2 = new MemoryStream(Encoding.UTF8.GetBytes("dir2content1new"));
-            var fileProps = await dir.SaveAsync("content1.txt", ms2);
-            Assert.AreEqual(15, fileProps.Size);
-            Assert.IsNotNull(fileProps.Hash);
+            var file = await dir.SaveAsync("content1.txt", "text/plain", ms2);
+            Assert.AreEqual("dir2/content1.txt", file.Path.ToString());
         }
 
         [TestMethod]
@@ -163,7 +151,7 @@ namespace Docms.Infrastructure.Tests
             var dir = await sut.GetDirectoryAsync(".");
             var ms = new MemoryStream(Encoding.UTF8.GetBytes("testcontent"));
             ms.Seek(0, SeekOrigin.Begin);
-            await dir.SaveAsync("test", ms);
+            await dir.SaveAsync("test", "text/plain", ms);
         }
 
         [TestMethod]
@@ -172,9 +160,9 @@ namespace Docms.Infrastructure.Tests
             var ms = new MemoryStream(Encoding.UTF8.GetBytes("dir2content1"));
             ms.Seek(0, SeekOrigin.Begin);
             var dir = await sut.GetDirectoryAsync("dir2");
-            var fileProps = await dir.SaveAsync("content1.txt", ms);
+            var file = await dir.SaveAsync("content1.txt", "text/plain", ms);
             Assert.IsTrue(System.IO.File.Exists(Path.Combine(basepath, "dir2\\content1.txt")));
-            await sut.MoveAsync(fileProps.File.Path, new FilePath("content1.txt"));
+            await sut.MoveAsync(file.Path, new FilePath("content1.txt"));
             Assert.IsFalse(System.IO.File.Exists(Path.Combine(basepath, "dir2\\content1.txt")));
             Assert.IsTrue(System.IO.File.Exists(Path.Combine(basepath, "content1.txt")));
         }
@@ -185,9 +173,9 @@ namespace Docms.Infrastructure.Tests
             var ms = new MemoryStream(Encoding.UTF8.GetBytes("dir2content1"));
             ms.Seek(0, SeekOrigin.Begin);
             var dir = await sut.GetDirectoryAsync("dir2");
-            var fileProps = await dir.SaveAsync("content1.txt", ms);
+            var file = await dir.SaveAsync("content1.txt", "text/plain", ms);
             Assert.IsTrue(System.IO.File.Exists(Path.Combine(basepath, "dir2\\content1.txt")));
-            await sut.MoveAsync(fileProps.File.Path, new FilePath("dir1/subdir1/content1.txt"));
+            await sut.MoveAsync(file.Path, new FilePath("dir1/subdir1/content1.txt"));
             Assert.IsFalse(System.IO.File.Exists(Path.Combine(basepath, "dir2\\content1.txt")));
             Assert.IsTrue(System.IO.File.Exists(Path.Combine(basepath, "dir1/subdir1/content1.txt")));
         }
@@ -198,9 +186,9 @@ namespace Docms.Infrastructure.Tests
             var ms = new MemoryStream(Encoding.UTF8.GetBytes("dir2content1"));
             ms.Seek(0, SeekOrigin.Begin);
             var dir = await sut.GetDirectoryAsync("dir2");
-            var fileProps = await dir.SaveAsync("content1.txt", ms);
+            var file = await dir.SaveAsync("content1.txt", "text/plain", ms);
             Assert.IsTrue(System.IO.File.Exists(Path.Combine(basepath, "dir2\\content1.txt")));
-            await sut.DeleteAsync(fileProps.File);
+            await sut.DeleteAsync(file);
             Assert.IsFalse(System.IO.File.Exists(Path.Combine(basepath, "dir2\\content1.txt")));
         }
 

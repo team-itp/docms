@@ -72,29 +72,6 @@ namespace Docms.Infrastructure.Files
             return Task.FromResult(list.AsEnumerable());
         }
 
-        public Task<FileProperties> GetPropertiesAsync(File file)
-        {
-            if (!Exists(file.Path) || IsDirectory(file.Path))
-            {
-                throw new InvalidOperationException();
-            }
-
-            var fileInfo = GetFileInfo(file.Path);
-            ContentTypeProvider.TryGetContentType(fileInfo.Extension, out var contentType);
-            using (var fs = fileInfo.OpenRead())
-            {
-                return Task.FromResult(new FileProperties()
-                {
-                    File = file,
-                    ContentType = contentType ?? "application/octet-stream",
-                    Size = fileInfo.Length,
-                    Hash = Hash.CalculateHash(fs),
-                    LastModified = fileInfo.LastWriteTime,
-                    Created = fileInfo.CreationTime,
-                });
-            }
-        }
-
         public Task<Stream> OpenAsync(File file)
         {
             if (!Exists(file.Path) || IsDirectory(file.Path))
@@ -112,7 +89,7 @@ namespace Docms.Infrastructure.Files
             }
         }
 
-        public async Task<FileProperties> SaveAsync(Directory dir, string filename, Stream stream)
+        public async Task<File> SaveAsync(Directory dir, string filename, string contentType, Stream stream)
         {
             var filepath = dir.Path == null ? new FilePath(filename) : dir.Path.Combine(filename);
             if (Exists(filepath) && IsDirectory(filepath))
@@ -131,8 +108,7 @@ namespace Docms.Infrastructure.Files
             {
                 await stream.CopyToAsync(fs);
             }
-            var file = new File(filepath, this);
-            return await GetPropertiesAsync(file);
+            return new File(filepath, this);
         }
 
         public Task MoveAsync(FilePath originalPath, FilePath destinationPath)

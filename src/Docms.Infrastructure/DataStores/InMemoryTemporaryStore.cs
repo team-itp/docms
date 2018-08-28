@@ -30,6 +30,11 @@ namespace Docms.Infrastructure.DataStores
             return Task.FromResult(ms as Stream);
         }
 
+        public Task<int> GetFileSizeAsync(Guid id)
+        {
+            return Task.FromResult(dataDictionary.TryGetValue(id, out var data) ? data.Length : -1);
+        }
+
         public Task DeleteAsync(Guid id)
         {
             lock (dataDictionary)

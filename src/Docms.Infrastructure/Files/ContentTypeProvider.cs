@@ -3,7 +3,7 @@ using System.Collections.Generic;
 
 namespace Docms.Infrastructure.Files
 {
-    class ContentTypeProvider
+    public class ContentTypeProvider
     {
         private static Dictionary<string, string> Mappings = new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase)
             {

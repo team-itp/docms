@@ -8,6 +8,7 @@ namespace Docms.Infrastructure.DataStores
     {
         Task<DateTime> SaveAsync(Guid id, Stream data);
         Task<Stream> OpenStreamAsync(Guid id);
+        Task<int> GetFileSizeAsync(Guid id);
         Task DeleteAsync(Guid id);
         Task DeleteBeforeAsync(DateTime timestamp);
     }

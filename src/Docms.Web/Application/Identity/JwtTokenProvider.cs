@@ -9,8 +9,6 @@ namespace Docms.Web.Application.Identity
     public class JwtTokenProvider
     {
         private IdentityServerTools _identityServerTools;
-        private IHttpContextAccessor _contextAccessor;
-        private ITokenCreationService _tokenCreation;
 
         public JwtTokenProvider(
             IHttpContextAccessor contextAccessor,
@@ -18,7 +16,6 @@ namespace Docms.Web.Application.Identity
             ISystemClock clock)
         {
             _identityServerTools = new IdentityServerTools(contextAccessor, tokenCreation, clock);
-            _contextAccessor = contextAccessor;
         }
 
         public async Task<string> GenerateToken()
