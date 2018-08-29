@@ -18,7 +18,7 @@ namespace Docms.Client.FileSyncing
         }
 
         public Guid LastHistoryId { get; set; }
-        public DateTime LastHistorTimestamp { get; internal set; }
+        public DateTime LastHistoryTimestamp { get; internal set; }
         public string Path { get; set; }
         public string ContentType { get; set; }
         public long FileSize { get; set; }
@@ -46,7 +46,7 @@ namespace Docms.Client.FileSyncing
         public void Apply(DocumentCreatedHistory history)
         {
             LastHistoryId = history.Id;
-            LastHistorTimestamp = history.Timestamp;
+            LastHistoryTimestamp = history.Timestamp;
 
             Path = history.Path;
             ContentType = history.ContentType;
@@ -61,7 +61,7 @@ namespace Docms.Client.FileSyncing
         public void Apply(DocumentUpdatedHistory history)
         {
             LastHistoryId = history.Id;
-            LastHistorTimestamp = history.Timestamp;
+            LastHistoryTimestamp = history.Timestamp;
 
             ContentType = history.ContentType;
             FileSize = history.FileSize;
@@ -75,7 +75,7 @@ namespace Docms.Client.FileSyncing
         public void Apply(DocumentMovedFromHistory history)
         {
             LastHistoryId = history.Id;
-            LastHistorTimestamp = history.Timestamp;
+            LastHistoryTimestamp = history.Timestamp;
 
             Path = history.Path;
             LastHistoryId = history.Id;
@@ -91,7 +91,7 @@ namespace Docms.Client.FileSyncing
         public void Apply(DocumentMovedToHistory history)
         {
             LastHistoryId = history.Id;
-            LastHistorTimestamp = history.Timestamp;
+            LastHistoryTimestamp = history.Timestamp;
 
             Path = history.NewPath;
 
@@ -101,7 +101,7 @@ namespace Docms.Client.FileSyncing
         public void Apply(DocumentDeletedHistory history)
         {
             LastHistoryId = history.Id;
-            LastHistorTimestamp = history.Timestamp;
+            LastHistoryTimestamp = history.Timestamp;
 
             Path = null;
 

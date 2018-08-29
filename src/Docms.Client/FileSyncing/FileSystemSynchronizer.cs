@@ -1,5 +1,6 @@
 ﻿using Docms.Client.Api;
 using Docms.Client.FileStorage;
+using Docms.Client.SeedWork;
 using Microsoft.EntityFrameworkCore;
 using System;
 using System.Collections.Generic;
@@ -34,6 +35,7 @@ namespace Docms.Client.FileSyncing
         {
             _db.FileSyncHistories.Add(new FileSyncHistory(FileSyncStatus.InitializingStarted));
             await _db.SaveChangesAsync().ConfigureAwait(false);
+            Trace.WriteLine($"initialize started");
 
             try
             {
@@ -41,6 +43,7 @@ namespace Docms.Client.FileSyncing
                 await UploadLocalFiles("", cancellationToken).ConfigureAwait(false);
                 _db.FileSyncHistories.Add(new FileSyncHistory(FileSyncStatus.InitializeCompleted));
                 await _db.SaveChangesAsync().ConfigureAwait(false);
+                Trace.WriteLine($"initialize completed");
             }
             catch (Exception ex)
             {
@@ -75,7 +78,7 @@ namespace Docms.Client.FileSyncing
                 {
                     if (!IgnorePatterns.Any(e => Regex.IsMatch(item, e)))
                     {
-                        await _synchronizer.SyncAsync(item).ConfigureAwait(false);
+                        await _synchronizer.SyncAsync(new PathString(item).ToString()).ConfigureAwait(false);
                     }
                 }
                 catch (Exception ex)
@@ -93,6 +96,7 @@ namespace Docms.Client.FileSyncing
         {
             _db.FileSyncHistories.Add(new FileSyncHistory(FileSyncStatus.SyncStarted));
             await _db.SaveChangesAsync().ConfigureAwait(false);
+            Trace.WriteLine($"sync started");
 
             try
             {
@@ -107,7 +111,7 @@ namespace Docms.Client.FileSyncing
                         .Where(h => h.Status == FileSyncStatus.InitializingStarted || h.Status == FileSyncStatus.SyncStarted)
                         .Where(h => h.Timestamp < maxCompletedTimestamp)
                         .MaxAsync(h => h.Timestamp).ConfigureAwait(false);
-                    serverHistories.AddRange(await _client.GetHistoriesAsync("", maxStartedTimestamp).ConfigureAwait(false));
+                    serverHistories.AddRange(await _client.GetHistoriesAsync("", DateTime.SpecifyKind(maxStartedTimestamp, DateTimeKind.Utc)).ConfigureAwait(false));
                 }
                 else
                 {
@@ -124,6 +128,7 @@ namespace Docms.Client.FileSyncing
 
                 _db.FileSyncHistories.Add(new FileSyncHistory(FileSyncStatus.SyncCompleted));
                 await _db.SaveChangesAsync().ConfigureAwait(false);
+                Trace.WriteLine($"sync completed");
             }
             catch (Exception ex)
             {
@@ -135,14 +140,14 @@ namespace Docms.Client.FileSyncing
 
         public async Task RequestCreationAsync(string path, CancellationToken cancellationToken = default(CancellationToken))
         {
-            var file = await _client.GetDocumentAsync(path).ConfigureAwait(false);
-
             var fileInfo = _storage.GetFile(path);
             if (!File.Exists(fileInfo.FullName))
             {
                 return;
             }
 
+            Trace.WriteLine($"request creation {path}");
+            var file = await _client.GetDocumentAsync(path).ConfigureAwait(false);
             if (file == null
                 || fileInfo.Length != file.FileSize
                 || _storage.CalculateHash(path) != file.Hash)
@@ -150,21 +155,24 @@ namespace Docms.Client.FileSyncing
                 using (var fs = fileInfo.OpenRead())
                 {
                     await _client.CreateOrUpdateDocumentAsync(path, fs, fileInfo.CreationTimeUtc, fileInfo.LastWriteTimeUtc).ConfigureAwait(false);
+                    Trace.WriteLine($"request upload {path}");
                 }
             }
         }
 
         public async Task RequestDeletionAsync(string path, CancellationToken cancellationToken = default(CancellationToken))
         {
-            var file = await _client.GetDocumentAsync(path).ConfigureAwait(false);
-            if (file == null)
+            var fileInfo = _storage.GetFile(path);
+            if (!File.Exists(fileInfo.FullName))
             {
                 return;
             }
 
-            var fileInfo = _storage.GetFile(path);
-            if (!File.Exists(fileInfo.FullName))
+            Trace.WriteLine($"request movement {path}");
+            var file = await _client.GetDocumentAsync(path).ConfigureAwait(false);
+            if (file == null)
             {
+                Trace.WriteLine($"{path} on server is already deleted");
                 return;
             }
 
@@ -172,28 +180,28 @@ namespace Docms.Client.FileSyncing
                 && _storage.CalculateHash(path) == file.Hash)
             {
                 await _client.DeleteDocumentAsync(path).ConfigureAwait(false);
+                Trace.WriteLine($"request delete {path}");
             }
         }
 
         public async Task RequestMovementAsync(string originalPath, string destinationPath, CancellationToken cancellationToken = default(CancellationToken))
         {
-            var originalFile = await _client.GetDocumentAsync(originalPath).ConfigureAwait(false);
             var destinationFileInfo = _storage.GetFile(destinationPath);
-
-            if (originalFile == null)
+            if (!destinationFileInfo.Exists)
             {
-                if (destinationFileInfo.Exists)
-                {
-                    using (var fs = destinationFileInfo.OpenRead())
-                    {
-                        await _client.CreateOrUpdateDocumentAsync(destinationPath, fs, destinationFileInfo.CreationTimeUtc, destinationFileInfo.LastWriteTimeUtc).ConfigureAwait(false);
-                    }
-                }
                 return;
             }
 
-            if (!destinationFileInfo.Exists)
+            Trace.WriteLine($"request movement {originalPath} to {destinationPath}");
+            var originalFile = await _client.GetDocumentAsync(originalPath).ConfigureAwait(false);
+            if (originalFile == null)
             {
+                Trace.WriteLine($"{originalPath} on server is deleted");
+                using (var fs = destinationFileInfo.OpenRead())
+                {
+                    await _client.CreateOrUpdateDocumentAsync(destinationPath, fs, destinationFileInfo.CreationTimeUtc, destinationFileInfo.LastWriteTimeUtc).ConfigureAwait(false);
+                    Trace.WriteLine($"request upload {destinationPath}");
+                }
                 return;
             }
 
@@ -201,27 +209,30 @@ namespace Docms.Client.FileSyncing
                 && originalFile.Hash == _storage.CalculateHash(destinationPath))
             {
                 await _client.MoveDocumentAsync(originalPath, destinationPath).ConfigureAwait(false);
+                Trace.WriteLine($"request move from {originalPath} to {destinationPath}");
             }
             else
             {
                 using (var fs = destinationFileInfo.OpenRead())
                 {
                     await _client.CreateOrUpdateDocumentAsync(destinationPath, fs, destinationFileInfo.CreationTimeUtc, destinationFileInfo.LastWriteTimeUtc).ConfigureAwait(false);
+                    Trace.WriteLine($"request upload {destinationPath}");
                 }
                 await _client.DeleteDocumentAsync(originalPath).ConfigureAwait(false);
+                Trace.WriteLine($"request delete {originalPath}");
             }
         }
 
         public async Task RequestChangingAsync(string path, CancellationToken cancellationToken = default(CancellationToken))
         {
-            var file = await _client.GetDocumentAsync(path).ConfigureAwait(false);
-
             var fileInfo = _storage.GetFile(path);
             if (!File.Exists(fileInfo.FullName))
             {
                 return;
             }
 
+            Trace.WriteLine($"request changing {path}");
+            var file = await _client.GetDocumentAsync(path).ConfigureAwait(false);
             if (file == null
                 || fileInfo.Length != file.FileSize
                 || _storage.CalculateHash(path) != file.Hash)
@@ -229,6 +240,7 @@ namespace Docms.Client.FileSyncing
                 using (var fs = fileInfo.OpenRead())
                 {
                     await _client.CreateOrUpdateDocumentAsync(path, fs, fileInfo.CreationTimeUtc, fileInfo.LastWriteTimeUtc).ConfigureAwait(false);
+                    Trace.WriteLine($"request update {path}");
                 }
             }
         }

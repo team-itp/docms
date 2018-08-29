@@ -2,6 +2,7 @@
 using Docms.Client.FileStorage;
 using Docms.Client.FileSyncing;
 using Docms.Client.FileTrees;
+using Docms.Client.SeedWork;
 using docmssync.Properties;
 using Microsoft.EntityFrameworkCore;
 using System;
@@ -36,16 +37,21 @@ namespace docmssync
         protected override void OnStart(string[] args)
         {
             _watchPath = Settings.Default.WatchPath;
+            if (!Directory.Exists(_watchPath))
+            {
+                Directory.CreateDirectory(_watchPath);
+            }
             _client = new DocmsApiClinet(Settings.Default.ServerUrl, "api/v1");
             _localFileStorage = new LocalFileStorage(_watchPath);
             var dbDir = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData), "docmssync");
-            if (!Directory.Exists(dbDir))
+            if (Directory.Exists(dbDir))
             {
-                Directory.CreateDirectory(dbDir);
+                Directory.Delete(dbDir, true);
             }
+            Directory.CreateDirectory(dbDir);
             _context = new FileSyncingContext(new DbContextOptionsBuilder<FileSyncingContext>()
-            .UseSqlite(string.Format("Data Source={0}", Path.Combine(dbDir, "sync.db")))
-            .Options);
+                .UseSqlite(string.Format("Data Source={0}", Path.Combine(dbDir, "sync.db")))
+                .Options);
             if (_watcher == null)
             {
                 _watcher = new FileSystemWatcher(_watchPath)

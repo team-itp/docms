@@ -1,7 +1,7 @@
 using System;
 using System.IO;
 
-namespace Docms.Client.FileTrees
+namespace Docms.Client.SeedWork
 {
     public class PathString
     {

@@ -1,4 +1,5 @@
-﻿using System;
+﻿using Docms.Client.SeedWork;
+using System;
 
 namespace Docms.Client.FileTrees
 {

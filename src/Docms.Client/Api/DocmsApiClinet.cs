@@ -9,6 +9,7 @@ using System.IO;
 using System.Linq;
 using System.Net;
 using System.Threading.Tasks;
+using System.Xml;
 
 namespace Docms.Client.Api
 {
@@ -187,11 +188,11 @@ namespace Docms.Client.Api
                 request.AddFile("file", ms.ToArray(), path.Substring(path.LastIndexOf('/') > -1 ? path.LastIndexOf('/') : 0));
                 if (created != null)
                 {
-                    request.AddParameter("created", created.Value);
+                    request.AddParameter("created", XmlConvert.ToString(created.Value, XmlDateTimeSerializationMode.Utc));
                 }
                 if (lastModified != null)
                 {
-                    request.AddParameter("lastModified", lastModified.Value);
+                    request.AddParameter("lastModified", XmlConvert.ToString(lastModified.Value, XmlDateTimeSerializationMode.Utc));
                 }
                 request.AddHeader("Authorization", "Bearer " + _accessToken);
                 var result = await _client.ExecutePostTaskAsync(request).ConfigureAwait(false);
@@ -235,6 +236,10 @@ namespace Docms.Client.Api
             if (!string.IsNullOrEmpty(path))
             {
                 request.AddQueryParameter("path", path);
+            }
+            if (since != null)
+            {
+                request.AddQueryParameter("since", XmlConvert.ToString(since.Value, XmlDateTimeSerializationMode.Utc));
             }
             request.AddHeader("Authorization", "Bearer " + _accessToken);
             var result = await _client.ExecuteGetTaskAsync(request).ConfigureAwait(false);

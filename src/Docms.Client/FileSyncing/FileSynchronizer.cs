@@ -1,7 +1,9 @@
 ﻿using Docms.Client.Api;
 using Docms.Client.FileStorage;
 using Microsoft.EntityFrameworkCore;
+using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Linq;
 using System.Threading.Tasks;
 
@@ -31,63 +33,80 @@ namespace Docms.Client.FileSyncing
             var fileInfo = _storage.GetFile(path);
             if (fileInfo.Exists)
             {
+                Trace.WriteLine($"{path} is exists on local");
                 var isSameFile = fileInfo.Length == file.FileSize
                     && _storage.CalculateHash(path) == file.Hash;
 
                 if (isSameFile)
                 {
+                    Trace.WriteLine($"{path} is same as server");
                     if (file.Path == null)
                     {
                         fileInfo.Delete();
+                        Trace.WriteLine($"{path} at server is deleted, deleted on local");
                     }
                     else if (file.Path != path)
                     {
+                        Trace.WriteLine($"{path} at server is moved");
                         var fileInfoMoveTo = _storage.GetFile(file.Path);
                         if (fileInfoMoveTo.Exists)
                         {
                             fileInfo.Delete();
+                            Trace.WriteLine($"file exists at {file.Path} (where file move to), just delete {path}");
                         }
                         else
                         {
-                            fileInfoMoveTo.Directory.Create();
+                            if (!fileInfoMoveTo.Directory.Exists)
+                            {
+                                fileInfoMoveTo.Directory.Create();
+                            }
                             fileInfo.MoveTo(fileInfoMoveTo.FullName);
+                            Trace.WriteLine($"file moved from {path} to {file.Path}");
                         }
                     }
                 }
                 else
                 {
-                    if (fileInfo.LastWriteTimeUtc > file.LastHistorTimestamp)
+                    Trace.WriteLine($"{path} is not same as server");
+                    if (fileInfo.LastWriteTimeUtc > file.LastHistoryTimestamp)
                     {
+                        Trace.WriteLine($"local file is newer than server's");
                         using (var fs = fileInfo.OpenRead())
                         {
                             await _client.CreateOrUpdateDocumentAsync(path, fs, fileInfo.CreationTimeUtc, fileInfo.LastWriteTimeUtc).ConfigureAwait(false);
+                            Trace.WriteLine($"{path} request update");
                         }
                     }
                     else
                     {
+                        Trace.WriteLine($"local file is older than server's");
                         _storage.Delete(path);
                         using (var stream = await _client.DownloadAsync(path).ConfigureAwait(false))
                         {
                             await _storage.Create(path, stream, file.Created, file.LastModified).ConfigureAwait(false);
+                            Trace.WriteLine($"{path} downloaded");
                         }
                     }
                 }
             }
             else
             {
+                Trace.WriteLine($"{path} is not exists on local");
                 if (file.AppliedHistories.Any())
                 {
-                    if (file.Path != null && file.Path == path)
+                    if (file.Path == path)
                     {
                         using (var stream = await _client.DownloadAsync(path))
                         {
                             await _storage.Create(path, stream, file.Created, file.LastModified).ConfigureAwait(false);
+                            Trace.WriteLine($"{path} downloaded");
                         }
                     }
                 }
                 else if (file.Path != null && file.Path == path)
                 {
                     await _client.DeleteDocumentAsync(path);
+                    Trace.WriteLine($"{path} request delete");
                 }
             }
 
@@ -104,7 +123,7 @@ namespace Docms.Client.FileSyncing
                 serverHistories = new List<History>();
                 if (histories.Any())
                 {
-                    serverHistories.AddRange(await _client.GetHistoriesAsync(path, histories.Max(e => e.Timestamp)).ConfigureAwait(false));
+                    serverHistories.AddRange(await _client.GetHistoriesAsync(path, DateTime.SpecifyKind(histories.Max(e => e.Timestamp), DateTimeKind.Utc)).ConfigureAwait(false));
                 }
                 else
                 {
