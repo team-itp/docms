@@ -22,7 +22,7 @@ namespace Docms.Web.Api.V1
 
         [HttpGet]
         public async Task<IActionResult> Get(
-            [FromQuery]string path,
+            [FromQuery] string path,
             [FromQuery] DateTime? since = null)
         {
             var histories = await _queries.GetHistoriesAsync(path ?? "", since);

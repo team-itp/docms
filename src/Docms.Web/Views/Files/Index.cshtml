@@ -8,7 +8,7 @@
 <nav>
     <ul class="breadcrumb">
         <li class="breadcrumb-item">
-            <a href="~/files/view/">TOP</a>
+            <a href="@Url.ViewFile("")">TOP</a>
         </li>
         @if (Model.Path != null)
         {
@@ -22,7 +22,7 @@
                     }
                     else
                     {
-                        <a href="~/files/view@(sb.ToString())">@pathComponent</a>
+                        <a href="@Url.ViewFile(sb.ToString())">@pathComponent</a>
                     }
                 </li>
             }
