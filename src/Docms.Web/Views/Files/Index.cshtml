@@ -16,7 +16,7 @@
             @foreach (var pathComponent in Model.Path.Split('/'))
             {
                 <li class="breadcrumb-item">
-                    @if (sb.Append('/').Append(pathComponent).ToString() == "/" + Model.Path)
+                    @if (sb.Append(pathComponent).ToString() == Model.Path)
                     {
                         <span class="active">@pathComponent</span>
                     }
@@ -25,6 +25,7 @@
                         <a href="@Url.ViewFile(sb.ToString())">@pathComponent</a>
                     }
                 </li>
+                sb.Append('/');
             }
         }
     </ul>
