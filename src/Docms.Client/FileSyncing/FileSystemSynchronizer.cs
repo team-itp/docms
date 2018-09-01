@@ -28,7 +28,7 @@ namespace Docms.Client.FileSyncing
             _storage = storage;
             _db = db;
             _synchronizer = new FileSynchronizer(_client, _storage, _db);
-            IgnorePatterns = new[] { ".bk$" };
+            IgnorePatterns = new[] { ".bk$", "Thumb.db" };
         }
 
         public async Task InitializeAsync(CancellationToken cancellationToken = default(CancellationToken))
@@ -76,7 +76,7 @@ namespace Docms.Client.FileSyncing
                 cancellationToken.ThrowIfCancellationRequested();
                 try
                 {
-                    if (!IgnorePatterns.Any(e => Regex.IsMatch(item, e)))
+                    if (!IgnorePatterns.Any(e => Regex.IsMatch(item, e, RegexOptions.IgnoreCase)))
                     {
                         await _synchronizer.SyncAsync(new PathString(item).ToString()).ConfigureAwait(false);
                     }
