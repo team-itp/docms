@@ -116,7 +116,10 @@ namespace Docms.Client.FileSyncing
 
         public async Task<SyncingFile> LoadFileAsync(string path, List<History> serverHistories = null)
         {
-            var histories = await _db.Histories.Where(e => e.Path == path).ToListAsync().ConfigureAwait(false);
+            var histories = await _db.Histories
+                .Where(e => e.Path == path)
+                .OrderBy(e => e.Timestamp)
+                .ToListAsync().ConfigureAwait(false);
 
             if (serverHistories == null)
             {

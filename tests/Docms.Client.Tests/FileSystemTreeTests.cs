@@ -1,5 +1,6 @@
 ﻿using Docms.Client.FileStorage;
 using Docms.Client.FileTrees;
+using Docms.Client.SeedWork;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using System.IO;
 using System.Linq;

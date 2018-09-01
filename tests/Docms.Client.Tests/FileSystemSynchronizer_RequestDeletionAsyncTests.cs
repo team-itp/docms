@@ -71,7 +71,7 @@ namespace Docms.Client.Tests
             var now = DateTime.UtcNow;
             await localFileStorage.Create("test/test1.txt", CreateStream("Hello"), now, now).ConfigureAwait(false);
             await sut.RequestDeletionAsync("test/test1.txt").ConfigureAwait(false);
-            Assert.AreEqual(2, mockClient.histories["test/test1.txt"].Count);
+            Assert.AreEqual(1, mockClient.histories["test/test1.txt"].Count);
         }
     }
 }
