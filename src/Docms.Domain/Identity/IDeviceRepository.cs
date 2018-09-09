@@ -7,7 +7,7 @@ namespace Docms.Domain.Identity
     {
         Task<Device> GetAsync(int deviceId);
         Task<Device> GetAsync(string deviceId);
-        Task<Device> AddAsync(Device document);
-        Task UpdateAsync(Device document);
+        Task<Device> AddAsync(Device device);
+        Task UpdateAsync(Device device);
     }
 }

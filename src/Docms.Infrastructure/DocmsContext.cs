@@ -1,9 +1,11 @@
 ﻿using Docms.Domain.Documents;
+using Docms.Domain.Identity;
 using Docms.Domain.SeedWork;
 using Docms.Infrastructure.EntityConfigurations;
 using Docms.Infrastructure.Identity;
 using Docms.Infrastructure.MediatR;
 using Docms.Queries.Blobs;
+using Docms.Queries.DeviceAuthorization;
 using Docms.Queries.DocumentHistories;
 using MediatR;
 using Microsoft.EntityFrameworkCore;
@@ -23,6 +25,7 @@ namespace Docms.Infrastructure
 
         #region "Identity"
         public DbSet<DocmsUser> Users { get; set; }
+        public DbSet<Device> Devices { get; set; }
         #endregion
 
         #region "Blobs Queries"
@@ -40,6 +43,9 @@ namespace Docms.Infrastructure
         public DbSet<DocumentDeleted> DocumentDeleted { get; set; }
         #endregion
 
+        #region "Device Authorization Queries"
+        public DbSet<DeviceGrant> DeviceGrants { get; set; }
+        #endregion
 
         private readonly IMediator _mediator;
 
@@ -62,15 +68,7 @@ namespace Docms.Infrastructure
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
             modelBuilder.ApplyConfiguration(new DocumentTypeConfigurations());
-            modelBuilder.ApplyConfiguration(new BlobEntryTypeConfigurations());
-            modelBuilder.ApplyConfiguration(new BlobContainerTypeConfigurations());
-            modelBuilder.ApplyConfiguration(new BlobTypeConfigurations());
-            modelBuilder.ApplyConfiguration(new DocumentHistoryTypeConfigurations());
-            modelBuilder.ApplyConfiguration(new DocumentCreatedTypeConfigurations());
-            modelBuilder.ApplyConfiguration(new DocumentUpdatedTypeConfigurations());
-            modelBuilder.ApplyConfiguration(new DocumentMovedFromOldPathTypeConfigurations());
-            modelBuilder.ApplyConfiguration(new DocumentMovedToNewPathTypeConfigurations());
-            modelBuilder.ApplyConfiguration(new DocumentDeletedTypeConfigurations());
+            modelBuilder.ApplyConfiguration(new DeviceTypeConfigurations());
         }
     }
 
