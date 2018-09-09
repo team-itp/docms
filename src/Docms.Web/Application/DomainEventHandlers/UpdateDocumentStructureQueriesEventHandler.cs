@@ -1,8 +1,8 @@
 ﻿using Docms.Domain.Documents;
 using Docms.Domain.Events;
+using Docms.Infrastructure;
 using Docms.Infrastructure.MediatR;
-using Docms.Web.Application.Queries;
-using Docms.Web.Application.Queries.Documents;
+using Docms.Queries.Blobs;
 using MediatR;
 using Microsoft.EntityFrameworkCore;
 using System;
@@ -18,9 +18,9 @@ namespace Docms.Web.Application.DomainEventHandlers
         INotificationHandler<DomainEventNotification<DocumentMovedEvent>>,
         INotificationHandler<DomainEventNotification<DocumentUpdatedEvent>>
     {
-        private DocmsQueriesContext _db;
+        private DocmsContext _db;
 
-        public UpdateDocumentStructureQueriesEventHandler(DocmsQueriesContext db)
+        public UpdateDocumentStructureQueriesEventHandler(DocmsContext db)
         {
             _db = db;
         }
@@ -29,9 +29,9 @@ namespace Docms.Web.Application.DomainEventHandlers
         {
             while (parent != null)
             {
-                if (!await _db.Containers.AnyAsync(c => c.Path == parent.Value))
+                if (!await _db.BlobContainers.AnyAsync(c => c.Path == parent.Value))
                 {
-                    _db.Containers.Add(new Container()
+                    _db.BlobContainers.Add(new BlobContainer()
                     {
                         Path = parent.Value,
                         Name = parent.Name,
@@ -46,13 +46,13 @@ namespace Docms.Web.Application.DomainEventHandlers
         {
             while (parent != null)
             {
-                if (!await _db.Documents.AnyAsync(e => e.ParentPath == parent.Value)
-                    && !await _db.Containers.AnyAsync(e => e.ParentPath == parent.Value))
+                if (!await _db.Blobs.AnyAsync(e => e.ParentPath == parent.Value)
+                    && !await _db.BlobContainers.AnyAsync(e => e.ParentPath == parent.Value))
                 {
-                    var container = await _db.Containers.FirstOrDefaultAsync(e => e.Path == parent.Value);
+                    var container = await _db.BlobContainers.FirstOrDefaultAsync(e => e.Path == parent.Value);
                     if (container != null)
                     {
-                        _db.Containers.Remove(container);
+                        _db.BlobContainers.Remove(container);
                         await _db.SaveChangesAsync();
                     }
                 }
@@ -64,12 +64,12 @@ namespace Docms.Web.Application.DomainEventHandlers
         {
             var ev = notification.Event;
 
-            if (_db.Documents.Any(e => e.Path == ev.Path.Value))
+            if (_db.Blobs.Any(e => e.Path == ev.Path.Value))
             {
                 throw new InvalidOperationException();
             }
 
-            var file = new Queries.Documents.Document()
+            var blob = new Blob()
             {
                 Path = ev.Path.Value,
                 Name = ev.Path.Name,
@@ -79,7 +79,7 @@ namespace Docms.Web.Application.DomainEventHandlers
                 Hash = ev.Hash,
                 LastModified = ev.LastModified,
             };
-            _db.Documents.Add(file);
+            _db.Blobs.Add(blob);
             await AddParentContainerAsync(ev.Path.Parent);
             await _db.SaveChangesAsync();
         }
@@ -88,13 +88,13 @@ namespace Docms.Web.Application.DomainEventHandlers
         {
             var ev = notification.Event;
 
-            var document = await _db.Documents.FirstOrDefaultAsync(e => e.Path == ev.Path.Value);
-            if (document == null)
+            var blob = await _db.Blobs.FirstOrDefaultAsync(e => e.Path == ev.Path.Value);
+            if (blob == null)
             {
                 throw new InvalidOperationException();
             }
 
-            _db.Documents.Remove(document);
+            _db.Blobs.Remove(blob);
             await _db.SaveChangesAsync();
             await RemoveEmptyContainerAsync(ev.Path.Parent);
             await _db.SaveChangesAsync();
@@ -104,24 +104,24 @@ namespace Docms.Web.Application.DomainEventHandlers
         {
             var ev = notification.Event;
 
-            var oldDocument = await _db.Documents.FirstOrDefaultAsync(e => e.Path == ev.OldPath.Value);
-            _db.Documents.Remove(oldDocument);
+            var oldBlob = await _db.Blobs.FirstOrDefaultAsync(e => e.Path == ev.OldPath.Value);
+            _db.Blobs.Remove(oldBlob);
             await _db.SaveChangesAsync();
             await RemoveEmptyContainerAsync(ev.OldPath.Parent);
             await _db.SaveChangesAsync();
 
-            var document = new Queries.Documents.Document()
+            var blob = new Blob()
             {
                 Path = ev.Path.Value,
                 Name = ev.Path.Name,
                 ParentPath = ev.Path.Parent?.Value,
-                ContentType = oldDocument.ContentType,
-                FileSize = oldDocument.FileSize,
-                Hash = oldDocument.Hash,
-                LastModified = oldDocument.LastModified,
+                ContentType = oldBlob.ContentType,
+                FileSize = oldBlob.FileSize,
+                Hash = oldBlob.Hash,
+                LastModified = oldBlob.LastModified,
             };
 
-            _db.Documents.Add(document);
+            _db.Blobs.Add(blob);
 
             await AddParentContainerAsync(ev.Path.Parent);
             await _db.SaveChangesAsync();
@@ -131,13 +131,13 @@ namespace Docms.Web.Application.DomainEventHandlers
         {
             var ev = notification.Event;
 
-            var document = await _db.Documents.FirstOrDefaultAsync(e => e.Path == ev.Document.Path.Value);
-            document.ContentType = ev.ContentType;
-            document.FileSize = ev.FileSize;
-            document.Hash = ev.Hash;
-            document.LastModified = ev.LastModified;
+            var blob = await _db.Blobs.FirstOrDefaultAsync(e => e.Path == ev.Document.Path.Value);
+            blob.ContentType = ev.ContentType;
+            blob.FileSize = ev.FileSize;
+            blob.Hash = ev.Hash;
+            blob.LastModified = ev.LastModified;
 
-            _db.Update(document);
+            _db.Update(blob);
             await _db.SaveChangesAsync();
         }
     }

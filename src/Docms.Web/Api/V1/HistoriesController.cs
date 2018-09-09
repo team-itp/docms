@@ -1,4 +1,4 @@
-﻿using Docms.Web.Application.Queries.DocumentHistories;
+﻿using Docms.Queries.DocumentHistories;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
@@ -13,9 +13,9 @@ namespace Docms.Web.Api.V1
 
     public class HistoriesController : ControllerBase
     {
-        private readonly DocumentHistoriesQueries _queries;
+        private readonly IDocumentHistoriesQueries _queries;
 
-        public HistoriesController(DocumentHistoriesQueries queries)
+        public HistoriesController(IDocumentHistoriesQueries queries)
         {
             _queries = queries;
         }

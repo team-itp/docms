@@ -1,27 +1,28 @@
-﻿using System.Linq;
+﻿using Docms.Queries.Blobs;
+using System.Linq;
 using System.Threading.Tasks;
 
-namespace Docms.Web.Application.Queries.Documents
+namespace Docms.Infrastructure.Queries
 {
-    public class DocumentsQueries
+    public class BlobsQueries : IBlobsQueries
     {
-        private DocmsQueriesContext _db;
+        private DocmsContext _db;
 
-        public DocumentsQueries(DocmsQueriesContext db)
+        public BlobsQueries(DocmsContext db)
         {
             _db = db;
         }
 
-        public async Task<Entry> GetEntryAsync(string path)
+        public async Task<BlobEntry> GetEntryAsync(string path)
         {
             if (string.IsNullOrEmpty(path))
             {
-                return new Container()
+                return new BlobContainer()
                 {
                     Path = "",
                     Entries = _db.Entries
                         .Where(e => string.IsNullOrEmpty(e.ParentPath))
-                        .OrderBy(e => e is Container ? "00" + e.Path : e.Path)
+                        .OrderBy(e => e is BlobContainer ? "00" + e.Path : e.Path)
                         .ToList()
                 };
             }
@@ -30,12 +31,12 @@ namespace Docms.Web.Application.Queries.Documents
             if (entry == null)
                 return null;
 
-            if (entry is Container)
+            if (entry is BlobContainer)
             {
-                var container = entry as Container;
+                var container = entry as BlobContainer;
                 await _db.Entry(container)
                     .Collection(e => e.Entries).LoadAsync();
-                container.Entries = container.Entries.OrderBy(e => e is Container ? "00" + e.Path : e.Path).ToList();
+                container.Entries = container.Entries.OrderBy(e => e is BlobContainer ? "00" + e.Path : e.Path).ToList();
             }
 
             return entry;

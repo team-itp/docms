@@ -1,5 +1,5 @@
-﻿using Docms.Web.Application.Queries.DocumentHistories;
-using Docms.Web.Application.Queries.Documents;
+﻿using Docms.Queries.Blobs;
+using Docms.Queries.DocumentHistories;
 using Newtonsoft.Json.Serialization;
 using System;
 using System.Collections.Generic;
@@ -15,8 +15,8 @@ namespace Docms.Web.Api.Serialization
             {typeof(DocumentMovedFromOldPath), "document_moved_from" },
             {typeof(DocumentMovedToNewPath), "document_moved_to" },
             {typeof(DocumentDeleted), "document_deleted" },
-            {typeof(Container), "container" },
-            {typeof(Document), "document" },
+            {typeof(BlobContainer), "container" },
+            {typeof(Blob), "document" },
         };
 
         public void BindToName(Type serializedType, out string assemblyName, out string typeName)

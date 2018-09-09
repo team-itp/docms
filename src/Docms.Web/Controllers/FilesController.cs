@@ -1,6 +1,6 @@
 using Docms.Infrastructure.Files;
+using Docms.Queries.Blobs;
 using Docms.Web.Application.Commands;
-using Docms.Web.Application.Queries.Documents;
 using Docms.Web.Extensions;
 using Docms.Web.Models;
 using MediatR;
@@ -17,9 +17,9 @@ namespace Docms.Web.Controllers
     public class FilesController : Controller
     {
         private readonly IFileStorage _storage;
-        private readonly DocumentsQueries _queries;
+        private readonly IBlobsQueries _queries;
 
-        public FilesController(IFileStorage storage, DocumentsQueries queries)
+        public FilesController(IFileStorage storage, IBlobsQueries queries)
         {
             _storage = storage;
             _queries = queries;
@@ -33,7 +33,7 @@ namespace Docms.Web.Controllers
             {
                 return NotFound();
             }
-            ViewData["DirPath"] = entry is Container ? entry.Path : entry.ParentPath;
+            ViewData["DirPath"] = entry is BlobContainer ? entry.Path : entry.ParentPath;
             return View(entry);
         }
 
@@ -41,8 +41,7 @@ namespace Docms.Web.Controllers
         [HttpGet("download/{*path}")]
         public async Task<IActionResult> Download(string path)
         {
-            var entry = await _queries.GetEntryAsync(path) as Document;
-            if (entry == null)
+            if (!(await _queries.GetEntryAsync(path) is Blob entry))
             {
                 return NotFound();
             }

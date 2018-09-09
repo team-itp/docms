@@ -1,16 +1,17 @@
-﻿using Microsoft.EntityFrameworkCore;
+﻿using Docms.Queries.DocumentHistories;
+using Microsoft.EntityFrameworkCore;
 using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 
-namespace Docms.Web.Application.Queries.DocumentHistories
+namespace Docms.Infrastructure.Queries
 {
-    public class DocumentHistoriesQueries
+    public class DocumentHistoriesQueries : IDocumentHistoriesQueries
     {
-        private DocmsQueriesContext ctx;
+        private DocmsContext ctx;
 
-        public DocumentHistoriesQueries(DocmsQueriesContext ctx)
+        public DocumentHistoriesQueries(DocmsContext ctx)
         {
             this.ctx = ctx;
         }

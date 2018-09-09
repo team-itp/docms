@@ -1,5 +1,5 @@
-@using Docms.Web.Application.Queries.Documents
-@model Entry
+@using Docms.Queries.Blobs
+@model BlobEntry
 
 @{
     ViewData["Title"] = Model.Name ?? "ファイル一覧";
@@ -31,20 +31,20 @@
     </ul>
 </nav>
 
-@if (Model is Container)
+@if (Model is BlobContainer)
 {
     <div class="list-group">
-        @foreach (var entry in (Model as Container).Entries)
+        @foreach (var entry in (Model as BlobContainer).Entries)
         {
             <div class="list-group-item d-flex justify-content-start align-items-center">
-                @if (entry is Container)
+                @if (entry is BlobContainer)
                 {
                     <div class="mr-3">
                         <i class="fa fa-2x fa-folder-o"></i>
                     </div>
                     <a href="@Url.ViewFile(entry.Path)">@entry.Name</a>
                 }
-                else if (entry is Document && (entry as Document).ContentType.StartsWith("image"))
+                else if (entry is Blob && (entry as Blob).ContentType.StartsWith("image"))
                 {
                     <div class="mr-3">
                         <i class="fa fa-2x fa-file-image-o"></i>

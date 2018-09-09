@@ -1,7 +1,7 @@
 ﻿using System;
 using System.ComponentModel.DataAnnotations;
 
-namespace Docms.Web.Application.Queries.DocumentHistories
+namespace Docms.Queries.DocumentHistories
 {
     public abstract class DocumentHistory
     {

@@ -3,9 +3,9 @@ using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
 
-namespace Docms.Web.Application.Queries.Documents
+namespace Docms.Queries.Blobs
 {
-    public abstract class Entry
+    public abstract class BlobEntry
     {
         [Key]
         public string Path { get; set; }
@@ -13,13 +13,13 @@ namespace Docms.Web.Application.Queries.Documents
         public string ParentPath { get; set; }
     }
 
-    public sealed class Container : Entry
+    public sealed class BlobContainer : BlobEntry
     {
         [ForeignKey("ParentPath")]
-        public List<Entry> Entries { get; set; }
+        public List<BlobEntry> Entries { get; set; }
     }
 
-    public sealed class Document : Entry
+    public sealed class Blob : BlobEntry
     {
         public string ContentType { get; set; }
         public long FileSize { get; set; }

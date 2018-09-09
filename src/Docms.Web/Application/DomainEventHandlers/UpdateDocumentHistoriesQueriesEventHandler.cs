@@ -1,7 +1,7 @@
 ﻿using Docms.Domain.Events;
+using Docms.Infrastructure;
 using Docms.Infrastructure.MediatR;
-using Docms.Web.Application.Queries;
-using Docms.Web.Application.Queries.DocumentHistories;
+using Docms.Queries.DocumentHistories;
 using MediatR;
 using System;
 using System.Threading;
@@ -15,9 +15,9 @@ namespace Docms.Web.Application.DomainEventHandlers
         INotificationHandler<DomainEventNotification<DocumentMovedEvent>>,
         INotificationHandler<DomainEventNotification<DocumentUpdatedEvent>>
     {
-        private DocmsQueriesContext _db;
+        private DocmsContext _db;
 
-        public UpdateDocumentHistoriesQueriesEventHandler(DocmsQueriesContext db)
+        public UpdateDocumentHistoriesQueriesEventHandler(DocmsContext db)
         {
             _db = db;
         }

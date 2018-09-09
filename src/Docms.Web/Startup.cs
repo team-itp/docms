@@ -2,12 +2,12 @@
 using Docms.Infrastructure;
 using Docms.Infrastructure.DataStores;
 using Docms.Infrastructure.Files;
+using Docms.Infrastructure.Queries;
 using Docms.Infrastructure.Repositories;
+using Docms.Queries.Blobs;
+using Docms.Queries.DocumentHistories;
 using Docms.Web.Api.Serialization;
 using Docms.Web.Application.Identity;
-using Docms.Web.Application.Queries;
-using Docms.Web.Application.Queries.DocumentHistories;
-using Docms.Web.Application.Queries.Documents;
 using IdentityServer4.Models;
 using MediatR;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
@@ -77,8 +77,6 @@ namespace Docms.Web
     {
         public static IServiceCollection AddCustomDbContext(this IServiceCollection services, IConfiguration configuration)
         {
-            services.AddDbContext<DocmsQueriesContext>(options =>
-                options.UseSqlite(configuration.GetConnectionString("DocmsQueriesConnection")));
             services.AddDbContext<DocmsContext>(options =>
                 options.UseSqlite(configuration.GetConnectionString("DocmsConnection")));
             services.AddDbContext<VisualizationSystemContext>(options =>
@@ -163,8 +161,8 @@ namespace Docms.Web
         public static IServiceCollection RegisterServices(this IServiceCollection services, IConfiguration configuration)
         {
             services.AddScoped<IDocumentRepository, DocumentRepository>();
-            services.AddTransient<DocumentsQueries>();
-            services.AddTransient<DocumentHistoriesQueries>();
+            services.AddTransient<IBlobsQueries, BlobsQueries>();
+            services.AddTransient<IDocumentHistoriesQueries, DocumentHistoriesQueries>();
             services.AddSingleton<IFileStorage>(sv => new LocalFileStorage("App_Data/flies"));
             services.AddSingleton<ITemporaryStore, InMemoryTemporaryStore>();
             return services;
@@ -191,10 +189,6 @@ namespace Docms.Web
             {
                 serviceScope.ServiceProvider
                     .GetService<DocmsContext>()
-                    .Database
-                    .EnsureCreated();
-                serviceScope.ServiceProvider
-                    .GetService<DocmsQueriesContext>()
                     .Database
                     .EnsureCreated();
                 serviceScope.ServiceProvider

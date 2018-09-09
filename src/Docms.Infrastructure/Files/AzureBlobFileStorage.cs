@@ -10,9 +10,9 @@ namespace Docms.Infrastructure.Files
 {
     public class AzureBlobFileStorage : IFileStorage
     {
-        private CloudStorageAccount _account;
-        private CloudBlobClient _client;
-        private string _baseContainerName;
+        private readonly CloudStorageAccount _account;
+        private readonly CloudBlobClient _client;
+        private readonly string _baseContainerName;
 
         public AzureBlobFileStorage(string connectionString, string baseContainerName)
         {

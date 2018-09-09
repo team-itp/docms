@@ -1,6 +1,7 @@
 ﻿using Docms.Infrastructure.Files;
-using Docms.Web.Application.Queries;
-using Docms.Web.Application.Queries.DocumentHistories;
+using Docms.Infrastructure.Queries;
+using Docms.Infrastructure.Tests.Utils;
+using Docms.Queries.DocumentHistories;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using System;
@@ -8,20 +9,20 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace Docms.Web.Tests
+namespace Docms.Infrastructure.Tests
 {
     [TestClass]
     public class DocumentHistoriesQueriesTests
     {
-        private DocmsQueriesContext ctx;
-        private DocumentHistoriesQueries sut;
+        private DocmsContext ctx;
+        private IDocumentHistoriesQueries sut;
 
         [TestInitialize]
         public async Task Setup()
         {
-            ctx = new DocmsQueriesContext(new DbContextOptionsBuilder<DocmsQueriesContext>()
+            ctx = new DocmsContext(new DbContextOptionsBuilder<DocmsContext>()
                 .UseInMemoryDatabase("DocumentHistoriesQueriesTests")
-                .Options);
+                .Options, new MockMediator());
             sut = new DocumentHistoriesQueries(ctx);
 
             Created(ctx, "path1/subpath1/document1.txt", 1);
@@ -41,7 +42,7 @@ namespace Docms.Web.Tests
             await ctx.SaveChangesAsync();
         }
 
-        private void Created(DocmsQueriesContext ctx, string path, int contentId)
+        private void Created(DocmsContext ctx, string path, int contentId)
         {
             var now = DateTime.UtcNow;
             ctx.DocumentCreated.Add(new DocumentCreated()
@@ -57,7 +58,7 @@ namespace Docms.Web.Tests
             });
         }
 
-        private void Moved(DocmsQueriesContext ctx, string from, string to, int contentId)
+        private void Moved(DocmsContext ctx, string from, string to, int contentId)
         {
             var now = DateTime.UtcNow;
             ctx.DocumentMovedFromOldPath.Add(new DocumentMovedFromOldPath()
@@ -81,7 +82,7 @@ namespace Docms.Web.Tests
             });
         }
 
-        private void Updated(DocmsQueriesContext ctx, string path, int contentId)
+        private void Updated(DocmsContext ctx, string path, int contentId)
         {
             var now = DateTime.UtcNow;
             ctx.DocumentUpdated.Add(new DocumentUpdated()
@@ -97,7 +98,7 @@ namespace Docms.Web.Tests
             });
         }
 
-        private void Deleted(DocmsQueriesContext ctx, string path)
+        private void Deleted(DocmsContext ctx, string path)
         {
             ctx.DocumentDeleted.Add(new DocumentDeleted()
             {

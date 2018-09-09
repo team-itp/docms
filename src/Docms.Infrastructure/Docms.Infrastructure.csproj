@@ -12,6 +12,7 @@
   </ItemGroup>
 
   <ItemGroup>
+    <ProjectReference Include="..\..\Docms.Queries\Docms.Queries.csproj" />
     <ProjectReference Include="..\Docms.Domain\Docms.Domain.csproj" />
   </ItemGroup>
 

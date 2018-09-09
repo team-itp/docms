@@ -3,7 +3,6 @@ using Docms.Infrastructure.DataStores;
 using Docms.Infrastructure.Files;
 using MediatR;
 using System;
-using System.IO;
 using System.Threading;
 using System.Threading.Tasks;
 
@@ -29,7 +28,7 @@ namespace Docms.Web.Application.Commands
         {
             var path = request.Path;
             var entry = await _fileStorage.GetEntryAsync(request.Path);
-            if (entry is Infrastructure.Files.Directory)
+            if (entry is Directory)
             {
                 throw new InvalidOperationException();
             }
@@ -44,8 +43,7 @@ namespace Docms.Web.Application.Commands
                 ContentTypeProvider.TryGetContentType(request.Path.Extension, out var contentType);
                 if (contentType == null) contentType = "application/octet-stream";
 
-                var file = entry as Infrastructure.Files.File;
-                if (file == null)
+                if (!(entry is File file))
                 {
                     var dir = await _fileStorage.GetDirectoryAsync(path.DirectoryPath);
                     var utcNow = DateTime.UtcNow;
@@ -64,11 +62,11 @@ namespace Docms.Web.Application.Commands
                     {
                         retryCount++;
                         entry = await _fileStorage.GetEntryAsync(dirPath.Combine(fnwoe + $"({retryCount})" + ext));
-                        if (entry is Infrastructure.Files.Directory)
+                        if (entry is Directory)
                         {
                             continue;
                         }
-                        file = entry as Infrastructure.Files.File;
+                        file = entry as File;
                     }
 
                     var filename = fnwoe + $"({retryCount})" + ext;

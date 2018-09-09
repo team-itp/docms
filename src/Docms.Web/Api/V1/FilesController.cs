@@ -1,6 +1,6 @@
 using Docms.Infrastructure.Files;
+using Docms.Queries.Blobs;
 using Docms.Web.Application.Commands;
-using Docms.Web.Application.Queries.Documents;
 using MediatR;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Authorization;
@@ -18,9 +18,9 @@ namespace Docms.Web.Api.V1
     public class FilesController : ControllerBase
     {
         private readonly IFileStorage _storage;
-        private readonly DocumentsQueries _queries;
+        private readonly IBlobsQueries _queries;
 
-        public FilesController(IFileStorage storage, DocumentsQueries queries)
+        public FilesController(IFileStorage storage, IBlobsQueries queries)
         {
             _storage = storage;
             _queries = queries;
@@ -37,15 +37,15 @@ namespace Docms.Web.Api.V1
             {
                 return NotFound();
             }
-            if (download && entry is Document doc)
+            if (download && entry is Blob blob)
             {
-                if (Request.Headers.Keys.Contains("If-None-Match") && Request.Headers["If-None-Match"].ToString() == "\"" + doc.Hash + "\"")
+                if (Request.Headers.Keys.Contains("If-None-Match") && Request.Headers["If-None-Match"].ToString() == "\"" + blob.Hash + "\"")
                 {
                     return new StatusCodeResult(304);
                 }
 
                 var file = await _storage.GetEntryAsync(path) as File;
-                return File(await file.OpenAsync(), doc.ContentType, entry.Name, new DateTimeOffset(doc.LastModified), new EntityTagHeaderValue("\"" + doc.Hash + "\""));
+                return File(await file.OpenAsync(), blob.ContentType, entry.Name, new DateTimeOffset(blob.LastModified), new EntityTagHeaderValue("\"" + blob.Hash + "\""));
             }
             else
             {
@@ -61,11 +61,13 @@ namespace Docms.Web.Api.V1
             var filepath = new FilePath(request.Path);
             using (var stream = request.File.OpenReadStream())
             {
-                var command = new CreateOrUpdateDocumentCommand();
-                command.Path = filepath;
-                command.Stream = stream;
-                command.Created = request.Created;
-                command.LastModified = request.LastModified;
+                var command = new CreateOrUpdateDocumentCommand
+                {
+                    Path = filepath,
+                    Stream = stream,
+                    Created = request.Created,
+                    LastModified = request.LastModified
+                };
                 var response = await mediator.Send(command);
                 return CreatedAtAction("Get", new { path = HttpUtility.UrlEncode(command.Path.ToString()) });
             }
@@ -78,9 +80,11 @@ namespace Docms.Web.Api.V1
         {
             var originalFilePath = new FilePath(request.OriginalPath);
             var destinationFilePath = new FilePath(request.DestinationPath);
-            var command = new MoveDocumentCommand();
-            command.OriginalPath = originalFilePath;
-            command.DestinationPath = destinationFilePath;
+            var command = new MoveDocumentCommand
+            {
+                OriginalPath = originalFilePath,
+                DestinationPath = destinationFilePath
+            };
             var response = await mediator.Send(command);
             return CreatedAtAction("Get", new { path = HttpUtility.UrlEncode(command.DestinationPath.ToString()) });
         }
@@ -93,8 +97,10 @@ namespace Docms.Web.Api.V1
             try
             {
                 var filePath = new FilePath(path);
-                var command = new DeleteDocumentCommand();
-                command.Path = filePath;
+                var command = new DeleteDocumentCommand
+                {
+                    Path = filePath
+                };
                 var response = await mediator.Send(command);
                 return Ok();
             }

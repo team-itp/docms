@@ -2,7 +2,6 @@
 using Docms.Infrastructure;
 using Docms.Infrastructure.DataStores;
 using Docms.Infrastructure.Files;
-using Docms.Web.Application.Queries;
 using MediatR;
 using System;
 using System.Threading;
@@ -13,20 +12,17 @@ namespace Docms.Web.Application.Commands
     public class ResetDocumentHistoriesCommandHandler : IRequestHandler<ResetDocumentHistoriesCommand, bool>
     {
         private readonly DocmsContext _context;
-        private readonly DocmsQueriesContext _queriesContext;
         private readonly IDocumentRepository _documentRepository;
         private readonly IFileStorage _fileStorage;
         private readonly ITemporaryStore _temporaryStore;
 
         public ResetDocumentHistoriesCommandHandler(
             DocmsContext context,
-            DocmsQueriesContext queriesContext,
             IDocumentRepository documentRepository,
             IFileStorage fileStorage,
             ITemporaryStore temporaryStore)
         {
             _context = context;
-            _queriesContext = queriesContext;
             _documentRepository = documentRepository;
             _fileStorage = fileStorage;
             _temporaryStore = temporaryStore;
@@ -36,9 +32,9 @@ namespace Docms.Web.Application.Commands
         {
             _context.Documents.RemoveRange(_context.Documents);
             await _context.SaveChangesAsync();
-            _queriesContext.Entries.RemoveRange(_queriesContext.Entries);
-            _queriesContext.DocumentHistories.RemoveRange(_queriesContext.DocumentHistories);
-            await _queriesContext.SaveChangesAsync();
+            _context.Entries.RemoveRange(_context.Entries);
+            _context.DocumentHistories.RemoveRange(_context.DocumentHistories);
+            await _context.SaveChangesAsync();
 
             var dir = await _fileStorage.GetDirectoryAsync("");
             await RecreateAllFilesAsync(dir);

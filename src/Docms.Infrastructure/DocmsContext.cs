@@ -2,6 +2,8 @@
 using Docms.Domain.SeedWork;
 using Docms.Infrastructure.EntityConfigurations;
 using Docms.Infrastructure.MediatR;
+using Docms.Queries.Blobs;
+using Docms.Queries.DocumentHistories;
 using MediatR;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Design;
@@ -14,7 +16,25 @@ namespace Docms.Infrastructure
 {
     public class DocmsContext : DbContext, IUnitOfWork
     {
+        #region "Document Domain Model"
         public DbSet<Document> Documents { get; set; }
+        #endregion
+
+        #region "Blobs Queries"
+        public DbSet<BlobEntry> Entries { get; set; }
+        public DbSet<BlobContainer> BlobContainers { get; set; }
+        public DbSet<Blob> Blobs { get; set; }
+        #endregion
+
+        #region "Document Histories Queries"
+        public DbSet<DocumentHistory> DocumentHistories { get; set; }
+        public DbSet<DocumentCreated> DocumentCreated { get; set; }
+        public DbSet<DocumentMovedFromOldPath> DocumentMovedFromOldPath { get; set; }
+        public DbSet<DocumentMovedToNewPath> DocumentMovedToNewPath { get; set; }
+        public DbSet<DocumentUpdated> DocumentUpdated { get; set; }
+        public DbSet<DocumentDeleted> DocumentDeleted { get; set; }
+        #endregion
+
 
         private readonly IMediator _mediator;
 

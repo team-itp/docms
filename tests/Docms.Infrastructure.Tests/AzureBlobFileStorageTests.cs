@@ -2,7 +2,6 @@
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Microsoft.WindowsAzure.Storage;
 using Microsoft.WindowsAzure.Storage.Blob;
-using System;
 using System.IO;
 using System.Linq;
 using System.Text;
@@ -17,19 +16,31 @@ namespace Docms.Infrastructure.Tests
         private CloudBlobClient client;
         private string baseContainerName;
         private AzureBlobFileStorage sut;
+        private static bool failed;
 
         [TestInitialize]
-        public void Setup()
+        public async Task Setup()
         {
+            if (failed) return;
             baseContainerName = "files";
             account = CloudStorageAccount.Parse("UseDevelopmentStorage=true");
             client = account.CreateCloudBlobClient();
             sut = new AzureBlobFileStorage("UseDevelopmentStorage=true", "files");
+            var container = client.GetContainerReference(baseContainerName);
+            try
+            {
+                await container.CreateIfNotExistsAsync();
+            }
+            catch
+            {
+                failed = true;
+            }
         }
 
         [TestCleanup]
         public async Task Teardown()
         {
+            if (failed) return;
             var container = client.GetContainerReference(baseContainerName);
             await container.DeleteIfExistsAsync();
         }
@@ -78,12 +89,14 @@ namespace Docms.Infrastructure.Tests
         [TestMethod]
         public async Task 存在しないパスに対してGetEntryを実行しnullが戻る()
         {
+            if (failed) Assert.Fail();
             Assert.IsNull(await sut.GetEntryAsync("test"));
         }
 
         [TestMethod]
         public async Task ファイルのパスに対してGetEntryを呼び出してファイルが取得される()
         {
+            if (failed) Assert.Fail();
             await CreateFileAsync("test", "dir2content1");
             var entry = await sut.GetEntryAsync("test");
             Assert.IsTrue(entry is Files.File);
@@ -92,6 +105,7 @@ namespace Docms.Infrastructure.Tests
         [TestMethod]
         public async Task 存在するディレクトリから存在する件数のファイルが返ること()
         {
+            if (failed) Assert.Fail();
             await CreateFileAsync("dir2/content1.txt", "dir2content1");
             await CreateFileAsync("dir2/subdir2/content1.txt", "dir2content1");
             await CreateFileAsync("dir2/subdir2/content2.txt", "dir2content2");
@@ -108,6 +122,7 @@ namespace Docms.Infrastructure.Tests
         [TestMethod]
         public async Task ファイルのストリームがオープン出来ること()
         {
+            if (failed) Assert.Fail();
             await CreateFileAsync("dir2/content1.txt", "dir2content1");
             var file = await sut.GetEntryAsync("dir2/content1.txt") as Files.File;
             using (var fs = await file.OpenAsync())
@@ -121,6 +136,7 @@ namespace Docms.Infrastructure.Tests
         [TestMethod]
         public async Task ストリームからファイルに保存できること()
         {
+            if (failed) Assert.Fail();
             var ms = new MemoryStream(Encoding.UTF8.GetBytes("dir2content1"));
             ms.Seek(0, SeekOrigin.Begin);
             var dir = await sut.GetDirectoryAsync("dir2") as Files.Directory;
@@ -132,6 +148,7 @@ namespace Docms.Infrastructure.Tests
         [TestMethod]
         public async Task すでに存在するパスに対してストリームからファイルに保存できること()
         {
+            if (failed) Assert.Fail();
             var ms1 = new MemoryStream(Encoding.UTF8.GetBytes("dir2content1"));
             var dir = await sut.GetDirectoryAsync("dir2") as Files.Directory;
             await dir.SaveAsync("content1.txt", "text/plain", ms1);
@@ -144,6 +161,7 @@ namespace Docms.Infrastructure.Tests
         [TestMethod]
         public async Task ファイルが移動できること()
         {
+            if (failed) Assert.Fail();
             var ms = new MemoryStream(Encoding.UTF8.GetBytes("dir2content1"));
             ms.Seek(0, SeekOrigin.Begin);
             var dir = await sut.GetDirectoryAsync("dir2");
@@ -157,6 +175,7 @@ namespace Docms.Infrastructure.Tests
         [TestMethod]
         public async Task 移動左記にディレクトリがない場合でもファイルの移動ができること()
         {
+            if (failed) Assert.Fail();
             var ms = new MemoryStream(Encoding.UTF8.GetBytes("dir2content1"));
             ms.Seek(0, SeekOrigin.Begin);
             var dir = await sut.GetDirectoryAsync("dir2");
@@ -170,6 +189,7 @@ namespace Docms.Infrastructure.Tests
         [TestMethod]
         public async Task ファイルを削除できること()
         {
+            if (failed) Assert.Fail();
             var ms = new MemoryStream(Encoding.UTF8.GetBytes("dir2content1"));
             ms.Seek(0, SeekOrigin.Begin);
             var dir = await sut.GetDirectoryAsync("dir2");
@@ -182,6 +202,7 @@ namespace Docms.Infrastructure.Tests
         [TestMethod]
         public async Task 空ではないディレクトリを削除できること()
         {
+            if (failed) Assert.Fail();
             await CreateFileAsync("dir2/subdir2/content1.txt", "dir2subdir2content1");
             Assert.IsTrue(await ExistsAsync("dir2/subdir2"));
             var subdir2 = await sut.GetDirectoryAsync("dir2/subdir2");
