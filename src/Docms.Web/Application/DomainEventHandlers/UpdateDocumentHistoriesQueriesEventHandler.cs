@@ -105,7 +105,7 @@ namespace Docms.Web.Application.DomainEventHandlers
 
             _db.DocumentMovedToNewPath.Add(new DocumentMovedToNewPath()
             {
-                Id = ev.Id,
+                Id = Guid.NewGuid(),
                 Timestamp = ev.Timestamp,
                 Path = ev.OldPath.ToString(),
                 NewPath = ev.Path.ToString(),
