@@ -1,13 +1,16 @@
 ﻿using Docms.Domain.Documents;
+using Docms.Domain.Identity;
 using Docms.Infrastructure;
 using Docms.Infrastructure.DataStores;
 using Docms.Infrastructure.Files;
 using Docms.Infrastructure.Queries;
 using Docms.Infrastructure.Repositories;
 using Docms.Queries.Blobs;
+using Docms.Queries.DeviceAuthorization;
 using Docms.Queries.DocumentHistories;
 using Docms.Web.Api.Serialization;
 using Docms.Web.Application.Identity;
+using Docms.Web.Extensions;
 using IdentityServer4.Models;
 using MediatR;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
@@ -104,9 +107,9 @@ namespace Docms.Web
                     new Client()
                     {
                         ClientId = "docms-client",
-                        ClientSecrets = new List<IdentityServer4.Models.Secret>()
+                        ClientSecrets = new List<Secret>()
                         {
-                            new IdentityServer4.Models.Secret("docms-client-secret".Sha256())
+                            new Secret("docms-client-secret".Sha256())
                         },
                         AllowedScopes = { "docmsapi" },
                         AllowedGrantTypes = GrantTypes.ResourceOwnerPassword,
@@ -120,9 +123,9 @@ namespace Docms.Web
                         Scopes = new List<Scope>() {
                             new Scope("docmsapi", "文書管理システム API")
                         },
-                        ApiSecrets = new List<IdentityServer4.Models.Secret>()
+                        ApiSecrets = new List<Secret>()
                         {
-                            new IdentityServer4.Models.Secret("docmsapi-secret".Sha256())
+                            new Secret("docmsapi-secret".Sha256())
                         }
                     }
                 })
@@ -153,8 +156,10 @@ namespace Docms.Web
         public static IServiceCollection RegisterServices(this IServiceCollection services, IConfiguration configuration)
         {
             services.AddScoped<IDocumentRepository, DocumentRepository>();
+            services.AddScoped<IDeviceRepository, DeviceRepository>();
             services.AddTransient<IBlobsQueries, BlobsQueries>();
             services.AddTransient<IDocumentHistoriesQueries, DocumentHistoriesQueries>();
+            services.AddTransient<IDeviceGrantsQueries, DeviceGrantsQueries>();
             services.AddSingleton<IFileStorage>(sv => new LocalFileStorage("App_Data/flies"));
             services.AddSingleton<ITemporaryStore, InMemoryTemporaryStore>();
             return services;
