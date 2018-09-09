@@ -1,20 +1,29 @@
-using Docms.Web.Models;
+using Docms.Infrastructure;
+using Docms.Infrastructure.Identity;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using System;
+using System.Security.Cryptography;
 using System.Threading;
 using System.Threading.Tasks;
 using VisualizationSystem.Infrastructure;
+using VisualizationSystem.Infrastructure.Models;
 
 namespace Docms.Web.Application.Identity
 {
-    public class ApplicationUserStore : IUserStore<ApplicationUser>, IUserPasswordStore<ApplicationUser>
+    public class ApplicationUserStore :
+        IUserStore<ApplicationUser>,
+        IUserPasswordStore<ApplicationUser>,
+        IUserSecurityStampStore<ApplicationUser>
     {
-        private VisualizationSystemContext _context;
+        private VisualizationSystemContext _vsDb;
+        private DocmsContext _docmsDb;
+        private static RandomNumberGenerator _rng = RandomNumberGenerator.Create();
 
-        public ApplicationUserStore(VisualizationSystemContext context)
+        public ApplicationUserStore(VisualizationSystemContext vsDb, DocmsContext docmsDb)
         {
-            _context = context;
+            _vsDb = vsDb;
+            _docmsDb = docmsDb;
         }
 
         public Task<IdentityResult> CreateAsync(ApplicationUser user, CancellationToken cancellationToken) => throw new NotImplementedException();
@@ -29,33 +38,12 @@ namespace Docms.Web.Application.Identity
             cancellationToken.ThrowIfCancellationRequested();
             ThrowIfDisposed();
             if (string.IsNullOrEmpty(userId)) throw new ArgumentNullException(nameof(userId));
-            var user = await _context.Users.FindAsync(userId);
+            var user = await _vsDb.Users.FindAsync(userId);
             if (user == null)
             {
                 return null;
             }
-
-            var teamName = default(string);
-            if (!string.IsNullOrEmpty(user.TeamId))
-            {
-                teamName = (await _context.Teams.FindAsync(user.TeamId))?.Name;
-            }
-
-            var hasher = new PasswordHasher<ApplicationUser>();
-            var appUser = new ApplicationUser()
-            {
-                Id = user.Id,
-                Name = user.Name,
-                AccountName = user.AccountName,
-                DepartmentName = user.Department == 0
-                                    ? "リフォーム"
-                                    : user.Department == 1
-                                    ? "建築"
-                                    : null,
-                TeamName = teamName,
-            };
-            appUser.PasswordHash = hasher.HashPassword(appUser, user.Password);
-            return appUser;
+            return await GetApplicationUserAsync(user, cancellationToken);
         }
 
         public async Task<ApplicationUser> FindByNameAsync(string normalizedUserName, CancellationToken cancellationToken)
@@ -63,21 +51,13 @@ namespace Docms.Web.Application.Identity
             cancellationToken.ThrowIfCancellationRequested();
             ThrowIfDisposed();
             if (string.IsNullOrEmpty(normalizedUserName)) throw new ArgumentNullException(nameof(normalizedUserName));
-            var user = await _context.Users.FirstOrDefaultAsync(u => u.AccountName.ToUpperInvariant() == normalizedUserName);
+            var user = await _vsDb.Users.FirstOrDefaultAsync(u => u.AccountName.ToUpperInvariant() == normalizedUserName);
             if (user == null)
             {
                 return null;
             }
-            var hasher = new PasswordHasher<ApplicationUser>();
-            var appUser = new ApplicationUser()
-            {
-                Id = user.Id,
-                Name = user.Name,
-                AccountName = user.AccountName,
-                DepartmentName = user.Department.ToString(),
-            };
-            appUser.PasswordHash = hasher.HashPassword(appUser, user.Password);
-            return appUser;
+
+            return await GetApplicationUserAsync(user, cancellationToken);
         }
 
 
@@ -121,10 +101,87 @@ namespace Docms.Web.Application.Identity
             return Task.FromResult(!string.IsNullOrEmpty(user.PasswordHash));
         }
 
+        public async Task SetSecurityStampAsync(ApplicationUser user, string stamp, CancellationToken cancellationToken)
+        {
+            cancellationToken.ThrowIfCancellationRequested();
+            ThrowIfDisposed();
+            if (user == null) throw new ArgumentNullException(nameof(user));
+            var docmsUser = await _docmsDb.Users.FirstOrDefaultAsync(e => e.Id == user.Id);
+            if (docmsUser == null)
+            {
+                docmsUser = new DocmsUser()
+                {
+                    Id = user.Id,
+                    SecurityStamp = stamp ?? throw new ArgumentNullException(nameof(stamp))
+                };
+                _docmsDb.Users.Add(docmsUser);
+            }
+            else
+            {
+                docmsUser.SecurityStamp = stamp ?? throw new ArgumentNullException(nameof(stamp));
+                _docmsDb.Update(docmsUser);
+            }
+            await _docmsDb.SaveChangesAsync();
+
+            user.SecurityStamp = stamp;
+        }
+
+        public Task<string> GetSecurityStampAsync(ApplicationUser user, CancellationToken cancellationToken)
+        {
+            cancellationToken.ThrowIfCancellationRequested();
+            ThrowIfDisposed();
+            if (user == null) throw new ArgumentNullException(nameof(user));
+            return Task.FromResult(user.SecurityStamp);
+        }
+
+        private async Task<ApplicationUser> GetApplicationUserAsync(Users user, CancellationToken cancellationToken = default(CancellationToken))
+        {
+            var teamName = default(string);
+            if (!string.IsNullOrEmpty(user.TeamId))
+            {
+                teamName = (await _vsDb.Teams.FindAsync(user.TeamId))?.Name;
+            }
+
+            var hasher = new PasswordHasher<ApplicationUser>();
+            var appUser = new ApplicationUser()
+            {
+                Id = user.Id,
+                Name = user.Name,
+                AccountName = user.AccountName,
+                DepartmentName = user.Department == 0
+                                    ? "リフォーム"
+                                    : user.Department == 1
+                                    ? "建築"
+                                    : null,
+                TeamName = teamName,
+            };
+            appUser.PasswordHash = hasher.HashPassword(appUser, user.Password);
+
+            var docmsUser = await _docmsDb.Users.FirstOrDefaultAsync(e => e.Id == user.Id);
+            if (docmsUser == null)
+            {
+                await SetSecurityStampAsync(appUser, NewSecurityStamp(), cancellationToken);
+            }
+            else
+            {
+                appUser.SecurityStamp = docmsUser.SecurityStamp;
+            }
+
+            return appUser;
+        }
+
+        private string NewSecurityStamp()
+        {
+            byte[] bytes = new byte[20];
+            _rng.GetBytes(bytes);
+            return Base32.ToBase32(bytes);
+        }
+
         public void Dispose()
         {
             _disposed = true;
-            _context.Dispose();
+            _vsDb.Dispose();
+            _docmsDb.Dispose();
         }
 
         protected void ThrowIfDisposed()

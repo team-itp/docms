@@ -1,6 +1,7 @@
 ﻿using Docms.Domain.Documents;
 using Docms.Domain.SeedWork;
 using Docms.Infrastructure.EntityConfigurations;
+using Docms.Infrastructure.Identity;
 using Docms.Infrastructure.MediatR;
 using Docms.Queries.Blobs;
 using Docms.Queries.DocumentHistories;
@@ -18,6 +19,10 @@ namespace Docms.Infrastructure
     {
         #region "Document Domain Model"
         public DbSet<Document> Documents { get; set; }
+        #endregion
+
+        #region "Identity"
+        public DbSet<DocmsUser> Users { get; set; }
         #endregion
 
         #region "Blobs Queries"

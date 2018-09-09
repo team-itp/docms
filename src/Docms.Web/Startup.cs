@@ -12,7 +12,6 @@ using IdentityServer4.Models;
 using MediatR;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Builder;
-using Microsoft.AspNetCore.DataProtection;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
@@ -22,7 +21,6 @@ using Newtonsoft.Json;
 using System;
 using System.Collections.Generic;
 using System.IdentityModel.Tokens.Jwt;
-using System.IO;
 using VisualizationSystem.Infrastructure;
 
 namespace Docms.Web
@@ -129,12 +127,6 @@ namespace Docms.Web
                     }
                 })
                 .AddAspNetIdentity<ApplicationUser>();
-
-            // cookie の永続化
-            var environment = services.BuildServiceProvider().GetRequiredService<IHostingEnvironment>();
-            services.AddDataProtection()
-                    .SetApplicationName($"docms-web-{environment.EnvironmentName}")
-                    .PersistKeysToFileSystem(new DirectoryInfo($@"{environment.ContentRootPath}\App_Data\keys"));
 
             return services;
         }
