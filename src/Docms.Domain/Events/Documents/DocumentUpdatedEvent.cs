@@ -2,20 +2,20 @@
 using Docms.Domain.SeedWork;
 using System;
 
-namespace Docms.Domain.Events
+namespace Docms.Domain.Events.Documents
 {
-    public class DocumentUpdatedEvent : IDomainEvent
+    public class DocumentUpdatedEvent : DomainEvent<Document>
     {
-        public Document Document { get; }
+        public DocumentPath Path { get; }
         public string ContentType { get; }
         public long FileSize { get; }
         public string Hash { get; }
         public DateTime Created { get; }
         public DateTime LastModified { get; }
 
-        public DocumentUpdatedEvent(Document document, string contentType, long fileSize, string hash, DateTime created, DateTime lastModified)
+        public DocumentUpdatedEvent(Document document, DocumentPath path, string contentType, long fileSize, string hash, DateTime created, DateTime lastModified) : base(document)
         {
-            Document = document;
+            Path = path;
             ContentType = contentType;
             FileSize = fileSize;
             Hash = hash;

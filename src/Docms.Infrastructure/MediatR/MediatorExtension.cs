@@ -16,6 +16,7 @@ namespace Docms.Infrastructure.MediatR
 
             var domainEvents = domainEntities
                 .SelectMany(x => x.Entity.DomainEvents)
+                .OrderBy(x => x.Timestamp)
                 .ToList();
 
             domainEntities.ToList()

@@ -5,7 +5,7 @@ using System;
 namespace Docms.Infrastructure.MediatR
 {
     public class DomainEventNotification<T> : DomainEventNotification
-        where T : IDomainEvent
+        where T : DomainEvent
     {
         public T Event { get; }
 
@@ -17,7 +17,7 @@ namespace Docms.Infrastructure.MediatR
 
     public abstract class DomainEventNotification : INotification
     {
-        public static INotification Create(IDomainEvent e)
+        public static INotification Create(DomainEvent e)
         {
             var type = typeof(DomainEventNotification<>).MakeGenericType(e.GetType());
             var obj = Activator.CreateInstance(type, e);

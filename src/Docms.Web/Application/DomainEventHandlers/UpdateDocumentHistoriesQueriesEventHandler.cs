@@ -1,9 +1,10 @@
-﻿using Docms.Domain.Events;
+﻿using Docms.Domain.Events.Documents;
 using Docms.Infrastructure;
 using Docms.Infrastructure.MediatR;
 using Docms.Queries.DocumentHistories;
 using MediatR;
 using System;
+using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 
@@ -27,8 +28,8 @@ namespace Docms.Web.Application.DomainEventHandlers
             var ev = notification.Event;
             _db.DocumentCreated.Add(new DocumentCreated()
             {
-                Id = Guid.NewGuid(),
-                Timestamp = DateTime.UtcNow,
+                Id = ev.Id,
+                Timestamp = ev.Timestamp,
                 Path = ev.Path.ToString(),
                 ContentType = ev.ContentType,
                 FileSize = ev.FileSize,
@@ -44,9 +45,9 @@ namespace Docms.Web.Application.DomainEventHandlers
             var ev = notification.Event;
             _db.DocumentUpdated.Add(new DocumentUpdated()
             {
-                Id = Guid.NewGuid(),
-                Timestamp = DateTime.UtcNow,
-                Path = ev.Document.Path.ToString(),
+                Id = ev.Id,
+                Timestamp = ev.Timestamp,
+                Path = ev.Path.ToString(),
                 ContentType = ev.ContentType,
                 FileSize = ev.FileSize,
                 Hash = ev.Hash,
@@ -59,22 +60,53 @@ namespace Docms.Web.Application.DomainEventHandlers
         public async Task Handle(DomainEventNotification<DocumentMovedEvent> notification, CancellationToken cancellationToken = default(CancellationToken))
         {
             var ev = notification.Event;
+            var lastEv = _db.DocumentHistories
+                .Where(e => e.Path == ev.OldPath.ToString())
+                .Where(e => e is DocumentCreated || e is DocumentUpdated)
+                .OrderByDescending(e => e.Timestamp)
+                .FirstOrDefault();
+
+            var contentType = default(string);
+            var fileSize = default(long);
+            var hash = default(string);
+            var created = default(DateTime);
+            var lastModified = default(DateTime);
+
+            if (lastEv is DocumentCreated documentCreated)
+            {
+                contentType = documentCreated.ContentType;
+                fileSize = documentCreated.FileSize;
+                hash = documentCreated.Hash;
+                created = documentCreated.Created;
+                lastModified = documentCreated.LastModified;
+            }
+            else
+            {
+                var documentUpdated = lastEv as DocumentUpdated;
+                contentType = documentUpdated.ContentType;
+                fileSize = documentUpdated.FileSize;
+                hash = documentUpdated.Hash;
+                created = documentUpdated.Created;
+                lastModified = documentUpdated.LastModified;
+            }
+
             _db.DocumentMovedFromOldPath.Add(new DocumentMovedFromOldPath()
             {
-                Id = Guid.NewGuid(),
-                Timestamp = DateTime.UtcNow,
+                Id = ev.Id,
+                Timestamp = ev.Timestamp,
                 Path = ev.Path.ToString(),
                 OldPath = ev.OldPath.ToString(),
-                ContentType = ev.Document.ContentType,
-                FileSize = ev.Document.FileSize,
-                Hash = ev.Document.Hash,
-                Created = ev.Document.Created,
-                LastModified = ev.Document.LastModified,
+                ContentType = contentType,
+                FileSize = fileSize,
+                Hash = hash,
+                Created = created,
+                LastModified = lastModified,
             });
+
             _db.DocumentMovedToNewPath.Add(new DocumentMovedToNewPath()
             {
-                Id = Guid.NewGuid(),
-                Timestamp = DateTime.UtcNow,
+                Id = ev.Id,
+                Timestamp = ev.Timestamp,
                 Path = ev.OldPath.ToString(),
                 NewPath = ev.Path.ToString(),
             });
@@ -86,8 +118,8 @@ namespace Docms.Web.Application.DomainEventHandlers
             var ev = notification.Event;
             _db.DocumentDeleted.Add(new DocumentDeleted()
             {
-                Id = Guid.NewGuid(),
-                Timestamp = DateTime.UtcNow,
+                Id = ev.Id,
+                Timestamp = ev.Timestamp,
                 Path = ev.Path.ToString(),
             });
             await _db.SaveChangesAsync();

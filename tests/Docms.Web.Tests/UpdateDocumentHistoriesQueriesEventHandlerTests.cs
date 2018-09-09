@@ -1,5 +1,5 @@
 ﻿using Docms.Domain.Documents;
-using Docms.Domain.Events;
+using Docms.Domain.Events.Documents;
 using Docms.Infrastructure;
 using Docms.Infrastructure.Files;
 using Docms.Infrastructure.MediatR;
@@ -39,7 +39,7 @@ namespace Docms.Web.Tests
         [TestMethod]
         public async Task ドキュメント作成のイベントが登録される()
         {
-            var document = new Domain.Documents.Document(new DocumentPath("path1/content1.txt"), "text/plain", 5, Hash.CalculateHash(new MemoryStream(new byte[] { 72, 101, 108, 108, 111 })));
+            var document = new Document(new DocumentPath("path1/content1.txt"), "text/plain", 5, Hash.CalculateHash(new MemoryStream(new byte[] { 72, 101, 108, 108, 111 })));
             var ev = document.DomainEvents.First();
             await sut.Handle(new DomainEventNotification<DocumentCreatedEvent>(ev as DocumentCreatedEvent));
             Assert.AreEqual(1, await ctx.DocumentHistories.Where(f => f.Path == "path1/content1.txt" && f is DocumentCreated).CountAsync());
@@ -48,7 +48,7 @@ namespace Docms.Web.Tests
         [TestMethod]
         public async Task ドキュメント削除のイベントが登録される()
         {
-            var document1 = new Domain.Documents.Document(new DocumentPath("path1/subpath1/document1.txt"), "text/plain", 5, Hash.CalculateHash(new MemoryStream(new byte[] { 72, 101, 108, 108, 111 })));
+            var document1 = new Document(new DocumentPath("path1/subpath1/document1.txt"), "text/plain", 5, Hash.CalculateHash(new MemoryStream(new byte[] { 72, 101, 108, 108, 111 })));
             var ev1 = document1.DomainEvents.First();
             await sut.Handle(new DomainEventNotification<DocumentCreatedEvent>(ev1 as DocumentCreatedEvent));
             document1.ClearDomainEvents();
@@ -62,13 +62,14 @@ namespace Docms.Web.Tests
         [TestMethod]
         public async Task ドキュメント移動のイベントが登録される()
         {
-            var document1 = new Domain.Documents.Document(new DocumentPath("path1/subpath1/content1.txt"), "text/plain", 5, Hash.CalculateHash(new MemoryStream(new byte[] { 72, 101, 108, 108, 111 })));
+            var document1 = new Document(new DocumentPath("path1/subpath1/content1.txt"), "text/plain", 5, Hash.CalculateHash(new MemoryStream(new byte[] { 72, 101, 108, 108, 111 })));
             var ev1 = document1.DomainEvents.First();
             await sut.Handle(new DomainEventNotification<DocumentCreatedEvent>(ev1 as DocumentCreatedEvent));
 
             document1.ClearDomainEvents();
             document1.MoveTo(new DocumentPath("path2/subpath1/document1.txt"));
             var ev2 = document1.DomainEvents.First();
+
             await sut.Handle(new DomainEventNotification<DocumentMovedEvent>(ev2 as DocumentMovedEvent));
             Assert.AreEqual(1, await ctx.DocumentHistories.Where(f => f.Path == "path1/subpath1/content1.txt" && f is DocumentCreated).CountAsync());
             Assert.AreEqual(1, await ctx.DocumentHistories.Where(f => f.Path == "path1/subpath1/content1.txt" && f is DocumentMovedToNewPath).CountAsync());
@@ -78,7 +79,7 @@ namespace Docms.Web.Tests
         [TestMethod]
         public async Task ドキュメント更新のイベントが登録される()
         {
-            var document1 = new Domain.Documents.Document(new DocumentPath("path1/subpath1/content1.txt"), "text/plain", 5, Hash.CalculateHash(new MemoryStream(new byte[] { 72, 101, 108, 108, 111 })));
+            var document1 = new Document(new DocumentPath("path1/subpath1/content1.txt"), "text/plain", 5, Hash.CalculateHash(new MemoryStream(new byte[] { 72, 101, 108, 108, 111 })));
             var ev1 = document1.DomainEvents.First();
             await sut.Handle(new DomainEventNotification<DocumentCreatedEvent>(ev1 as DocumentCreatedEvent));
 

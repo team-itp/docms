@@ -2,11 +2,10 @@
 using Docms.Domain.SeedWork;
 using System;
 
-namespace Docms.Domain.Events
+namespace Docms.Domain.Events.Documents
 {
-    public class DocumentCreatedEvent : IDomainEvent
+    public class DocumentCreatedEvent : DomainEvent<Document>
     {
-        public Document Document { get; }
         public DocumentPath Path { get; }
         public string ContentType { get; }
         public long FileSize { get; }
@@ -14,9 +13,8 @@ namespace Docms.Domain.Events
         public DateTime Created { get; }
         public DateTime LastModified { get; }
 
-        public DocumentCreatedEvent(Document document, DocumentPath path, string contentType, long fileSize, string hash, DateTime created, DateTime lastModified)
+        public DocumentCreatedEvent(Document document, DocumentPath path, string contentType, long fileSize, string hash, DateTime created, DateTime lastModified) : base(document)
         {
-            Document = document;
             Path = path;
             ContentType = contentType;
             FileSize = fileSize;

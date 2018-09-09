@@ -19,6 +19,7 @@ namespace Docms.Infrastructure.EntityConfigurations
         {
             builder.Property(d => d.Path)
                 .HasConversion(new DocumentPathToStringConverter());
+            builder.Ignore(d => d.DomainEvents);
         }
     }
 }

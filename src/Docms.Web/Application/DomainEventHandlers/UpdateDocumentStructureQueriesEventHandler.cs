@@ -1,5 +1,5 @@
 ﻿using Docms.Domain.Documents;
-using Docms.Domain.Events;
+using Docms.Domain.Events.Documents;
 using Docms.Infrastructure;
 using Docms.Infrastructure.MediatR;
 using Docms.Queries.Blobs;
@@ -131,7 +131,7 @@ namespace Docms.Web.Application.DomainEventHandlers
         {
             var ev = notification.Event;
 
-            var blob = await _db.Blobs.FirstOrDefaultAsync(e => e.Path == ev.Document.Path.Value);
+            var blob = await _db.Blobs.FirstOrDefaultAsync(e => e.Path == ev.Path.Value);
             blob.ContentType = ev.ContentType;
             blob.FileSize = ev.FileSize;
             blob.Hash = ev.Hash;

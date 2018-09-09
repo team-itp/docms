@@ -19,16 +19,16 @@
             }
         }
 
-        private List<IDomainEvent> _domainEvents;
-        public IReadOnlyCollection<IDomainEvent> DomainEvents => _domainEvents?.AsReadOnly();
+        private List<DomainEvent> _domainEvents;
+        public IReadOnlyCollection<DomainEvent> DomainEvents => _domainEvents?.AsReadOnly();
 
-        public void AddDomainEvent(IDomainEvent eventItem)
+        public void AddDomainEvent(DomainEvent eventItem)
         {
-            _domainEvents = _domainEvents ?? new List<IDomainEvent>();
+            _domainEvents = _domainEvents ?? new List<DomainEvent>();
             _domainEvents.Add(eventItem);
         }
 
-        public void RemoveDomainEvent(IDomainEvent eventItem)
+        public void RemoveDomainEvent(DomainEvent eventItem)
         {
             _domainEvents?.Remove(eventItem);
         }

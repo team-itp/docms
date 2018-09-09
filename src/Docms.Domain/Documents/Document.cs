@@ -1,4 +1,4 @@
-﻿using Docms.Domain.Events;
+﻿using Docms.Domain.Events.Documents;
 using Docms.Domain.SeedWork;
 using System;
 
@@ -91,7 +91,7 @@ namespace Docms.Domain.Documents
 
         private void OnDocumentUpdated(string contentType, long fileSize, string hash, DateTime created, DateTime lastModified)
         {
-            var ev = new DocumentUpdatedEvent(this, contentType, fileSize, hash, created, lastModified);
+            var ev = new DocumentUpdatedEvent(this, Path, contentType, fileSize, hash, created, lastModified);
             AddDomainEvent(ev);
         }
 
