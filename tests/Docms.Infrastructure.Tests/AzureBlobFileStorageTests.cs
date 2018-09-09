@@ -10,6 +10,7 @@ using System.Threading.Tasks;
 namespace Docms.Infrastructure.Tests
 {
     [TestClass]
+    [Ignore]
     public class AzureBlobFileStorageTests
     {
         private CloudStorageAccount account;
