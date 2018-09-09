@@ -50,7 +50,7 @@ namespace Docms.Web.Tests
                     DestinationPath = new FilePath("test2/document2.txt"),
                 });
             }
-            Assert.AreEqual("test2/document2.txt", repository.Documents.First().Path.Value);
+            Assert.AreEqual("test2/document2.txt", repository.Entities.First().Path.Value);
             Assert.IsNull(await localFileStorage.GetEntryAsync("test1/document1.txt"));
             Assert.IsNotNull(await localFileStorage.GetEntryAsync("test2/document2.txt"));
         }

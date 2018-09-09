@@ -48,7 +48,7 @@ namespace Docms.Web.Tests
                     Stream = ms,
                 });
             }
-            Assert.AreEqual(1, repository.Documents.Count);
+            Assert.AreEqual(1, repository.Entities.Count);
             Assert.AreEqual("Hello, world", await ReadTextAsync("document.txt"));
         }
 
@@ -67,7 +67,7 @@ namespace Docms.Web.Tests
                     Stream = ms,
                 });
             }
-            Assert.AreEqual("test1/document1.txt", repository.Documents.First().Path.Value);
+            Assert.AreEqual("test1/document1.txt", repository.Entities.First().Path.Value);
             Assert.AreEqual("Hello, new world", await ReadTextAsync("test1/document1.txt"));
         }
 
@@ -87,8 +87,8 @@ namespace Docms.Web.Tests
                     ForceCreate = true
                 });
             }
-            Assert.IsNotNull(repository.Documents.FirstOrDefault(e => e.Path.Value == "test1/document1.txt"));
-            Assert.IsNotNull(repository.Documents.FirstOrDefault(e => e.Path.Value == "test1/document1(1).txt"));
+            Assert.IsNotNull(repository.Entities.FirstOrDefault(e => e.Path.Value == "test1/document1.txt"));
+            Assert.IsNotNull(repository.Entities.FirstOrDefault(e => e.Path.Value == "test1/document1(1).txt"));
             Assert.AreEqual("Hello, world", await ReadTextAsync("test1/document1.txt"));
             Assert.AreEqual("Hello, new world", await ReadTextAsync("test1/document1(1).txt"));
         }
