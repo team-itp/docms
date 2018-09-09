@@ -57,6 +57,15 @@ namespace Docms.Infrastructure
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
             modelBuilder.ApplyConfiguration(new DocumentTypeConfigurations());
+            modelBuilder.ApplyConfiguration(new BlobEntryTypeConfigurations());
+            modelBuilder.ApplyConfiguration(new BlobContainerTypeConfigurations());
+            modelBuilder.ApplyConfiguration(new BlobTypeConfigurations());
+            modelBuilder.ApplyConfiguration(new DocumentHistoryTypeConfigurations());
+            modelBuilder.ApplyConfiguration(new DocumentCreatedTypeConfigurations());
+            modelBuilder.ApplyConfiguration(new DocumentUpdatedTypeConfigurations());
+            modelBuilder.ApplyConfiguration(new DocumentMovedFromOldPathTypeConfigurations());
+            modelBuilder.ApplyConfiguration(new DocumentMovedToNewPathTypeConfigurations());
+            modelBuilder.ApplyConfiguration(new DocumentDeletedTypeConfigurations());
         }
     }
 

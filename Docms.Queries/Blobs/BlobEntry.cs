@@ -7,9 +7,12 @@ namespace Docms.Queries.Blobs
 {
     public abstract class BlobEntry
     {
+        [Column("Path")]
         [Key]
         public string Path { get; set; }
+        [Column("Name")]
         public string Name { get; set; }
+        [Column("ParentPath")]
         public string ParentPath { get; set; }
     }
 
@@ -21,9 +24,13 @@ namespace Docms.Queries.Blobs
 
     public sealed class Blob : BlobEntry
     {
+        [Column("ContentType")]
         public string ContentType { get; set; }
+        [Column("FileSize")]
         public long FileSize { get; set; }
+        [Column("Hash")]
         public string Hash { get; set; }
+        [Column("LastModified")]
         public DateTime LastModified { get; set; }
     }
 }
