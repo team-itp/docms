@@ -21,7 +21,7 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Docms.Web.Tests", "tests\Do
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "VisualizationSystem.Infrastructure", "src\VisualizationSystem.Infrastructure\VisualizationSystem.Infrastructure.csproj", "{92FCDD8F-7BF6-4AB6-AE2B-B1C004A49AB5}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Docms.Queries", "Docms.Queries\Docms.Queries.csproj", "{562E5433-3039-493C-B143-510E7863148A}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Docms.Queries", "src\Docms.Queries\Docms.Queries.csproj", "{562E5433-3039-493C-B143-510E7863148A}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
