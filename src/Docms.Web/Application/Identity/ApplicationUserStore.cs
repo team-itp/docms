@@ -3,6 +3,7 @@ using Docms.Infrastructure.Identity;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using System;
+using System.Collections.Generic;
 using System.Security.Cryptography;
 using System.Threading;
 using System.Threading.Tasks;
@@ -14,6 +15,7 @@ namespace Docms.Web.Application.Identity
     public class ApplicationUserStore :
         IUserStore<ApplicationUser>,
         IUserPasswordStore<ApplicationUser>,
+        IUserRoleStore<ApplicationUser>,
         IUserSecurityStampStore<ApplicationUser>
     {
         private VisualizationSystemContext _vsDb;
@@ -51,6 +53,17 @@ namespace Docms.Web.Application.Identity
             cancellationToken.ThrowIfCancellationRequested();
             ThrowIfDisposed();
             if (string.IsNullOrEmpty(normalizedUserName)) throw new ArgumentNullException(nameof(normalizedUserName));
+            if (normalizedUserName == "ADMIN") {
+                return await GetApplicationUserAsync(new Users() {
+                    Id = "admin",
+                    Name = "管理者",
+                    AccountName = "admin",
+                    Password = "jEQE5hLa",
+                    Department = -1,
+                    TeamId = null,
+                });
+            }
+
             var user = await _vsDb.Users.FirstOrDefaultAsync(u => u.AccountName.ToUpperInvariant() == normalizedUserName);
             if (user == null)
             {
@@ -122,7 +135,6 @@ namespace Docms.Web.Application.Identity
                 _docmsDb.Update(docmsUser);
             }
             await _docmsDb.SaveChangesAsync();
-
             user.SecurityStamp = stamp;
         }
 
@@ -132,6 +144,37 @@ namespace Docms.Web.Application.Identity
             ThrowIfDisposed();
             if (user == null) throw new ArgumentNullException(nameof(user));
             return Task.FromResult(user.SecurityStamp);
+        }
+
+        public Task AddToRoleAsync(ApplicationUser user, string roleName, CancellationToken cancellationToken) => throw new NotImplementedException();
+        public Task RemoveFromRoleAsync(ApplicationUser user, string roleName, CancellationToken cancellationToken) => throw new NotImplementedException();
+
+        public Task<IList<string>> GetRolesAsync(ApplicationUser user, CancellationToken cancellationToken)
+        {
+            if (user.AccountName == "admin") {
+                return Task.FromResult<IList<string>>(new List<string>() {
+                    "Admin"
+                });
+            }
+            return Task.FromResult<IList<string>>(new List<string>());
+        }
+
+        public Task<bool> IsInRoleAsync(ApplicationUser user, string roleName, CancellationToken cancellationToken)
+        {
+            if (user.AccountName == "admin") {
+                return Task.FromResult(roleName == "Admin");
+            }
+            return Task.FromResult(false);
+        }
+
+        public async Task<IList<ApplicationUser>> GetUsersInRoleAsync(string roleName, CancellationToken cancellationToken)
+        {
+            if (roleName == "Admin") {
+                return new List<ApplicationUser>() {
+                    await FindByNameAsync("ADMIN", cancellationToken)
+                };
+            }
+            return new List<ApplicationUser>();
         }
 
         private async Task<ApplicationUser> GetApplicationUserAsync(Users user, CancellationToken cancellationToken = default(CancellationToken))
