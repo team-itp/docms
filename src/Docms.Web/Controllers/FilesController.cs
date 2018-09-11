@@ -2,6 +2,7 @@ using Docms.Infrastructure.Files;
 using Docms.Queries.Blobs;
 using Docms.Web.Application.Commands;
 using Docms.Web.Extensions;
+using Docms.Web.Filters;
 using Docms.Web.Models;
 using MediatR;
 using Microsoft.AspNetCore.Authorization;
@@ -13,6 +14,7 @@ using System.Threading.Tasks;
 namespace Docms.Web.Controllers
 {
     [Authorize]
+    [DeviceIdentificationFilter]
     [Route("files")]
     public class FilesController : Controller
     {

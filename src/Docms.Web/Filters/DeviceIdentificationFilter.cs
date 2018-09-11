@@ -48,6 +48,10 @@ namespace Docms.Web.Filters
                 {
                     await next.Invoke();
                 }
+                else
+                {
+                    context.HttpContext.Response.Redirect("/account/accessdenied?returnUrl=" + Uri.EscapeUriString(context.HttpContext.Request.Path));
+                }
             }
         }
     }
