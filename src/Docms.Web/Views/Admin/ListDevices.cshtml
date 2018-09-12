@@ -1,0 +1,25 @@
+﻿@using Docms.Queries.DeviceAuthorization
+@model IEnumerable<DeviceGrant>
+
+@{
+    ViewData["Title"] = "端末管理";
+}
+
+@if (!string.IsNullOrEmpty(ViewBag.Message))
+{
+    <div class="alert alert-success">
+        @ViewBag.Message
+    </div>
+}
+
+<h2>端末管理</h2>
+<hr />
+
+<ul>
+    @foreach(var device in Model) {
+        <li>
+            @device.DeviceId
+        </li>
+    }
+</ul>
+
