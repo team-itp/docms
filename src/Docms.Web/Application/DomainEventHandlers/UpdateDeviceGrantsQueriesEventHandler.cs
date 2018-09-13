@@ -5,7 +5,9 @@ using Docms.Domain.Events.Identity;
 using Docms.Infrastructure;
 using Docms.Infrastructure.MediatR;
 using Docms.Queries.DeviceAuthorization;
+using Docms.Web.Application.Identity;
 using MediatR;
+using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 
 namespace Docms.Web.Application.DomainEventHandlers
@@ -15,20 +17,27 @@ namespace Docms.Web.Application.DomainEventHandlers
         INotificationHandler<DomainEventNotification<DeviceGrantedEvent>>,
         INotificationHandler<DomainEventNotification<DeviceRevokedEvent>>
     {
-        private DocmsContext _db;
+        private readonly DocmsContext _db;
+        private readonly IUserStore<ApplicationUser> _userStore;
 
-        public UpdateDeviceGrantsQueriesEventHandler(DocmsContext db)
+        public UpdateDeviceGrantsQueriesEventHandler(DocmsContext db, IUserStore<ApplicationUser> userStore)
         {
             _db = db;
+            _userStore = userStore;
         }
 
         public async Task Handle(DomainEventNotification<DeviceNewlyAccessedEvent> notification, CancellationToken cancellationToken = default(CancellationToken))
         {
             var ev = notification.Event;
+            var appUser = await _userStore.FindByIdAsync(ev.UsedBy, cancellationToken);
             _db.DeviceGrants.Add(new DeviceGrant()
             {
                 DeviceId = ev.DeviceId,
+                UsedBy = ev.UsedBy,
+                UsedByAccountName = appUser.AccountName,
+                UsedByUserName = appUser.Name,
                 IsGranted = false,
+                LastAccessTime = ev.Timestamp,
             });
             await _db.SaveChangesAsync();
         }

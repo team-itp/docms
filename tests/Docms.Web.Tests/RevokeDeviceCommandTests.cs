@@ -23,11 +23,11 @@ namespace Docms.Web.Tests
         [TestMethod]
         public async Task コマンドを発行してデバイスが拒否されること()
         {
-            await repository.AddAsync(new Device("123") { Granted = true });
+            await repository.AddAsync(new Device("123", "USER1") { Granted = true });
             await sut.Handle(new RevokeDeviceCommand()
             {
                 DeviceId = "123",
-                ByUserId = "user1"
+                ByUserId = "USER2"
             });
             Assert.AreEqual(1, repository.Entities.Count);
             Assert.IsFalse(repository.Entities.First().Granted);

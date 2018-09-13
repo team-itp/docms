@@ -15,11 +15,26 @@
 <h2>端末管理</h2>
 <hr />
 
-<ul>
-    @foreach(var device in Model) {
-        <li>
-            @device.DeviceId
-        </li>
-    }
-</ul>
+<table>
+    <thead>
+        <tr>
+            <th>端末ID</th>
+            <th>使用ユーザ</th>
+            <th>最終アクセス日時</th>
+            <th>操作</th>
+        </tr>
+    </thead>
+    <tbody>
+        @foreach(var device in Model) {
+            <tr>
+                <td>@device.DeviceId</td>
+                <td>@device.UsedByUserName</td>
+                <td>@device.LastAccessTime</td>
+                <td>
+                    <button type="button" class="btn btn-"></button>
+                </td>
+            </tr>
+        }
+    </tbody>
+</table>
 

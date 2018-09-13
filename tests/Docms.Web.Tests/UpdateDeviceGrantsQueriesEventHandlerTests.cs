@@ -7,11 +7,15 @@ using Docms.Infrastructure.Files;
 using Docms.Infrastructure.MediatR;
 using Docms.Queries.DocumentHistories;
 using Docms.Web.Application.DomainEventHandlers;
+using Docms.Web.Application.Identity;
 using Docms.Web.Tests.Utils;
+using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
+using System;
 using System.IO;
 using System.Linq;
+using System.Threading;
 using System.Threading.Tasks;
 
 namespace Docms.Web.Tests
@@ -20,6 +24,7 @@ namespace Docms.Web.Tests
     public class UpdateDeviceGrantsQueriesEventHandlerTests
     {
         private DocmsContext ctx;
+        private IUserStore<ApplicationUser> userStore;
         private UpdateDeviceGrantsQueriesEventHandler sut;
 
         [TestInitialize]
@@ -28,7 +33,14 @@ namespace Docms.Web.Tests
             ctx = new DocmsContext(new DbContextOptionsBuilder<DocmsContext>()
                 .UseInMemoryDatabase("UpdateDeviceGrantsQueriesEventHandlerTests")
                 .Options, new MockMediator());
-            sut = new UpdateDeviceGrantsQueriesEventHandler(ctx);
+            userStore = new MockUserStore();
+            userStore.CreateAsync(new ApplicationUser()
+            {
+                Id = "USERID",
+                AccountName = "USERACCOUNTNAME",
+                Name = "USER NAME",
+            }, default(CancellationToken));
+            sut = new UpdateDeviceGrantsQueriesEventHandler(ctx, userStore);
         }
 
         [TestCleanup]
@@ -41,7 +53,7 @@ namespace Docms.Web.Tests
         [TestMethod]
         public async Task デバイスの登録イベントが作成される()
         {
-            var device = new Device("DEVID1");
+            var device = new Device("DEVID1", "USERID");
             var ev = device.DomainEvents.First();
             await sut.Handle(new DomainEventNotification<DeviceNewlyAccessedEvent>(ev as DeviceNewlyAccessedEvent));
             Assert.AreEqual(1, await ctx.DeviceGrants.Where(f => f.DeviceId == "DEVID1").CountAsync());

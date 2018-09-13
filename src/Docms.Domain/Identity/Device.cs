@@ -7,15 +7,17 @@ namespace Docms.Domain.Identity
     public class Device : Entity, IAggregateRoot
     {
         public string DeviceId { get; set; }
+        public string UsedBy { get; set; }
         public bool Granted { get; set; }
 
         protected Device() { }
 
-        public Device(string deviceId)
+        public Device(string deviceId, string usedBy)
         {
             DeviceId = deviceId;
+            UsedBy = usedBy;
 
-            OnDeviceNewlyAccessed(deviceId);
+            OnDeviceNewlyAccessed(deviceId, usedBy);
         }
 
         public void Grant(string byUserId)
@@ -30,9 +32,9 @@ namespace Docms.Domain.Identity
             OnDeviceRevoked(byUserId);
         }
 
-        private void OnDeviceNewlyAccessed(string deviceId)
+        private void OnDeviceNewlyAccessed(string deviceId, string usedBy)
         {
-            var ev = new DeviceNewlyAccessedEvent(this, deviceId);
+            var ev = new DeviceNewlyAccessedEvent(this, deviceId, usedBy);
             AddDomainEvent(ev);
         }
 
