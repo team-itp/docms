@@ -14,6 +14,11 @@ namespace Docms.Infrastructure.Queries
             _db = db;
         }
 
+        public async Task<DeviceGrant> FindByDeviceIdAsync(string deviceId)
+        {
+            return await _db.DeviceGrants.FirstOrDefaultAsync(e => e.DeviceId == deviceId);
+        }
+
         public async Task<IEnumerable<DeviceGrant>> GetDevicesAsync()
         {
             return await _db.DeviceGrants.ToListAsync();

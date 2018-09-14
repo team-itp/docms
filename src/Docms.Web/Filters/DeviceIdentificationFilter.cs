@@ -22,16 +22,16 @@ namespace Docms.Web.Filters
         {
             private readonly IMediator _mediator;
             private readonly IDeviceGrantsQueries _queries;
-            private readonly IUserStore<ApplicationUser> _userStore;
+            private readonly UserManager<ApplicationUser> _userManager;
 
             public DeviceIdentificationFilterImpl(
                 IMediator mediator,
                 IDeviceGrantsQueries queries,
-                IUserStore<ApplicationUser> userStore)
+                UserManager<ApplicationUser> userManager)
             {
                 _mediator = mediator;
                 _queries = queries;
-                _userStore = userStore;
+                _userManager = userManager;
             }
 
             public async Task OnActionExecutionAsync(ActionExecutingContext context, ActionExecutionDelegate next)
@@ -42,8 +42,13 @@ namespace Docms.Web.Filters
                     return;
                 }
 
+                var appUser = await _userManager.FindByNameAsync(context.HttpContext.User?.Identity?.Name);
+                if (appUser == null)
+                {
+                    context.HttpContext.Response.Redirect("/account/accessdenied?returnUrl=" + Uri.EscapeUriString(context.HttpContext.Request.Path));
+                    return;
+                }
                 var deviceId = context.HttpContext.Request.Cookies["docms_device_id"];
-                var appUser = await _userStore.FindByNameAsync(context.HttpContext.User?.Identity?.Name, default(CancellationToken));
                 if (string.IsNullOrWhiteSpace(deviceId))
                 {
                     deviceId = Guid.NewGuid().ToString();
@@ -53,14 +58,19 @@ namespace Docms.Web.Filters
                         IsEssential = true,
                         SameSite = SameSiteMode.Strict,
                     });
+                }
 
+                var device = await _queries.FindByDeviceIdAsync(deviceId);
+                if (device == null) 
+                {
                     await _mediator.Send(new AddNewDeviceCommand()
                     {
                         DeviceId = deviceId,
                         UsedBy = appUser.Id
                     });
                 }
-                if (await _queries.IsGrantedAsync(deviceId))
+
+                if (await _userManager.IsInRoleAsync(appUser, "Admin") || await _queries.IsGrantedAsync(deviceId))
                 {
                     await next.Invoke();
                 }

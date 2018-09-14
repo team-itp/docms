@@ -5,6 +5,7 @@ namespace Docms.Queries.DeviceAuthorization
 {
     public interface IDeviceGrantsQueries
     {
+        Task<DeviceGrant> FindByDeviceIdAsync(string deviceId);
         Task<IEnumerable<DeviceGrant>> GetDevicesAsync();
         Task<bool> IsGrantedAsync(string deviceId);
     }
