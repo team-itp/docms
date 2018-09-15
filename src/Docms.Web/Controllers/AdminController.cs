@@ -38,6 +38,7 @@ namespace Docms.Web.Controllers
         [HttpGet("devices")]
         public async Task<IActionResult> ListDevices([FromServices] IDeviceGrantsQueries queries)
         {
+            ViewData["Message"] = TempData["Message"];
             var devices = await queries.GetDevicesAsync();
             return View(devices);
         }
@@ -55,7 +56,24 @@ namespace Docms.Web.Controllers
                 ByUserId = appUser.Id
             };
             var response = await mediator.Send(command);
-            TempData["Message"] = "端末を承認しました。";
+            TempData["Message"] = "端末を許可しました。";
+            return RedirectToAction(nameof(ListDevices));
+        }
+
+        [HttpPost("devices/revoke")]
+        public async Task<IActionResult> RevokeDevice(
+            [FromServices] UserManager<ApplicationUser> userManager,
+            [FromServices] IMediator mediator,
+            [FromForm] string deviceId)
+        {
+            var appUser = await userManager.FindByNameAsync(User.Identity.Name);
+            var command = new RevokeDeviceCommand()
+            {
+                DeviceId = deviceId,
+                ByUserId = appUser.Id
+            };
+            var response = await mediator.Send(command);
+            TempData["Message"] = "端末を拒否しました。";
             return RedirectToAction(nameof(ListDevices));
         }
     }
