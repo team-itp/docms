@@ -21,6 +21,15 @@ namespace Docms.Web.Application.Identity
         private VisualizationSystemContext _vsDb;
         private DocmsContext _docmsDb;
         private static RandomNumberGenerator _rng = RandomNumberGenerator.Create();
+        private static Users ADMIN_USER = new Users()
+        {
+            Id = "admin",
+            Name = "管理者",
+            AccountName = "admin",
+            Password = "jEQE5hLa",
+            Department = -1,
+            TeamId = null,
+        };
 
         public ApplicationUserStore(VisualizationSystemContext vsDb, DocmsContext docmsDb)
         {
@@ -40,6 +49,10 @@ namespace Docms.Web.Application.Identity
             cancellationToken.ThrowIfCancellationRequested();
             ThrowIfDisposed();
             if (string.IsNullOrEmpty(userId)) throw new ArgumentNullException(nameof(userId));
+            if (userId == ADMIN_USER.Id)
+            {
+                return await GetApplicationUserAsync(ADMIN_USER);
+            }
             var user = await _vsDb.Users.FindAsync(userId);
             if (user == null)
             {
@@ -53,15 +66,8 @@ namespace Docms.Web.Application.Identity
             cancellationToken.ThrowIfCancellationRequested();
             ThrowIfDisposed();
             if (string.IsNullOrEmpty(normalizedUserName)) throw new ArgumentNullException(nameof(normalizedUserName));
-            if (normalizedUserName == "ADMIN") {
-                return await GetApplicationUserAsync(new Users() {
-                    Id = "admin",
-                    Name = "管理者",
-                    AccountName = "admin",
-                    Password = "jEQE5hLa",
-                    Department = -1,
-                    TeamId = null,
-                });
+            if (normalizedUserName == ADMIN_USER.AccountName.ToUpperInvariant()) {
+                return await GetApplicationUserAsync(ADMIN_USER);
             }
 
             var user = await _vsDb.Users.FirstOrDefaultAsync(u => u.AccountName.ToUpperInvariant() == normalizedUserName);
@@ -162,7 +168,7 @@ namespace Docms.Web.Application.Identity
         public Task<bool> IsInRoleAsync(ApplicationUser user, string roleName, CancellationToken cancellationToken)
         {
             if (user.AccountName == "admin") {
-                return Task.FromResult(roleName == "Admin");
+                return Task.FromResult(roleName == "ADMIN");
             }
             return Task.FromResult(false);
         }
