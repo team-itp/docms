@@ -33,10 +33,9 @@ namespace Docms.Web.Application.DomainEventHandlers
             _db.DeviceGrants.Add(new DeviceGrant()
             {
                 DeviceId = ev.DeviceId,
-                UsedBy = ev.UsedBy,
-                UsedByAccountName = appUser.AccountName,
-                UsedByUserName = appUser.Name,
                 IsGranted = false,
+                LastAccessUserId = ev.UsedBy,
+                LastAccessUserName = appUser.Name,
                 LastAccessTime = ev.Timestamp,
             });
             await _db.SaveChangesAsync();
