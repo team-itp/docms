@@ -69,6 +69,39 @@ namespace Docms.Infrastructure
         {
             modelBuilder.ApplyConfiguration(new DocumentTypeConfigurations());
             modelBuilder.ApplyConfiguration(new DeviceTypeConfigurations());
+
+            modelBuilder.Entity<DeviceGrant>()
+                .Property(d => d.LastAccessTime)
+                .HasConversion(
+                    value => value,
+                    value => value.Kind == DateTimeKind.Unspecified
+                        ? DateTime.SpecifyKind(value, DateTimeKind.Utc)
+                        : value);
+            modelBuilder.Entity<DocumentHistory>()
+                .Property(d => d.Timestamp)
+                .HasConversion(
+                    value => value,
+                    value => value.Kind == DateTimeKind.Unspecified
+                        ? DateTime.SpecifyKind(value, DateTimeKind.Utc)
+                        : value);
+            modelBuilder.Entity<DocumentHistory>()
+                .Property<DateTime?>("Created")
+                .HasConversion(
+                    value => value,
+                    value => value.HasValue
+                        ? value.Value.Kind == DateTimeKind.Unspecified
+                        ? DateTime.SpecifyKind(value.Value, DateTimeKind.Utc)
+                        : value.Value
+                        : default(DateTime?));
+            modelBuilder.Entity<DocumentHistory>()
+                .Property<DateTime?>("LastModified")
+                .HasConversion(
+                    value => value,
+                    value => value.HasValue
+                        ? value.Value.Kind == DateTimeKind.Unspecified
+                        ? DateTime.SpecifyKind(value.Value, DateTimeKind.Utc)
+                        : value.Value
+                        : default(DateTime?));
         }
     }
 

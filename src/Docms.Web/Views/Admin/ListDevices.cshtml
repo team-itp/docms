@@ -19,7 +19,7 @@
         <tr>
             <th>使用可否</th>
             <th>端末ID</th>
-            <th>使用ユーザ</th>
+            <th>最終使用ユーザ</th>
             <th>最終アクセス日時</th>
             <th>操作</th>
         </tr>
@@ -37,8 +37,8 @@
                     }
                 </td>
                 <td>@device.DeviceId</td>
-                <td>@device.UsedByUserName</td>
-                <td>@device.LastAccessTime</td>
+                <td>@device.LastAccessUserName</td>
+                <td>@device.LastAccessTime.ToLocalTime()</td>
                 <td>
                     @if (device.IsGranted)
                     {

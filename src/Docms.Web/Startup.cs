@@ -42,6 +42,10 @@ namespace Docms.Web
             services.AddCustomDbContext(Configuration)
                 .AddCustomIdentity(Configuration)
                 .AddCustomAuthentication(Configuration);
+            services.AddAuthorization(options =>
+            {
+                options.AddPolicy("RequireAdministratorRole", policy => policy.RequireRole("Administrator"));
+            });
             services.AddMvc()
                 .AddJsonOptions(options =>
                 {

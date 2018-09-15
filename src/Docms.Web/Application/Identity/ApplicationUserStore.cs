@@ -66,7 +66,8 @@ namespace Docms.Web.Application.Identity
             cancellationToken.ThrowIfCancellationRequested();
             ThrowIfDisposed();
             if (string.IsNullOrEmpty(normalizedUserName)) throw new ArgumentNullException(nameof(normalizedUserName));
-            if (normalizedUserName == ADMIN_USER.AccountName.ToUpperInvariant()) {
+            if (normalizedUserName == ADMIN_USER.AccountName.ToUpperInvariant())
+            {
                 return await GetApplicationUserAsync(ADMIN_USER);
             }
 
@@ -157,9 +158,10 @@ namespace Docms.Web.Application.Identity
 
         public Task<IList<string>> GetRolesAsync(ApplicationUser user, CancellationToken cancellationToken)
         {
-            if (user.AccountName == "admin") {
+            if (user.AccountName == ADMIN_USER.AccountName)
+            {
                 return Task.FromResult<IList<string>>(new List<string>() {
-                    "Admin"
+                    "Administrator"
                 });
             }
             return Task.FromResult<IList<string>>(new List<string>());
@@ -167,17 +169,19 @@ namespace Docms.Web.Application.Identity
 
         public Task<bool> IsInRoleAsync(ApplicationUser user, string roleName, CancellationToken cancellationToken)
         {
-            if (user.AccountName == "admin") {
-                return Task.FromResult(roleName == "ADMIN");
+            if (user.AccountName == ADMIN_USER.AccountName)
+            {
+                return Task.FromResult(roleName == "Administrator".ToUpperInvariant());
             }
             return Task.FromResult(false);
         }
 
         public async Task<IList<ApplicationUser>> GetUsersInRoleAsync(string roleName, CancellationToken cancellationToken)
         {
-            if (roleName == "Admin") {
+            if (roleName == "Administrator".ToUpperInvariant())
+            {
                 return new List<ApplicationUser>() {
-                    await FindByNameAsync("ADMIN", cancellationToken)
+                    await FindByNameAsync(ADMIN_USER.AccountName.ToUpperInvariant(), cancellationToken)
                 };
             }
             return new List<ApplicationUser>();

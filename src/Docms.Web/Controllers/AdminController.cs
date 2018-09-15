@@ -9,7 +9,7 @@ using System.Threading.Tasks;
 
 namespace Docms.Web.Controllers
 {
-    [Authorize(Roles = "Admin")]
+    [Authorize(Policy = "RequireAdministratorRole")]
     [Route("admin")]
     public class AdminController : Controller
     {
@@ -46,7 +46,7 @@ namespace Docms.Web.Controllers
         [HttpPost("devices/grant")]
         public async Task<IActionResult> GrantDevice(
             [FromServices] UserManager<ApplicationUser> userManager,
-            [FromServices] IMediator mediator, 
+            [FromServices] IMediator mediator,
             [FromForm] string deviceId)
         {
             var appUser = await userManager.FindByNameAsync(User.Identity.Name);
