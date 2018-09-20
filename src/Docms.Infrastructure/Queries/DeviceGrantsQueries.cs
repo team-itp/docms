@@ -23,11 +23,5 @@ namespace Docms.Infrastructure.Queries
         {
             return await _db.DeviceGrants.ToListAsync();
         }
-
-        public async Task<bool> IsGrantedAsync(string deviceId)
-        {
-            var device = await _db.DeviceGrants.FirstOrDefaultAsync(e => e.DeviceId == deviceId);
-            return device != null && device.IsGranted;
-        }
     }
 }
