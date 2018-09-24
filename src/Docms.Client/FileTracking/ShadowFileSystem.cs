@@ -112,12 +112,15 @@ namespace Docms.Client.FileTracking
 
             var tempId = file.DataId;
             await _storage.SaveAsync(tempId, stream);
-            file.Update(
-                Hash.CalculateHash(await _storage.OpenStreamAsync(tempId)),
-                await _storage.GetSizeAsync(tempId), 
-                created,
-                lastModified
-                );
+            var hash = Hash.CalculateHash(await _storage.OpenStreamAsync(tempId));
+            var size = await _storage.GetSizeAsync(tempId);
+
+            if (file.Hash == hash && file.Size == size)
+            {
+                return;
+            }
+
+            file.Update(hash, size, created, lastModified);
             EventShrinker.Apply(new DocumentUpdated(path));
         }
 

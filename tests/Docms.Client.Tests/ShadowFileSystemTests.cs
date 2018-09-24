@@ -146,6 +146,23 @@ namespace Docms.Client.Tests
         }
 
         [TestMethod]
+        public async Task ファイルの内容が変更されていない場合はイベントが発生しないこと()
+        {
+            var now = DateTime.Now;
+            await sut.CreateFileAsync(new PathString("test1/content1.txt"), Stream("test1/content1.txt"), now, now);
+            sut.ClearDelta();
+
+            var now2 = DateTime.Now;
+            await sut.UpdateAsync(new PathString("test1/content1.txt"), Stream("test1/content1.txt"), now2, now2);
+            var file = sut.GetFile(new PathString("test1/content1.txt"));
+            Assert.AreEqual(Hash.CalculateHash(Stream("test1/content1.txt")), file.Hash);
+            Assert.AreEqual(Stream("test1/content1.txt").Length, file.Size);
+            Assert.AreEqual(now, file.Created);
+            Assert.AreEqual(now, file.LastModified);
+            Assert.IsFalse(sut.GetDelta().Any());
+        }
+
+        [TestMethod]
         public async Task ルートディレクトリのファイルを移動できること()
         {
             var now = DateTime.Now;
