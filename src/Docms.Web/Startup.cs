@@ -83,9 +83,9 @@ namespace Docms.Web
         public static IServiceCollection AddCustomDbContext(this IServiceCollection services, IConfiguration configuration)
         {
             services.AddDbContext<DocmsContext>(options =>
-                options.UseSqlite(configuration.GetConnectionString("DocmsConnection")));
+                options.UseSqlServer(configuration.GetConnectionString("DocmsConnection")));
             services.AddDbContext<VisualizationSystemContext>(options =>
-                options.UseSqlite(configuration.GetConnectionString("VisualizationSystemConnection")));
+                options.UseSqlServer(configuration.GetConnectionString("VisualizationSystemConnection")));
             return services;
         }
         public static IServiceCollection AddCustomIdentity(this IServiceCollection services, IConfiguration configuration)
@@ -156,7 +156,6 @@ namespace Docms.Web
             return services;
         }
 
-
         public static IServiceCollection RegisterServices(this IServiceCollection services, IConfiguration configuration)
         {
             services.AddScoped<IDocumentRepository, DocumentRepository>();
@@ -180,10 +179,6 @@ namespace Docms.Web
     {
         public static void UseCustomDbContext(this IApplicationBuilder app)
         {
-            if (!System.IO.Directory.Exists("App_Data"))
-            {
-                System.IO.Directory.CreateDirectory("App_Data");
-            }
             using (var serviceScope = app.ApplicationServices
                 .GetRequiredService<IServiceScopeFactory>()
                 .CreateScope())
@@ -191,7 +186,7 @@ namespace Docms.Web
                 serviceScope.ServiceProvider
                     .GetService<DocmsContext>()
                     .Database
-                    .EnsureCreated();
+                    .Migrate();
                 serviceScope.ServiceProvider
                     .GetService<VisualizationSystemContext>()
                     .Database

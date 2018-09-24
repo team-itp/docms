@@ -110,7 +110,7 @@ namespace Docms.Infrastructure
         public DocmsContext CreateDbContext(string[] args)
         {
             var optionsBuilder = new DbContextOptionsBuilder<DocmsContext>()
-                .UseInMemoryDatabase("DocmsDesignTimeDb");
+                .UseSqlServer("Server=.;Initial Catalog=Docms.Infrastructure.DocmsDb;Integrated Security=true");
 
             return new DocmsContext(optionsBuilder.Options, new NoMediator());
         }
