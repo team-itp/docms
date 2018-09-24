@@ -33,6 +33,7 @@ namespace Docms.Web.Application.DomainEventHandlers
             _db.DeviceGrants.Add(new DeviceGrant()
             {
                 DeviceId = ev.DeviceId,
+                DeviceUserAgent = ev.DeviceUserAgent,
                 IsGranted = false,
                 LastAccessUserId = ev.UsedBy,
                 LastAccessUserName = appUser.Name,

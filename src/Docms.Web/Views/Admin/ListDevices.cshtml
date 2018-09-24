@@ -14,13 +14,14 @@
 
 <h2>端末管理</h2>
 
-<table class="table table-sm">
+<table class="table table-sm table-responsive-sm">
     <thead>
         <tr>
             <th>使用可否</th>
-            <th>端末ID</th>
+            <th class="d-none d-sm-table-cell">端末ID</th>
+            <th>端末情報</th>
             <th>最終使用ユーザ</th>
-            <th>最終アクセス日時</th>
+            <th class="d-none d-sm-table-cell">最終アクセス日時</th>
             <th>操作</th>
         </tr>
     </thead>
@@ -36,9 +37,19 @@
                         </div>
                     }
                 </td>
-                <td>@device.DeviceId</td>
+                <td class="d-none d-sm-table-cell">@device.DeviceId</td>
+                @{
+                    var clientInfo = string.IsNullOrEmpty(device.DeviceUserAgent)
+                        ? null
+                        : UAParser.Parser.GetDefault().Parse(device.DeviceUserAgent);
+                }
+                <td>
+                    @(clientInfo?.UA?.Family ?? "Unknown") /
+                    @(clientInfo?.OS?.Family ?? "Unknown") /
+                    @(clientInfo?.Device?.Family ?? "Unknown")
+                </td>
                 <td>@device.LastAccessUserName</td>
-                <td>@device.LastAccessTime.ToLocalTime()</td>
+                <td class="d-none d-sm-table-cell">@device.LastAccessTime.ToLocalTime()</td>
                 <td>
                     @if (device.IsGranted)
                     {

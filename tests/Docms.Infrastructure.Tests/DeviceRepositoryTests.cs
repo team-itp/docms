@@ -18,10 +18,11 @@ namespace Docms.Infrastructure.Tests
                 .UseInMemoryDatabase("DeviceRepositoryTests")
                 .Options, mediator);
             var sut = new DeviceRepository(ctx);
-            var d1 = await sut.AddAsync(new Device("ABC", "USER1"));
+            var d1 = await sut.AddAsync(new Device("ABC", "USERAGENT", "USER1"));
             await sut.UnitOfWork.SaveEntitiesAsync();
             var d2 = await sut.GetAsync("ABC");
             Assert.AreEqual("ABC", d2.DeviceId);
+            Assert.AreEqual("USERAGENT", d2.DeviceUserAgent);
             Assert.AreEqual(false, d2.Granted);
         }
     }

@@ -1,5 +1,4 @@
-﻿using System;
-using Docms.Domain.Events.Identity;
+﻿using Docms.Domain.Events.Identity;
 using Docms.Domain.SeedWork;
 
 namespace Docms.Domain.Identity
@@ -9,15 +8,17 @@ namespace Docms.Domain.Identity
         public string DeviceId { get; set; }
         public string UsedBy { get; set; }
         public bool Granted { get; set; }
+        public string DeviceUserAgent { get; set; }
 
         protected Device() { }
 
-        public Device(string deviceId, string usedBy)
+        public Device(string deviceId, string deviceUserAgent, string usedBy)
         {
             DeviceId = deviceId;
+            DeviceUserAgent = deviceUserAgent;
             UsedBy = usedBy;
 
-            OnDeviceNewlyAccessed(deviceId, usedBy);
+            OnDeviceNewlyAccessed(deviceId, deviceUserAgent, usedBy);
         }
 
         public void Grant(string byUserId)
@@ -32,9 +33,9 @@ namespace Docms.Domain.Identity
             OnDeviceRevoked(byUserId);
         }
 
-        private void OnDeviceNewlyAccessed(string deviceId, string usedBy)
+        private void OnDeviceNewlyAccessed(string deviceId, string deviceUserAgent, string usedBy)
         {
-            var ev = new DeviceNewlyAccessedEvent(this, deviceId, usedBy);
+            var ev = new DeviceNewlyAccessedEvent(this, deviceId, deviceUserAgent, usedBy);
             AddDomainEvent(ev);
         }
 

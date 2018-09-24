@@ -76,6 +76,7 @@ namespace Docms.Web.Filters
                     await _mediator.Send(new AddNewDeviceCommand()
                     {
                         DeviceId = deviceId,
+                        DeviceUserAgent = context.HttpContext.Request.Headers.TryGetValue("USER-AGENT", out var uaValue) ? (string)uaValue : null,
                         UsedBy = appUser.Id
                     });
                 }

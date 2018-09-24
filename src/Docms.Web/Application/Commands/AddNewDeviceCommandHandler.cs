@@ -24,7 +24,8 @@ namespace Docms.Web.Application.Commands
                 throw new InvalidOperationException();
             }
 
-            device = new Device(request.DeviceId, request.UsedBy);
+            device = new Device(request.DeviceId, request.DeviceUserAgent, request.UsedBy);
+
             await _deviceRepository.AddAsync(device);
             await _deviceRepository.UnitOfWork.SaveEntitiesAsync();
             return true;

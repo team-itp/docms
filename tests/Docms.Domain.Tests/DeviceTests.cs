@@ -12,7 +12,7 @@ namespace Docms.Domain.Tests
         [TestMethod]
         public void 新しいデバイスを生成した場合にデバイスの初期化イベントが発生する()
         {
-            var sut = new Device(Guid.NewGuid().ToString(), "USER1");
+            var sut = new Device(Guid.NewGuid().ToString(), "USERAGENT", "USER1");
             Assert.AreEqual(1, sut.DomainEvents.Count);
             Assert.IsTrue(sut.DomainEvents.First() is DeviceNewlyAccessedEvent);
         }
@@ -20,7 +20,7 @@ namespace Docms.Domain.Tests
         [TestMethod]
         public void デバイスを許可したらデバイスの許可イベントが発生する()
         {
-            var sut = new Device(Guid.NewGuid().ToString(), "USER1");
+            var sut = new Device(Guid.NewGuid().ToString(), "USERAGENT", "USER1");
             sut.ClearDomainEvents();
             sut.Grant("userId1");
             Assert.AreEqual(1, sut.DomainEvents.Count);
@@ -30,7 +30,7 @@ namespace Docms.Domain.Tests
         [TestMethod]
         public void デバイスを拒否したらデバイスの拒否イベントが発生する()
         {
-            var sut = new Device(Guid.NewGuid().ToString(), "USER1");
+            var sut = new Device(Guid.NewGuid().ToString(), "USERAGENT", "USER1");
             sut.ClearDomainEvents();
             sut.Revoke("userId1");
             Assert.AreEqual(1, sut.DomainEvents.Count);

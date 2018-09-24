@@ -9,6 +9,8 @@ namespace Docms.Queries.DeviceAuthorization
         [Column("DeviceId")]
         [Key]
         public string DeviceId { get; set; }
+        [Column("DeviceUserAgent")]
+        public string DeviceUserAgent { get; set; }
         [Column("IsGranted")]
         public bool IsGranted { get; set; }
         [Column("GrantedBy")]

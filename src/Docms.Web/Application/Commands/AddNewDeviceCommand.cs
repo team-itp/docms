@@ -6,5 +6,6 @@ namespace Docms.Web.Application.Commands
     {
         public string DeviceId { get; set; }
         public string UsedBy { get; set; }
+        public string DeviceUserAgent { get; internal set; }
     }
 }

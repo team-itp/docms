@@ -10,7 +10,6 @@ using Docms.Queries.DeviceAuthorization;
 using Docms.Queries.DocumentHistories;
 using Docms.Web.Api.Serialization;
 using Docms.Web.Application.Identity;
-using Docms.Web.Extensions;
 using IdentityServer4.Models;
 using MediatR;
 using Microsoft.AspNetCore.Authentication.JwtBearer;

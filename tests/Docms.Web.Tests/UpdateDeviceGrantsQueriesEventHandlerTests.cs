@@ -53,7 +53,7 @@ namespace Docms.Web.Tests
         [TestMethod]
         public async Task デバイスの登録イベントが作成される()
         {
-            var device = new Device("DEVID1", "USERID");
+            var device = new Device("DEVID1", "USERAGENT", "USERID");
             var ev = device.DomainEvents.First();
             await sut.Handle(new DomainEventNotification<DeviceNewlyAccessedEvent>(ev as DeviceNewlyAccessedEvent));
             Assert.AreEqual(1, await ctx.DeviceGrants.Where(f => f.DeviceId == "DEVID1").CountAsync());

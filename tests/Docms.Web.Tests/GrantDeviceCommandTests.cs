@@ -23,7 +23,7 @@ namespace Docms.Web.Tests
         [TestMethod]
         public async Task コマンドを発行してデバイスが許可されること()
         {
-            await repository.AddAsync(new Device("123", "USER1"));
+            await repository.AddAsync(new Device("123", "USERAGENT", "USER1"));
             await sut.Handle(new GrantDeviceCommand()
             {
                 DeviceId = "123",
