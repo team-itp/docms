@@ -235,6 +235,7 @@ namespace Docms.Client.Tests.Utils
             {
                 historyValues = historyValues.Where(h => h.Timestamp > lastSynced.Value);
             }
+            historyValues = historyValues.OrderBy(e => e.Timestamp);
             return Task.FromResult(historyValues);
         }
 

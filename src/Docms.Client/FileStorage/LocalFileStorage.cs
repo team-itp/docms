@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.ComponentModel;
 using System.IO;
 using System.Linq;
 using System.Security.Cryptography;
@@ -14,6 +15,11 @@ namespace Docms.Client.FileStorage
         public LocalFileStorage(string basePath)
         {
             _basePath = basePath;
+        }
+
+        private string ResolvePath(string fullPath)
+        {
+            return fullPath.Substring(_basePath.Length + 1);
         }
 
         public async Task Create(string path, Stream stream, DateTime created, DateTime lastModified)
@@ -32,7 +38,7 @@ namespace Docms.Client.FileStorage
         public string CalculateHash(string path)
         {
             var fullpath = Path.Combine(_basePath, path);
-            using(var sha1 = SHA1.Create())
+            using (var sha1 = SHA1.Create())
             using (var fs = new FileStream(fullpath, FileMode.Open, FileAccess.Read, FileShare.ReadWrite | FileShare.Delete))
             {
                 var hashBin = sha1.ComputeHash(fs);
@@ -79,13 +85,13 @@ namespace Docms.Client.FileStorage
         public IEnumerable<string> GetFiles(string path)
         {
             var fullpath = Path.Combine(_basePath, path);
-            return Directory.GetFiles(fullpath).Select(fp => fp.Substring(_basePath.Length + 1));
+            return Directory.GetFiles(fullpath).Select(ResolvePath);
         }
 
         public IEnumerable<string> GetDirectories(string path)
         {
             var fullpath = Path.Combine(_basePath, path);
-            return Directory.GetDirectories(fullpath).Select(fp => fp.Substring(_basePath.Length + 1));
+            return Directory.GetDirectories(fullpath).Select(ResolvePath);
         }
 
         private void EnsureDirectoryExists(string fullpath)
