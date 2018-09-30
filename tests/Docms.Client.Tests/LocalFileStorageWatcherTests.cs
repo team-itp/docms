@@ -8,6 +8,7 @@ using System.IO;
 using System.Linq;
 using System.Text;
 using System.Threading;
+using System.Threading.Tasks;
 
 namespace Docms.Client.Tests
 {
@@ -18,19 +19,19 @@ namespace Docms.Client.Tests
         private LocalFileStorageWatcher sut;
 
         [TestInitialize]
-        public void Setup()
+        public async Task Setup()
         {
             _watchingPath = Path.GetFullPath("tmp");
             var dataStorage = new MockDataStorage();
             var sfs = new ShadowFileSystem(dataStorage);
             sut = new LocalFileStorageWatcher(_watchingPath, sfs);
-            sut.StartWatch();
+            await sut.StartWatch();
         }
 
         [TestCleanup]
-        public void Teardown()
+        public async Task Teardown()
         {
-            sut.StopWatch();
+            await sut.StopWatch();
             if (Directory.Exists(_watchingPath))
             {
                 Directory.Delete(_watchingPath, true);
