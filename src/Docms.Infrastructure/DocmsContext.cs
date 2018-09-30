@@ -84,24 +84,48 @@ namespace Docms.Infrastructure
                     value => value.Kind == DateTimeKind.Unspecified
                         ? DateTime.SpecifyKind(value, DateTimeKind.Utc)
                         : value);
-            modelBuilder.Entity<DocumentHistory>()
-                .Property<DateTime?>("Created")
+            modelBuilder.Entity<DocumentCreated>()
+                .Property(d => d.Created)
                 .HasConversion(
                     value => value,
-                    value => value.HasValue
-                        ? value.Value.Kind == DateTimeKind.Unspecified
-                        ? DateTime.SpecifyKind(value.Value, DateTimeKind.Utc)
-                        : value.Value
-                        : default(DateTime?));
-            modelBuilder.Entity<DocumentHistory>()
-                .Property<DateTime?>("LastModified")
+                    value => value.Kind == DateTimeKind.Unspecified
+                        ? DateTime.SpecifyKind(value, DateTimeKind.Utc)
+                        : value);
+            modelBuilder.Entity<DocumentCreated>()
+                .Property(d => d.LastModified)
                 .HasConversion(
                     value => value,
-                    value => value.HasValue
-                        ? value.Value.Kind == DateTimeKind.Unspecified
-                        ? DateTime.SpecifyKind(value.Value, DateTimeKind.Utc)
-                        : value.Value
-                        : default(DateTime?));
+                    value => value.Kind == DateTimeKind.Unspecified
+                        ? DateTime.SpecifyKind(value, DateTimeKind.Utc)
+                        : value);
+            modelBuilder.Entity<DocumentUpdated>()
+                .Property(d => d.Created)
+                .HasConversion(
+                    value => value,
+                    value => value.Kind == DateTimeKind.Unspecified
+                        ? DateTime.SpecifyKind(value, DateTimeKind.Utc)
+                        : value);
+            modelBuilder.Entity<DocumentUpdated>()
+                .Property(d => d.LastModified)
+                .HasConversion(
+                    value => value,
+                    value => value.Kind == DateTimeKind.Unspecified
+                        ? DateTime.SpecifyKind(value, DateTimeKind.Utc)
+                        : value);
+            modelBuilder.Entity<DocumentMovedFromOldPath>()
+                .Property(d => d.Created)
+                .HasConversion(
+                    value => value,
+                    value => value.Kind == DateTimeKind.Unspecified
+                        ? DateTime.SpecifyKind(value, DateTimeKind.Utc)
+                        : value);
+            modelBuilder.Entity<DocumentMovedFromOldPath>()
+                .Property(d => d.LastModified)
+                .HasConversion(
+                    value => value,
+                    value => value.Kind == DateTimeKind.Unspecified
+                        ? DateTime.SpecifyKind(value, DateTimeKind.Utc)
+                        : value);
         }
     }
 
