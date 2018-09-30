@@ -48,10 +48,10 @@ namespace Docms.Client.FileTrees
             return Get(name) as FileNode;
         }
 
-        public void Add(Node node)
+        public bool Add(Node node)
         {
             node.Parent = this;
-            _children.Add(node);
+            return _children.Add(node);
         }
 
         public void Remove(Node node)
@@ -70,9 +70,15 @@ namespace Docms.Client.FileTrees
 
     public sealed class NodeCollection : Dictionary<string, Node>
     {
-        public void Add(Node node)
+        public bool Add(Node node)
         {
-            Add(node.Name, node);
+            var contains = ContainsKey(node.Name);
+            if (!contains)
+            {
+                Add(node.Name, node);
+                return true;
+            }
+            return false;
         }
 
         public void Remove(Node node)

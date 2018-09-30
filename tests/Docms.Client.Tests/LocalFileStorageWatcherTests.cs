@@ -1,6 +1,5 @@
 ﻿using Docms.Client.FileStorage;
-using Docms.Client.FileTracking;
-using Docms.Client.Tests.Utils;
+using Docms.Client.FileTrees;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using System;
 using System.Collections.Generic;
@@ -22,9 +21,7 @@ namespace Docms.Client.Tests
         public async Task Setup()
         {
             _watchingPath = Path.GetFullPath("tmp");
-            var dataStorage = new MockDataStorage();
-            var sfs = new ShadowFileSystem(dataStorage);
-            sut = new LocalFileStorageWatcher(_watchingPath, sfs);
+            sut = new LocalFileStorageWatcher(_watchingPath);
             await sut.StartWatch();
         }
 
@@ -88,7 +85,7 @@ namespace Docms.Client.Tests
         }
 
         [TestMethod]
-        public void ルートディレクトリへのファイルの保存を検知した場合にイベントが発生する()
+        public async Task ルートディレクトリへのファイルの保存を検知した場合にイベントが発生する()
         {
             var ev = default(FileCreatedEventArgs);
             sut.FileCreated += new EventHandler<FileCreatedEventArgs>((s, e) =>
@@ -96,11 +93,12 @@ namespace Docms.Client.Tests
                 ev = e;
             });
             CreateFile("content1.txt", "content1.txt");
+            await sut.StopWatch();
             Assert.AreEqual("content1.txt", ev.Path.ToString());
         }
 
         [TestMethod]
-        public void サブディレクトリへのファイルの保存を検知した場合にイベントが発生する()
+        public async Task サブディレクトリへのファイルの保存を検知した場合にイベントが発生する()
         {
             var ev = default(FileCreatedEventArgs);
             sut.FileCreated += new EventHandler<FileCreatedEventArgs>((s, e) =>
@@ -108,11 +106,12 @@ namespace Docms.Client.Tests
                 ev = e;
             });
             CreateFile("dir/content1.txt", "dir/content1.txt");
+            await sut.StopWatch();
             Assert.AreEqual("dir/content1.txt", ev.Path.ToString());
         }
 
         [TestMethod]
-        public void ルートディレクトリへのファイルの更新を検知した場合にイベントが発生する()
+        public async Task ルートディレクトリへのファイルの更新を検知した場合にイベントが発生する()
         {
             CreateFile("content1.txt", "content1.txt");
             var ev = default(FileModifiedEventArgs);
@@ -121,11 +120,12 @@ namespace Docms.Client.Tests
                 ev = e;
             });
             UpdateFile("content1.txt", "content1.txt modified");
+            await sut.StopWatch();
             Assert.AreEqual("content1.txt", ev.Path.ToString());
         }
 
         [TestMethod]
-        public void サブディレクトリへのファイルの更新を検知した場合にイベントが発生する()
+        public async Task サブディレクトリへのファイルの更新を検知した場合にイベントが発生する()
         {
             CreateFile("dir/content1.txt", "dir/content1.txt");
             var ev = default(FileModifiedEventArgs);
@@ -134,11 +134,12 @@ namespace Docms.Client.Tests
                 ev = e;
             });
             UpdateFile("dir/content1.txt", "dir/content1.txt modified");
+            await sut.StopWatch();
             Assert.AreEqual("dir/content1.txt", ev.Path.ToString());
         }
 
         [TestMethod]
-        public void ルートディレクトリのファイルの名前変更を検知した場合にイベントが発生する()
+        public async Task ルートディレクトリのファイルの名前変更を検知した場合にイベントが発生する()
         {
             CreateFile("content1.txt", "content1.txt");
             var ev = default(FileMovedEventArgs);
@@ -147,11 +148,12 @@ namespace Docms.Client.Tests
                 ev = e;
             });
             MoveFile("content1.txt", "content2.txt");
+            await sut.StopWatch();
             Assert.AreEqual("content2.txt", ev.Path.ToString());
         }
 
         [TestMethod]
-        public void サブディレクトリのファイルの名前変更を検知した場合にイベントが発生する()
+        public async Task サブディレクトリのファイルの名前変更を検知した場合にイベントが発生する()
         {
             CreateFile("dir/content1.txt", "dir/content1.txt");
             var ev = default(FileMovedEventArgs);
@@ -160,11 +162,12 @@ namespace Docms.Client.Tests
                 ev = e;
             });
             MoveFile("dir/content1.txt", "dir/content2.txt");
+            await sut.StopWatch();
             Assert.AreEqual("dir/content2.txt", ev.Path.ToString());
         }
 
         [TestMethod]
-        public void サブディレクトリをまたいでのファイルの移動を検知した場合にイベントが発生する()
+        public async Task サブディレクトリをまたいでのファイルの移動を検知した場合にイベントが発生する()
         {
             CreateFile("dir1/content1.txt", "dir1/content1.txt");
             var ev1 = default(FileDeletedEventArgs);
@@ -178,12 +181,13 @@ namespace Docms.Client.Tests
                 ev2 = e;
             });
             MoveFile("dir1/content1.txt", "dir2/content2.txt");
+            await sut.StopWatch();
             Assert.AreEqual("dir1/content1.txt", ev1.Path.ToString());
             Assert.AreEqual("dir2/content2.txt", ev2.Path.ToString());
         }
 
         [TestMethod]
-        public void ルートディレクトリのファイルの削除を検知した場合にイベントが発生する()
+        public async Task ルートディレクトリのファイルの削除を検知した場合にイベントが発生する()
         {
             var ev = default(FileDeletedEventArgs);
             sut.FileDeleted += new EventHandler<FileDeletedEventArgs>((s, e) =>
@@ -192,11 +196,12 @@ namespace Docms.Client.Tests
             });
             CreateFile("content1.txt", "content1.txt");
             DeleteFile("content1.txt");
+            await sut.StopWatch();
             Assert.AreEqual("content1.txt", ev.Path.ToString());
         }
 
         [TestMethod]
-        public void サブディレクトリのファイルの削除を検知した場合にイベントが発生する()
+        public async Task サブディレクトリのファイルの削除を検知した場合にイベントが発生する()
         {
             var ev = default(FileDeletedEventArgs);
             sut.FileDeleted += new EventHandler<FileDeletedEventArgs>((s, e) =>
@@ -205,11 +210,12 @@ namespace Docms.Client.Tests
             });
             CreateFile("dir/content1.txt", "dir/content1.txt");
             DeleteFile("dir/content1.txt");
+            await sut.StopWatch();
             Assert.AreEqual("dir/content1.txt", ev.Path.ToString());
         }
 
         [TestMethod]
-        public void ルートディレクトリのディレクトリの移動を検知した場合にイベントが発生する()
+        public async Task ルートディレクトリのディレクトリの移動を検知した場合にイベントが発生する()
         {
             CreateFile("dir1/content1.txt", "dir1/content1.txt");
             CreateFile("dir1/content2.txt", "dir1/content2.txt");
@@ -224,6 +230,7 @@ namespace Docms.Client.Tests
                 ev2.Add(e);
             });
             MoveDirectory("dir1", "dir2");
+            await sut.StopWatch();
             Assert.AreEqual("dir1/content1.txt", ev1.First().Path.ToString());
             Assert.AreEqual("dir1/content1.txt", ev1.Last().Path.ToString());
             Assert.AreEqual("dir2/content1.txt", ev2.First().Path.ToString());

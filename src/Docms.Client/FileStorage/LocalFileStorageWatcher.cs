@@ -1,8 +1,9 @@
-﻿using Docms.Client.FileTracking;
+﻿using Docms.Client.FileTrees;
 using Docms.Client.SeedWork;
 using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using System.Threading;
@@ -18,17 +19,16 @@ namespace Docms.Client.FileStorage
         public event EventHandler<FileMovedEventArgs> FileMoved;
 
         private readonly string _basePath;
-        private ShadowFileSystem _shadowFileSystem;
+        private InternalFileTree _fileTree;
         private FileSystemWatcher _watcher;
         private ConcurrentQueue<Func<Task>> _tasks = new ConcurrentQueue<Func<Task>>();
         private CancellationTokenSource _processCts;
         private Task _processTask;
         private AutoResetEvent _taskHandle;
 
-        public LocalFileStorageWatcher(string basePath, ShadowFileSystem shadowFileSystem)
+        public LocalFileStorageWatcher(string basePath)
         {
             _basePath = basePath;
-            _shadowFileSystem = shadowFileSystem;
             EnsureDirectoryExists(_basePath);
             _watcher = new FileSystemWatcher(_basePath)
             {
@@ -49,6 +49,7 @@ namespace Docms.Client.FileStorage
             _processCts = new CancellationTokenSource();
             _processTask = ProcessAsync(_processCts.Token);
             _watcher.EnableRaisingEvents = true;
+            _fileTree = new InternalFileTree();
             await EnqueueTask(async () =>
             {
                 var isOk = false;
@@ -77,6 +78,7 @@ namespace Docms.Client.FileStorage
                 }
                 catch (Exception ex)
                 {
+                    Trace.Write(ex);
                     tcs.SetException(ex);
                 }
             });
@@ -111,7 +113,7 @@ namespace Docms.Client.FileStorage
             {
                 using (var fs = fileInfo.Open(FileMode.Open, FileAccess.Read, FileShare.None))
                 {
-                    await _shadowFileSystem.CreateFileAsync(path, fs, fileInfo.CreationTimeUtc, fileInfo.LastWriteTimeUtc);
+                    _fileTree.AddFile(path);
                 }
             }
             var dirInfo = GetDirectory(path);
@@ -130,12 +132,13 @@ namespace Docms.Client.FileStorage
 
         public async Task StopWatch()
         {
-            if (_processTask == null)
-                throw new InvalidOperationException();
-            _watcher.EnableRaisingEvents = false;
-            _processCts.Cancel();
-            await _processTask;
-            _processTask = null;
+            if (_processTask != null)
+            {
+                _watcher.EnableRaisingEvents = false;
+                _processCts.CancelAfter(100);
+                await _processTask;
+                _processTask = null;
+            }
         }
 
         private PathString ResolvePath(string fullPath)
@@ -148,92 +151,119 @@ namespace Docms.Client.FileStorage
             _watcher.EnableRaisingEvents = true;
         }
 
-        private async void _watcher_Deleted(object sender, FileSystemEventArgs e)
+        private async void _watcher_Created(object sender, FileSystemEventArgs e)
         {
-            await EnqueueTask(() =>
+            try
             {
-                if (!File.Exists(e.FullPath))
+                await EnqueueTask(() =>
                 {
-                    OnFileDeleted(ResolvePath(e.FullPath));
-                }
-                else if (!Directory.Exists(e.FullPath))
-                {
-                    OnDirectoryDeleted(ResolvePath(e.FullPath));
-                }
-                return Task.CompletedTask;
-            });
-        }
-
-        protected void OnFileDeleted(PathString path)
-        {
-            FileDeleted?.Invoke(this, new FileDeletedEventArgs(path));
-        }
-
-        protected void OnDirectoryDeleted(PathString path)
-        {
-            foreach (var item in GetFiles(path))
-            {
-                OnFileDeleted(item);
+                    if (File.Exists(e.FullPath))
+                    {
+                        OnFileCreated(ResolvePath(e.FullPath));
+                    }
+                    else if (Directory.Exists(e.FullPath))
+                    {
+                        OnDirectoryCreated(ResolvePath(e.FullPath));
+                    }
+                    return Task.CompletedTask;
+                });
             }
-
-            foreach (var item in GetDirectories(path))
+            catch (Exception ex)
             {
-                OnDirectoryDeleted(item);
-            }
-        }
-
-        private async void _watcher_Renamed(object sender, RenamedEventArgs e)
-        {
-            await EnqueueTask(() =>
-            {
-                if (File.Exists(e.FullPath))
-                {
-                    OnFileMoved(ResolvePath(e.FullPath), ResolvePath(e.OldFullPath));
-                }
-                else if (Directory.Exists(e.FullPath))
-                {
-                    OnDirectoryMoved(ResolvePath(e.FullPath), ResolvePath(e.OldFullPath));
-                }
-                return Task.CompletedTask;
-            });
-        }
-
-        protected void OnFileMoved(PathString path, PathString fromPath)
-        {
-            FileMoved?.Invoke(this, new FileMovedEventArgs(path, fromPath));
-        }
-
-        protected void OnDirectoryMoved(PathString path, PathString fromPath)
-        {
-            foreach (var item in GetFiles(path))
-            {
-                OnFileMoved(path.Combine(item.Name), fromPath.Combine(item.Name));
-            }
-
-            foreach (var item in GetDirectories(path))
-            {
-                OnDirectoryMoved(path.Combine(item.Name), fromPath.Combine(item.Name));
+                Trace.Write(ex);
             }
         }
 
         private async void _watcher_Changed(object sender, FileSystemEventArgs e)
         {
-            await EnqueueTask(() =>
+            try
             {
-                if (File.Exists(e.FullPath))
+                await EnqueueTask(() =>
                 {
-                    OnFileModified(ResolvePath(e.FullPath));
-                }
-                else if (Directory.Exists(e.FullPath))
+                    if (File.Exists(e.FullPath))
+                    {
+                        OnFileModified(ResolvePath(e.FullPath));
+                    }
+                    else if (Directory.Exists(e.FullPath))
+                    {
+                        OnDirectoryModified(ResolvePath(e.FullPath));
+                    }
+                    return Task.CompletedTask;
+                });
+            }
+            catch (Exception ex)
+            {
+                Trace.Write(ex);
+            }
+        }
+
+        private async void _watcher_Renamed(object sender, RenamedEventArgs e)
+        {
+            try
+            {
+                await EnqueueTask(() =>
                 {
-                    OnDirectoryModified(ResolvePath(e.FullPath));
-                }
-                return Task.CompletedTask;
-            });
+                    if (File.Exists(e.FullPath))
+                    {
+                        OnFileMoved(ResolvePath(e.FullPath), ResolvePath(e.OldFullPath));
+                    }
+                    else if (Directory.Exists(e.FullPath))
+                    {
+                        OnDirectoryMoved(ResolvePath(e.FullPath), ResolvePath(e.OldFullPath));
+                    }
+                    return Task.CompletedTask;
+                });
+            }
+            catch (Exception ex)
+            {
+                Trace.Write(ex);
+            }
+        }
+
+        private async void _watcher_Deleted(object sender, FileSystemEventArgs e)
+        {
+            try
+            {
+                await EnqueueTask(() =>
+                {
+                    if (!File.Exists(e.FullPath))
+                    {
+                        OnFileDeleted(ResolvePath(e.FullPath));
+                    }
+                    else if (!Directory.Exists(e.FullPath))
+                    {
+                        OnDirectoryDeleted(ResolvePath(e.FullPath));
+                    }
+                    return Task.CompletedTask;
+                });
+            }
+            catch (Exception ex)
+            {
+                Trace.Write(ex);
+            }
+        }
+
+        protected void OnFileCreated(PathString path)
+        {
+            _fileTree.AddFile(path);
+            FileCreated?.Invoke(this, new FileCreatedEventArgs(path));
+        }
+
+        protected void OnDirectoryCreated(PathString path)
+        {
+            foreach (var item in GetFiles(path))
+            {
+                OnFileCreated(item);
+            }
+            foreach (var item in GetDirectories(path))
+            {
+                OnDirectoryCreated(item);
+            }
         }
 
         protected void OnFileModified(PathString path)
         {
+            _fileTree.Update(path);
             FileModified?.Invoke(this, new FileModifiedEventArgs(path));
         }
 
@@ -250,38 +280,42 @@ namespace Docms.Client.FileStorage
             }
         }
 
-        private async void _watcher_Created(object sender, FileSystemEventArgs e)
+        protected void OnFileMoved(PathString path, PathString fromPath)
         {
-            await EnqueueTask(() =>
-            {
-                if (File.Exists(e.FullPath))
-                {
-                    OnFileCreated(ResolvePath(e.FullPath));
-                }
-                else if (Directory.Exists(e.FullPath))
-                {
-                    OnDirectoryCreated(ResolvePath(e.FullPath));
-                }
-                return Task.CompletedTask;
-            });
+            _fileTree.Move(fromPath, path);
+            FileMoved?.Invoke(this, new FileMovedEventArgs(path, fromPath));
         }
 
-        protected void OnDirectoryCreated(PathString path)
+        protected void OnDirectoryMoved(PathString path, PathString fromPath)
         {
             foreach (var item in GetFiles(path))
             {
-                OnFileCreated(item);
+                OnFileMoved(path.Combine(item.Name), fromPath.Combine(item.Name));
             }
 
             foreach (var item in GetDirectories(path))
             {
-                OnDirectoryCreated(item);
+                OnDirectoryMoved(path.Combine(item.Name), fromPath.Combine(item.Name));
             }
         }
 
-        protected void OnFileCreated(PathString path)
+        protected void OnFileDeleted(PathString path)
         {
-            FileCreated?.Invoke(this, new FileCreatedEventArgs(path));
+            _fileTree.Delete(path);
+            FileDeleted?.Invoke(this, new FileDeletedEventArgs(path));
+        }
+
+        protected void OnDirectoryDeleted(PathString path)
+        {
+            foreach (var item in GetFiles(path))
+            {
+                OnFileDeleted(item);
+            }
+
+            foreach (var item in GetDirectories(path))
+            {
+                OnDirectoryDeleted(item);
+            }
         }
 
         public FileInfo GetFile(PathString path)
