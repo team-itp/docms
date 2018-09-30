@@ -1,11 +1,13 @@
+using Docms.Client.SeedWork;
 using System;
 
 namespace Docms.Client.FileStorage
 {
     public abstract class LocalFileEvenArgs : EventArgs
     {
-        public string Path { get; }
-        public LocalFileEvenArgs(string path)
+        public PathString Path { get; }
+
+        public LocalFileEvenArgs(PathString path)
         {
             Path = path;
         }
@@ -13,29 +15,29 @@ namespace Docms.Client.FileStorage
 
     public class FileCreatedEventArgs : LocalFileEvenArgs
     {
-        public FileCreatedEventArgs(string path) : base(path)
+        public FileCreatedEventArgs(PathString path) : base(path)
         {
         }
     }
 
     public class FileModifiedEventArgs : LocalFileEvenArgs
     {
-        public FileModifiedEventArgs(string path) : base(path)
+        public FileModifiedEventArgs(PathString path) : base(path)
         {
         }
     }
 
     public class FileDeletedEventArgs : LocalFileEvenArgs
     {
-        public FileDeletedEventArgs(string path) : base(path)
+        public FileDeletedEventArgs(PathString path) : base(path)
         {
         }
     }
 
     public class FileMovedEventArgs : LocalFileEvenArgs
     {
-        public string FromPath { get; }
-        public FileMovedEventArgs(string path, string fromPath) : base(path)
+        public PathString FromPath { get; }
+        public FileMovedEventArgs(PathString path, PathString fromPath) : base(path)
         {
             FromPath = fromPath;
         }

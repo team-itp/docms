@@ -1,5 +1,6 @@
 ﻿using Docms.Client.FileStorage;
 using Docms.Client.FileSyncing;
+using Docms.Client.SeedWork;
 using Docms.Client.Tests.Utils;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
@@ -50,7 +51,7 @@ namespace Docms.Client.Tests
         [TestMethod]
         public async Task ファイルが存在しない場合何もしない()
         {
-            await sut.RequestCreationAsync("test/test1.txt").ConfigureAwait(false);
+            await sut.RequestCreationAsync(new PathString("test/test1.txt")).ConfigureAwait(false);
             Assert.AreEqual(0, mockClient.histories.Count);
         }
 
@@ -58,7 +59,7 @@ namespace Docms.Client.Tests
         public async Task ファイルが存在する場合でファイルがサーバーの最新と一致した場合何もしない()
         {
             await mockClient.CreateOrUpdateDocumentAsync("test/test1.txt", CreateStream("Hello")).ConfigureAwait(false);
-            await sut.RequestCreationAsync("test/test1.txt").ConfigureAwait(false);
+            await sut.RequestCreationAsync(new PathString("test/test1.txt")).ConfigureAwait(false);
             Assert.AreEqual(1, mockClient.histories["test/test1.txt"].Count);
         }
 
@@ -67,8 +68,8 @@ namespace Docms.Client.Tests
         {
             await mockClient.CreateOrUpdateDocumentAsync("test/test1.txt", CreateStream("Hello")).ConfigureAwait(false);
             var now = DateTime.UtcNow;
-            await localFileStorage.Create("test/test1.txt", CreateStream("Hello new"), now, now).ConfigureAwait(false);
-            await sut.RequestCreationAsync("test/test1.txt").ConfigureAwait(false);
+            await localFileStorage.Create(new PathString("test/test1.txt"), CreateStream("Hello new"), now, now).ConfigureAwait(false);
+            await sut.RequestCreationAsync(new PathString("test/test1.txt")).ConfigureAwait(false);
             Assert.AreEqual(2, mockClient.histories["test/test1.txt"].Count);
         }
     }

@@ -1,5 +1,6 @@
 ﻿using Docms.Client.FileStorage;
 using Docms.Client.FileSyncing;
+using Docms.Client.SeedWork;
 using Docms.Client.Tests.Utils;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
@@ -51,7 +52,7 @@ namespace Docms.Client.Tests
         {
             await mockClient.CreateOrUpdateDocumentAsync("test/test1.txt", CreateStream("test/test1.txt")).ConfigureAwait(false);
             await sut.SyncFromHistoryAsync().ConfigureAwait(false);
-            var file = localFileStorage.GetFile("test/test1.txt");
+            var file = localFileStorage.GetFile(new PathString("test/test1.txt"));
             Assert.AreEqual("test/test1.txt", File.ReadAllText(file.FullName));
         }
 
@@ -60,7 +61,7 @@ namespace Docms.Client.Tests
         {
             await mockClient.CreateOrUpdateDocumentAsync("test/test1.txt", CreateStream("test/test1.txt")).ConfigureAwait(false);
             await sut.SyncFromHistoryAsync().ConfigureAwait(false);
-            var file = localFileStorage.GetFile("test/test1.txt");
+            var file = localFileStorage.GetFile(new PathString("test/test1.txt"));
             file.Delete();
 
             await sut.SyncFromHistoryAsync().ConfigureAwait(false);
@@ -73,7 +74,7 @@ namespace Docms.Client.Tests
             await mockClient.CreateOrUpdateDocumentAsync("test/test1.txt", CreateStream("test/test1.txt")).ConfigureAwait(false);
             await mockClient.DeleteDocumentAsync("test/test1.txt").ConfigureAwait(false);
 
-            var file = localFileStorage.GetFile("test/test1.txt");
+            var file = localFileStorage.GetFile(new PathString("test/test1.txt"));
             Assert.IsFalse(File.Exists(file.FullName));
 
             await sut.SyncFromHistoryAsync().ConfigureAwait(false);
@@ -88,8 +89,8 @@ namespace Docms.Client.Tests
             await mockClient.MoveDocumentAsync("test/test1.txt", "test/test2.txt").ConfigureAwait(false);
             await mockClient.CreateOrUpdateDocumentAsync("test/test2.txt", CreateStream("test/test2.txt")).ConfigureAwait(false);
 
-            var file1 = localFileStorage.GetFile("test/test1.txt");
-            var file2 = localFileStorage.GetFile("test/test2.txt");
+            var file1 = localFileStorage.GetFile(new PathString("test/test1.txt"));
+            var file2 = localFileStorage.GetFile(new PathString("test/test2.txt"));
             Assert.IsFalse(File.Exists(file1.FullName));
             Assert.IsFalse(File.Exists(file2.FullName));
 

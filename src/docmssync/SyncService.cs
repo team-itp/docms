@@ -163,19 +163,19 @@ namespace docmssync
                     {
                         if (change is DocumentCreated)
                         {
-                            await _synchronizer.RequestCreationAsync(change.Path.ToString(), _cts.Token).ConfigureAwait(false);
+                            await _synchronizer.RequestCreationAsync(change.Path, _cts.Token).ConfigureAwait(false);
                         }
                         else if (change is DocumentUpdated)
                         {
-                            await _synchronizer.RequestChangingAsync(change.Path.ToString(), _cts.Token).ConfigureAwait(false);
+                            await _synchronizer.RequestChangingAsync(change.Path, _cts.Token).ConfigureAwait(false);
                         }
                         else if (change is DocumentMoved moved)
                         {
-                            await _synchronizer.RequestMovementAsync(moved.OldPath.ToString(), moved.Path.ToString(), _cts.Token).ConfigureAwait(false);
+                            await _synchronizer.RequestMovementAsync(moved.OldPath, moved.Path, _cts.Token).ConfigureAwait(false);
                         }
                         else if (change is DocumentDeleted)
                         {
-                            await _synchronizer.RequestDeletionAsync(change.Path.ToString(), _cts.Token).ConfigureAwait(false);
+                            await _synchronizer.RequestDeletionAsync(change.Path, _cts.Token).ConfigureAwait(false);
                         }
                     }
                     _fsTree.ClearDelta();

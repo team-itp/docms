@@ -29,16 +29,14 @@ namespace Docms.Client.FileTrees
 
         private void CreateLocalFileStructure(PathString path)
         {
-            foreach (var dirPath in _localFileStorage.GetDirectories(path.ToString()))
+            foreach (var dirPath in _localFileStorage.GetDirectories(path))
             {
-                var ps = new PathString(dirPath);
-                AddDirectory(ps);
-                CreateLocalFileStructure(ps);
+                AddDirectory(dirPath);
+                CreateLocalFileStructure(dirPath);
             }
-            foreach (var filePath in _localFileStorage.GetFiles(path.ToString()))
+            foreach (var filePath in _localFileStorage.GetFiles(path))
             {
-                var ps = new PathString(filePath);
-                AddFile(ps);
+                AddFile(filePath);
             }
         }
 

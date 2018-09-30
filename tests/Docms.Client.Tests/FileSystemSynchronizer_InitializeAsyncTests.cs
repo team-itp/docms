@@ -1,5 +1,6 @@
 ﻿using Docms.Client.FileStorage;
 using Docms.Client.FileSyncing;
+using Docms.Client.SeedWork;
 using Docms.Client.Tests.Utils;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
@@ -55,11 +56,11 @@ namespace Docms.Client.Tests
             await mockClient.CreateOrUpdateDocumentAsync("test/test2.txt", CreateStream("test/test2.txt")).ConfigureAwait(false);
             await mockClient.CreateOrUpdateDocumentAsync("test/test1.txt", CreateStream("test/test1.txt")).ConfigureAwait(false);
             await sut.InitializeAsync().ConfigureAwait(false);
-            var file1 = localFileStorage.GetFile("日本語/日本語.txt");
+            var file1 = localFileStorage.GetFile(new PathString("日本語/日本語.txt"));
             Assert.AreEqual("日本語/日本語.txt", File.ReadAllText(file1.FullName));
-            var file2 = localFileStorage.GetFile("test/test1.txt");
+            var file2 = localFileStorage.GetFile(new PathString("test/test1.txt"));
             Assert.AreEqual("test/test1.txt", File.ReadAllText(file2.FullName));
-            var file3 = localFileStorage.GetFile("test/test2.txt");
+            var file3 = localFileStorage.GetFile(new PathString("test/test2.txt"));
             Assert.AreEqual("test/test2.txt", File.ReadAllText(file3.FullName));
         }
     }

@@ -1,5 +1,6 @@
 ﻿using Docms.Client.FileStorage;
 using Docms.Client.FileSyncing;
+using Docms.Client.SeedWork;
 using Docms.Client.Tests.Utils;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
@@ -62,8 +63,8 @@ namespace Docms.Client.Tests
         public async Task ファイルがローカルに存在せずファイルの履歴が作成の場合にファイルが作成される()
         {
             await mockClient.CreateOrUpdateDocumentAsync("test/document1.txt", CreateStream("Hello")).ConfigureAwait(false);
-            await sut.SyncAsync("test/document1.txt").ConfigureAwait(false);
-            var fi = localFileStorage.GetFile("test/document1.txt");
+            await sut.SyncAsync(new PathString("test/document1.txt")).ConfigureAwait(false);
+            var fi = localFileStorage.GetFile(new PathString("test/document1.txt"));
             Assert.IsTrue(fi.Exists);
         }
 
@@ -72,8 +73,8 @@ namespace Docms.Client.Tests
         {
             await mockClient.CreateOrUpdateDocumentAsync("test/document2.txt", CreateStream("Hello")).ConfigureAwait(false);
             await mockClient.MoveDocumentAsync("test/document2.txt", "test/document1.txt").ConfigureAwait(false);
-            await sut.SyncAsync("test/document1.txt");
-            var fi = localFileStorage.GetFile("test/document1.txt");
+            await sut.SyncAsync(new PathString("test/document1.txt"));
+            var fi = localFileStorage.GetFile(new PathString("test/document1.txt"));
             Assert.IsTrue(fi.Exists);
             Assert.AreEqual("Hello", File.ReadAllText(fi.FullName));
         }
@@ -84,8 +85,8 @@ namespace Docms.Client.Tests
             await mockClient.CreateOrUpdateDocumentAsync("test/document1.txt", CreateStream("Hello")).ConfigureAwait(false);
             await mockClient.DeleteDocumentAsync("test/document1.txt").ConfigureAwait(false);
             await mockClient.CreateOrUpdateDocumentAsync("test/document1.txt", CreateStream("Hello New")).ConfigureAwait(false);
-            await sut.SyncAsync("test/document1.txt").ConfigureAwait(false);
-            var fi = localFileStorage.GetFile("test/document1.txt");
+            await sut.SyncAsync(new PathString("test/document1.txt")).ConfigureAwait(false);
+            var fi = localFileStorage.GetFile(new PathString("test/document1.txt"));
             Assert.IsTrue(fi.Exists);
             Assert.AreEqual("Hello New", File.ReadAllText(fi.FullName));
         }
@@ -95,9 +96,9 @@ namespace Docms.Client.Tests
         {
             var now = DateTime.UtcNow;
             await mockClient.CreateOrUpdateDocumentAsync("test/document1.txt", CreateStream("Hello")).ConfigureAwait(false);
-            await localFileStorage.Create("test/document1.txt", new MemoryStream(Encoding.UTF8.GetBytes("Hello")), now, now).ConfigureAwait(false);
-            await sut.SyncAsync("test/document1.txt").ConfigureAwait(false);
-            var fi = localFileStorage.GetFile("test/document1.txt");
+            await localFileStorage.Create(new PathString("test/document1.txt"), new MemoryStream(Encoding.UTF8.GetBytes("Hello")), now, now).ConfigureAwait(false);
+            await sut.SyncAsync(new PathString("test/document1.txt")).ConfigureAwait(false);
+            var fi = localFileStorage.GetFile(new PathString("test/document1.txt"));
             Assert.IsTrue(fi.Exists);
             Assert.AreEqual(now, fi.LastWriteTimeUtc);
         }
@@ -107,9 +108,9 @@ namespace Docms.Client.Tests
         {
             var now = DateTime.UtcNow;
             await mockClient.CreateOrUpdateDocumentAsync("test/document1.txt", CreateStream("Hello New")).ConfigureAwait(false);
-            await localFileStorage.Create("test/document1.txt", new MemoryStream(Encoding.UTF8.GetBytes("Hello")), now, now).ConfigureAwait(false);
-            await sut.SyncAsync("test/document1.txt").ConfigureAwait(false);
-            var fi = localFileStorage.GetFile("test/document1.txt");
+            await localFileStorage.Create(new PathString("test/document1.txt"), new MemoryStream(Encoding.UTF8.GetBytes("Hello")), now, now).ConfigureAwait(false);
+            await sut.SyncAsync(new PathString("test/document1.txt")).ConfigureAwait(false);
+            var fi = localFileStorage.GetFile(new PathString("test/document1.txt"));
             Assert.IsTrue(fi.Exists);
             Assert.AreEqual("Hello New", File.ReadAllText(fi.FullName));
         }
@@ -120,9 +121,9 @@ namespace Docms.Client.Tests
             await mockClient.CreateOrUpdateDocumentAsync("test/document1.txt", CreateStream("Hello")).ConfigureAwait(false);
             await Task.Delay(1).ConfigureAwait(false);
             var now = DateTime.UtcNow;
-            await localFileStorage.Create("test/document1.txt", new MemoryStream(Encoding.UTF8.GetBytes("Hello New")), now, now).ConfigureAwait(false);
-            await sut.SyncAsync("test/document1.txt").ConfigureAwait(false);
-            var fi = localFileStorage.GetFile("test/document1.txt");
+            await localFileStorage.Create(new PathString("test/document1.txt"), new MemoryStream(Encoding.UTF8.GetBytes("Hello New")), now, now).ConfigureAwait(false);
+            await sut.SyncAsync(new PathString("test/document1.txt")).ConfigureAwait(false);
+            var fi = localFileStorage.GetFile(new PathString("test/document1.txt"));
             Assert.IsTrue(fi.Exists);
             Assert.AreEqual("Hello New", ReadAllText(fi.OpenRead()));
         }
@@ -131,15 +132,15 @@ namespace Docms.Client.Tests
         public async Task ファイルがローカルに存在しサーバーで移動された場合ローカルのファイルも移動すること()
         {
             var now = DateTime.UtcNow;
-            await localFileStorage.Create("test/document1.txt", new MemoryStream(Encoding.UTF8.GetBytes("Hello")), now, now).ConfigureAwait(false);
+            await localFileStorage.Create(new PathString("test/document1.txt"), new MemoryStream(Encoding.UTF8.GetBytes("Hello")), now, now).ConfigureAwait(false);
             await mockClient.CreateOrUpdateDocumentAsync("test/document1.txt", CreateStream("Hello")).ConfigureAwait(false);
 
             await mockClient.MoveDocumentAsync("test/document1.txt", "test/testsub/document1.txt").ConfigureAwait(false);
             await Task.Delay(1).ConfigureAwait(false);
-            await sut.SyncAsync("test/document1.txt").ConfigureAwait(false);
-            var fiOld = localFileStorage.GetFile("test/document1.txt");
+            await sut.SyncAsync(new PathString("test/document1.txt")).ConfigureAwait(false);
+            var fiOld = localFileStorage.GetFile(new PathString("test/document1.txt"));
             Assert.IsFalse(fiOld.Exists);
-            var fiNew = localFileStorage.GetFile("test/testsub/document1.txt");
+            var fiNew = localFileStorage.GetFile(new PathString("test/testsub/document1.txt"));
             Assert.IsTrue(fiNew.Exists);
         }
 
@@ -147,15 +148,15 @@ namespace Docms.Client.Tests
         public async Task ファイルがローカルに存在しサーバーで移動されて更新された場合ローカルのファイルも更新されること()
         {
             var now = DateTime.UtcNow;
-            await localFileStorage.Create("test/document1.txt", new MemoryStream(Encoding.UTF8.GetBytes("Hello")), now, now).ConfigureAwait(false);
+            await localFileStorage.Create(new PathString("test/document1.txt"), new MemoryStream(Encoding.UTF8.GetBytes("Hello")), now, now).ConfigureAwait(false);
             await mockClient.CreateOrUpdateDocumentAsync("test/document1.txt", CreateStream("Hello")).ConfigureAwait(false);
 
             await mockClient.MoveDocumentAsync("test/document1.txt", "test/testsub/document1.txt").ConfigureAwait(false);
             await Task.Delay(1).ConfigureAwait(false);
-            await sut.SyncAsync("test/document1.txt");
-            var fiOld = localFileStorage.GetFile("test/document1.txt");
+            await sut.SyncAsync(new PathString("test/document1.txt"));
+            var fiOld = localFileStorage.GetFile(new PathString("test/document1.txt"));
             Assert.IsFalse(fiOld.Exists);
-            var fiNew = localFileStorage.GetFile("test/testsub/document1.txt");
+            var fiNew = localFileStorage.GetFile(new PathString("test/testsub/document1.txt"));
             Assert.IsTrue(fiNew.Exists);
         }
 
@@ -163,11 +164,11 @@ namespace Docms.Client.Tests
         public async Task ファイルがローカルに存在せず履歴がすべて適用済みの場合削除される()
         {
             await mockClient.CreateOrUpdateDocumentAsync("test/document1.txt", CreateStream("Hello")).ConfigureAwait(false);
-            await sut.SyncAsync("test/document1.txt");
-            var fi = localFileStorage.GetFile("test/document1.txt");
+            await sut.SyncAsync(new PathString("test/document1.txt"));
+            var fi = localFileStorage.GetFile(new PathString("test/document1.txt"));
             fi.Delete();
             
-            await sut.SyncAsync("test/document1.txt");
+            await sut.SyncAsync(new PathString("test/document1.txt"));
             Assert.IsNull(await mockClient.GetDocumentAsync("test/document1.txt"));
         }
     }
