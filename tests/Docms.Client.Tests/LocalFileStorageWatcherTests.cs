@@ -35,7 +35,7 @@ namespace Docms.Client.Tests
             }
         }
 
-        private void CreateFile(string path, string content)
+        private async Task CreateFile(string path, string content)
         {
             var fullpath = Path.Combine(_watchingPath, path);
             if (!Directory.Exists(Path.GetDirectoryName(fullpath)))
@@ -43,17 +43,19 @@ namespace Docms.Client.Tests
                 Directory.CreateDirectory(Path.GetDirectoryName(fullpath));
             }
             File.WriteAllBytes(fullpath, Encoding.UTF8.GetBytes(content));
-            Thread.Sleep(5);
+            Thread.Sleep(10);
+            await sut.CurrentTask;
         }
 
-        private void UpdateFile(string path, string content)
+        private async Task UpdateFile(string path, string content)
         {
             var fullpath = Path.Combine(_watchingPath, path);
             File.WriteAllBytes(fullpath, Encoding.UTF8.GetBytes(content));
             Thread.Sleep(5);
+            await sut.CurrentTask;
         }
 
-        private void MoveFile(string fromPath, string toPath)
+        private async Task MoveFile(string fromPath, string toPath)
         {
             var fullpathFrom = Path.Combine(_watchingPath, fromPath);
             var fullpathTo = Path.Combine(_watchingPath, toPath);
@@ -63,9 +65,10 @@ namespace Docms.Client.Tests
             }
             File.Move(fullpathFrom, fullpathTo);
             Thread.Sleep(5);
+            await sut.CurrentTask;
         }
 
-        private void MoveDirectory(string fromPath, string toPath)
+        private async Task MoveDirectory(string fromPath, string toPath)
         {
             var fullpathFrom = Path.Combine(_watchingPath, fromPath);
             var fullpathTo = Path.Combine(_watchingPath, toPath);
@@ -75,13 +78,15 @@ namespace Docms.Client.Tests
             }
             Directory.Move(fullpathFrom, fullpathTo);
             Thread.Sleep(5);
+            await sut.CurrentTask;
         }
 
-        private void DeleteFile(string path)
+        private async Task DeleteFile(string path)
         {
             var fullpath = Path.Combine(_watchingPath, path);
             File.Delete(fullpath);
             Thread.Sleep(5);
+            await sut.CurrentTask;
         }
 
         [TestMethod]
@@ -92,8 +97,7 @@ namespace Docms.Client.Tests
             {
                 ev = e;
             });
-            CreateFile("content1.txt", "content1.txt");
-            await sut.StopWatch();
+            await CreateFile("content1.txt", "content1.txt");
             Assert.AreEqual("content1.txt", ev.Path.ToString());
         }
 
@@ -105,71 +109,66 @@ namespace Docms.Client.Tests
             {
                 ev = e;
             });
-            CreateFile("dir/content1.txt", "dir/content1.txt");
-            await sut.StopWatch();
+            await CreateFile("dir/content1.txt", "dir/content1.txt");
             Assert.AreEqual("dir/content1.txt", ev.Path.ToString());
         }
 
         [TestMethod]
         public async Task ルートディレクトリへのファイルの更新を検知した場合にイベントが発生する()
         {
-            CreateFile("content1.txt", "content1.txt");
+            await CreateFile("content1.txt", "content1.txt");
             var ev = default(FileModifiedEventArgs);
             sut.FileModified += new EventHandler<FileModifiedEventArgs>((s, e) =>
             {
                 ev = e;
             });
-            UpdateFile("content1.txt", "content1.txt modified");
-            await sut.StopWatch();
+            await UpdateFile("content1.txt", "content1.txt modified");
             Assert.AreEqual("content1.txt", ev.Path.ToString());
         }
 
         [TestMethod]
         public async Task サブディレクトリへのファイルの更新を検知した場合にイベントが発生する()
         {
-            CreateFile("dir/content1.txt", "dir/content1.txt");
+            await CreateFile("dir/content1.txt", "dir/content1.txt");
             var ev = default(FileModifiedEventArgs);
             sut.FileModified += new EventHandler<FileModifiedEventArgs>((s, e) =>
             {
                 ev = e;
             });
-            UpdateFile("dir/content1.txt", "dir/content1.txt modified");
-            await sut.StopWatch();
+            await UpdateFile("dir/content1.txt", "dir/content1.txt modified");
             Assert.AreEqual("dir/content1.txt", ev.Path.ToString());
         }
 
         [TestMethod]
         public async Task ルートディレクトリのファイルの名前変更を検知した場合にイベントが発生する()
         {
-            CreateFile("content1.txt", "content1.txt");
+            await CreateFile("content1.txt", "content1.txt");
             var ev = default(FileMovedEventArgs);
             sut.FileMoved += new EventHandler<FileMovedEventArgs>((s, e) =>
             {
                 ev = e;
             });
-            MoveFile("content1.txt", "content2.txt");
-            await sut.StopWatch();
+            await MoveFile("content1.txt", "content2.txt");
             Assert.AreEqual("content2.txt", ev.Path.ToString());
         }
 
         [TestMethod]
         public async Task サブディレクトリのファイルの名前変更を検知した場合にイベントが発生する()
         {
-            CreateFile("dir/content1.txt", "dir/content1.txt");
+            await CreateFile("dir/content1.txt", "dir/content1.txt");
             var ev = default(FileMovedEventArgs);
             sut.FileMoved += new EventHandler<FileMovedEventArgs>((s, e) =>
             {
                 ev = e;
             });
-            MoveFile("dir/content1.txt", "dir/content2.txt");
-            await sut.StopWatch();
+            await MoveFile("dir/content1.txt", "dir/content2.txt");
             Assert.AreEqual("dir/content2.txt", ev.Path.ToString());
         }
 
         [TestMethod]
         public async Task サブディレクトリをまたいでのファイルの移動を検知した場合にイベントが発生する()
         {
-            CreateFile("dir1/content1.txt", "dir1/content1.txt");
+            await CreateFile("dir1/content1.txt", "dir1/content1.txt");
             var ev1 = default(FileDeletedEventArgs);
             sut.FileDeleted += new EventHandler<FileDeletedEventArgs>((s, e) =>
             {
@@ -180,8 +179,7 @@ namespace Docms.Client.Tests
             {
                 ev2 = e;
             });
-            MoveFile("dir1/content1.txt", "dir2/content2.txt");
-            await sut.StopWatch();
+            await MoveFile("dir1/content1.txt", "dir2/content2.txt");
             Assert.AreEqual("dir1/content1.txt", ev1.Path.ToString());
             Assert.AreEqual("dir2/content2.txt", ev2.Path.ToString());
         }
@@ -189,36 +187,51 @@ namespace Docms.Client.Tests
         [TestMethod]
         public async Task ルートディレクトリのファイルの削除を検知した場合にイベントが発生する()
         {
+            await CreateFile("content1.txt", "content1.txt");
             var ev = default(FileDeletedEventArgs);
             sut.FileDeleted += new EventHandler<FileDeletedEventArgs>((s, e) =>
             {
                 ev = e;
             });
-            CreateFile("content1.txt", "content1.txt");
-            DeleteFile("content1.txt");
-            await sut.StopWatch();
+            await DeleteFile("content1.txt");
             Assert.AreEqual("content1.txt", ev.Path.ToString());
         }
 
         [TestMethod]
         public async Task サブディレクトリのファイルの削除を検知した場合にイベントが発生する()
         {
+            await CreateFile("dir/content1.txt", "dir/content1.txt");
             var ev = default(FileDeletedEventArgs);
             sut.FileDeleted += new EventHandler<FileDeletedEventArgs>((s, e) =>
             {
                 ev = e;
             });
-            CreateFile("dir/content1.txt", "dir/content1.txt");
-            DeleteFile("dir/content1.txt");
-            await sut.StopWatch();
+            await DeleteFile("dir/content1.txt");
             Assert.AreEqual("dir/content1.txt", ev.Path.ToString());
         }
 
         [TestMethod]
-        public async Task ルートディレクトリのディレクトリの移動を検知した場合にイベントが発生する()
+        public async Task ルートディレクトリのディレクトリの名前変更を検知した場合にイベントが発生する()
         {
-            CreateFile("dir1/content1.txt", "dir1/content1.txt");
-            CreateFile("dir1/content2.txt", "dir1/content2.txt");
+            await CreateFile("dir1/content1.txt", "dir1/content1.txt");
+            await CreateFile("dir1/content2.txt", "dir1/content2.txt");
+            var ev = new List<FileMovedEventArgs>();
+            sut.FileMoved += new EventHandler<FileMovedEventArgs>((s, e) =>
+            {
+                ev.Add(e);
+            });
+            await MoveDirectory("dir1", "dir2");
+            Assert.AreEqual("dir2/content1.txt", ev.First().Path.ToString());
+            Assert.AreEqual("dir1/content1.txt", ev.First().FromPath.ToString());
+            Assert.AreEqual("dir2/content2.txt", ev.Last().Path.ToString());
+            Assert.AreEqual("dir1/content2.txt", ev.Last().FromPath.ToString());
+        }
+
+        [TestMethod]
+        public async Task ルートディレクトリのディレクトリがサブディレクトリへ移動した場合にイベントが発生する()
+        {
+            await CreateFile("dir1/content1.txt", "dir1/content1.txt");
+            await CreateFile("dir1/content2.txt", "dir1/content2.txt");
             var ev1 = new List<FileDeletedEventArgs>();
             sut.FileDeleted += new EventHandler<FileDeletedEventArgs>((s, e) =>
             {
@@ -229,12 +242,33 @@ namespace Docms.Client.Tests
             {
                 ev2.Add(e);
             });
-            MoveDirectory("dir1", "dir2");
-            await sut.StopWatch();
+            await MoveDirectory("dir1", "dir2/subdir2");
             Assert.AreEqual("dir1/content1.txt", ev1.First().Path.ToString());
-            Assert.AreEqual("dir1/content1.txt", ev1.Last().Path.ToString());
+            Assert.AreEqual("dir1/content2.txt", ev1.Last().Path.ToString());
+            Assert.AreEqual("dir2/subdir2/content1.txt", ev2.First().Path.ToString());
+            Assert.AreEqual("dir2/subdir2/content2.txt", ev2.Last().Path.ToString());
+        }
+
+        [TestMethod]
+        public async Task サブディレクトリのディレクトリがルートディレクトリへ移動した場合にイベントが発生する()
+        {
+            await CreateFile("dir1/subdir1/content1.txt", "dir1/subdir1/content1.txt");
+            await CreateFile("dir1/subdir1/content2.txt", "dir1/subdir1/content2.txt");
+            var ev1 = new List<FileDeletedEventArgs>();
+            sut.FileDeleted += new EventHandler<FileDeletedEventArgs>((s, e) =>
+            {
+                ev1.Add(e);
+            });
+            var ev2 = new List<FileCreatedEventArgs>();
+            sut.FileCreated += new EventHandler<FileCreatedEventArgs>((s, e) =>
+            {
+                ev2.Add(e);
+            });
+            await MoveDirectory("dir1/subdir1", "dir2");
+            Assert.AreEqual("dir1/subdir1/content1.txt", ev1.First().Path.ToString());
+            Assert.AreEqual("dir1/subdir1/content2.txt", ev1.Last().Path.ToString());
             Assert.AreEqual("dir2/content1.txt", ev2.First().Path.ToString());
-            Assert.AreEqual("dir2/content1.txt", ev2.Last().Path.ToString());
+            Assert.AreEqual("dir2/content2.txt", ev2.Last().Path.ToString());
         }
     }
 }

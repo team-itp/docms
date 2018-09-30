@@ -42,6 +42,8 @@ namespace Docms.Client.FileStorage
             _taskHandle = new AutoResetEvent(false);
         }
 
+        public Task CurrentTask { get; private set; }
+
         public async Task StartWatch(CancellationToken cancellationToken = default(CancellationToken))
         {
             if (_processTask != null)
@@ -94,7 +96,8 @@ namespace Docms.Client.FileStorage
                 {
                     if (_tasks.TryDequeue(out var func))
                     {
-                        await func.Invoke();
+                        CurrentTask = func.Invoke();
+                        await CurrentTask;
                     }
                     else
                     {
@@ -135,7 +138,7 @@ namespace Docms.Client.FileStorage
             if (_processTask != null)
             {
                 _watcher.EnableRaisingEvents = false;
-                _processCts.CancelAfter(100);
+                _processCts.Cancel();
                 await _processTask;
                 _processTask = null;
             }
@@ -157,14 +160,7 @@ namespace Docms.Client.FileStorage
             {
                 await EnqueueTask(() =>
                 {
-                    if (File.Exists(e.FullPath))
-                    {
-                        OnFileCreated(ResolvePath(e.FullPath));
-                    }
-                    else if (Directory.Exists(e.FullPath))
-                    {
-                        OnDirectoryCreated(ResolvePath(e.FullPath));
-                    }
+                    OnCreated(ResolvePath(e.FullPath));
                     return Task.CompletedTask;
                 });
             }
@@ -180,14 +176,7 @@ namespace Docms.Client.FileStorage
             {
                 await EnqueueTask(() =>
                 {
-                    if (File.Exists(e.FullPath))
-                    {
-                        OnFileModified(ResolvePath(e.FullPath));
-                    }
-                    else if (Directory.Exists(e.FullPath))
-                    {
-                        OnDirectoryModified(ResolvePath(e.FullPath));
-                    }
+                    OnModified(ResolvePath(e.FullPath));
                     return Task.CompletedTask;
                 });
             }
@@ -203,14 +192,7 @@ namespace Docms.Client.FileStorage
             {
                 await EnqueueTask(() =>
                 {
-                    if (File.Exists(e.FullPath))
-                    {
-                        OnFileMoved(ResolvePath(e.FullPath), ResolvePath(e.OldFullPath));
-                    }
-                    else if (Directory.Exists(e.FullPath))
-                    {
-                        OnDirectoryMoved(ResolvePath(e.FullPath), ResolvePath(e.OldFullPath));
-                    }
+                    OnMoved(ResolvePath(e.FullPath), ResolvePath(e.OldFullPath));
                     return Task.CompletedTask;
                 });
             }
@@ -226,14 +208,7 @@ namespace Docms.Client.FileStorage
             {
                 await EnqueueTask(() =>
                 {
-                    if (!File.Exists(e.FullPath))
-                    {
-                        OnFileDeleted(ResolvePath(e.FullPath));
-                    }
-                    else if (!Directory.Exists(e.FullPath))
-                    {
-                        OnDirectoryDeleted(ResolvePath(e.FullPath));
-                    }
+                    OnDeleted(ResolvePath(e.FullPath));
                     return Task.CompletedTask;
                 });
             }
@@ -243,91 +218,98 @@ namespace Docms.Client.FileStorage
             }
         }
 
-        protected void OnFileCreated(PathString path)
+        protected void OnCreated(PathString path)
         {
-            _fileTree.AddFile(path);
-            FileCreated?.Invoke(this, new FileCreatedEventArgs(path));
-        }
-
-        protected void OnDirectoryCreated(PathString path)
-        {
-            foreach (var item in GetFiles(path))
+            var fileInfo = GetFile(path);
+            if (fileInfo != null)
             {
-                OnFileCreated(item);
+                _fileTree.AddFile(path);
+                FileCreated?.Invoke(this, new FileCreatedEventArgs(path));
             }
-            foreach (var item in GetDirectories(path))
+            var dirInfo = GetDirectory(path);
+            if (dirInfo != null)
             {
-                OnDirectoryCreated(item);
-            }
-        }
-
-        protected void OnFileModified(PathString path)
-        {
-            _fileTree.Update(path);
-            FileModified?.Invoke(this, new FileModifiedEventArgs(path));
-        }
-
-        protected void OnDirectoryModified(PathString path)
-        {
-            foreach (var item in GetFiles(path))
-            {
-                OnFileModified(item);
-            }
-
-            foreach (var item in GetDirectories(path))
-            {
-                OnDirectoryModified(item);
+                foreach (var item in dirInfo.GetFiles())
+                {
+                    OnCreated(ResolvePath(item.FullName));
+                }
+                foreach (var item in dirInfo.GetDirectories())
+                {
+                    OnCreated(ResolvePath(item.FullName));
+                }
             }
         }
 
-        protected void OnFileMoved(PathString path, PathString fromPath)
+        protected void OnModified(PathString path)
         {
-            _fileTree.Move(fromPath, path);
-            FileMoved?.Invoke(this, new FileMovedEventArgs(path, fromPath));
+            var fileNode = _fileTree.GetFile(path);
+            if (fileNode != null)
+            {
+                _fileTree.Update(path);
+                FileModified?.Invoke(this, new FileModifiedEventArgs(path));
+            }
+            var dirInfo = GetDirectory(path);
+            if (dirInfo != null)
+            {
+                foreach (var item in dirInfo.GetFiles())
+                {
+                    OnModified(ResolvePath(item.FullName));
+                }
+                foreach (var item in dirInfo.GetDirectories())
+                {
+                    OnModified(ResolvePath(item.FullName));
+                }
+            }
         }
 
-        protected void OnDirectoryMoved(PathString path, PathString fromPath)
+        protected void OnMoved(PathString path, PathString fromPath)
         {
-            foreach (var item in GetFiles(path))
+            var fileNode = _fileTree.GetFile(fromPath);
+            if (fileNode != null)
             {
-                OnFileMoved(path.Combine(item.Name), fromPath.Combine(item.Name));
+                _fileTree.Move(fromPath, path);
+                FileMoved?.Invoke(this, new FileMovedEventArgs(path, fromPath));
             }
-
-            foreach (var item in GetDirectories(path))
+            var dirNode = _fileTree.GetDirectory(fromPath);
+            if (dirNode != null)
             {
-                OnDirectoryMoved(path.Combine(item.Name), fromPath.Combine(item.Name));
+                foreach (var node in dirNode.Children.ToArray())
+                {
+                    OnMoved(path.Combine(node.Name), fromPath.Combine(node.Name));
+                }
             }
         }
 
-        protected void OnFileDeleted(PathString path)
+        protected void OnDeleted(PathString path)
         {
-            _fileTree.Delete(path);
-            FileDeleted?.Invoke(this, new FileDeletedEventArgs(path));
-        }
-
-        protected void OnDirectoryDeleted(PathString path)
-        {
-            foreach (var item in GetFiles(path))
+            var fileNode = _fileTree.GetFile(path);
+            if (fileNode != null)
             {
-                OnFileDeleted(item);
+                _fileTree.Delete(path);
+                FileDeleted?.Invoke(this, new FileDeletedEventArgs(path));
             }
-
-            foreach (var item in GetDirectories(path))
+            var dirNode = _fileTree.GetDirectory(path);
+            if (dirNode != null)
             {
-                OnDirectoryDeleted(item);
+                foreach (var node in dirNode.Children.ToArray())
+                {
+                    OnDeleted(path.Combine(node.Name));
+                }
             }
         }
 
         public FileInfo GetFile(PathString path)
         {
             var fullpath = Path.Combine(_basePath, path.ToLocalPath());
-            return new FileInfo(fullpath);
+            var fileInfo = new FileInfo(fullpath);
+            return fileInfo.Exists ? fileInfo : null;
         }
 
         private DirectoryInfo GetDirectory(PathString path)
         {
             var fullpath = Path.Combine(_basePath, path.ToLocalPath());
-            return new DirectoryInfo(fullpath);
+            var dirInfo = new DirectoryInfo(fullpath);
+            return dirInfo.Exists ? dirInfo : null;
         }
 
         public IEnumerable<PathString> GetFiles(PathString path)
