@@ -1,4 +1,6 @@
 ﻿using System;
+using System.Threading;
+using System.Threading.Tasks;
 
 namespace Docms.Client.FileStorage
 {
@@ -8,5 +10,8 @@ namespace Docms.Client.FileStorage
         event EventHandler<FileModifiedEventArgs> FileModified;
         event EventHandler<FileDeletedEventArgs> FileDeleted;
         event EventHandler<FileMovedEventArgs> FileMoved;
+
+        Task StartWatch(CancellationToken cancellationToken);
+        Task StopWatch();
     }
 }

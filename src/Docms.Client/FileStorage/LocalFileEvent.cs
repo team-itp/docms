@@ -1,45 +1,48 @@
-using Docms.Client.SeedWork;
+﻿using Docms.Client.SeedWork;
 using System;
 
 namespace Docms.Client.FileStorage
 {
-    public abstract class LocalFileEvenArgs : EventArgs
+    public abstract class LocalFileEvent
     {
-        public PathString Path { get; }
-
-        public LocalFileEvenArgs(PathString path)
+        public LocalFileEvent(PathString path)
         {
+            Timestamp = DateTime.UtcNow;
             Path = path;
         }
+
+        public DateTime Timestamp { get; }
+        public PathString Path { get; }
     }
 
-    public class FileCreatedEventArgs : LocalFileEvenArgs
+    public sealed class DocumentCreated : LocalFileEvent
     {
-        public FileCreatedEventArgs(PathString path) : base(path)
+        public DocumentCreated(PathString path) : base(path)
         {
         }
     }
 
-    public class FileModifiedEventArgs : LocalFileEvenArgs
+    public sealed class DocumentUpdated : LocalFileEvent
     {
-        public FileModifiedEventArgs(PathString path) : base(path)
+        public DocumentUpdated(PathString path) : base(path)
         {
         }
     }
 
-    public class FileDeletedEventArgs : LocalFileEvenArgs
+    public sealed class DocumentMoved : LocalFileEvent
     {
-        public FileDeletedEventArgs(PathString path) : base(path)
+        public DocumentMoved(PathString path, PathString oldPath) : base(path)
         {
+            OldPath = oldPath;
         }
+
+        public PathString OldPath { get; }
     }
 
-    public class FileMovedEventArgs : LocalFileEvenArgs
+    public sealed class DocumentDeleted : LocalFileEvent
     {
-        public PathString FromPath { get; }
-        public FileMovedEventArgs(PathString path, PathString fromPath) : base(path)
+        public DocumentDeleted(PathString path) : base(path)
         {
-            FromPath = fromPath;
         }
     }
 }

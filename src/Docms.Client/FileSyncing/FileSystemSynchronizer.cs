@@ -145,6 +145,8 @@ namespace Docms.Client.FileSyncing
 
         public async Task RequestCreationAsync(PathString path, CancellationToken cancellationToken = default(CancellationToken))
         {
+            if (IgnorePattern(path))
+                return;
             var fileInfo = _storage.GetFile(path);
             if (!File.Exists(fileInfo.FullName))
             {
@@ -167,6 +169,8 @@ namespace Docms.Client.FileSyncing
 
         public async Task RequestDeletionAsync(PathString path, CancellationToken cancellationToken = default(CancellationToken))
         {
+            if (IgnorePattern(path))
+                return;
             var fileInfo = _storage.GetFile(path);
             if (File.Exists(fileInfo.FullName))
             {
@@ -187,6 +191,10 @@ namespace Docms.Client.FileSyncing
 
         public async Task RequestMovementAsync(PathString originalPath, PathString destinationPath, CancellationToken cancellationToken = default(CancellationToken))
         {
+            if (IgnorePattern(originalPath))
+                return;
+            if (IgnorePattern(destinationPath))
+                return;
             var destinationFileInfo = _storage.GetFile(destinationPath);
             if (!destinationFileInfo.Exists)
             {
@@ -226,6 +234,8 @@ namespace Docms.Client.FileSyncing
 
         public async Task RequestChangingAsync(PathString path, CancellationToken cancellationToken = default(CancellationToken))
         {
+            if (IgnorePattern(path))
+                return;
             var fileInfo = _storage.GetFile(path);
             if (!File.Exists(fileInfo.FullName))
             {

@@ -89,6 +89,14 @@ namespace Docms.Client.Tests
             await sut.CurrentTask;
         }
 
+        private async Task DeleteDirectory(string path)
+        {
+            var fullpath = Path.Combine(_watchingPath, path);
+            Directory.Delete(fullpath, true);
+            Thread.Sleep(5);
+            await sut.CurrentTask;
+        }
+
         [TestMethod]
         public async Task ルートディレクトリへのファイルの保存を検知した場合にイベントが発生する()
         {
@@ -269,6 +277,51 @@ namespace Docms.Client.Tests
             Assert.AreEqual("dir1/subdir1/content2.txt", ev1.Last().Path.ToString());
             Assert.AreEqual("dir2/content1.txt", ev2.First().Path.ToString());
             Assert.AreEqual("dir2/content2.txt", ev2.Last().Path.ToString());
+        }
+
+        [TestMethod]
+        public async Task ルートディレクトリのディレクトリの削除を検知した場合にイベントが発生する()
+        {
+            await CreateFile("dir1/content1.txt", "dir1/content1.txt");
+            await CreateFile("dir1/content2.txt", "dir1/content2.txt");
+            var ev = new List<FileDeletedEventArgs>();
+            sut.FileDeleted += new EventHandler<FileDeletedEventArgs>((s, e) =>
+            {
+                ev.Add(e);
+            });
+            await DeleteDirectory("dir1");
+            Assert.AreEqual("dir1/content1.txt", ev.First().Path.ToString());
+            Assert.AreEqual("dir1/content2.txt", ev.Last().Path.ToString());
+        }
+
+        [TestMethod]
+        public async Task ルートディレクトリのディレクトリが削除された場合にイベントが発生する()
+        {
+            await CreateFile("dir1/content1.txt", "dir1/content1.txt");
+            await CreateFile("dir1/content2.txt", "dir1/content2.txt");
+            var ev = new List<FileDeletedEventArgs>();
+            sut.FileDeleted += new EventHandler<FileDeletedEventArgs>((s, e) =>
+            {
+                ev.Add(e);
+            });
+            await DeleteDirectory("dir1");
+            Assert.AreEqual("dir1/content1.txt", ev.First().Path.ToString());
+            Assert.AreEqual("dir1/content2.txt", ev.Last().Path.ToString());
+        }
+
+        [TestMethod]
+        public async Task サブディレクトリのディレクトリが削除された場合にイベントが発生する()
+        {
+            await CreateFile("dir1/subdir1/content1.txt", "dir1/subdir1/content1.txt");
+            await CreateFile("dir1/subdir1/content2.txt", "dir1/subdir1/content2.txt");
+            var ev = new List<FileDeletedEventArgs>();
+            sut.FileDeleted += new EventHandler<FileDeletedEventArgs>((s, e) =>
+            {
+                ev.Add(e);
+            });
+            await DeleteDirectory("dir1/subdir1");
+            Assert.AreEqual("dir1/subdir1/content1.txt", ev.First().Path.ToString());
+            Assert.AreEqual("dir1/subdir1/content2.txt", ev.Last().Path.ToString());
         }
     }
 }

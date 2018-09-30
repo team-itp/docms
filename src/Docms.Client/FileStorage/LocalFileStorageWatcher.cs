@@ -32,7 +32,7 @@ namespace Docms.Client.FileStorage
             EnsureDirectoryExists(_basePath);
             _watcher = new FileSystemWatcher(_basePath)
             {
-                IncludeSubdirectories = true
+                IncludeSubdirectories = true                
             };
             _watcher.Created += new FileSystemEventHandler(_watcher_Created);
             _watcher.Changed += new FileSystemEventHandler(_watcher_Changed);
