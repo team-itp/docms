@@ -13,12 +13,7 @@
     <nav class="navbar navbar-expand-sm navbar-dark bg-dark fixed-top">
         <div class="container-fluid">
             <a asp-area="" asp-controller="Home" asp-action="Index" class="navbar-brand">文書管理システム</a>
-            <button class="navbar-toggler d-sm-none" type="button" data-toggle="collapse" data-target="#navbarToggler" aria-controls="navbarToggler" aria-expanded="false" aria-label="Toggle navigation">
-                <span class="navbar-toggler-icon"></span>
-            </button>
-            <div class="collapse navbar-collapse py-3 py-sm-0 d-sm-flex justify-content-end" id="navbarToggler">
-                @await Html.PartialAsync("_LoginPartial")
-            </div>
+            @await Html.PartialAsync("_LoginPartial")
         </div>
     </nav>
     <div class="container-fluid body-content">
