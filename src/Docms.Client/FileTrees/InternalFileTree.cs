@@ -23,6 +23,14 @@ namespace Docms.Client.FileTrees
             return GetDirectory(path.ParentPath)?.Get(path.Name);
         }
 
+        public void Reset()
+        {
+            foreach (var item in Root.Children)
+            {
+                Root.Remove(item);
+            }
+        }
+
         public FileNode GetFile(PathString path)
         {
             return GetNode(path) as FileNode;

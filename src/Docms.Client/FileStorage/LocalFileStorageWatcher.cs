@@ -26,19 +26,24 @@ namespace Docms.Client.FileStorage
         private Task _processTask;
         private AutoResetEvent _taskHandle;
 
-        public LocalFileStorageWatcher(string basePath)
+        public LocalFileStorageWatcher(string basePath) : this(basePath, new InternalFileTree())
+        {
+        }
+
+        public LocalFileStorageWatcher(string basePath, InternalFileTree fileTree)
         {
             _basePath = basePath;
             EnsureDirectoryExists(_basePath);
             _watcher = new FileSystemWatcher(_basePath)
             {
-                IncludeSubdirectories = true                
+                IncludeSubdirectories = true
             };
             _watcher.Created += new FileSystemEventHandler(_watcher_Created);
             _watcher.Changed += new FileSystemEventHandler(_watcher_Changed);
             _watcher.Renamed += new RenamedEventHandler(_watcher_Renamed);
             _watcher.Deleted += new FileSystemEventHandler(_watcher_Deleted);
             _watcher.Error += new ErrorEventHandler(_watcher_Error);
+            _fileTree = fileTree;
             _taskHandle = new AutoResetEvent(false);
         }
 
@@ -50,22 +55,47 @@ namespace Docms.Client.FileStorage
                 throw new InvalidOperationException();
             _processCts = new CancellationTokenSource();
             _processTask = ProcessAsync(_processCts.Token);
+            _fileTree.Reset();
             _watcher.EnableRaisingEvents = true;
-            _fileTree = new InternalFileTree();
             await EnqueueTask(async () =>
             {
                 var isOk = false;
-                while (isOk)
+                while (!isOk)
                 {
                     try
                     {
                         await StartTracking(PathString.Root, cancellationToken);
+                        isOk = true;
                     }
                     catch
                     {
                     }
                 }
             });
+        }
+
+        private async Task StartTracking(PathString path, CancellationToken cancellationToken)
+        {
+            cancellationToken.ThrowIfCancellationRequested();
+            var fileInfo = GetFile(path);
+            if (fileInfo != null)
+            {
+                _fileTree.AddFile(path);
+            }
+            var dirInfo = GetDirectory(path);
+            if (dirInfo != null)
+            {
+                foreach (var fi in dirInfo.GetFiles())
+                {
+                    Trace.Write("file found: " + ResolvePath(fi.FullName).ToString());
+                    await StartTracking(ResolvePath(fi.FullName), cancellationToken);
+                }
+                foreach (var di in dirInfo.GetDirectories())
+                {
+                    Trace.Write("directory found: " + ResolvePath(di.FullName).ToString());
+                    await StartTracking(ResolvePath(di.FullName), cancellationToken);
+                }
+            }
         }
 
         private async Task EnqueueTask(Func<Task> func)
@@ -106,31 +136,6 @@ namespace Docms.Client.FileStorage
                     }
                 }
             });
-        }
-
-        private async Task StartTracking(PathString path, CancellationToken cancellationToken)
-        {
-            cancellationToken.ThrowIfCancellationRequested();
-            var fileInfo = GetFile(path);
-            if (fileInfo.Exists)
-            {
-                using (var fs = fileInfo.Open(FileMode.Open, FileAccess.Read, FileShare.None))
-                {
-                    _fileTree.AddFile(path);
-                }
-            }
-            var dirInfo = GetDirectory(path);
-            if (dirInfo.Exists)
-            {
-                foreach (var item in GetFiles(path))
-                {
-                    await StartTracking(item, cancellationToken);
-                }
-                foreach (var item in GetDirectories(path))
-                {
-                    await StartTracking(item, cancellationToken);
-                }
-            }
         }
 
         public async Task StopWatch()
@@ -307,7 +312,15 @@ namespace Docms.Client.FileStorage
 
         private DirectoryInfo GetDirectory(PathString path)
         {
-            var fullpath = Path.Combine(_basePath, path.ToLocalPath());
+            var fullpath = default(string);
+            if (path == PathString.Root)
+            {
+                fullpath = _basePath;
+            }
+            else
+            {
+                fullpath = Path.Combine(_basePath, path.ToLocalPath());
+            }
             var dirInfo = new DirectoryInfo(fullpath);
             return dirInfo.Exists ? dirInfo : null;
         }
