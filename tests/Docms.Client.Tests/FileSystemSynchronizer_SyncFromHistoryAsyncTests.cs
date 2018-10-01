@@ -4,6 +4,7 @@ using Docms.Client.SeedWork;
 using Docms.Client.Tests.Utils;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
+using System;
 using System.IO;
 using System.Text;
 using System.Threading.Tasks;
@@ -13,6 +14,7 @@ namespace Docms.Client.Tests
     [TestClass]
     public class FileSystemSynchronizer_SyncFromHistoryAsyncTests
     {
+        private string _watchingPath;
         private MockDocmsApiClient mockClient;
         private LocalFileStorage localFileStorage;
         private FileSyncingContext db;
@@ -21,12 +23,9 @@ namespace Docms.Client.Tests
         [TestInitialize]
         public void Setup()
         {
-            if (Directory.Exists("tmp"))
-            {
-                Directory.Delete("tmp", true);
-            }
+            _watchingPath = Path.GetFullPath("tmp" + Guid.NewGuid().ToString());
             mockClient = new MockDocmsApiClient();
-            localFileStorage = new LocalFileStorage(Path.GetFullPath("tmp"));
+            localFileStorage = new LocalFileStorage(_watchingPath);
             db = new FileSyncingContext(new DbContextOptionsBuilder<FileSyncingContext>()
                 .UseInMemoryDatabase("FileSystemSynchronizer_SyncFromHistoryAsyncTests")
                 .Options);
@@ -36,9 +35,9 @@ namespace Docms.Client.Tests
         [TestCleanup]
         public void Teardown()
         {
-            if (Directory.Exists("tmp"))
+            if (Directory.Exists(_watchingPath))
             {
-                Directory.Delete("tmp", true);
+                Directory.Delete(_watchingPath, true);
             }
         }
 

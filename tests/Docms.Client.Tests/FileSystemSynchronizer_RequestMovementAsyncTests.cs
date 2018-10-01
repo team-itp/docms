@@ -15,6 +15,7 @@ namespace Docms.Client.Tests
     [TestClass]
     public class FileSystemSynchronizer_RequestMovementAsyncTests
     {
+        private string _watchingPath;
         private MockDocmsApiClient mockClient;
         private LocalFileStorage localFileStorage;
         private FileSyncingContext db;
@@ -23,12 +24,9 @@ namespace Docms.Client.Tests
         [TestInitialize]
         public void Setup()
         {
-            if (Directory.Exists("tmp"))
-            {
-                Directory.Delete("tmp", true);
-            }
+            _watchingPath = Path.GetFullPath("tmp" + Guid.NewGuid().ToString());
             mockClient = new MockDocmsApiClient();
-            localFileStorage = new LocalFileStorage(Path.GetFullPath("tmp"));
+            localFileStorage = new LocalFileStorage(_watchingPath);
             db = new FileSyncingContext(new DbContextOptionsBuilder<FileSyncingContext>()
                 .UseInMemoryDatabase("FileSystemSynchronizer_RequestMovementAsyncTests")
                 .Options);
@@ -38,9 +36,9 @@ namespace Docms.Client.Tests
         [TestCleanup]
         public void Teardown()
         {
-            if (Directory.Exists("tmp"))
+            if (Directory.Exists(_watchingPath))
             {
-                Directory.Delete("tmp", true);
+                Directory.Delete(_watchingPath, true);
             }
         }
 

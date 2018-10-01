@@ -20,7 +20,7 @@ namespace Docms.Client.Tests
         [TestInitialize]
         public async Task Setup()
         {
-            _watchingPath = Path.GetFullPath("tmp");
+            _watchingPath = Path.GetFullPath("tmp" + Guid.NewGuid().ToString());
             sut = new LocalFileStorageWatcher(_watchingPath);
             await sut.StartWatch();
         }
