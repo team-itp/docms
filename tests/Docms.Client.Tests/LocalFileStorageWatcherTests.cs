@@ -43,7 +43,7 @@ namespace Docms.Client.Tests
                 Directory.CreateDirectory(Path.GetDirectoryName(fullpath));
             }
             File.WriteAllBytes(fullpath, Encoding.UTF8.GetBytes(content));
-            Thread.Sleep(10);
+            await Task.Delay(5);
             await sut.CurrentTask;
         }
 
@@ -51,7 +51,7 @@ namespace Docms.Client.Tests
         {
             var fullpath = Path.Combine(_watchingPath, path);
             File.WriteAllBytes(fullpath, Encoding.UTF8.GetBytes(content));
-            Thread.Sleep(5);
+            await Task.Delay(5);
             await sut.CurrentTask;
         }
 
@@ -64,7 +64,7 @@ namespace Docms.Client.Tests
                 Directory.CreateDirectory(Path.GetDirectoryName(fullpathTo));
             }
             File.Move(fullpathFrom, fullpathTo);
-            Thread.Sleep(5);
+            await Task.Delay(5);
             await sut.CurrentTask;
         }
 
@@ -77,7 +77,7 @@ namespace Docms.Client.Tests
                 Directory.CreateDirectory(Path.GetDirectoryName(fullpathTo));
             }
             Directory.Move(fullpathFrom, fullpathTo);
-            Thread.Sleep(5);
+            await Task.Delay(5);
             await sut.CurrentTask;
         }
 
@@ -85,7 +85,7 @@ namespace Docms.Client.Tests
         {
             var fullpath = Path.Combine(_watchingPath, path);
             File.Delete(fullpath);
-            Thread.Sleep(5);
+            await Task.Delay(5);
             await sut.CurrentTask;
         }
 
@@ -93,7 +93,7 @@ namespace Docms.Client.Tests
         {
             var fullpath = Path.Combine(_watchingPath, path);
             Directory.Delete(fullpath, true);
-            Thread.Sleep(5);
+            await Task.Delay(5);
             await sut.CurrentTask;
         }
 
