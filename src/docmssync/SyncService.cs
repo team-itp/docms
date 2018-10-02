@@ -81,9 +81,13 @@ namespace docmssync
                 _synchronizer = new FileSystemSynchronizer(_client, _localFileStorage, _context);
                 _eventShrinker = new LocalFileEventShrinker();
                 _processTask = ProcessAsync(_cts.Token);
-                await _synchronizer.InitializeAsync(_cts.Token).ConfigureAwait(false);
-                await _localFileStorageWatcher.StartWatch(_cts.Token).ConfigureAwait(false);
-                _timer.Change(0, 10000);
+
+                await EnqueueTask(async () =>
+                {
+                    await _localFileStorageWatcher.StartWatch(_cts.Token).ConfigureAwait(false);
+                    await _synchronizer.InitializeAsync(_cts.Token).ConfigureAwait(false);
+                    _timer.Change(10000, 10000);
+                });
             }
             catch (Exception ex)
             {
@@ -95,18 +99,20 @@ namespace docmssync
         private async Task ResetProcessAsync(CancellationToken token = default(CancellationToken))
         {
             _timer.Change(-1, Timeout.Infinite);
-            await _client.LogoutAsync().ConfigureAwait(false);
             await _localFileStorageWatcher.StopWatch().ConfigureAwait(false);
+            await _client.LogoutAsync().ConfigureAwait(false);
             while (_tasks.TryDequeue(out var action))
             {
             }
+            _eventShrinker.Reset();
 
             await _client.LoginAsync(Settings.Default.UploadUserName, Settings.Default.UploadUserPassword).ConfigureAwait(false);
-            _eventShrinker.Reset();
-            await _synchronizer.InitializeAsync(_cts.Token).ConfigureAwait(false);
-            await _localFileStorageWatcher.StartWatch(_cts.Token).ConfigureAwait(false);
-
-            _timer.Change(10000, 10000);
+            await EnqueueTask(async () =>
+            {
+                await _localFileStorageWatcher.StartWatch(_cts.Token).ConfigureAwait(false);
+                await _synchronizer.InitializeAsync(_cts.Token).ConfigureAwait(false);
+                _timer.Change(10000, 10000);
+            });
         }
 
         private async Task EnqueueTask(Func<Task> func)
@@ -176,38 +182,40 @@ namespace docmssync
             _timer.Change(-1, Timeout.Infinite);
             await EnqueueTask(async () =>
             {
-                try
+                var isOk = false;
+                while (!isOk)
                 {
-                    foreach (var change in _eventShrinker.Events)
+                    try
                     {
-                        if (change is DocumentCreated)
+                        foreach (var change in _eventShrinker.Events)
                         {
-                            await _synchronizer.RequestCreationAsync(change.Path, _cts.Token).ConfigureAwait(false);
+                            if (change is DocumentCreated)
+                            {
+                                await _synchronizer.RequestCreationAsync(change.Path, _cts.Token).ConfigureAwait(false);
+                            }
+                            else if (change is DocumentUpdated)
+                            {
+                                await _synchronizer.RequestChangingAsync(change.Path, _cts.Token).ConfigureAwait(false);
+                            }
+                            else if (change is DocumentMoved moved)
+                            {
+                                await _synchronizer.RequestMovementAsync(moved.OldPath, moved.Path, _cts.Token).ConfigureAwait(false);
+                            }
+                            else if (change is DocumentDeleted)
+                            {
+                                await _synchronizer.RequestDeletionAsync(change.Path, _cts.Token).ConfigureAwait(false);
+                            }
                         }
-                        else if (change is DocumentUpdated)
-                        {
-                            await _synchronizer.RequestChangingAsync(change.Path, _cts.Token).ConfigureAwait(false);
-                        }
-                        else if (change is DocumentMoved moved)
-                        {
-                            await _synchronizer.RequestMovementAsync(moved.OldPath, moved.Path, _cts.Token).ConfigureAwait(false);
-                        }
-                        else if (change is DocumentDeleted)
-                        {
-                            await _synchronizer.RequestDeletionAsync(change.Path, _cts.Token).ConfigureAwait(false);
-                        }
+                        await _synchronizer.SyncFromHistoryAsync().ConfigureAwait(false);
+                        _eventShrinker.Reset();
+                        isOk = true;
                     }
-                    _eventShrinker.Reset();
-                    await _synchronizer.SyncFromHistoryAsync().ConfigureAwait(false);
+                    catch (Exception ex)
+                    {
+                        Trace.WriteLine(ex);
+                    }
                 }
-                catch (Exception ex)
-                {
-                    Trace.WriteLine(ex);
-                }
-                finally
-                {
-                    _timer.Change(10000, 10000);
-                }
+                _timer.Change(10000, 10000);
             });
         }
 
@@ -215,6 +223,7 @@ namespace docmssync
         {
             await EnqueueTask(() =>
             {
+                Trace.WriteLine($"file deleted: {e.Path}");
                 _eventShrinker.Apply(new DocumentDeleted(e.Path));
                 return Task.CompletedTask;
             });
@@ -224,6 +233,7 @@ namespace docmssync
         {
             await EnqueueTask(() =>
             {
+                Trace.WriteLine($"file moved from path: {e.FromPath} to: {e.Path}");
                 _eventShrinker.Apply(new DocumentMoved(e.Path, e.FromPath));
                 return Task.CompletedTask;
             });
@@ -233,6 +243,7 @@ namespace docmssync
         {
             await EnqueueTask(() =>
             {
+                Trace.WriteLine($"file modeifed: {e.Path}");
                 _eventShrinker.Apply(new DocumentUpdated(e.Path));
                 return Task.CompletedTask;
             });
@@ -242,6 +253,7 @@ namespace docmssync
         {
             await EnqueueTask(() =>
             {
+                Trace.WriteLine($"file created: {e.Path}");
                 _eventShrinker.Apply(new DocumentCreated(e.Path));
                 return Task.CompletedTask;
             });

@@ -29,6 +29,11 @@ namespace Docms.Client.FileSyncing
         public async Task SyncAsync(PathString path, List<History> serverHistories = null)
         {
             SyncingFile file = await LoadFileAsync(path, serverHistories).ConfigureAwait(false);
+            if (file.Path == null)
+            {
+                // 削除済みの場合
+                return;
+            }
 
             // 削除・移動された場合以外
             var fileInfo = _storage.GetFile(path);
@@ -81,9 +86,9 @@ namespace Docms.Client.FileSyncing
                     else
                     {
                         Trace.WriteLine($"local file is older than server's");
-                        _storage.Delete(path);
                         using (var stream = await _client.DownloadAsync(path.ToString()).ConfigureAwait(false))
                         {
+                            _storage.Delete(path);
                             await _storage.Create(path, stream, file.Created, file.LastModified).ConfigureAwait(false);
                             Trace.WriteLine($"{path} downloaded");
                         }
@@ -136,7 +141,7 @@ namespace Docms.Client.FileSyncing
             }
 
             var file = new SyncingFile(histories);
-            foreach (var history in serverHistories)
+            foreach (var history in serverHistories.OrderBy(e => e.Timestamp))
             {
                 file.Apply(history);
             }
