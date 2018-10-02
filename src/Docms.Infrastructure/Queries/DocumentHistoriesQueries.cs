@@ -27,7 +27,7 @@ namespace Docms.Infrastructure.Queries
             {
                 query = query.Where(e => e.Timestamp > since);
             }
-            return await query.ToListAsync();
+            return await query.OrderBy(e => e.Timestamp).ToListAsync();
         }
     }
 }

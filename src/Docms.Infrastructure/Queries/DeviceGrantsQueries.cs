@@ -1,6 +1,7 @@
 ﻿using Docms.Queries.DeviceAuthorization;
 using Microsoft.EntityFrameworkCore;
 using System.Collections.Generic;
+using System.Linq;
 using System.Threading.Tasks;
 
 namespace Docms.Infrastructure.Queries
@@ -21,7 +22,7 @@ namespace Docms.Infrastructure.Queries
 
         public async Task<IEnumerable<DeviceGrant>> GetDevicesAsync()
         {
-            return await _db.DeviceGrants.ToListAsync();
+            return await _db.DeviceGrants.OrderByDescending(e => e.LastAccessTime).ToListAsync();
         }
     }
 }
