@@ -14,10 +14,10 @@ namespace Docms.Client.FileStorage
         public void Apply(LocalFileEvent ev)
         {
             var ts = new TypeSwitch()
-                .Case((DocumentCreated x) => Apply(x))
-                .Case((DocumentUpdated x) => Apply(x))
-                .Case((DocumentMoved x) => Apply(x))
-                .Case((DocumentDeleted x) => Apply(x));
+                .Case<DocumentCreated>(x => Apply(x))
+                .Case<DocumentUpdated>(x => Apply(x))
+                .Case<DocumentMoved>(x => Apply(x))
+                .Case<DocumentDeleted>(x => Apply(x));
 
             ts.Switch(ev);
         }

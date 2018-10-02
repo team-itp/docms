@@ -102,14 +102,31 @@ namespace Docms.Client.Tests
         public void ドキュメントが移動した後で移動元に生成された場合そのままの履歴になる()
         {
             var sut = new LocalFileEventShrinker();
+            sut.Apply(new DocumentUpdated(new PathString("test/content2.txt")));
             sut.Apply(new DocumentMoved(new PathString("test/content1.txt"), new PathString("test/content2.txt")));
             sut.Apply(new DocumentCreated(new PathString("test/content2.txt")));
             Assert.AreEqual(2, sut.Events.Count());
             var ev1 = sut.Events.First();
-            Assert.IsTrue(ev1 is DocumentMoved);
+            Assert.IsTrue(ev1 is DocumentCreated);
             Assert.AreEqual("test/content1.txt", ev1.Path.ToString());
             var ev2 = sut.Events.Last();
-            Assert.IsTrue(ev2 is DocumentCreated);
+            Assert.IsTrue(ev2 is DocumentUpdated);
+            Assert.AreEqual("test/content2.txt", ev2.Path.ToString());
+        }
+
+        [TestMethod]
+        public void 更新されたドキュメントが移動して移動元に新規に生成された場合更新されたことになる()
+        {
+            var sut = new LocalFileEventShrinker();
+            sut.Apply(new DocumentUpdated(new PathString("test/content2.txt")));
+            sut.Apply(new DocumentMoved(new PathString("test/content1.txt"), new PathString("test/content2.txt")));
+            sut.Apply(new DocumentCreated(new PathString("test/content2.txt")));
+            Assert.AreEqual(2, sut.Events.Count());
+            var ev1 = sut.Events.First();
+            Assert.IsTrue(ev1 is DocumentCreated);
+            Assert.AreEqual("test/content1.txt", ev1.Path.ToString());
+            var ev2 = sut.Events.Last();
+            Assert.IsTrue(ev2 is DocumentUpdated);
             Assert.AreEqual("test/content2.txt", ev2.Path.ToString());
         }
 
