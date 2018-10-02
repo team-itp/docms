@@ -59,10 +59,13 @@ namespace Docms.Infrastructure
 
         public async Task<bool> SaveEntitiesAsync(CancellationToken cancellationToken = default(CancellationToken))
         {
-            await _mediator.DispatchDomainEventsAsync(this);
-            var result = await base.SaveChangesAsync();
-
-            return true;
+            using (var tx = await Database.BeginTransactionAsync())
+            {
+                await _mediator.DispatchDomainEventsAsync(this);
+                var result = await base.SaveChangesAsync();
+                tx.Commit();
+                return true;
+            }
         }
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)

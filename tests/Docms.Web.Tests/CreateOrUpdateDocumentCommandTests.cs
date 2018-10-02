@@ -93,6 +93,26 @@ namespace Docms.Web.Tests
             Assert.AreEqual("Hello, new world", await ReadTextAsync("test1/document1(1).txt"));
         }
 
+        [TestMethod]
+        public async Task 削除済みのファイルが存在する場合でもコマンドを発行してドキュメントが作成されること()
+        {
+            var bytes = Encoding.UTF8.GetBytes("Hello, world");
+            var document = new Document(new DocumentPath("test1/document1.txt"), "text/plain", bytes.Length, Hash.CalculateHash(bytes));
+            document.Delete();
+            await repository.AddAsync(document);
+            using (var ms = new MemoryStream(Encoding.UTF8.GetBytes("Hello, new world")))
+            {
+                await sut.Handle(new CreateOrUpdateDocumentCommand()
+                {
+                    Path = new FilePath("test1/document1.txt"),
+                    Stream = ms
+                });
+            }
+            Assert.IsNotNull(repository.Entities.FirstOrDefault(e => e.Path == null));
+            Assert.IsNotNull(repository.Entities.Skip(1).FirstOrDefault(e => e.Path.Value == "test1/document1.txt"));
+            Assert.AreEqual("Hello, new world", await ReadTextAsync("test1/document1.txt"));
+        }
+
         private async Task<string> ReadTextAsync(string filePath)
         {
             var file = (await localFileStorage.GetEntryAsync(filePath).ConfigureAwait(false)) as Infrastructure.Files.File;
