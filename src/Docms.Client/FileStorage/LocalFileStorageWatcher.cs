@@ -228,17 +228,22 @@ namespace Docms.Client.FileStorage
             var fileInfo = GetFile(path);
             if (fileInfo != null)
             {
-                _fileTree.AddFile(path);
-                FileCreated?.Invoke(this, new FileCreatedEventArgs(path));
+                if (fileInfo.Attributes != FileAttributes.Hidden && fileInfo.Attributes != FileAttributes.System)
+                {
+                    _fileTree.AddFile(path);
+                    FileCreated?.Invoke(this, new FileCreatedEventArgs(path));
+                }
             }
             var dirInfo = GetDirectory(path);
             if (dirInfo != null)
             {
-                foreach (var item in dirInfo.GetFiles())
+                var files = dirInfo.GetFiles();
+                var dirs = dirInfo.GetDirectories();
+                foreach (var item in files)
                 {
                     OnCreated(ResolvePath(item.FullName));
                 }
-                foreach (var item in dirInfo.GetDirectories())
+                foreach (var item in dirs)
                 {
                     OnCreated(ResolvePath(item.FullName));
                 }
@@ -256,11 +261,21 @@ namespace Docms.Client.FileStorage
             var dirInfo = GetDirectory(path);
             if (dirInfo != null)
             {
-                foreach (var item in dirInfo.GetFiles())
+                var files = dirInfo.GetFiles();
+                var dirs = dirInfo.GetDirectories();
+                foreach (var item in files)
                 {
-                    OnModified(ResolvePath(item.FullName));
+                    var itemPath = ResolvePath(item.FullName);
+                    if (_fileTree.GetFile(itemPath) == null)
+                    {
+                        OnCreated(itemPath);
+                    }
+                    else
+                    {
+                        OnModified(itemPath);
+                    }
                 }
-                foreach (var item in dirInfo.GetDirectories())
+                foreach (var item in dirs)
                 {
                     OnModified(ResolvePath(item.FullName));
                 }
