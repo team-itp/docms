@@ -80,7 +80,6 @@ namespace docmssync
                 await _client.LoginAsync(Settings.Default.UploadUserName, Settings.Default.UploadUserPassword).ConfigureAwait(false);
                 _synchronizer = new FileSystemSynchronizer(_client, _localFileStorage, _context);
                 _eventShrinker = new LocalFileEventShrinker();
-                _processTask = ProcessAsync(_cts.Token);
 
                 await EnqueueTask(async () =>
                 {
