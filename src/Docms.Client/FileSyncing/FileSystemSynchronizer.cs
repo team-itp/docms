@@ -28,7 +28,7 @@ namespace Docms.Client.FileSyncing
             _storage = storage;
             _db = db;
             _synchronizer = new FileSynchronizer(_client, _storage, _db);
-            IgnorePatterns = new[] { ".bk$", "Thumb.db" };
+            IgnorePatterns = new[] { ".bk$", "Thumb.db", "^~" };
         }
 
         private bool IgnorePattern(PathString item)
@@ -248,10 +248,31 @@ namespace Docms.Client.FileSyncing
                 || fileInfo.Length != file.FileSize
                 || _storage.CalculateHash(path) != file.Hash)
             {
-                using (var fs = fileInfo.OpenRead())
+                Trace.WriteLine($"local file is newer than server's");
+                try
                 {
-                    await _client.CreateOrUpdateDocumentAsync(path.ToString(), fs, fileInfo.CreationTimeUtc, fileInfo.LastWriteTimeUtc).ConfigureAwait(false);
-                    Trace.WriteLine($"requested changing {path}");
+                    using (var fs = fileInfo.OpenRead())
+                    {
+                        await _client.CreateOrUpdateDocumentAsync(path.ToString(), fs, fileInfo.CreationTimeUtc, fileInfo.LastWriteTimeUtc).ConfigureAwait(false);
+                        Trace.WriteLine($"requested changing {path}");
+                    }
+                }
+                catch (IOException ex)
+                {
+                    Trace.WriteLine("file update failed.");
+                    Trace.WriteLine(ex);
+
+                    var tempFileInfo = _storage.TempCopy(path);
+                    Trace.WriteLine($"file update copying to temp path: {tempFileInfo.FullName}");
+                    if (tempFileInfo.Exists)
+                    {
+                        using (var fs = tempFileInfo.OpenRead())
+                        {
+                            await _client.CreateOrUpdateDocumentAsync(path.ToString(), fs, fileInfo.CreationTimeUtc, fileInfo.LastWriteTimeUtc).ConfigureAwait(false);
+                            Trace.WriteLine($"requested changing {path}");
+                        }
+                        tempFileInfo.Delete();
+                    }
                 }
             }
         }

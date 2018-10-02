@@ -13,6 +13,7 @@ namespace Docms.Client.FileStorage
         void MoveDocument(PathString originalPath, PathString destinationPath);
         void Delete(PathString path);
         FileInfo GetFile(PathString path);
+        FileInfo TempCopy(PathString path);
         string CalculateHash(PathString path);
         IEnumerable<PathString> GetFiles(PathString path);
         IEnumerable<PathString> GetDirectories(PathString path);

@@ -77,10 +77,30 @@ namespace Docms.Client.FileSyncing
                     if (fileInfo.LastWriteTimeUtc > file.LastHistoryTimestamp)
                     {
                         Trace.WriteLine($"local file is newer than server's");
-                        using (var fs = fileInfo.OpenRead())
+                        try
                         {
-                            await _client.CreateOrUpdateDocumentAsync(path.ToString(), fs, fileInfo.CreationTimeUtc, fileInfo.LastWriteTimeUtc).ConfigureAwait(false);
-                            Trace.WriteLine($"{path} request update");
+                            using (var fs = fileInfo.OpenRead())
+                            {
+                                await _client.CreateOrUpdateDocumentAsync(path.ToString(), fs, fileInfo.CreationTimeUtc, fileInfo.LastWriteTimeUtc).ConfigureAwait(false);
+                                Trace.WriteLine($"{path} request update");
+                            }
+                        }
+                        catch(System.IO.IOException ex)
+                        {
+                            Trace.WriteLine("file update failed.");
+                            Trace.WriteLine(ex);
+
+                            var tempFileInfo = _storage.TempCopy(path);
+                            Trace.WriteLine($"file update copying to temp path: {tempFileInfo.FullName}");
+                            if (tempFileInfo.Exists)
+                            {
+                                using (var fs = tempFileInfo.OpenRead())
+                                {
+                                    await _client.CreateOrUpdateDocumentAsync(path.ToString(), fs, fileInfo.CreationTimeUtc, fileInfo.LastWriteTimeUtc).ConfigureAwait(false);
+                                    Trace.WriteLine($"{path} request update");
+                                }
+                                tempFileInfo.Delete();
+                            }
                         }
                     }
                     else

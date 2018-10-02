@@ -87,6 +87,14 @@ namespace Docms.Client.FileStorage
             return new FileInfo(fullpath);
         }
 
+        public FileInfo TempCopy(PathString path)
+        {
+            var originalFullpath = ConvertToFullPath(path);
+            var tempFullpath = Path.GetTempFileName();
+            File.Copy(originalFullpath, tempFullpath, true);
+            return new FileInfo(tempFullpath);
+        }
+
         public IEnumerable<PathString> GetFiles(PathString path)
         {
             var fullpath = ConvertToFullPath(path);
