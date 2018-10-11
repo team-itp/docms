@@ -2,16 +2,16 @@
 <SettingsFile xmlns="http://schemas.microsoft.com/VisualStudio/2004/01/settings" CurrentProfile="(Default)" GeneratedClassNamespace="docmssync.Properties" GeneratedClassName="Settings">
   <Profiles />
   <Settings>
-    <Setting Name="WatchPath" Type="System.String" Scope="User">
+    <Setting Name="WatchPath" Type="System.String" Scope="Application">
       <Value Profile="(Default)">C:\temp\Images</Value>
     </Setting>
-    <Setting Name="ServerUrl" Type="System.String" Scope="User">
+    <Setting Name="ServerUrl" Type="System.String" Scope="Application">
       <Value Profile="(Default)">http://localhost:51693</Value>
     </Setting>
-    <Setting Name="UploadUserName" Type="System.String" Scope="User">
+    <Setting Name="UploadUserName" Type="System.String" Scope="Application">
       <Value Profile="(Default)">testuser</Value>
     </Setting>
-    <Setting Name="UploadUserPassword" Type="System.String" Scope="User">
+    <Setting Name="UploadUserPassword" Type="System.String" Scope="Application">
       <Value Profile="(Default)">Passw0rd</Value>
     </Setting>
   </Settings>
