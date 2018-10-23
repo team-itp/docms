@@ -8,18 +8,22 @@ namespace Docms.Client.FileStorage
     public class LocalFileEventShrinker
     {
         private List<LocalFileEvent> _events = new List<LocalFileEvent>();
+        private TypeSwitch _ts;
 
         public IEnumerable<LocalFileEvent> Events => _events;
 
-        public void Apply(LocalFileEvent ev)
+        public LocalFileEventShrinker()
         {
-            var ts = new TypeSwitch()
+            _ts = new TypeSwitch()
                 .Case<DocumentCreated>(x => Apply(x))
                 .Case<DocumentUpdated>(x => Apply(x))
                 .Case<DocumentMoved>(x => Apply(x))
                 .Case<DocumentDeleted>(x => Apply(x));
+        }
 
-            ts.Switch(ev);
+        public void Apply(LocalFileEvent ev)
+        {
+            _ts.Switch(ev);
         }
 
         public void Reset()

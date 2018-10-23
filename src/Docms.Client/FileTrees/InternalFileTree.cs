@@ -10,8 +10,6 @@ namespace Docms.Client.FileTrees
 {
     public class InternalFileTree
     {
-        private FileTreeEventShrinker EventShrinker = new FileTreeEventShrinker();
-
         public DirectoryNode Root { get; } = new DirectoryNode("");
 
         public Node GetNode(PathString path)
@@ -59,7 +57,6 @@ namespace Docms.Client.FileTrees
             EnsureDirectoryExists(path.ParentPath);
             var dir = GetDirectory(path.ParentPath);
             dir.Add(new FileNode(path.Name));
-            EventShrinker.Apply(new DocumentCreated(path));
         }
 
         public void AddDirectory(PathString path)
@@ -92,7 +89,6 @@ namespace Docms.Client.FileTrees
                 oldFile.Remove();
                 oldFile.Name = path.Name;
                 dir.Add(oldFile);
-                EventShrinker.Apply(new DocumentMoved(path, oldPath));
 
                 if (!oldParent.Children.Any())
                 {
@@ -107,10 +103,6 @@ namespace Docms.Client.FileTrees
             if (node == null)
             {
                 throw new InvalidOperationException();
-            }
-            if (node is FileNode file)
-            {
-                EventShrinker.Apply(new DocumentUpdated(path));
             }
         }
 
@@ -132,23 +124,12 @@ namespace Docms.Client.FileTrees
             else if (node is FileNode file)
             {
                 file.Remove();
-                EventShrinker.Apply(new DocumentDeleted(path));
             }
         }
 
         public bool Exists(PathString path)
         {
             return GetNode(path) != null;
-        }
-
-        public IEnumerable<FileTreeEvent> GetDelta()
-        {
-            return EventShrinker.Events;
-        }
-
-        public void ClearDelta()
-        {
-            EventShrinker.Reset();
         }
     }
 }
