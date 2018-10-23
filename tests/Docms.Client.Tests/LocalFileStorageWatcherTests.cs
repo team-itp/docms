@@ -1,4 +1,4 @@
-using Docms.Client.FileStorage;
+﻿using Docms.Client.FileStorage;
 using Docms.Client.FileTrees;
 using Docms.Client.SeedWork;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
@@ -361,6 +361,127 @@ namespace Docms.Client.Tests
             Assert.IsNull(fileTree.GetFile(new PathString("dir1/subdir1/content1.txt")));
             Assert.IsNull(fileTree.GetFile(new PathString("dir1/subdir1/content2.txt")));
         }
+
+        [TestMethod]
+        public async Task ファイルの書き込みが大量に発生した場合に正しく追随する()
+        {
+            const int DIRECTRY_COUNT = 10;
+            const int FILE_COUNT = 10;
+            var ev = new List<LocalFileEvenArgs>();
+            sut.FileCreated += new EventHandler<FileCreatedEventArgs>((s, e) => ev.Add(e));
+            sut.FileModified += new EventHandler<FileModifiedEventArgs>((s, e) => ev.Add(e));
+            sut.FileMoved += new EventHandler<FileMovedEventArgs>((s, e) => ev.Add(e));
+            sut.FileDeleted += new EventHandler<FileDeletedEventArgs>((s, e) => ev.Add(e));
+
+            for (var i = 0; i < DIRECTRY_COUNT; i++)
+            {
+                await CreateDirectory($"dir{i}");
+            }
+            await sut.StopWatch(false);
+            await sut.StartWatch();
+
+            for (var i = 0; i < DIRECTRY_COUNT; i++)
+            {
+                for (var j = 0; j < FILE_COUNT; j++)
+                {
+                    await CreateFile($"dir{i}/content{j}.txt", $"dir{i}/content{j}.txt");
+                }
+            }
+
+            for (var i = 0; i < DIRECTRY_COUNT; i++)
+            {
+                for (var j = 0; j < FILE_COUNT; j++)
+                {
+                    await UpdateFile($"dir{i}/content{j}.txt", $"dir{i}/content{j}.txt update");
+                }
+            }
+
+            for (var i = 0; i < DIRECTRY_COUNT; i++)
+            {
+                for (var j = 0; j < FILE_COUNT; j++)
+                {
+                    await MoveFile($"dir{i}/content{j}.txt", $"dir{i}/moved_content{j}.txt");
+                }
+            }
+
+            for (var i = 0; i < DIRECTRY_COUNT; i++)
+            {
+                for (var j = 0; j < FILE_COUNT; j++)
+                {
+                    await DeleteFile($"dir{i}/moved_content{j}.txt");
+                }
+            }
+
+            await sut.StopWatch(false);
+
+            using (var iter = ev.GetEnumerator())
+            {
+                for (var i = 0; i < DIRECTRY_COUNT; i++)
+                {
+                    for (var j = 0; j < FILE_COUNT; j++)
+                    {
+                        Assert.IsTrue(iter.MoveNext());
+                        if (iter.Current is FileCreatedEventArgs ce)
+                        {
+                            Assert.AreEqual($"dir{i}/content{j}.txt", ce.Path.ToString());
+                        }
+                        else
+                        {
+                            Assert.Fail($"i:{i}, j:{j}, iter.Current:{iter.Current} {iter.Current.Path}");
+                        }
+                    }
+                }
+
+                for (var i = 0; i < DIRECTRY_COUNT; i++)
+                {
+                    for (var j = 0; j < FILE_COUNT; j++)
+                    {
+                        Assert.IsTrue(iter.MoveNext());
+                        if (iter.Current is FileModifiedEventArgs me)
+                        {
+                            Assert.AreEqual($"dir{i}/content{j}.txt", me.Path.ToString());
+                        }
+                        else
+                        {
+                            Assert.Fail($"i:{i}, j:{j}, iter.Current:{iter.Current} {iter.Current.Path}");
+                        }
+                    }
+                }
+
+                for (var i = 0; i < DIRECTRY_COUNT; i++)
+                {
+                    for (var j = 0; j < FILE_COUNT; j++)
+                    {
+                        Assert.IsTrue(iter.MoveNext());
+                        if (iter.Current is FileMovedEventArgs me)
+                        {
+                            Assert.AreEqual($"dir{i}/moved_content{j}.txt", me.Path.ToString());
+                            Assert.AreEqual($"dir{i}/content{j}.txt", me.FromPath.ToString());
+                        }
+                        else
+                        {
+                            Assert.Fail($"i:{i}, j:{j}, iter.Current:{iter.Current} {iter.Current.Path}");
+                        }
+                    }
+                }
+
+                for (var i = 0; i < DIRECTRY_COUNT; i++)
+                {
+                    for (var j = 0; j < FILE_COUNT; j++)
+                    {
+                        Assert.IsTrue(iter.MoveNext());
+                        if (iter.Current is FileDeletedEventArgs de)
+                        {
+                            Assert.AreEqual($"dir{i}/moved_content{j}.txt", de.Path.ToString());
+                        }
+                        else
+                        {
+                            Assert.Fail($"i:{i}, j:{j}, iter.Current:{iter.Current} {iter.Current.Path}");
+                        }
+                    }
+                }
+                Assert.IsFalse(iter.MoveNext());
+            }
         }
     }
 }

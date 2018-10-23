@@ -1,4 +1,4 @@
-using Docms.Client.FileStorage;
+﻿using Docms.Client.FileStorage;
 using Docms.Client.FileTrees;
 using Docms.Client.SeedWork;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
@@ -95,6 +95,29 @@ namespace Docms.Client.Tests
             Assert.IsNull(fileTree.GetDirectory(new PathString("dir1")));
             Assert.IsNull(fileTree.GetFile(new PathString("dir1/content1.txt")));
             Assert.IsNull(fileTree.GetFile(new PathString("dir1/content2.txt")));
+        }
+
+        [TestMethod]
+        public async Task ファイル数が多い場合でも正しくファイルが登録される()
+        {
+            const int DIRECTRY_COUNT = 10;
+            const int FILE_COUNT = 10;
+            for (var i = 0; i < DIRECTRY_COUNT; i++)
+            {
+                for (var j = 0; j < FILE_COUNT; j++)
+                {
+                    CreateFile($"dir{i}/content{j}.txt", $"dir{i}/content{j}.txt");
+                }
+            }
+            await sut.StartWatch();
+            for (var i = 0; i < DIRECTRY_COUNT; i++)
+            {
+                for (var j = 0; j < FILE_COUNT; j++)
+                {
+                    Assert.IsNotNull(fileTree.GetDirectory(new PathString($"dir{i}")));
+                    Assert.IsNotNull(fileTree.GetFile(new PathString($"dir{i}/content{j}.txt")));
+                }
+            }
         }
     }
 }
