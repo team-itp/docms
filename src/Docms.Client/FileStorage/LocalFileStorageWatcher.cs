@@ -97,7 +97,7 @@ namespace Docms.Client.FileStorage
             _fileTree.AddFile(path);
         }
 
-        private async Task EnqueueTask(Action func)
+        private Task EnqueueTask(Action func)
         {
             var tcs = new TaskCompletionSource<object>();
             _tasks.Enqueue(() =>
@@ -114,8 +114,7 @@ namespace Docms.Client.FileStorage
                 }
             });
             _taskHandle.Set();
-            _lastTask = tcs.Task;
-            await _lastTask;
+            return (_lastTask = tcs.Task);
         }
 
         private async Task ProcessAsync(CancellationToken cancellationToken)
@@ -174,64 +173,36 @@ namespace Docms.Client.FileStorage
             _watcher.EnableRaisingEvents = true;
         }
 
-        private async void _watcher_Created(object sender, FileSystemEventArgs e)
+        private void _watcher_Created(object sender, FileSystemEventArgs e)
         {
-            try
+            EnqueueTask(() =>
             {
-                await EnqueueTask(() =>
-                {
-                    OnCreated(ResolvePath(e.FullPath));
-                });
-            }
-            catch (Exception ex)
-            {
-                Trace.Write(ex);
-            }
+                OnCreated(ResolvePath(e.FullPath));
+            });
         }
 
-        private async void _watcher_Changed(object sender, FileSystemEventArgs e)
+        private void _watcher_Changed(object sender, FileSystemEventArgs e)
         {
-            try
+            EnqueueTask(() =>
             {
-                await EnqueueTask(() =>
-                {
-                    OnModified(ResolvePath(e.FullPath));
-                });
-            }
-            catch (Exception ex)
-            {
-                Trace.Write(ex);
-            }
+                OnModified(ResolvePath(e.FullPath));
+            });
         }
 
-        private async void _watcher_Renamed(object sender, RenamedEventArgs e)
+        private void _watcher_Renamed(object sender, RenamedEventArgs e)
         {
-            try
+            EnqueueTask(() =>
             {
-                await EnqueueTask(() =>
-                {
-                    OnMoved(ResolvePath(e.FullPath), ResolvePath(e.OldFullPath));
-                });
-            }
-            catch (Exception ex)
-            {
-                Trace.Write(ex);
-            }
+                OnMoved(ResolvePath(e.FullPath), ResolvePath(e.OldFullPath));
+            });
         }
 
-        private async void _watcher_Deleted(object sender, FileSystemEventArgs e)
+        private void _watcher_Deleted(object sender, FileSystemEventArgs e)
         {
-            try
+            EnqueueTask(() =>
             {
-                await EnqueueTask(() =>
-                {
-                    OnDeleted(ResolvePath(e.FullPath));
-                });
-            }
-            catch (Exception ex)
-            {
-                Trace.Write(ex);
-            }
+                OnDeleted(ResolvePath(e.FullPath));
+            });
         }
 
         protected void OnCreated(PathString path)
@@ -243,9 +214,11 @@ namespace Docms.Client.FileStorage
                 {
                     return;
                 }
-
-                _fileTree.AddFile(path);
-                FileCreated?.Invoke(this, new FileCreatedEventArgs(path));
+                if (!_fileTree.Exists(path))
+                {
+                    _fileTree.AddFile(path);
+                    FileCreated?.Invoke(this, new FileCreatedEventArgs(path));
+                }
             }
             var dirInfo = GetDirectory(path);
             if (dirInfo != null)
@@ -273,8 +246,11 @@ namespace Docms.Client.FileStorage
             var fileNode = _fileTree.GetFile(path);
             if (fileNode != null)
             {
-                _fileTree.Update(path);
-                FileModified?.Invoke(this, new FileModifiedEventArgs(path));
+                if (_fileTree.Exists(path))
+                {
+                    _fileTree.Update(path);
+                    FileModified?.Invoke(this, new FileModifiedEventArgs(path));
+                }
             }
             var dirInfo = GetDirectory(path);
             if (dirInfo != null)

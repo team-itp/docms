@@ -1,5 +1,6 @@
 using Docms.Client.FileStorage;
 using Docms.Client.FileTrees;
+using Docms.Client.SeedWork;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using System;
 using System.Collections.Generic;
@@ -15,13 +16,15 @@ namespace Docms.Client.Tests
     public class LocalFileStorageWatcherTests
     {
         private string _watchingPath;
+        private InternalFileTree fileTree;
         private LocalFileStorageWatcher sut;
 
         [TestInitialize]
         public async Task Setup()
         {
             _watchingPath = Path.GetFullPath("tmp" + Guid.NewGuid().ToString());
-            sut = new LocalFileStorageWatcher(_watchingPath);
+            fileTree = new InternalFileTree();
+            sut = new LocalFileStorageWatcher(_watchingPath, fileTree);
             await sut.StartWatch();
         }
 
@@ -33,6 +36,16 @@ namespace Docms.Client.Tests
             {
                 Directory.Delete(_watchingPath, true);
             }
+        }
+
+        private async Task CreateDirectory(string path)
+        {
+            var fullpath = Path.Combine(_watchingPath, path);
+            if (!Directory.Exists(fullpath))
+            {
+                Directory.CreateDirectory(fullpath);
+            }
+            await Task.Delay(5);
         }
 
         private async Task CreateFile(string path, string content)
@@ -101,6 +114,7 @@ namespace Docms.Client.Tests
             });
             await CreateFile("content1.txt", "content1.txt");
             Assert.AreEqual("content1.txt", ev.Path.ToString());
+            Assert.IsNotNull(fileTree.GetFile(new PathString("content1.txt")));
         }
 
         [TestMethod]
@@ -113,6 +127,7 @@ namespace Docms.Client.Tests
             });
             await CreateFile("dir/content1.txt", "dir/content1.txt");
             Assert.AreEqual("dir/content1.txt", ev.Path.ToString());
+            Assert.IsNotNull(fileTree.GetFile(new PathString("dir/content1.txt")));
         }
 
         [TestMethod]
@@ -126,6 +141,7 @@ namespace Docms.Client.Tests
             });
             await UpdateFile("content1.txt", "content1.txt modified");
             Assert.AreEqual("content1.txt", ev.Path.ToString());
+            Assert.IsNotNull(fileTree.GetFile(new PathString("content1.txt")));
         }
 
         [TestMethod]
@@ -139,6 +155,7 @@ namespace Docms.Client.Tests
             });
             await UpdateFile("dir/content1.txt", "dir/content1.txt modified");
             Assert.AreEqual("dir/content1.txt", ev.Path.ToString());
+            Assert.IsNotNull(fileTree.GetFile(new PathString("dir/content1.txt")));
         }
 
         [TestMethod]
@@ -152,6 +169,8 @@ namespace Docms.Client.Tests
             });
             await MoveFile("content1.txt", "content2.txt");
             Assert.AreEqual("content2.txt", ev.Path.ToString());
+            Assert.IsNull(fileTree.GetFile(new PathString("content1.txt")));
+            Assert.IsNotNull(fileTree.GetFile(new PathString("content2.txt")));
         }
 
         [TestMethod]
@@ -165,6 +184,8 @@ namespace Docms.Client.Tests
             });
             await MoveFile("dir/content1.txt", "dir/content2.txt");
             Assert.AreEqual("dir/content2.txt", ev.Path.ToString());
+            Assert.IsNull(fileTree.GetFile(new PathString("dir/content1.txt")));
+            Assert.IsNotNull(fileTree.GetFile(new PathString("dir/content2.txt")));
         }
 
         [TestMethod]
@@ -184,6 +205,8 @@ namespace Docms.Client.Tests
             await MoveFile("dir1/content1.txt", "dir2/content2.txt");
             Assert.AreEqual("dir1/content1.txt", ev1.Path.ToString());
             Assert.AreEqual("dir2/content2.txt", ev2.Path.ToString());
+            Assert.IsNull(fileTree.GetFile(new PathString("dir1/content1.txt")));
+            Assert.IsNotNull(fileTree.GetFile(new PathString("dir2/content2.txt")));
         }
 
         [TestMethod]
@@ -197,6 +220,7 @@ namespace Docms.Client.Tests
             });
             await DeleteFile("content1.txt");
             Assert.AreEqual("content1.txt", ev.Path.ToString());
+            Assert.IsNull(fileTree.GetFile(new PathString("content1.txt")));
         }
 
         [TestMethod]
@@ -210,6 +234,7 @@ namespace Docms.Client.Tests
             });
             await DeleteFile("dir/content1.txt");
             Assert.AreEqual("dir/content1.txt", ev.Path.ToString());
+            Assert.IsNull(fileTree.GetFile(new PathString("dir/content1.txt")));
         }
 
         [TestMethod]
@@ -227,6 +252,10 @@ namespace Docms.Client.Tests
             Assert.AreEqual("dir1/content1.txt", ev.First().FromPath.ToString());
             Assert.AreEqual("dir2/content2.txt", ev.Last().Path.ToString());
             Assert.AreEqual("dir1/content2.txt", ev.Last().FromPath.ToString());
+            Assert.IsNull(fileTree.GetFile(new PathString("dir1/content1.txt")));
+            Assert.IsNull(fileTree.GetFile(new PathString("dir1/content2.txt")));
+            Assert.IsNotNull(fileTree.GetFile(new PathString("dir2/content1.txt")));
+            Assert.IsNotNull(fileTree.GetFile(new PathString("dir2/content2.txt")));
         }
 
         [TestMethod]
@@ -249,6 +278,10 @@ namespace Docms.Client.Tests
             Assert.AreEqual("dir1/content2.txt", ev1.Last().Path.ToString());
             Assert.AreEqual("dir2/subdir2/content1.txt", ev2.First().Path.ToString());
             Assert.AreEqual("dir2/subdir2/content2.txt", ev2.Last().Path.ToString());
+            Assert.IsNull(fileTree.GetFile(new PathString("dir1/content1.txt")));
+            Assert.IsNull(fileTree.GetFile(new PathString("dir1/content2.txt")));
+            Assert.IsNotNull(fileTree.GetFile(new PathString("dir2/subdir2/content1.txt")));
+            Assert.IsNotNull(fileTree.GetFile(new PathString("dir2/subdir2/content2.txt")));
         }
 
         [TestMethod]
@@ -271,6 +304,10 @@ namespace Docms.Client.Tests
             Assert.AreEqual("dir1/subdir1/content2.txt", ev1.Last().Path.ToString());
             Assert.AreEqual("dir2/content1.txt", ev2.First().Path.ToString());
             Assert.AreEqual("dir2/content2.txt", ev2.Last().Path.ToString());
+            Assert.IsNull(fileTree.GetFile(new PathString("dir1/subdir1/content1.txt")));
+            Assert.IsNull(fileTree.GetFile(new PathString("dir1/subdir1/content2.txt")));
+            Assert.IsNotNull(fileTree.GetFile(new PathString("dir2/content1.txt")));
+            Assert.IsNotNull(fileTree.GetFile(new PathString("dir2/content2.txt")));
         }
 
         [TestMethod]
@@ -286,6 +323,9 @@ namespace Docms.Client.Tests
             await DeleteDirectory("dir1");
             Assert.AreEqual("dir1/content1.txt", ev.First().Path.ToString());
             Assert.AreEqual("dir1/content2.txt", ev.Last().Path.ToString());
+            Assert.IsNotNull(fileTree.GetDirectory(new PathString("dir1")));
+            Assert.IsNull(fileTree.GetFile(new PathString("dir1/content1.txt")));
+            Assert.IsNull(fileTree.GetFile(new PathString("dir1/content2.txt")));
         }
 
         [TestMethod]
@@ -301,6 +341,8 @@ namespace Docms.Client.Tests
             await DeleteDirectory("dir1");
             Assert.AreEqual("dir1/content1.txt", ev.First().Path.ToString());
             Assert.AreEqual("dir1/content2.txt", ev.Last().Path.ToString());
+            Assert.IsNull(fileTree.GetFile(new PathString("dir1/content1.txt")));
+            Assert.IsNull(fileTree.GetFile(new PathString("dir1/content2.txt")));
         }
 
         [TestMethod]
@@ -316,6 +358,9 @@ namespace Docms.Client.Tests
             await DeleteDirectory("dir1/subdir1");
             Assert.AreEqual("dir1/subdir1/content1.txt", ev.First().Path.ToString());
             Assert.AreEqual("dir1/subdir1/content2.txt", ev.Last().Path.ToString());
+            Assert.IsNull(fileTree.GetFile(new PathString("dir1/subdir1/content1.txt")));
+            Assert.IsNull(fileTree.GetFile(new PathString("dir1/subdir1/content2.txt")));
+        }
         }
     }
 }
