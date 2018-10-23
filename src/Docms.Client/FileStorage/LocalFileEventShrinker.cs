@@ -7,10 +7,10 @@ namespace Docms.Client.FileStorage
 {
     public class LocalFileEventShrinker
     {
-        private List<LocalFileEvent> _events = new List<LocalFileEvent>();
+        private Dictionary<string, List<LocalFileEvent>> _events = new Dictionary<string, List<LocalFileEvent>>();
         private TypeSwitch _ts;
 
-        public IEnumerable<LocalFileEvent> Events => _events;
+        public IEnumerable<LocalFileEvent> Events => _events.SelectMany(e => e.Value).OrderBy(e => e.Timestamp);
 
         public LocalFileEventShrinker()
         {
@@ -33,7 +33,7 @@ namespace Docms.Client.FileStorage
 
         private void Apply(DocumentCreated ev)
         {
-            var regEv = _events.LastOrDefault(e => e.Path.ToString() == ev.Path.ToString());
+            var regEv = GetLastEvent(ev.Path);
             if (regEv is DocumentUpdated || regEv is DocumentMoved)
             {
                 throw new InvalidOperationException();
@@ -41,18 +41,18 @@ namespace Docms.Client.FileStorage
 
             if (regEv is DocumentDeleted)
             {
-                _events.Remove(regEv);
-                _events.Add(new DocumentUpdated(ev.Path));
+                RemoveEvent(regEv);
+                AddEvent(new DocumentUpdated(ev.Path));
             }
             else
             {
-                _events.Add(ev);
+                AddEvent(ev);
             }
         }
 
         private void Apply(DocumentUpdated ev)
         {
-            var regEv = _events.LastOrDefault(e => e.Path.ToString() == ev.Path.ToString());
+            var regEv = GetLastEvent(ev.Path);
             if (regEv is DocumentDeleted)
             {
                 throw new InvalidOperationException();
@@ -60,19 +60,19 @@ namespace Docms.Client.FileStorage
 
             if (regEv == null)
             {
-                _events.Add(ev);
+                AddEvent(ev);
             }
             else if (regEv is DocumentMoved regMoved)
             {
-                _events.Remove(regEv);
-                _events.Add(new DocumentDeleted(regMoved.OldPath));
-                _events.Add(new DocumentCreated(ev.Path));
+                RemoveEvent(regEv);
+                AddEvent(new DocumentDeleted(regMoved.OldPath));
+                AddEvent(new DocumentCreated(ev.Path));
             }
         }
 
         private void Apply(DocumentMoved ev)
         {
-            var regEv = _events.LastOrDefault(e => e.Path.ToString() == ev.OldPath.ToString());
+            var regEv = GetLastEvent(ev.OldPath);
             if (regEv is DocumentDeleted)
             {
                 throw new InvalidOperationException();
@@ -80,36 +80,36 @@ namespace Docms.Client.FileStorage
 
             if (regEv == null)
             {
-                _events.Add(ev);
+                AddEvent(ev);
             }
             else if (regEv is DocumentMoved regMoved)
             {
                 if (regMoved.OldPath.ToString() == ev.Path.ToString())
                 {
-                    _events.Remove(regEv);
+                    RemoveEvent(regEv);
                 }
                 else
                 {
-                    _events.Remove(regEv);
-                    _events.Add(new DocumentMoved(ev.Path, regMoved.OldPath));
+                    RemoveEvent(regEv);
+                    AddEvent(new DocumentMoved(ev.Path, regMoved.OldPath));
                 }
             }
             else if (regEv is DocumentCreated)
             {
-                _events.Remove(regEv);
-                _events.Add(new DocumentCreated(ev.Path));
+                RemoveEvent(regEv);
+                AddEvent(new DocumentCreated(ev.Path));
             }
             else if (regEv is DocumentUpdated)
             {
-                _events.Remove(regEv);
-                _events.Add(new DocumentDeleted(regEv.Path));
-                _events.Add(new DocumentCreated(ev.Path));
+                RemoveEvent(regEv);
+                AddEvent(new DocumentDeleted(regEv.Path));
+                AddEvent(new DocumentCreated(ev.Path));
             }
         }
 
         private void Apply(DocumentDeleted ev)
         {
-            var regEv = _events.LastOrDefault(e => e.Path.ToString() == ev.Path.ToString());
+            var regEv = GetLastEvent(ev.Path);
             if (regEv is DocumentDeleted)
             {
                 throw new InvalidOperationException();
@@ -117,21 +117,52 @@ namespace Docms.Client.FileStorage
 
             if (regEv == null)
             {
-                _events.Add(new DocumentDeleted(ev.Path));
+                AddEvent(new DocumentDeleted(ev.Path));
             }
             else if (regEv is DocumentMoved regMoved)
             {
-                _events.Remove(regEv);
-                _events.Add(new DocumentDeleted(regMoved.OldPath));
+                RemoveEvent(regEv);
+                AddEvent(new DocumentDeleted(regMoved.OldPath));
             }
             else if (regEv is DocumentCreated)
             {
-                _events.Remove(regEv);
+                RemoveEvent(regEv);
             }
             else if (regEv is DocumentUpdated)
             {
-                _events.Remove(regEv);
-                _events.Add(new DocumentDeleted(ev.Path));
+                RemoveEvent(regEv);
+                AddEvent(new DocumentDeleted(ev.Path));
+            }
+        }
+
+        private LocalFileEvent GetLastEvent(PathString path)
+        {
+            if (_events.TryGetValue(path.ToString(), out var evList))
+            {
+                return evList.LastOrDefault();
+            }
+            return null;
+        }
+
+        private void AddEvent(LocalFileEvent ev)
+        {
+            var path = ev.Path.ToString();
+            if (_events.TryGetValue(path, out var evList))
+            {
+                evList.Add(ev);
+            }
+            else
+            {
+                _events.Add(path, new List<LocalFileEvent>() { ev });
+            }
+        }
+
+        private void RemoveEvent(LocalFileEvent ev)
+        {
+            var path = ev.Path.ToString();
+            if (_events.TryGetValue(path, out var evList))
+            {
+                evList.Remove(ev);
             }
         }
     }

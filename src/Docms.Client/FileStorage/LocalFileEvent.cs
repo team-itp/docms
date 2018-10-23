@@ -5,9 +5,21 @@ namespace Docms.Client.FileStorage
 {
     public abstract class LocalFileEvent
     {
+        private static DateTime _lastDateTime;
+        private static DateTime GetUtcNow()
+        {
+            var now = DateTime.UtcNow;
+            while (_lastDateTime == now)
+            {
+                now = DateTime.UtcNow;
+            }
+            _lastDateTime = now;
+            return now;
+        }
+
         public LocalFileEvent(PathString path)
         {
-            Timestamp = DateTime.UtcNow;
+            Timestamp = GetUtcNow();
             Path = path;
         }
 

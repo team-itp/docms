@@ -24,6 +24,7 @@ namespace Docms.Client.FileStorage
         private ConcurrentQueue<Action> _tasks = new ConcurrentQueue<Action>();
         private CancellationTokenSource _processCts;
         private Task _processTask;
+        private Task _lastTask;
         private AutoResetEvent _taskHandle;
 
         public LocalFileStorageWatcher(string basePath) : this(basePath, new InternalFileTree())
@@ -74,7 +75,6 @@ namespace Docms.Client.FileStorage
         private void StartTracking(DirectoryInfo dirInfo, CancellationToken cancellationToken)
         {
             cancellationToken.ThrowIfCancellationRequested();
-            var path = ResolvePath(dirInfo.FullName);
             foreach (var fi in dirInfo.GetFiles())
             {
                 StartTracking(fi, cancellationToken);
@@ -88,6 +88,10 @@ namespace Docms.Client.FileStorage
         private void StartTracking(FileInfo fileInfo, CancellationToken cancellationToken)
         {
             cancellationToken.ThrowIfCancellationRequested();
+            if (fileInfo.Attributes.HasFlag(FileAttributes.Hidden) || fileInfo.Attributes.HasFlag(FileAttributes.System))
+            {
+                return;
+            }
             var path = ResolvePath(fileInfo.FullName);
             Trace.WriteLine("file found: " + path.ToString());
             _fileTree.AddFile(path);
@@ -110,7 +114,8 @@ namespace Docms.Client.FileStorage
                 }
             });
             _taskHandle.Set();
-            await tcs.Task;
+            _lastTask = tcs.Task;
+            await _lastTask;
         }
 
         private async Task ProcessAsync(CancellationToken cancellationToken)
@@ -141,8 +146,17 @@ namespace Docms.Client.FileStorage
                 {
                     _processCts.Cancel();
                 }
+                else
+                {
+                    while (_tasks.Any())
+                    {
+                        await _lastTask;
+                    }
+                    _processCts.Cancel();
+                }
                 await _processTask;
                 _processTask = null;
+                _lastTask = null;
             }
         }
 
@@ -225,15 +239,22 @@ namespace Docms.Client.FileStorage
             var fileInfo = GetFile(path);
             if (fileInfo != null)
             {
-                if (fileInfo.Attributes != FileAttributes.Hidden && fileInfo.Attributes != FileAttributes.System)
+                if (fileInfo.Attributes.HasFlag(FileAttributes.Hidden) || fileInfo.Attributes.HasFlag(FileAttributes.System))
                 {
-                    _fileTree.AddFile(path);
-                    FileCreated?.Invoke(this, new FileCreatedEventArgs(path));
+                    return;
                 }
+
+                _fileTree.AddFile(path);
+                FileCreated?.Invoke(this, new FileCreatedEventArgs(path));
             }
             var dirInfo = GetDirectory(path);
             if (dirInfo != null)
             {
+                if (dirInfo.Attributes.HasFlag(FileAttributes.Hidden) || dirInfo.Attributes.HasFlag(FileAttributes.System))
+                {
+                    return;
+                }
+
                 var files = dirInfo.GetFiles();
                 var dirs = dirInfo.GetDirectories();
                 foreach (var item in files)

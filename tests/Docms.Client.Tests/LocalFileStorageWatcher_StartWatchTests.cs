@@ -1,4 +1,4 @@
-﻿using Docms.Client.FileStorage;
+using Docms.Client.FileStorage;
 using Docms.Client.FileTrees;
 using Docms.Client.SeedWork;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
@@ -53,6 +53,14 @@ namespace Docms.Client.Tests
             File.WriteAllBytes(fullpath, Encoding.UTF8.GetBytes(content));
         }
 
+        private void CreateFile(string path, string content, FileAttributes attr)
+        {
+            var fullpath = Path.Combine(_watchingPath, path);
+            CreateDirectory(Path.GetDirectoryName(fullpath));
+            File.WriteAllBytes(fullpath, Encoding.UTF8.GetBytes(content));
+            File.SetAttributes(fullpath, attr);
+        }
+
         [TestMethod]
         public async Task ルートディレクトリにディレクトリのみが存在する場合ディレクトリは登録されない()
         {
@@ -76,6 +84,17 @@ namespace Docms.Client.Tests
             await sut.StartWatch();
             Assert.IsNotNull(fileTree.GetDirectory(new PathString("dir1")));
             Assert.IsNotNull(fileTree.GetFile(new PathString("dir1/content1.txt")));
+        }
+
+        [TestMethod]
+        public async Task 隠しファイルとシステムファイルは登録されない()
+        {
+            CreateFile("dir1/content1.txt", "dir1/content1.txt", FileAttributes.Hidden);
+            CreateFile("dir1/content2.txt", "dir1/content2.txt", FileAttributes.System);
+            await sut.StartWatch();
+            Assert.IsNull(fileTree.GetDirectory(new PathString("dir1")));
+            Assert.IsNull(fileTree.GetFile(new PathString("dir1/content1.txt")));
+            Assert.IsNull(fileTree.GetFile(new PathString("dir1/content2.txt")));
         }
     }
 }
