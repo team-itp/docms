@@ -1,12 +1,11 @@
 ﻿using Docms.Client.Api;
 using Docms.Client.FileStorage;
 using Docms.Client.FileSyncing;
-using Docms.Client.SeedWork;
 using docmssync.Properties;
 using Microsoft.EntityFrameworkCore;
+using NLog;
 using System;
 using System.Collections.Concurrent;
-using System.Diagnostics;
 using System.IO;
 using System.ServiceProcess;
 using System.Threading;
@@ -16,6 +15,8 @@ namespace docmssync
 {
     public partial class SyncService : ServiceBase
     {
+        private static readonly Logger _logger = LogManager.GetCurrentClassLogger();
+
         private string _watchPath;
         private DocmsApiClinet _client;
         private ILocalFileStorage _localFileStorage;
@@ -90,7 +91,7 @@ namespace docmssync
             }
             catch (Exception ex)
             {
-                Trace.WriteLine(ex);
+                _logger.Debug(ex);
                 Stop();
             }
         }
@@ -114,7 +115,7 @@ namespace docmssync
             });
         }
 
-        private async Task EnqueueTask(Func<Task> func)
+        private Task EnqueueTask(Func<Task> func)
         {
             var tcs = new TaskCompletionSource<object>();
             _tasks.Enqueue(async () =>
@@ -126,17 +127,17 @@ namespace docmssync
                 }
                 catch (Exception ex)
                 {
-                    Trace.Write(ex);
+                    _logger.Error(ex);
                     tcs.SetException(ex);
                 }
             });
             _taskHandle.Set();
-            await tcs.Task;
+            return tcs.Task;
         }
 
-        private async Task ProcessAsync(CancellationToken cancellationToken)
+        private Task ProcessAsync(CancellationToken cancellationToken)
         {
-            await Task.Run(async () =>
+            return Task.Run(async () =>
             {
                 var failCount = 0;
                 while (!cancellationToken.IsCancellationRequested)
@@ -150,7 +151,7 @@ namespace docmssync
                         }
                         catch (Exception ex)
                         {
-                            Trace.WriteLine(ex);
+                            _logger.Debug(ex);
                             failCount++;
                         }
 
@@ -163,7 +164,7 @@ namespace docmssync
                             }
                             catch (Exception ex)
                             {
-                                Trace.WriteLine(ex);
+                                _logger.Debug(ex);
                             }
                         }
                     }
@@ -211,7 +212,7 @@ namespace docmssync
                     }
                     catch (Exception ex)
                     {
-                        Trace.WriteLine(ex);
+                        _logger.Debug(ex);
                     }
                 }
                 _timer.Change(10000, 10000);
@@ -222,7 +223,7 @@ namespace docmssync
         {
             await EnqueueTask(() =>
             {
-                Trace.WriteLine($"file deleted: {e.Path}");
+                _logger.Debug($"file deleted: {e.Path}");
                 _eventShrinker.Apply(new DocumentDeleted(e.Path));
                 return Task.CompletedTask;
             });
@@ -232,7 +233,7 @@ namespace docmssync
         {
             await EnqueueTask(() =>
             {
-                Trace.WriteLine($"file moved from path: {e.FromPath} to: {e.Path}");
+                _logger.Debug($"file moved from path: {e.FromPath} to: {e.Path}");
                 _eventShrinker.Apply(new DocumentMoved(e.Path, e.FromPath));
                 return Task.CompletedTask;
             });
@@ -242,7 +243,7 @@ namespace docmssync
         {
             await EnqueueTask(() =>
             {
-                Trace.WriteLine($"file modeifed: {e.Path}");
+                _logger.Debug($"file modeifed: {e.Path}");
                 _eventShrinker.Apply(new DocumentUpdated(e.Path));
                 return Task.CompletedTask;
             });
@@ -252,7 +253,7 @@ namespace docmssync
         {
             await EnqueueTask(() =>
             {
-                Trace.WriteLine($"file created: {e.Path}");
+                _logger.Debug($"file created: {e.Path}");
                 _eventShrinker.Apply(new DocumentCreated(e.Path));
                 return Task.CompletedTask;
             });

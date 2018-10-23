@@ -1,9 +1,9 @@
 ﻿using Docms.Client.FileTrees;
 using Docms.Client.SeedWork;
+using NLog;
 using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
-using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using System.Threading;
@@ -13,6 +13,8 @@ namespace Docms.Client.FileStorage
 {
     public class LocalFileStorageWatcher : ILocalFileStorageWatcher
     {
+        private static readonly Logger _logger = LogManager.GetCurrentClassLogger();
+
         public event EventHandler<FileCreatedEventArgs> FileCreated;
         public event EventHandler<FileModifiedEventArgs> FileModified;
         public event EventHandler<FileDeletedEventArgs> FileDeleted;
@@ -93,7 +95,7 @@ namespace Docms.Client.FileStorage
                 return;
             }
             var path = ResolvePath(fileInfo.FullName);
-            Trace.WriteLine("file found: " + path.ToString());
+            _logger.Debug("file found: " + path.ToString());
             _fileTree.AddFile(path);
         }
 
@@ -109,7 +111,7 @@ namespace Docms.Client.FileStorage
                 }
                 catch (Exception ex)
                 {
-                    Trace.Write(ex);
+                    _logger.Error(ex);
                     tcs.SetException(ex);
                 }
             });

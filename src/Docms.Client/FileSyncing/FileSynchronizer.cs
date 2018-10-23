@@ -2,9 +2,9 @@
 using Docms.Client.FileStorage;
 using Docms.Client.SeedWork;
 using Microsoft.EntityFrameworkCore;
+using NLog;
 using System;
 using System.Collections.Generic;
-using System.Diagnostics;
 using System.Linq;
 using System.Threading.Tasks;
 
@@ -12,6 +12,8 @@ namespace Docms.Client.FileSyncing
 {
     public class FileSynchronizer
     {
+        private static Logger _logger = LogManager.GetCurrentClassLogger();
+
         private IDocmsApiClient _client;
         private ILocalFileStorage _storage;
         private FileSyncingContext _db;
@@ -39,26 +41,26 @@ namespace Docms.Client.FileSyncing
             var fileInfo = _storage.GetFile(path);
             if (fileInfo.Exists)
             {
-                Trace.WriteLine($"{path} is exists on local");
+                _logger.Debug($"{path} is exists on local");
                 var isSameFile = fileInfo.Length == file.FileSize
                     && _storage.CalculateHash(path) == file.Hash;
 
                 if (isSameFile)
                 {
-                    Trace.WriteLine($"{path} is same as server");
+                    _logger.Debug($"{path} is same as server");
                     if (file.Path == null)
                     {
                         fileInfo.Delete();
-                        Trace.WriteLine($"{path} at server is deleted, deleted on local");
+                        _logger.Debug($"{path} at server is deleted, deleted on local");
                     }
                     else if (file.Path != path.ToString())
                     {
-                        Trace.WriteLine($"{path} at server is moved");
+                        _logger.Debug($"{path} at server is moved");
                         var fileInfoMoveTo = _storage.GetFile(new PathString(file.Path));
                         if (fileInfoMoveTo.Exists)
                         {
                             fileInfo.Delete();
-                            Trace.WriteLine($"file exists at {file.Path} (where file move to), just delete {path}");
+                            _logger.Debug($"file exists at {file.Path} (where file move to), just delete {path}");
                         }
                         else
                         {
@@ -67,37 +69,37 @@ namespace Docms.Client.FileSyncing
                                 fileInfoMoveTo.Directory.Create();
                             }
                             fileInfo.MoveTo(fileInfoMoveTo.FullName);
-                            Trace.WriteLine($"file moved from {path} to {file.Path}");
+                            _logger.Debug($"file moved from {path} to {file.Path}");
                         }
                     }
                 }
                 else
                 {
-                    Trace.WriteLine($"{path} is not same as server");
+                    _logger.Debug($"{path} is not same as server");
                     if (fileInfo.LastWriteTimeUtc > file.LastHistoryTimestamp)
                     {
-                        Trace.WriteLine($"local file is newer than server's");
+                        _logger.Debug($"local file is newer than server's");
                         try
                         {
                             using (var fs = fileInfo.OpenRead())
                             {
                                 await _client.CreateOrUpdateDocumentAsync(path.ToString(), fs, fileInfo.CreationTimeUtc, fileInfo.LastWriteTimeUtc).ConfigureAwait(false);
-                                Trace.WriteLine($"{path} request update");
+                                _logger.Debug($"{path} request update");
                             }
                         }
                         catch(System.IO.IOException ex)
                         {
-                            Trace.WriteLine("file update failed.");
-                            Trace.WriteLine(ex);
+                            _logger.Debug("file update failed.");
+                            _logger.Debug(ex);
 
                             var tempFileInfo = _storage.TempCopy(path);
-                            Trace.WriteLine($"file update copying to temp path: {tempFileInfo.FullName}");
+                            _logger.Debug($"file update copying to temp path: {tempFileInfo.FullName}");
                             if (tempFileInfo.Exists)
                             {
                                 using (var fs = tempFileInfo.OpenRead())
                                 {
                                     await _client.CreateOrUpdateDocumentAsync(path.ToString(), fs, fileInfo.CreationTimeUtc, fileInfo.LastWriteTimeUtc).ConfigureAwait(false);
-                                    Trace.WriteLine($"{path} request update");
+                                    _logger.Debug($"{path} request update");
                                 }
                                 tempFileInfo.Delete();
                             }
@@ -105,19 +107,19 @@ namespace Docms.Client.FileSyncing
                     }
                     else
                     {
-                        Trace.WriteLine($"local file is older than server's");
+                        _logger.Debug($"local file is older than server's");
                         using (var stream = await _client.DownloadAsync(path.ToString()).ConfigureAwait(false))
                         {
                             _storage.Delete(path);
                             await _storage.Create(path, stream, file.Created, file.LastModified).ConfigureAwait(false);
-                            Trace.WriteLine($"{path} downloaded");
+                            _logger.Debug($"{path} downloaded");
                         }
                     }
                 }
             }
             else
             {
-                Trace.WriteLine($"{path} is not exists on local");
+                _logger.Debug($"{path} is not exists on local");
                 if (file.AppliedHistories.Any())
                 {
                     if (file.Path == path.ToString())
@@ -125,14 +127,14 @@ namespace Docms.Client.FileSyncing
                         using (var stream = await _client.DownloadAsync(path.ToString()))
                         {
                             await _storage.Create(path, stream, file.Created, file.LastModified).ConfigureAwait(false);
-                            Trace.WriteLine($"{path} downloaded");
+                            _logger.Debug($"{path} downloaded");
                         }
                     }
                 }
                 else if (file.Path != null && file.Path == path.ToString())
                 {
                     await _client.DeleteDocumentAsync(path.ToString());
-                    Trace.WriteLine($"{path} request delete");
+                    _logger.Debug($"{path} request delete");
                 }
             }
 

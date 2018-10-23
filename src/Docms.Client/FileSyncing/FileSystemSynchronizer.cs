@@ -2,9 +2,9 @@
 using Docms.Client.FileStorage;
 using Docms.Client.SeedWork;
 using Microsoft.EntityFrameworkCore;
+using NLog;
 using System;
 using System.Collections.Generic;
-using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using System.Text.RegularExpressions;
@@ -15,6 +15,8 @@ namespace Docms.Client.FileSyncing
 {
     public class FileSystemSynchronizer
     {
+        private static readonly Logger _logger = LogManager.GetCurrentClassLogger();
+
         private readonly IDocmsApiClient _client;
         private readonly ILocalFileStorage _storage;
         private readonly FileSyncingContext _db;
@@ -28,7 +30,7 @@ namespace Docms.Client.FileSyncing
             _storage = storage;
             _db = db;
             _synchronizer = new FileSynchronizer(_client, _storage, _db);
-            IgnorePatterns = new[] { ".bk$", "Thumb.db", "^~" };
+            IgnorePatterns = new[] { "^Thumb.db$", "^~" };
         }
 
         private bool IgnorePattern(PathString item)
@@ -40,7 +42,7 @@ namespace Docms.Client.FileSyncing
         {
             _db.FileSyncHistories.Add(new FileSyncHistory(FileSyncStatus.InitializingStarted));
             await _db.SaveChangesAsync().ConfigureAwait(false);
-            Trace.WriteLine($"initialize started");
+            _logger.Debug($"initialize started");
 
             try
             {
@@ -48,11 +50,11 @@ namespace Docms.Client.FileSyncing
                 await UploadLocalFiles(PathString.Root, cancellationToken).ConfigureAwait(false);
                 _db.FileSyncHistories.Add(new FileSyncHistory(FileSyncStatus.InitializeCompleted));
                 await _db.SaveChangesAsync().ConfigureAwait(false);
-                Trace.WriteLine($"initialize completed");
+                _logger.Debug($"initialize completed");
             }
             catch (Exception ex)
             {
-                Trace.WriteLine(ex);
+                _logger.Debug(ex);
                 _db.FileSyncHistories.Add(new FileSyncHistory(FileSyncStatus.InitializeFailed));
                 await _db.SaveChangesAsync().ConfigureAwait(false);
             }
@@ -88,7 +90,7 @@ namespace Docms.Client.FileSyncing
                 }
                 catch (Exception ex)
                 {
-                    Trace.WriteLine(ex);
+                    _logger.Debug(ex);
                 }
             }
             foreach (var item in _storage.GetDirectories(path))
@@ -101,7 +103,7 @@ namespace Docms.Client.FileSyncing
         {
             _db.FileSyncHistories.Add(new FileSyncHistory(FileSyncStatus.SyncStarted));
             await _db.SaveChangesAsync().ConfigureAwait(false);
-            Trace.WriteLine($"sync started");
+            _logger.Debug($"sync started");
 
             try
             {
@@ -133,11 +135,11 @@ namespace Docms.Client.FileSyncing
 
                 _db.FileSyncHistories.Add(new FileSyncHistory(FileSyncStatus.SyncCompleted));
                 await _db.SaveChangesAsync().ConfigureAwait(false);
-                Trace.WriteLine($"sync completed");
+                _logger.Debug($"sync completed");
             }
             catch (Exception ex)
             {
-                Trace.WriteLine(ex);
+                _logger.Debug(ex);
                 _db.FileSyncHistories.Add(new FileSyncHistory(FileSyncStatus.SyncFailed));
                 await _db.SaveChangesAsync().ConfigureAwait(false);
             }
@@ -153,7 +155,7 @@ namespace Docms.Client.FileSyncing
                 return;
             }
 
-            Trace.WriteLine($"request creation {path}");
+            _logger.Debug($"request creation {path}");
             var file = await _client.GetDocumentAsync(path.ToString()).ConfigureAwait(false);
             if (file == null
                 || fileInfo.Length != file.FileSize
@@ -162,7 +164,7 @@ namespace Docms.Client.FileSyncing
                 using (var fs = fileInfo.OpenRead())
                 {
                     await _client.CreateOrUpdateDocumentAsync(path.ToString(), fs, fileInfo.CreationTimeUtc, fileInfo.LastWriteTimeUtc).ConfigureAwait(false);
-                    Trace.WriteLine($"requested creation {path}");
+                    _logger.Debug($"requested creation {path}");
                 }
             }
         }
@@ -177,16 +179,16 @@ namespace Docms.Client.FileSyncing
                 return;
             }
 
-            Trace.WriteLine($"request deletion {path}");
+            _logger.Debug($"request deletion {path}");
             var file = await _client.GetDocumentAsync(path.ToString()).ConfigureAwait(false);
             if (file == null)
             {
-                Trace.WriteLine($"{path} on server is already deleted");
+                _logger.Debug($"{path} on server is already deleted");
                 return;
             }
 
             await _client.DeleteDocumentAsync(path.ToString()).ConfigureAwait(false);
-            Trace.WriteLine($"requested deletion {path}");
+            _logger.Debug($"requested deletion {path}");
         }
 
         public async Task RequestMovementAsync(PathString originalPath, PathString destinationPath, CancellationToken cancellationToken = default(CancellationToken))
@@ -201,15 +203,15 @@ namespace Docms.Client.FileSyncing
                 return;
             }
 
-            Trace.WriteLine($"request movement {originalPath} to {destinationPath}");
+            _logger.Debug($"request movement {originalPath} to {destinationPath}");
             var originalFile = await _client.GetDocumentAsync(originalPath.ToString()).ConfigureAwait(false);
             if (originalFile == null)
             {
-                Trace.WriteLine($"{originalPath} on server is deleted");
+                _logger.Debug($"{originalPath} on server is deleted");
                 using (var fs = destinationFileInfo.OpenRead())
                 {
                     await _client.CreateOrUpdateDocumentAsync(destinationPath.ToString(), fs, destinationFileInfo.CreationTimeUtc, destinationFileInfo.LastWriteTimeUtc).ConfigureAwait(false);
-                    Trace.WriteLine($"requested creation {destinationPath}");
+                    _logger.Debug($"requested creation {destinationPath}");
                 }
                 return;
             }
@@ -218,17 +220,17 @@ namespace Docms.Client.FileSyncing
                 && originalFile.Hash == _storage.CalculateHash(destinationPath))
             {
                 await _client.MoveDocumentAsync(originalPath.ToString(), destinationPath.ToString()).ConfigureAwait(false);
-                Trace.WriteLine($"requested movement {originalPath} to {destinationPath}");
+                _logger.Debug($"requested movement {originalPath} to {destinationPath}");
             }
             else
             {
                 using (var fs = destinationFileInfo.OpenRead())
                 {
                     await _client.CreateOrUpdateDocumentAsync(destinationPath.ToString(), fs, destinationFileInfo.CreationTimeUtc, destinationFileInfo.LastWriteTimeUtc).ConfigureAwait(false);
-                    Trace.WriteLine($"requested creation {destinationPath}");
+                    _logger.Debug($"requested creation {destinationPath}");
                 }
                 await _client.DeleteDocumentAsync(originalPath.ToString()).ConfigureAwait(false);
-                Trace.WriteLine($"requested deletion {originalPath}");
+                _logger.Debug($"requested deletion {originalPath}");
             }
         }
 
@@ -242,34 +244,34 @@ namespace Docms.Client.FileSyncing
                 return;
             }
 
-            Trace.WriteLine($"request changing {path}");
+            _logger.Debug($"request changing {path}");
             var file = await _client.GetDocumentAsync(path.ToString()).ConfigureAwait(false);
             if (file == null
                 || fileInfo.Length != file.FileSize
                 || _storage.CalculateHash(path) != file.Hash)
             {
-                Trace.WriteLine($"local file is newer than server's");
+                _logger.Debug($"local file is newer than server's");
                 try
                 {
                     using (var fs = fileInfo.OpenRead())
                     {
                         await _client.CreateOrUpdateDocumentAsync(path.ToString(), fs, fileInfo.CreationTimeUtc, fileInfo.LastWriteTimeUtc).ConfigureAwait(false);
-                        Trace.WriteLine($"requested changing {path}");
+                        _logger.Debug($"requested changing {path}");
                     }
                 }
                 catch (IOException ex)
                 {
-                    Trace.WriteLine("file update failed.");
-                    Trace.WriteLine(ex);
+                    _logger.Debug("file update failed.");
+                    _logger.Debug(ex);
 
                     var tempFileInfo = _storage.TempCopy(path);
-                    Trace.WriteLine($"file update copying to temp path: {tempFileInfo.FullName}");
+                    _logger.Debug($"file update copying to temp path: {tempFileInfo.FullName}");
                     if (tempFileInfo.Exists)
                     {
                         using (var fs = tempFileInfo.OpenRead())
                         {
                             await _client.CreateOrUpdateDocumentAsync(path.ToString(), fs, fileInfo.CreationTimeUtc, fileInfo.LastWriteTimeUtc).ConfigureAwait(false);
-                            Trace.WriteLine($"requested changing {path}");
+                            _logger.Debug($"requested changing {path}");
                         }
                         tempFileInfo.Delete();
                     }
