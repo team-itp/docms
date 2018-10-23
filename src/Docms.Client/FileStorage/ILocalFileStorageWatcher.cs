@@ -12,6 +12,6 @@ namespace Docms.Client.FileStorage
         event EventHandler<FileMovedEventArgs> FileMoved;
 
         Task StartWatch(CancellationToken cancellationToken);
-        Task StopWatch();
+        Task StopWatch(bool nowait = true);
     }
 }

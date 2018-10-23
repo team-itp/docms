@@ -1,4 +1,4 @@
-﻿using Docms.Client.FileStorage;
+using Docms.Client.FileStorage;
 using Docms.Client.FileTrees;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using System;
@@ -44,7 +44,6 @@ namespace Docms.Client.Tests
             }
             File.WriteAllBytes(fullpath, Encoding.UTF8.GetBytes(content));
             await Task.Delay(5);
-            await sut.CurrentTask;
         }
 
         private async Task UpdateFile(string path, string content)
@@ -52,7 +51,6 @@ namespace Docms.Client.Tests
             var fullpath = Path.Combine(_watchingPath, path);
             File.WriteAllBytes(fullpath, Encoding.UTF8.GetBytes(content));
             await Task.Delay(5);
-            await sut.CurrentTask;
         }
 
         private async Task MoveFile(string fromPath, string toPath)
@@ -65,7 +63,6 @@ namespace Docms.Client.Tests
             }
             File.Move(fullpathFrom, fullpathTo);
             await Task.Delay(5);
-            await sut.CurrentTask;
         }
 
         private async Task MoveDirectory(string fromPath, string toPath)
@@ -78,7 +75,6 @@ namespace Docms.Client.Tests
             }
             Directory.Move(fullpathFrom, fullpathTo);
             await Task.Delay(5);
-            await sut.CurrentTask;
         }
 
         private async Task DeleteFile(string path)
@@ -86,7 +82,6 @@ namespace Docms.Client.Tests
             var fullpath = Path.Combine(_watchingPath, path);
             File.Delete(fullpath);
             await Task.Delay(5);
-            await sut.CurrentTask;
         }
 
         private async Task DeleteDirectory(string path)
@@ -94,7 +89,6 @@ namespace Docms.Client.Tests
             var fullpath = Path.Combine(_watchingPath, path);
             Directory.Delete(fullpath, true);
             await Task.Delay(5);
-            await sut.CurrentTask;
         }
 
         [TestMethod]

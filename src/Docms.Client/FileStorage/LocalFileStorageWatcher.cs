@@ -21,7 +21,7 @@ namespace Docms.Client.FileStorage
         private readonly string _basePath;
         private InternalFileTree _fileTree;
         private FileSystemWatcher _watcher;
-        private ConcurrentQueue<Func<Task>> _tasks = new ConcurrentQueue<Func<Task>>();
+        private ConcurrentQueue<Action> _tasks = new ConcurrentQueue<Action>();
         private CancellationTokenSource _processCts;
         private Task _processTask;
         private AutoResetEvent _taskHandle;
@@ -47,25 +47,22 @@ namespace Docms.Client.FileStorage
             _taskHandle = new AutoResetEvent(false);
         }
 
-        public Task CurrentTask { get; private set; }
-
         public async Task StartWatch(CancellationToken cancellationToken = default(CancellationToken))
         {
             if (_processTask != null)
                 throw new InvalidOperationException();
             _processCts = new CancellationTokenSource();
             _processTask = ProcessAsync(_processCts.Token);
-            _fileTree.Reset();
             _watcher.EnableRaisingEvents = true;
-            await EnqueueTask(async () =>
+            await EnqueueTask(() =>
             {
-                var isOk = false;
-                while (!isOk)
+                for (; ; )
                 {
                     try
                     {
-                        await StartTracking(PathString.Root, cancellationToken);
-                        isOk = true;
+                        _fileTree.Reset();
+                        StartTracking(GetDirectory(PathString.Root), cancellationToken);
+                        return;
                     }
                     catch
                     {
@@ -74,38 +71,36 @@ namespace Docms.Client.FileStorage
             });
         }
 
-        private async Task StartTracking(PathString path, CancellationToken cancellationToken)
+        private void StartTracking(DirectoryInfo dirInfo, CancellationToken cancellationToken)
         {
             cancellationToken.ThrowIfCancellationRequested();
-            var fileInfo = GetFile(path);
-            if (fileInfo != null)
+            var path = ResolvePath(dirInfo.FullName);
+            foreach (var fi in dirInfo.GetFiles())
             {
-                _fileTree.AddFile(path);
+                StartTracking(fi, cancellationToken);
             }
-            var dirInfo = GetDirectory(path);
-            if (dirInfo != null)
+            foreach (var di in dirInfo.GetDirectories())
             {
-                foreach (var fi in dirInfo.GetFiles())
-                {
-                    Trace.Write("file found: " + ResolvePath(fi.FullName).ToString());
-                    await StartTracking(ResolvePath(fi.FullName), cancellationToken);
-                }
-                foreach (var di in dirInfo.GetDirectories())
-                {
-                    Trace.Write("directory found: " + ResolvePath(di.FullName).ToString());
-                    await StartTracking(ResolvePath(di.FullName), cancellationToken);
-                }
+                StartTracking(di, cancellationToken);
             }
         }
 
-        private async Task EnqueueTask(Func<Task> func)
+        private void StartTracking(FileInfo fileInfo, CancellationToken cancellationToken)
+        {
+            cancellationToken.ThrowIfCancellationRequested();
+            var path = ResolvePath(fileInfo.FullName);
+            Trace.WriteLine("file found: " + path.ToString());
+            _fileTree.AddFile(path);
+        }
+
+        private async Task EnqueueTask(Action func)
         {
             var tcs = new TaskCompletionSource<object>();
-            _tasks.Enqueue(async () =>
+            _tasks.Enqueue(() =>
             {
                 try
                 {
-                    await func();
+                    func();
                     tcs.SetResult(default(object));
                 }
                 catch (Exception ex)
@@ -120,14 +115,13 @@ namespace Docms.Client.FileStorage
 
         private async Task ProcessAsync(CancellationToken cancellationToken)
         {
-            await Task.Run(async () =>
+            await Task.Run(() =>
             {
                 while (!cancellationToken.IsCancellationRequested)
                 {
                     if (_tasks.TryDequeue(out var func))
                     {
-                        CurrentTask = func.Invoke();
-                        await CurrentTask;
+                        func.Invoke();
                     }
                     else
                     {
@@ -135,15 +129,18 @@ namespace Docms.Client.FileStorage
                         _taskHandle.Reset();
                     }
                 }
-            });
+            }).ConfigureAwait(false);
         }
 
-        public async Task StopWatch()
+        public async Task StopWatch(bool nowait = true)
         {
             if (_processTask != null)
             {
                 _watcher.EnableRaisingEvents = false;
-                _processCts.Cancel();
+                if (nowait)
+                {
+                    _processCts.Cancel();
+                }
                 await _processTask;
                 _processTask = null;
             }
@@ -151,6 +148,10 @@ namespace Docms.Client.FileStorage
 
         private PathString ResolvePath(string fullPath)
         {
+            if (fullPath == _basePath)
+            {
+                return PathString.Root;
+            }
             return new PathString(fullPath.Substring(_basePath.Length + 1));
         }
 
@@ -166,7 +167,6 @@ namespace Docms.Client.FileStorage
                 await EnqueueTask(() =>
                 {
                     OnCreated(ResolvePath(e.FullPath));
-                    return Task.CompletedTask;
                 });
             }
             catch (Exception ex)
@@ -182,7 +182,6 @@ namespace Docms.Client.FileStorage
                 await EnqueueTask(() =>
                 {
                     OnModified(ResolvePath(e.FullPath));
-                    return Task.CompletedTask;
                 });
             }
             catch (Exception ex)
@@ -198,7 +197,6 @@ namespace Docms.Client.FileStorage
                 await EnqueueTask(() =>
                 {
                     OnMoved(ResolvePath(e.FullPath), ResolvePath(e.OldFullPath));
-                    return Task.CompletedTask;
                 });
             }
             catch (Exception ex)
@@ -214,7 +212,6 @@ namespace Docms.Client.FileStorage
                 await EnqueueTask(() =>
                 {
                     OnDeleted(ResolvePath(e.FullPath));
-                    return Task.CompletedTask;
                 });
             }
             catch (Exception ex)
