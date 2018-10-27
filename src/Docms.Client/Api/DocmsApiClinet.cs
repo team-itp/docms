@@ -2,6 +2,7 @@
 using Docms.Client.Api.Serialization;
 using IdentityModel.Client;
 using Newtonsoft.Json;
+using NLog;
 using RestSharp;
 using System;
 using System.Collections.Generic;
@@ -15,6 +16,8 @@ namespace Docms.Client.Api
 {
     public class DocmsApiClinet : IDocmsApiClient
     {
+        private static readonly Logger _logger = LogManager.GetCurrentClassLogger();
+
         private readonly string _serverUri;
         private readonly string _defaultPath;
         private string _tokenEndpoint;
@@ -76,6 +79,7 @@ namespace Docms.Client.Api
             {
                 throw new InvalidLoginException();
             }
+            _logger.Debug("login success.");
             _username = username;
             _password = password;
             _accessToken = response.AccessToken;
@@ -93,6 +97,7 @@ namespace Docms.Client.Api
                 "docms-client-secret");
 
             await client.RevokeAccessTokenAsync(_accessToken).ConfigureAwait(false);
+            _logger.Debug("logout success.");
         }
 
         /// <summary>
@@ -113,6 +118,7 @@ namespace Docms.Client.Api
                     ClientId = "docms-client",
                     ClientSecret = "docms-client-secret",
                 }).ConfigureAwait(false);
+            _logger.Debug("token verified.");
 
             if (!response.IsActive)
             {
@@ -130,6 +136,7 @@ namespace Docms.Client.Api
 
         public async Task<IEnumerable<Entry>> GetEntriesAsync(string path)
         {
+            _logger.Info("requesting get entries for path: " + path);
             var request = new RestRequest(_defaultPath + "files", Method.GET);
             if (!string.IsNullOrEmpty(path))
             {
@@ -147,6 +154,7 @@ namespace Docms.Client.Api
 
         public async Task<Document> GetDocumentAsync(string path)
         {
+            _logger.Info("requesting get document for path: " + path);
             var request = new RestRequest(_defaultPath + "files", Method.GET);
             request.AddQueryParameter("path", path ?? throw new ArgumentNullException(nameof(path)));
             request.AddHeader("Authorization", "Bearer " + _accessToken);
@@ -165,6 +173,7 @@ namespace Docms.Client.Api
 
         public async Task<Stream> DownloadAsync(string path)
         {
+            _logger.Info("requesting downloading for path: " + path);
             var request = new RestRequest(_defaultPath + "files", Method.GET);
             if (!string.IsNullOrEmpty(path))
             {
@@ -181,6 +190,7 @@ namespace Docms.Client.Api
         {
             using (var ms = new MemoryStream())
             {
+                _logger.Info("requesting uploading for path: " + path);
                 var request = new RestRequest(_defaultPath + "files", Method.POST);
                 request.AddParameter("path", path ?? throw new ArgumentNullException(nameof(path)));
                 await stream.CopyToAsync(ms).ConfigureAwait(false);
@@ -202,6 +212,7 @@ namespace Docms.Client.Api
 
         public async Task MoveDocumentAsync(string originalPath, string destinationPath)
         {
+            _logger.Info("requesting move for original path: " + originalPath + " to destination path: " + destinationPath);
             var request = new RestRequest(_defaultPath + "files/move", Method.POST);
             request.AddParameter("destinationPath", destinationPath);
             request.AddParameter("originalPath", originalPath);
@@ -232,6 +243,7 @@ namespace Docms.Client.Api
 
         public async Task<IEnumerable<History>> GetHistoriesAsync(string path, DateTime? since = null)
         {
+            _logger.Info("requesting histories for path: " + path + " since: " + since?.ToString() ?? "");
             var request = new RestRequest(_defaultPath + "histories", Method.GET);
             if (!string.IsNullOrEmpty(path))
             {
