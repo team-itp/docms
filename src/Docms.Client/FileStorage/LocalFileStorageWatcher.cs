@@ -172,38 +172,56 @@ namespace Docms.Client.FileStorage
 
         private void _watcher_Error(object sender, ErrorEventArgs e)
         {
+            _logger.Error(e.GetException());
             _watcher.EnableRaisingEvents = true;
         }
 
         private void _watcher_Created(object sender, FileSystemEventArgs e)
         {
+            Guid id = Guid.NewGuid();
+            _logger.Debug("_watcher_Created: event-id: " + id.ToString());
             EnqueueTask(() =>
             {
-                OnCreated(ResolvePath(e.FullPath));
+                var path = ResolvePath(e.FullPath);
+                _logger.Debug("_watcher_Created: OnCreated executing. event-id: " + id.ToString() + " path: " + path.ToString());
+                OnCreated(path);
             });
         }
 
         private void _watcher_Changed(object sender, FileSystemEventArgs e)
         {
+            Guid id = Guid.NewGuid();
+            _logger.Debug("_watcher_Changed: event-id: " + id.ToString());
             EnqueueTask(() =>
             {
-                OnModified(ResolvePath(e.FullPath));
+                var path = ResolvePath(e.FullPath);
+                _logger.Debug("_watcher_Changed: OnModified executing. event-id: " + id.ToString() + " path: " + path.ToString());
+                OnModified(path);
             });
         }
 
         private void _watcher_Renamed(object sender, RenamedEventArgs e)
         {
+            Guid id = Guid.NewGuid();
+            _logger.Debug("_watcher_Renamed: event-id: " + id.ToString());
             EnqueueTask(() =>
             {
-                OnMoved(ResolvePath(e.FullPath), ResolvePath(e.OldFullPath));
+                var path = ResolvePath(e.FullPath);
+                var oldPath = ResolvePath(e.OldFullPath);
+                _logger.Debug("_watcher_Renamed: OnMoved executing. event-id: " + id.ToString() + " path: " + path.ToString() + " old path: " + oldPath.ToString());
+                OnMoved(path, oldPath);
             });
         }
 
         private void _watcher_Deleted(object sender, FileSystemEventArgs e)
         {
+            Guid id = Guid.NewGuid();
+            _logger.Debug("_watcher_Deleted: event-id: " + id.ToString());
             EnqueueTask(() =>
             {
-                OnDeleted(ResolvePath(e.FullPath));
+                var path = ResolvePath(e.FullPath);
+                _logger.Debug("_watcher_Deleted: OnDeleted executing. event-id: " + id.ToString() + " path: " + path.ToString());
+                OnDeleted(path);
             });
         }
 
