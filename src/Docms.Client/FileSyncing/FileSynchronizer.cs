@@ -162,7 +162,7 @@ namespace Docms.Client.FileSyncing
                 }
             }
 
-            var file = new SyncingFile(histories);
+            var file = new SyncingFile(path.ToString(), histories);
             foreach (var history in serverHistories.OrderBy(e => e.Timestamp))
             {
                 file.Apply(history);

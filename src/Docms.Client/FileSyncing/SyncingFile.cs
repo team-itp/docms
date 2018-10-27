@@ -11,8 +11,9 @@ namespace Docms.Client.FileSyncing
         private List<History> _histories = new List<History>();
         public List<History> AppliedHistories { get; } = new List<History>();
 
-        public SyncingFile(List<History> histories)
+        public SyncingFile(string path, List<History> histories)
         {
+            Path = path;
             histories.ForEach(Apply);
             AppliedHistories.Clear();
         }
