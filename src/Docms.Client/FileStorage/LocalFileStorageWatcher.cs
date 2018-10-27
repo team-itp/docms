@@ -63,7 +63,7 @@ namespace Docms.Client.FileStorage
                 {
                     try
                     {
-                        _fileTree.Reset();
+                        _fileTree.Clear();
                         StartTracking(GetDirectory(PathString.Root), cancellationToken);
                         return;
                     }
@@ -216,9 +216,8 @@ namespace Docms.Client.FileStorage
                 {
                     return;
                 }
-                if (!_fileTree.Exists(path))
+                if (_fileTree.AddFile(path))
                 {
-                    _fileTree.AddFile(path);
                     FileCreated?.Invoke(this, new FileCreatedEventArgs(path));
                 }
             }
@@ -248,9 +247,8 @@ namespace Docms.Client.FileStorage
             var fileNode = _fileTree.GetFile(path);
             if (fileNode != null)
             {
-                if (_fileTree.Exists(path))
+                if (_fileTree.Update(path))
                 {
-                    _fileTree.Update(path);
                     FileModified?.Invoke(this, new FileModifiedEventArgs(path));
                 }
             }

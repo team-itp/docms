@@ -17,25 +17,6 @@ namespace Docms.Client.Tests
         }
 
         [TestMethod]
-        public void ルートにディレクトリを追加する()
-        {
-            sut.AddDirectory(new PathString("test1"));
-            Assert.IsNotNull(sut.GetDirectory(new PathString("test1")));
-            Assert.IsNull(sut.GetFile(new PathString("test1")));
-            Assert.IsTrue(sut.Exists(new PathString("test1")));
-        }
-
-        [TestMethod]
-        public void サブルートにディレクトリを追加する()
-        {
-            sut.AddDirectory(new PathString("test1/test2"));
-            Assert.IsNotNull(sut.GetDirectory(new PathString("test1")));
-            Assert.IsNotNull(sut.GetDirectory(new PathString("test1/test2")));
-            Assert.IsNull(sut.GetFile(new PathString("test1/test2")));
-            Assert.IsTrue(sut.Exists(new PathString("test1/test2")));
-        }
-
-        [TestMethod]
         public void ルートディレクトリにファイルを追加する()
         {
             sut.AddFile(new PathString("content1.txt"));
@@ -88,6 +69,25 @@ namespace Docms.Client.Tests
         }
 
         [TestMethod]
+        public void ファイルをサブディレクトリからルートディレクトリに移動する()
+        {
+            sut.AddFile(new PathString("test1/content1.txt"));
+            sut.Move(new PathString("test1/content1.txt"), new PathString("content2.txt"));
+            Assert.IsNull(sut.GetDirectory(new PathString("test1")));
+            Assert.IsNull(sut.GetFile(new PathString("test1/content1.txt")));
+            Assert.IsNotNull(sut.GetFile(new PathString("content2.txt")));
+        }
+
+        [TestMethod]
+        public void ファイルをルートディレクトリからサブディレクトリに移動する()
+        {
+            sut.AddFile(new PathString("content1.txt"));
+            sut.Move(new PathString("content1.txt"), new PathString("test1/content2.txt"));
+            Assert.IsNull(sut.GetFile(new PathString("content1.txt")));
+            Assert.IsNotNull(sut.GetFile(new PathString("test1/content2.txt")));
+        }
+
+        [TestMethod]
         public void サブディレクトリのファイルを別のサブディレクトリに移動する()
         {
             sut.AddFile(new PathString("test1/content1.txt"));
@@ -97,20 +97,13 @@ namespace Docms.Client.Tests
         }
 
         [TestMethod]
-        public void ファイルの存在しないルート直下のディレクトリを移動する()
-        {
-            sut.AddDirectory(new PathString("test1"));
-            sut.Move(new PathString("test1"), new PathString("test2"));
-            Assert.IsNull(sut.GetDirectory(new PathString("test1")));
-            Assert.IsNotNull(sut.GetDirectory(new PathString("test2")));
-        }
-
-        [TestMethod]
         public void ファイルの存在するルート直下のディレクトリを移動する()
         {
             sut.AddFile(new PathString("test1/content1.txt"));
             sut.Move(new PathString("test1"), new PathString("test2"));
+            Assert.IsNull(sut.GetDirectory(new PathString("test1")));
             Assert.IsNull(sut.GetFile(new PathString("test1/content1.txt")));
+            Assert.IsNotNull(sut.GetDirectory(new PathString("test2")));
             Assert.IsNotNull(sut.GetFile(new PathString("test2/content1.txt")));
         }
 
@@ -148,15 +141,19 @@ namespace Docms.Client.Tests
         {
             sut.AddFile(new PathString("test1/content1.txt"));
             sut.Delete(new PathString("test1/content1.txt"));
+            Assert.IsNull(sut.GetDirectory(new PathString("test1")));
             Assert.IsNull(sut.GetFile(new PathString("test1/content1.txt")));
         }
 
         [TestMethod]
-        public void ルート直下のファイルが存在しないディレクトリを削除する()
+        public void _2件ファイルが存在するサブディレクトリ配下のファイルを削除する()
         {
-            sut.AddDirectory(new PathString("test1"));
-            sut.Delete(new PathString("test1"));
-            Assert.IsNull(sut.GetDirectory(new PathString("test1")));
+            sut.AddFile(new PathString("test1/content1.txt"));
+            sut.AddFile(new PathString("test1/content2.txt"));
+            sut.Delete(new PathString("test1/content1.txt"));
+            Assert.IsNotNull(sut.GetDirectory(new PathString("test1")));
+            Assert.IsNull(sut.GetFile(new PathString("test1/content1.txt")));
+            Assert.IsNotNull(sut.GetFile(new PathString("test1/content2.txt")));
         }
 
         [TestMethod]

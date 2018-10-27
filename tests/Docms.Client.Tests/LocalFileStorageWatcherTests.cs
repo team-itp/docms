@@ -7,7 +7,6 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Text;
-using System.Threading;
 using System.Threading.Tasks;
 
 namespace Docms.Client.Tests
@@ -205,6 +204,7 @@ namespace Docms.Client.Tests
             await MoveFile("dir1/content1.txt", "dir2/content2.txt");
             Assert.AreEqual("dir1/content1.txt", ev1.Path.ToString());
             Assert.AreEqual("dir2/content2.txt", ev2.Path.ToString());
+            Assert.IsNull(fileTree.GetFile(new PathString("dir1")));
             Assert.IsNull(fileTree.GetFile(new PathString("dir1/content1.txt")));
             Assert.IsNotNull(fileTree.GetFile(new PathString("dir2/content2.txt")));
         }
@@ -323,7 +323,7 @@ namespace Docms.Client.Tests
             await DeleteDirectory("dir1");
             Assert.AreEqual("dir1/content1.txt", ev.First().Path.ToString());
             Assert.AreEqual("dir1/content2.txt", ev.Last().Path.ToString());
-            Assert.IsNotNull(fileTree.GetDirectory(new PathString("dir1")));
+            Assert.IsNull(fileTree.GetDirectory(new PathString("dir1")));
             Assert.IsNull(fileTree.GetFile(new PathString("dir1/content1.txt")));
             Assert.IsNull(fileTree.GetFile(new PathString("dir1/content2.txt")));
         }

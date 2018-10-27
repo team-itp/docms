@@ -1,10 +1,6 @@
-﻿using Docms.Client.FileStorage;
-using Docms.Client.SeedWork;
+﻿using Docms.Client.SeedWork;
 using System;
-using System.Collections.Generic;
 using System.Linq;
-using System.Threading;
-using System.Threading.Tasks;
 
 namespace Docms.Client.FileTrees
 {
@@ -18,15 +14,12 @@ namespace Docms.Client.FileTrees
             {
                 return Root;
             }
-            return GetDirectory(path.ParentPath)?.Get(path.Name);
+            return GetDirectory(path.ParentPath)?.GetChild(path.Name);
         }
 
-        public void Reset()
+        public void Clear()
         {
-            foreach (var item in Root.Children)
-            {
-                Root.Remove(item);
-            }
+            Root.Clear();
         }
 
         public FileNode GetFile(PathString path)
@@ -39,71 +32,63 @@ namespace Docms.Client.FileTrees
             return GetNode(path) as DirectoryNode;
         }
 
-        private void EnsureDirectoryExists(PathString path)
-        {
-            var node = GetNode(path);
-            if (node != null && !(node is DirectoryNode dir))
-            {
-                throw new InvalidOperationException();
-            }
-            if (node == null)
-            {
-                AddDirectory(path);
-            }
-        }
-
-        public void AddFile(PathString path)
-        {
-            EnsureDirectoryExists(path.ParentPath);
-            var dir = GetDirectory(path.ParentPath);
-            dir.Add(new FileNode(path.Name));
-        }
-
-        public void AddDirectory(PathString path)
-        {
-            EnsureDirectoryExists(path.ParentPath);
-            var dir = GetDirectory(path.ParentPath);
-            dir.Add(new DirectoryNode(path.Name));
-        }
-
-        public void Move(PathString oldPath, PathString path)
-        {
-            var oldNode = GetNode(oldPath);
-            var oldParent = oldNode.Parent;
-            if (oldNode is DirectoryNode oldDir)
-            {
-                foreach (var childItem in oldDir.Children.ToArray())
-                {
-                    Move(oldPath.Combine(childItem.Name), path.Combine(childItem.Name));
-                }
-                if (oldNode.Parent != null)
-                {
-                    oldNode.Remove();
-                }
-                EnsureDirectoryExists(path);
-            }
-            else if (oldNode is FileNode oldFile)
-            {
-                EnsureDirectoryExists(path.ParentPath);
-                var dir = GetDirectory(path.ParentPath);
-                oldFile.Remove();
-                oldFile.Name = path.Name;
-                dir.Add(oldFile);
-
-                if (!oldParent.Children.Any())
-                {
-                    oldParent.Remove();
-                }
-            }
-        }
-
-        public void Update(PathString path)
+        private DirectoryNode EnsureDirectoryExists(PathString path)
         {
             var node = GetNode(path);
             if (node == null)
             {
+                var dir = EnsureDirectoryExists(path.ParentPath);
+                var newDir = new DirectoryNode(path.Name);
+                dir.AddChild(newDir);
+                return newDir;
+            }
+            else if (node is DirectoryNode dir)
+            {
+                return dir;
+            }
+            throw new InvalidOperationException();
+        }
+
+        public bool AddFile(PathString path)
+        {
+            var dir = EnsureDirectoryExists(path.ParentPath);
+            return dir.AddChild(new FileNode(path.Name));
+        }
+
+        public bool Move(PathString oldPath, PathString path)
+        {
+            var destNode = GetNode(path);
+            var srcNode = GetNode(oldPath);
+            if (destNode != null)
+            {
+                if (destNode is DirectoryNode destDir && srcNode is DirectoryNode srcDir)
+                {
+                    foreach (var node in srcDir.Children)
+                    {
+                        node.MoveTo(destDir);
+                    }
+                    srcDir.Remove();
+                    return true;
+                }
+                else if (destNode is FileNode destFile && srcNode is FileNode srcFile)
+                {
+                    destFile.Remove();
+                    var dir = EnsureDirectoryExists(path.ParentPath);
+                    return srcFile.MoveTo(dir);
+                }
                 throw new InvalidOperationException();
             }
+            else
+            {
+                var dir = EnsureDirectoryExists(path.ParentPath);
+                return srcNode.Rename(path.Name) && srcNode.MoveTo(dir);
+            }
+        }
+
+        public bool Update(PathString path)
+        {
+            var node = GetNode(path);
+            return node != null;
         }
 
         public void Delete(PathString path)
