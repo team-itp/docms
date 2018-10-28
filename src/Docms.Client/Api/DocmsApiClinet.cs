@@ -38,8 +38,10 @@ namespace Docms.Client.Api
             }
             _serverUri = uri.EndsWith("/") ? uri : uri + "/";
             _defaultPath = (defaultPath ?? "").EndsWith("/") ? defaultPath : defaultPath + "/";
-            _client = new RestClient(_serverUri);
-            _client.FollowRedirects = false;
+            _client = new RestClient(_serverUri)
+            {
+                FollowRedirects = false
+            };
             DefaultJsonSerializerSettings = new JsonSerializerSettings()
             {
                 TypeNameHandling = TypeNameHandling.Objects,
@@ -126,6 +128,17 @@ namespace Docms.Client.Api
             }
         }
 
+        private async Task<IRestResponse> ExecuteAsync(RestRequest request)
+        {
+            var result = await _client.ExecuteTaskAsync(request).ConfigureAwait(false);
+            if (result.StatusCode == HttpStatusCode.Unauthorized)
+            {
+                await LoginAsync(_username, _password);
+                result = await _client.ExecuteTaskAsync(request).ConfigureAwait(false);
+            }
+            return result;
+        }
+
         private void ThrowIfNotSuccessfulStatus(IRestResponse result)
         {
             if (!result.IsSuccessful)
@@ -143,7 +156,7 @@ namespace Docms.Client.Api
                 request.AddQueryParameter("path", path);
             }
             request.AddHeader("Authorization", "Bearer " + _accessToken);
-            var result = await _client.ExecuteGetTaskAsync(request).ConfigureAwait(false);
+            var result = await ExecuteAsync(request).ConfigureAwait(false);
             ThrowIfNotSuccessfulStatus(result);
             var container = JsonConvert.DeserializeObject<ContainerResponse>(result.Content, DefaultJsonSerializerSettings);
             return container.Entries
@@ -158,7 +171,7 @@ namespace Docms.Client.Api
             var request = new RestRequest(_defaultPath + "files", Method.GET);
             request.AddQueryParameter("path", path ?? throw new ArgumentNullException(nameof(path)));
             request.AddHeader("Authorization", "Bearer " + _accessToken);
-            var result = await _client.ExecuteGetTaskAsync(request).ConfigureAwait(false);
+            var result = await ExecuteAsync(request).ConfigureAwait(false);
             if (result.StatusCode == HttpStatusCode.NotFound)
             {
                 return null;
@@ -181,7 +194,7 @@ namespace Docms.Client.Api
                 request.AddQueryParameter("download", true.ToString());
             }
             request.AddHeader("Authorization", "Bearer " + _accessToken);
-            var result = await _client.ExecuteGetTaskAsync(request).ConfigureAwait(false);
+            var result = await ExecuteAsync(request).ConfigureAwait(false);
             ThrowIfNotSuccessfulStatus(result);
             return new MemoryStream(result.RawBytes);
         }
@@ -205,7 +218,7 @@ namespace Docms.Client.Api
                     request.AddParameter("lastModified", XmlConvert.ToString(lastModified.Value, XmlDateTimeSerializationMode.Utc));
                 }
                 request.AddHeader("Authorization", "Bearer " + _accessToken);
-                var result = await _client.ExecutePostTaskAsync(request).ConfigureAwait(false);
+                var result = await ExecuteAsync(request).ConfigureAwait(false);
                 ThrowIfNotSuccessfulStatus(result);
             }
         }
@@ -217,7 +230,7 @@ namespace Docms.Client.Api
             request.AddParameter("destinationPath", destinationPath);
             request.AddParameter("originalPath", originalPath);
             request.AddHeader("Authorization", "Bearer " + _accessToken);
-            var result = await _client.ExecutePostTaskAsync(request).ConfigureAwait(false);
+            var result = await ExecuteAsync(request).ConfigureAwait(false);
             ThrowIfNotSuccessfulStatus(result);
         }
 
@@ -228,7 +241,7 @@ namespace Docms.Client.Api
                 var request = new RestRequest(_defaultPath + "files", Method.DELETE);
                 request.AddQueryParameter("path", path);
                 request.AddHeader("Authorization", "Bearer " + _accessToken);
-                var result = await _client.ExecuteTaskAsync(request).ConfigureAwait(false);
+                var result = await ExecuteAsync(request).ConfigureAwait(false);
                 ThrowIfNotSuccessfulStatus(result);
             }
             catch (ServerException ex)
@@ -254,7 +267,7 @@ namespace Docms.Client.Api
                 request.AddQueryParameter("since", XmlConvert.ToString(since.Value, XmlDateTimeSerializationMode.Utc));
             }
             request.AddHeader("Authorization", "Bearer " + _accessToken);
-            var result = await _client.ExecuteGetTaskAsync(request).ConfigureAwait(false);
+            var result = await ExecuteAsync(request).ConfigureAwait(false);
             ThrowIfNotSuccessfulStatus(result);
             return JsonConvert.DeserializeObject<List<History>>(result.Content, DefaultJsonSerializerSettings);
         }
