@@ -40,12 +40,14 @@ namespace Docms.Client.Api
             ContentType = entry.ContentType;
             FileSize = entry.FileSize;
             Hash = entry.Hash;
+            Created = entry.Created;
             LastModified = entry.LastModified;
         }
 
         public string ContentType { get; }
         public long FileSize { get; }
         public string Hash { get; }
+        public DateTime Created { get; }
         public DateTime LastModified { get; }
 
         public async Task<Stream> OpenStreamAsync()

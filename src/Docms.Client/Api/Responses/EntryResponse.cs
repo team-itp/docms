@@ -20,6 +20,7 @@ namespace Docms.Client.Api.Responses
         public string ContentType { get; set; }
         public long FileSize { get; set; }
         public string Hash { get; set; }
+        public DateTime Created { get; set; }
         public DateTime LastModified { get; set; }
     }
 }
