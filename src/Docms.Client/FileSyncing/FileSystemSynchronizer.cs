@@ -30,7 +30,7 @@ namespace Docms.Client.FileSyncing
             _storage = storage;
             _db = db;
             _synchronizer = new FileSynchronizer(_client, _storage, _db);
-            IgnorePatterns = new[] { "^Thumb.db$", "^~" };
+            IgnorePatterns = new[] { "^Thumbs.db$", "^~" };
         }
 
         private bool IgnorePattern(PathString item)

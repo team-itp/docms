@@ -76,7 +76,7 @@ namespace Docms.Client.FileSyncing
                 else
                 {
                     _logger.Debug($"{path} is not same as server");
-                    if (fileInfo.LastWriteTimeUtc > file.LastHistoryTimestamp)
+                    if (fileInfo.LastWriteTimeUtc > file.LastModified)
                     {
                         _logger.Debug($"local file is newer than server's");
                         try
