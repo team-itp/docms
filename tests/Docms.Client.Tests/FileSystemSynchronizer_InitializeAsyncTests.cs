@@ -24,11 +24,14 @@ namespace Docms.Client.Tests
         public void Setup()
         {
             _watchingPath = Path.GetFullPath("tmp" + Guid.NewGuid().ToString());
+            Directory.CreateDirectory(_watchingPath);
             mockClient = new MockDocmsApiClient();
             localFileStorage = new LocalFileStorage(_watchingPath);
             db = new FileSyncingContext(new DbContextOptionsBuilder<FileSyncingContext>()
                 .UseInMemoryDatabase("FileSystemSynchronizer_InitializeAsyncTests")
                 .Options);
+            db.FileSyncHistories.RemoveRange(db.FileSyncHistories);
+            db.Histories.RemoveRange(db.Histories);
             sut = new FileSystemSynchronizer(mockClient, localFileStorage, db);
         }
 
@@ -44,6 +47,15 @@ namespace Docms.Client.Tests
         private Stream CreateStream(string streamContent)
         {
             return new MemoryStream(Encoding.UTF8.GetBytes(streamContent));
+        }
+
+        private string ExtractToString(Stream stream)
+        {
+            if (stream is MemoryStream ms)
+            {
+                return Encoding.UTF8.GetString(ms.ToArray());
+            }
+            return null;
         }
 
         [TestMethod]
@@ -67,6 +79,28 @@ namespace Docms.Client.Tests
             Assert.AreEqual("test/test1.txt", File.ReadAllText(file2.FullName));
             var file3 = localFileStorage.GetFile(new PathString("test/test2.txt"));
             Assert.AreEqual("test/test2.txt", File.ReadAllText(file3.FullName));
+        }
+
+        [TestMethod]
+        public async Task ローカルにファイルが存在しサーバーにファイルが存在しない場合にファイルがアップロードされる()
+        {
+            await localFileStorage.Create(new PathString("日本語/日本語.txt"), CreateStream("日本語/日本語.txt"), new DateTime(2010, 1, 1), new DateTime(2010, 1, 1));
+            await sut.InitializeAsync();
+            var document1 = await mockClient.GetDocumentAsync("日本語/日本語.txt");
+            Assert.AreEqual("日本語/日本語.txt", document1.Path);
+        }
+
+        [TestMethod]
+        public async Task ローカルにもサーバーにもファイルが存在する場合にローカルのファイルの更新日時が新しい場合アップロードされる()
+        {
+            await localFileStorage.Create(new PathString("日本語/日本語.txt"), CreateStream("日本語/日本語.txt new"), new DateTime(2010, 1, 1), new DateTime(2010, 1, 2));
+            await mockClient.CreateOrUpdateDocumentAsync("日本語/日本語.txt", CreateStream("日本語/日本語.txt"), new DateTime(2010, 1, 1), new DateTime(2010, 1, 1)).ConfigureAwait(false);
+            await sut.InitializeAsync().ConfigureAwait(false);
+            var file1 = localFileStorage.GetFile(new PathString("日本語/日本語.txt"));
+            Assert.AreEqual("日本語/日本語.txt new", File.ReadAllText(file1.FullName));
+            var document1 = await mockClient.GetDocumentAsync("日本語/日本語.txt");
+            Assert.AreEqual("日本語/日本語.txt", document1.Path);
+            Assert.AreEqual("日本語/日本語.txt new", ExtractToString(await mockClient.DownloadAsync("日本語/日本語.txt")));
         }
     }
 }

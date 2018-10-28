@@ -68,7 +68,7 @@ namespace Docms.Client.Tests
             var now = DateTime.UtcNow;
             await localFileStorage.Create(new PathString("test/test2.txt"), CreateStream("Hello"), now, now).ConfigureAwait(false);
             await sut.RequestMovementAsync(new PathString("test/test1.txt"), new PathString("test/test2.txt")).ConfigureAwait(false);
-            Assert.IsTrue(mockClient.entries["test"].Any(e => e.Path == "test/test2.txt"));
+            Assert.IsNotNull(await mockClient.GetDocumentAsync("test/test2.txt"));
             Assert.AreEqual(1, mockClient.histories["test/test2.txt"].Count);
         }
 
@@ -79,8 +79,8 @@ namespace Docms.Client.Tests
             var now = DateTime.UtcNow;
             await localFileStorage.Create(new PathString("test/test2.txt"), CreateStream("Hello"), now, now).ConfigureAwait(false);
             await sut.RequestMovementAsync(new PathString("test/test1.txt"), new PathString("test/test2.txt")).ConfigureAwait(false);
-            Assert.IsFalse(mockClient.entries["test"].Any(e => e.Path == "test/test1.txt"));
-            Assert.IsTrue(mockClient.entries["test"].Any(e => e.Path == "test/test2.txt"));
+            Assert.IsNull(await mockClient.GetDocumentAsync("test/test1.txt"));
+            Assert.IsNotNull(await mockClient.GetDocumentAsync("test/test2.txt"));
             Assert.AreEqual(2, mockClient.histories["test/test1.txt"].Count);
             Assert.AreEqual(1, mockClient.histories["test/test2.txt"].Count);
         }
@@ -92,8 +92,8 @@ namespace Docms.Client.Tests
             var now = DateTime.UtcNow;
             await localFileStorage.Create(new PathString("test/test2.txt"), CreateStream("Hello new"), now, now).ConfigureAwait(false);
             await sut.RequestMovementAsync(new PathString("test/test1.txt"), new PathString("test/test2.txt")).ConfigureAwait(false);
-            Assert.IsFalse(mockClient.entries["test"].Any(e => e.Path == "test/test1.txt"));
-            Assert.IsTrue(mockClient.entries["test"].Any(e => e.Path == "test/test2.txt"));
+            Assert.IsNull(await mockClient.GetDocumentAsync("test/test1.txt"));
+            Assert.IsNotNull(await mockClient.GetDocumentAsync("test/test2.txt"));
             Assert.AreEqual(2, mockClient.histories["test/test1.txt"].Count);
             Assert.AreEqual(1, mockClient.histories["test/test2.txt"].Count);
         }

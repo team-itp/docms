@@ -5,75 +5,48 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Security.Cryptography;
-using System.Text;
+using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 
 namespace Docms.Client.Tests.Utils
 {
     class MockDocmsApiClient : IDocmsApiClient
     {
-        public Dictionary<string, List<Entry>> entries = new Dictionary<string, List<Entry>>();
+        public Dictionary<string, Document> entries = new Dictionary<string, Document>();
         public Dictionary<string, byte[]> streams = new Dictionary<string, byte[]>();
         public Dictionary<string, List<History>> histories = new Dictionary<string, List<History>>();
 
-        private void AddFile(string path, string contentType, byte[] data)
+        private void AddFile(string path, string contentType, byte[] data, DateTime created, DateTime lastModified)
         {
-            var dirPath = Path.GetDirectoryName(path);
-            AddParentDirecotryEntries(dirPath);
             var hash = CalculateHash(data);
-            entries.TryAdd(dirPath, new List<Entry>());
-            var now = DateTime.UtcNow;
-            entries[dirPath].Add(new Document(new DocumentResponse() { Path = path, ParentPath = Path.GetDirectoryName(path), ContentType = contentType, FileSize = data.Length, Hash = hash, LastModified = now }, this));
+            var parentPath = Path.GetDirectoryName(path);
+            var document = new Document(
+                new DocumentResponse()
+                {
+                    Path = path,
+                    ParentPath = parentPath,
+                    ContentType = contentType,
+                    FileSize = data.Length,
+                    Hash = hash,
+                    Created = created,
+                    LastModified = lastModified
+                }, this);
+
+            if (!entries.TryAdd(path, document))
+            {
+                throw new InvalidOperationException();
+            }
             streams.Add(path, data);
         }
 
         private void RemoveFile(string path)
         {
-            var dirPath = Path.GetDirectoryName(path);
-            var es = entries[dirPath];
-            es.Remove(es.FirstOrDefault(e => e.Path == path));
-            RemoveParentDirecotryEntriesIfEmpty(dirPath);
+            if (!entries.TryGetValue(path, out var entry))
+            {
+                throw new InvalidOperationException();
+            }
+            entries.Remove(path);
             streams.Remove(path);
-        }
-
-        private void AddParentDirecotryEntries(string dirPath)
-        {
-            var tmpPathSb = new StringBuilder();
-            foreach (var pathComponent in dirPath.Split('/', '\\'))
-            {
-                var parentPath = tmpPathSb.ToString();
-                var entryPath = tmpPathSb.Append(pathComponent).ToString();
-                if (entries.TryGetValue(parentPath, out var es))
-                {
-                    if (!es.Any(e => e.Path == entryPath))
-                    {
-                        es.Add(new Container(new ContainerResponse() { Path = entryPath }, this));
-                    }
-                }
-                else
-                {
-                    entries.Add(parentPath, new List<Entry>() { new Container(new ContainerResponse() { Path = entryPath, ParentPath = parentPath }, this) });
-                }
-                tmpPathSb.Append('/');
-            }
-        }
-
-        private void RemoveParentDirecotryEntriesIfEmpty(string dirPath)
-        {
-            var tmpPathSb = new StringBuilder();
-            foreach (var pathComponent in dirPath.Split('/', '\\'))
-            {
-                var parentPath = tmpPathSb.ToString();
-                var entryPath = tmpPathSb.Append(pathComponent).ToString();
-                if (entries.TryGetValue(parentPath, out var es))
-                {
-                    if (!es.Any())
-                    {
-                        entries.Remove(parentPath);
-                    }
-                }
-                tmpPathSb.Append('/');
-            }
         }
 
         private string CalculateHash(byte[] data)
@@ -83,6 +56,19 @@ namespace Docms.Client.Tests.Utils
                 var hashBin = sha1.ComputeHash(data);
                 return BitConverter.ToString(hashBin).Replace("-", "");
             }
+        }
+
+        private ContainerResponse GetContainerFromPath(string path)
+        {
+            return new ContainerResponse()
+            {
+                Path = path,
+                ParentPath = string.IsNullOrEmpty(path)
+                    ? null
+                    : Path.GetDirectoryName(path),
+                Name = Path.GetFileName(path),
+                Entries = new List<EntryResponse>()
+            };
         }
 
         private void AddHisotry(History history)
@@ -98,31 +84,29 @@ namespace Docms.Client.Tests.Utils
             historiesOfPath.Add(history);
         }
 
-        private void AddCreated(string path, string contentType, byte[] data)
+        private void AddCreated(string path, string contentType, byte[] data, DateTime created, DateTime lastModified)
         {
-            var now = DateTime.UtcNow;
             AddHisotry(new DocumentCreatedHistory()
             {
                 Path = path,
                 ContentType = contentType,
                 Hash = CalculateHash(data),
                 FileSize = data.Length,
-                Created = now,
-                LastModified = now
+                Created = created,
+                LastModified = lastModified
             });
         }
 
-        private void AddUpdated(string path, string contentType, byte[] data)
+        private void AddUpdated(string path, string contentType, byte[] data, DateTime created, DateTime lastModified)
         {
-            var now = DateTime.UtcNow;
             AddHisotry(new DocumentUpdatedHistory()
             {
                 Path = path,
                 ContentType = contentType,
                 Hash = CalculateHash(data),
                 FileSize = data.Length,
-                Created = now,
-                LastModified = now
+                Created = created,
+                LastModified = lastModified
             });
         }
 
@@ -155,51 +139,55 @@ namespace Docms.Client.Tests.Utils
             });
         }
 
-        public async Task CreateOrUpdateDocumentAsync(string path, Stream stream, DateTime? created = null, DateTime? lastModified = null)
+        public Task CreateOrUpdateDocumentAsync(string path, Stream stream, DateTime? created = null, DateTime? lastModified = null)
         {
-            var es = entries.FirstOrDefault(kv => kv.Value.Any(e => e.Path == path));
-            if (es.Key != null)
+            if (entries.TryGetValue(path, out var entry))
             {
                 RemoveFile(path);
                 using (var ms = new MemoryStream())
                 {
-                    await stream.CopyToAsync(ms).ConfigureAwait(false);
+                    stream.CopyTo(ms);
                     ms.Seek(0, SeekOrigin.Begin);
-                    AddFile(path, "application/octet-stream", ms.ToArray());
-                    AddUpdated(path, "application/octet-stream", ms.ToArray());
+                    var now = DateTime.UtcNow;
+                    AddFile(path, "application/octet-stream", ms.ToArray(), created ?? now, lastModified ?? now);
+                    AddUpdated(path, "application/octet-stream", ms.ToArray(), created ?? now, lastModified ?? now);
                 }
             }
             else
             {
                 using (var ms = new MemoryStream())
                 {
-                    await stream.CopyToAsync(ms).ConfigureAwait(false);
+                    stream.CopyTo(ms);
                     ms.Seek(0, SeekOrigin.Begin);
-                    AddFile(path, "application/octet-stream", ms.ToArray());
-                    AddCreated(path, "application/octet-stream", ms.ToArray());
+                    var now = DateTime.UtcNow;
+                    AddFile(path, "application/octet-stream", ms.ToArray(), created ?? now, lastModified ?? now);
+                    AddCreated(path, "application/octet-stream", ms.ToArray(), created ?? now, lastModified ?? now);
                 }
             }
+            return Task.CompletedTask;
         }
 
         public Task MoveDocumentAsync(string originalPath, string destinationPath)
         {
+            if (!entries.TryGetValue(originalPath, out var entry))
+            {
+                throw new InvalidOperationException();
+            }
             var data = streams[originalPath];
             RemoveFile(originalPath);
-            AddFile(destinationPath, "appliction/octet-stream", data);
-            AddMove(originalPath, destinationPath, "appliction/octet-stream", data);
+            AddFile(destinationPath, entry.ContentType, data, entry.Created, entry.LastModified);
+            AddMove(originalPath, destinationPath, entry.ContentType, data);
             return Task.CompletedTask;
         }
 
         public Task DeleteDocumentAsync(string path)
         {
-            var es = entries.FirstOrDefault(kv => kv.Value.Any(e => e.Path == path));
-            if (es.Key != null)
+            if (!entries.TryGetValue(path, out var entry))
             {
-                es.Value.Remove(es.Value.FirstOrDefault(e => e.Path == path));
-                streams.Remove(path);
-                RemoveParentDirecotryEntriesIfEmpty(es.Key);
-                AddDelete(path);
+                throw new InvalidOperationException();
             }
+            RemoveFile(path);
+            AddDelete(path);
             return Task.CompletedTask;
         }
 
@@ -214,17 +202,28 @@ namespace Docms.Client.Tests.Utils
 
         public Task<Document> GetDocumentAsync(string path)
         {
-            var es = entries.FirstOrDefault(kv => kv.Value.Any(e => e.Path == path));
-            if (es.Key != null)
-            {
-                return Task.FromResult(es.Value.FirstOrDefault(e => e.Path == path) as Document);
-            }
-            return Task.FromResult(default(Document));
+            entries.TryGetValue(path, out var entry);
+            return Task.FromResult(entry);
         }
 
         public Task<IEnumerable<Entry>> GetEntriesAsync(string path)
         {
-            return Task.FromResult(entries.TryGetValue(path, out var es) ? es : Array.Empty<Entry>() as IEnumerable<Entry>);
+            var entriesUnderPath = entries.Values
+                .Where(e => Regex.IsMatch(e.ParentPath, string.IsNullOrEmpty(path) ? "^[^/]+" : $"^{path}(/[^/]+)?$"))
+                .ToArray();
+            var documentsInPath = entriesUnderPath
+                .Where(e => e.ParentPath == path)
+                .OrderBy(e => e.Path);
+            var entriesInPath = entriesUnderPath
+                .Where(e => e.ParentPath != path)
+                .Select(e => e.ParentPath)
+                .Distinct()
+                .OrderBy(e => e)
+                .Select(GetContainerFromPath)
+                .Select(e => new Container(e, this))
+                .ToList<Entry>();
+            entriesInPath.AddRange(documentsInPath);
+            return Task.FromResult(entriesInPath.AsEnumerable());
         }
 
         public Task<IEnumerable<History>> GetHistoriesAsync(string path, DateTime? lastSynced)
@@ -236,7 +235,7 @@ namespace Docms.Client.Tests.Utils
                 historyValues = historyValues.Where(h => h.Timestamp > lastSynced.Value);
             }
             historyValues = historyValues.OrderBy(e => e.Timestamp);
-            return Task.FromResult(historyValues);
+            return Task.FromResult(historyValues.ToArray() as IEnumerable<History>);
         }
 
         public Task LoginAsync(string username, string password)
