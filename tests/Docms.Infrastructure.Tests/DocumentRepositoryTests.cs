@@ -20,10 +20,7 @@ namespace Docms.Infrastructure.Tests
         [TestMethod]
         public async Task DocumentがPathで取得できること()
         {
-            var mediator = new MockMediator();
-            var ctx = new DocmsContext(new DbContextOptionsBuilder<DocmsContext>()
-                .UseInMemoryDatabase("DocumentsRepositoryTests")
-                .Options, mediator);
+            var ctx = new MockDocmsContext("DocumentsRepositoryTests");
             var sut = new DocumentRepository(ctx);
             var d1 = await sut.AddAsync(BuildDocument("dir1/test.txt"));
             await sut.UnitOfWork.SaveEntitiesAsync();

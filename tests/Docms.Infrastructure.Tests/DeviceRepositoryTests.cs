@@ -14,9 +14,7 @@ namespace Docms.Infrastructure.Tests
         public async Task デバイスがDeviceIdで取得できること()
         {
             var mediator = new MockMediator();
-            var ctx = new DocmsContext(new DbContextOptionsBuilder<DocmsContext>()
-                .UseInMemoryDatabase("DeviceRepositoryTests")
-                .Options, mediator);
+            var ctx = new MockDocmsContext("MockDocmsContext");
             var sut = new DeviceRepository(ctx);
             var d1 = await sut.AddAsync(new Device("ABC", "USERAGENT", "USER1"));
             await sut.UnitOfWork.SaveEntitiesAsync();

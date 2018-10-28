@@ -5,8 +5,7 @@ using System.Threading.Tasks;
 
 namespace Docms.Infrastructure.MediatR
 {
-
-    static class MediatorExtension
+    public static class MediatorExtension
     {
         public static async Task DispatchDomainEventsAsync(this IMediator mediator, DocmsContext ctx)
         {
