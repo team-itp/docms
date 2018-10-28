@@ -30,6 +30,8 @@ namespace Docms.Queries.Blobs
         public long FileSize { get; set; }
         [Column("Hash")]
         public string Hash { get; set; }
+        [Column("Created")]
+        public DateTime Created { get; set; }
         [Column("LastModified")]
         public DateTime LastModified { get; set; }
     }

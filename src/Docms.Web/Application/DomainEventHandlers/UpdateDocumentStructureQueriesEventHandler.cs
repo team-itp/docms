@@ -77,6 +77,7 @@ namespace Docms.Web.Application.DomainEventHandlers
                 ContentType = ev.ContentType,
                 FileSize = ev.FileSize,
                 Hash = ev.Hash,
+                Created = ev.Created,
                 LastModified = ev.LastModified,
             };
             _db.Blobs.Add(blob);
@@ -118,6 +119,7 @@ namespace Docms.Web.Application.DomainEventHandlers
                 ContentType = oldBlob.ContentType,
                 FileSize = oldBlob.FileSize,
                 Hash = oldBlob.Hash,
+                Created = oldBlob.Created,
                 LastModified = oldBlob.LastModified,
             };
 
@@ -135,6 +137,7 @@ namespace Docms.Web.Application.DomainEventHandlers
             blob.ContentType = ev.ContentType;
             blob.FileSize = ev.FileSize;
             blob.Hash = ev.Hash;
+            blob.Created = ev.Created;
             blob.LastModified = ev.LastModified;
 
             _db.Update(blob);
