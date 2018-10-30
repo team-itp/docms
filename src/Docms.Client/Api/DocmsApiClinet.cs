@@ -47,6 +47,7 @@ namespace Docms.Client.Api
                 TypeNameHandling = TypeNameHandling.Objects,
                 SerializationBinder = new DocmsJsonTypeBinder(),
                 NullValueHandling = NullValueHandling.Ignore,
+                DateTimeZoneHandling = DateTimeZoneHandling.Utc,
             };
         }
 
@@ -257,6 +258,10 @@ namespace Docms.Client.Api
         public async Task<IEnumerable<History>> GetHistoriesAsync(string path, DateTime? since = null)
         {
             _logger.Info("requesting histories for path: " + path + " since: " + since?.ToString() ?? "");
+            if (since != null)
+            {
+                since = new DateTime(since.Value.Ticks - (since.Value.Ticks % TimeSpan.TicksPerSecond), since.Value.Kind);
+            }
             var request = new RestRequest(_defaultPath + "histories", Method.GET);
             if (!string.IsNullOrEmpty(path))
             {
