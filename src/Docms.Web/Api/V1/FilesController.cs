@@ -54,6 +54,7 @@ namespace Docms.Web.Api.V1
         }
 
         [HttpPost]
+        [RequestFormLimits(MultipartBodyLengthLimit = 2_147_483_647)] // 2GB
         public async Task<IActionResult> Post(
             [FromForm] UploadRequest request,
             [FromServices] IMediator mediator)
