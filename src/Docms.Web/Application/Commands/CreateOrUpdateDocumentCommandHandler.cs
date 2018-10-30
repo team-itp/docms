@@ -33,13 +33,12 @@ namespace Docms.Web.Application.Commands
                 throw new InvalidOperationException();
             }
 
-            var tempStoreId = Guid.NewGuid();
+            // ファイル情報の取得
+            var tempData = await _temporaryStore.CreateAsync(request.Stream, request.SizeOfStream);
             try
             {
-                // ファイル情報の取得
-                await _temporaryStore.SaveAsync(tempStoreId, request.Stream);
-                var hash = Hash.CalculateHash(await _temporaryStore.OpenStreamAsync(tempStoreId));
-                var fileSize = await _temporaryStore.GetFileSizeAsync(tempStoreId);
+                var hash = Hash.CalculateHash(await tempData.OpenStreamAsync());
+                var fileSize = request.SizeOfStream;
                 ContentTypeProvider.TryGetContentType(request.Path.Extension, out var contentType);
                 if (contentType == null) contentType = "application/octet-stream";
 
@@ -47,8 +46,8 @@ namespace Docms.Web.Application.Commands
                 {
                     var dir = await _fileStorage.GetDirectoryAsync(path.DirectoryPath);
                     var utcNow = DateTime.UtcNow;
-                    await _fileStorage.SaveAsync(dir, path.FileName, contentType, await _temporaryStore.OpenStreamAsync(tempStoreId));
-                    var document = new Document(new DocumentPath(request.Path.ToString()), contentType, fileSize, hash, request.Created ?? utcNow, request.LastModified ?? request.Created ?? utcNow);
+                    await _fileStorage.SaveAsync(dir, path.FileName, contentType, await tempData.OpenStreamAsync());
+                    var document = new Document(new DocumentPath(request.Path.ToString()), contentType, request.SizeOfStream, hash, request.Created ?? utcNow, request.LastModified ?? request.Created ?? utcNow);
                     await _documentRepository.AddAsync(document);
                 }
                 else if (request.ForceCreate)
@@ -72,7 +71,7 @@ namespace Docms.Web.Application.Commands
                     var filename = fnwoe + $"({retryCount})" + ext;
                     var dir = await _fileStorage.GetDirectoryAsync(path.DirectoryPath);
                     var utcNow = DateTime.UtcNow;
-                    await _fileStorage.SaveAsync(dir, filename, contentType, await _temporaryStore.OpenStreamAsync(tempStoreId));
+                    await _fileStorage.SaveAsync(dir, filename, contentType, await tempData.OpenStreamAsync());
                     var document = new Document(new DocumentPath(dirPath.Combine(filename).ToString()), contentType, fileSize, hash, request.Created ?? utcNow, request.LastModified ?? request.Created ?? utcNow);
                     await _documentRepository.AddAsync(document);
                 }
@@ -86,7 +85,7 @@ namespace Docms.Web.Application.Commands
 
                     var utcNow = DateTime.UtcNow;
                     var dir = file.Parent;
-                    await _fileStorage.SaveAsync(dir, path.FileName, contentType, await _temporaryStore.OpenStreamAsync(tempStoreId));
+                    await _fileStorage.SaveAsync(dir, path.FileName, contentType, await tempData.OpenStreamAsync());
                     document.Update(contentType, fileSize, hash, request.Created ?? document.Created, request.LastModified ?? utcNow);
                 }
                 await _documentRepository.UnitOfWork.SaveEntitiesAsync();
@@ -94,7 +93,7 @@ namespace Docms.Web.Application.Commands
             }
             finally
             {
-                await _temporaryStore.DeleteAsync(tempStoreId);
+                await _temporaryStore.DisposeAsync(tempData);
             }
         }
     }

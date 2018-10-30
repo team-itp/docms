@@ -69,6 +69,7 @@ namespace Docms.Web.Api.V1
                 {
                     Path = filepath,
                     Stream = stream,
+                    SizeOfStream = request.File.Length,
                     Created = request.Created?.ToUniversalTime(),
                     LastModified = request.LastModified?.ToUniversalTime()
                 };

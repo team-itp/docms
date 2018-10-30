@@ -6,10 +6,13 @@ namespace Docms.Infrastructure.DataStores
 {
     public interface ITemporaryStore
     {
-        Task<DateTime> SaveAsync(Guid id, Stream data);
-        Task<Stream> OpenStreamAsync(Guid id);
-        Task<int> GetFileSizeAsync(Guid id);
-        Task DeleteAsync(Guid id);
-        Task DeleteBeforeAsync(DateTime timestamp);
+        Task<ITempData> CreateAsync(Stream stream, long sizeOfStream);
+        Task DisposeAsync(ITempData data);
+    }
+
+    public interface ITempData : IDisposable
+    {
+        long SizeOfData { get; }
+        Task<Stream> OpenStreamAsync();
     }
 }

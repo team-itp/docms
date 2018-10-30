@@ -59,13 +59,12 @@ namespace Docms.Web.Application.Commands
 
         private async Task AddFileAsync(File fileEntry)
         {
-            var tempStoreId = Guid.NewGuid();
+            var tempData = await _temporaryStore.CreateAsync(await fileEntry.OpenAsync(), -1);
             try
             {
                 // ファイル情報の取得
-                await _temporaryStore.SaveAsync(tempStoreId, await fileEntry.OpenAsync());
-                var hash = Hash.CalculateHash(await _temporaryStore.OpenStreamAsync(tempStoreId));
-                var fileSize = await _temporaryStore.GetFileSizeAsync(tempStoreId);
+                var hash = Hash.CalculateHash(await tempData.OpenStreamAsync());
+                var fileSize = tempData.SizeOfData;
                 ContentTypeProvider.TryGetContentType(fileEntry.Path.Extension, out var contentType);
                 if (contentType == null) contentType = "application/octet-stream";
 
@@ -76,7 +75,7 @@ namespace Docms.Web.Application.Commands
             }
             finally
             {
-                await _temporaryStore.DeleteAsync(tempStoreId);
+                await _temporaryStore.DisposeAsync(tempData);
             }
         }
     }

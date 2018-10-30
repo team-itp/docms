@@ -164,7 +164,7 @@ namespace Docms.Web
             services.AddTransient<IDocumentHistoriesQueries, DocumentHistoriesQueries>();
             services.AddTransient<IDeviceGrantsQueries, DeviceGrantsQueries>();
             services.AddSingleton<IFileStorage>(sv => new LocalFileStorage("App_Data/flies"));
-            services.AddSingleton<ITemporaryStore, InMemoryTemporaryStore>();
+            services.AddSingleton<ITemporaryStore, TemporaryStore>();
             return services;
         }
 

@@ -90,6 +90,7 @@ namespace Docms.Web.Controllers
                     {
                         Path = filePath,
                         Stream = stream,
+                        SizeOfStream = file.Length,
                         ForceCreate = true
                     };
                     var response = await mediator.Send(command);

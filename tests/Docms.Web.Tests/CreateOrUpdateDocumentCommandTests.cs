@@ -16,7 +16,7 @@ namespace Docms.Web.Tests
     {
         private MockDocumentRepository repository;
         private LocalFileStorage localFileStorage;
-        private InMemoryTemporaryStore temporaryStore;
+        private TemporaryStore temporaryStore;
         private CreateOrUpdateDocumentCommandHandler sut;
 
         [TestInitialize]
@@ -24,7 +24,7 @@ namespace Docms.Web.Tests
         {
             repository = new MockDocumentRepository();
             localFileStorage = new LocalFileStorage("tmp");
-            temporaryStore = new InMemoryTemporaryStore();
+            temporaryStore = new TemporaryStore();
             sut = new CreateOrUpdateDocumentCommandHandler(repository, localFileStorage, temporaryStore);
         }
 
@@ -46,6 +46,7 @@ namespace Docms.Web.Tests
                 {
                     Path = new FilePath("document.txt"),
                     Stream = ms,
+                    SizeOfStream = ms.Length,
                 });
             }
             Assert.AreEqual(1, repository.Entities.Count);
@@ -65,6 +66,7 @@ namespace Docms.Web.Tests
                 {
                     Path = new FilePath("test1/document1.txt"),
                     Stream = ms,
+                    SizeOfStream = ms.Length,
                 });
             }
             Assert.AreEqual("test1/document1.txt", repository.Entities.First().Path.Value);
@@ -84,6 +86,7 @@ namespace Docms.Web.Tests
                 {
                     Path = new FilePath("test1/document1.txt"),
                     Stream = ms,
+                    SizeOfStream = ms.Length,
                     ForceCreate = true
                 });
             }
@@ -105,7 +108,8 @@ namespace Docms.Web.Tests
                 await sut.Handle(new CreateOrUpdateDocumentCommand()
                 {
                     Path = new FilePath("test1/document1.txt"),
-                    Stream = ms
+                    Stream = ms,
+                    SizeOfStream = ms.Length,
                 });
             }
             Assert.IsNotNull(repository.Entities.FirstOrDefault(e => e.Path == null));
