@@ -51,6 +51,7 @@ namespace Docms.Web
                     options.SerializerSettings.TypeNameHandling = TypeNameHandling.Objects;
                     options.SerializerSettings.SerializationBinder = new DocmsJsonTypeBinder();
                     options.SerializerSettings.NullValueHandling = NullValueHandling.Ignore;
+                    options.SerializerSettings.DateTimeZoneHandling = DateTimeZoneHandling.Utc;
                 });
 
             services.RegisterServices(Configuration);

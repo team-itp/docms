@@ -15,7 +15,7 @@ namespace Docms.Domain.Documents
         {
             if (string.IsNullOrWhiteSpace(value))
                 throw new ArgumentNullException(nameof(value));
-            if (value.Contains("..")
+            if (value.Contains("../")
                 || value.Any(ch => Path.GetInvalidPathChars().Contains(ch))
                 || value.EndsWith('/') || value.EndsWith('\\'))
                 throw new ArgumentException(nameof(value));

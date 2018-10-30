@@ -25,7 +25,8 @@ namespace Docms.Infrastructure.Queries
             }
             if (since != null)
             {
-                query = query.Where(e => e.Timestamp > since);
+                var sinceUtc = since.Value.ToUniversalTime();
+                query = query.Where(e => e.Timestamp >= sinceUtc);
             }
             return await query.OrderBy(e => e.Timestamp).ToListAsync();
         }

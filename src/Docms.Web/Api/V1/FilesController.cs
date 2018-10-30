@@ -58,15 +58,18 @@ namespace Docms.Web.Api.V1
             [FromForm] UploadRequest request,
             [FromServices] IMediator mediator)
         {
-            var filepath = new FilePath(request.Path);
+            if (!FilePath.TryParse(request.Path, out var filepath)) {
+                return BadRequest("invalid path name.");
+            }
+
             using (var stream = request.File.OpenReadStream())
             {
                 var command = new CreateOrUpdateDocumentCommand
                 {
                     Path = filepath,
                     Stream = stream,
-                    Created = request.Created,
-                    LastModified = request.LastModified
+                    Created = request.Created?.ToUniversalTime(),
+                    LastModified = request.LastModified?.ToUniversalTime()
                 };
                 var response = await mediator.Send(command);
                 return CreatedAtAction("Get", new { path = HttpUtility.UrlEncode(command.Path.ToString()) });
@@ -78,8 +81,12 @@ namespace Docms.Web.Api.V1
             [FromForm] MoveRequest request,
             [FromServices] IMediator mediator)
         {
-            var originalFilePath = new FilePath(request.OriginalPath);
-            var destinationFilePath = new FilePath(request.DestinationPath);
+            if (!FilePath.TryParse(request.OriginalPath, out var originalFilePath)
+                || !FilePath.TryParse(request.DestinationPath, out var destinationFilePath))
+            {
+                return BadRequest("invalid path name.");
+            }
+
             var command = new MoveDocumentCommand
             {
                 OriginalPath = originalFilePath,
@@ -94,12 +101,16 @@ namespace Docms.Web.Api.V1
             [FromQuery] string path,
             [FromServices] IMediator mediator)
         {
+            if (!FilePath.TryParse(path, out var filepath))
+            {
+                return BadRequest("invalid path name.");
+            }
+
             try
             {
-                var filePath = new FilePath(path);
                 var command = new DeleteDocumentCommand
                 {
-                    Path = filePath
+                    Path = filepath
                 };
                 var response = await mediator.Send(command);
                 return Ok();

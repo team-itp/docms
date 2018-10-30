@@ -10,20 +10,25 @@ namespace Docms.Infrastructure.Files
         private string _path;
         private Lazy<FilePath> _parent;
 
-        public FilePath(string path)
+        public FilePath(string path) : this(path, true)
         {
-            if (path == null)
-                throw new ArgumentNullException(nameof(path));
-            if (path.Contains("..") || invalidPathChars.Any(c => path.Contains(c)))
-                throw new ArgumentException(nameof(path));
-            _path = path.Replace('/', Path.DirectorySeparatorChar);
-            _path = _path.StartsWith('/') ? _path.Substring(1) : _path;
-            _parent = new Lazy<FilePath>(() => string.IsNullOrEmpty(_path) ? null : Create(Path.GetDirectoryName(_path)));
         }
 
-        public FilePath(params string[] paths)
-            : this(Path.Combine(paths.Where(p => !string.IsNullOrEmpty(p)).ToArray()))
+        private FilePath(string path, bool shouldValidate)
         {
+            if (shouldValidate && !IsValidPath(path))
+            {
+                throw new ArgumentException(nameof(path));
+            }
+            _path = path.Replace('/', Path.DirectorySeparatorChar);
+            _path = _path.StartsWith('/') ? _path.Substring(1) : _path;
+            _parent = new Lazy<FilePath>(() => string.IsNullOrEmpty(_path) ? null : Parse(Path.GetDirectoryName(_path)), false);
+        }
+
+        private FilePath(string path, FilePath parent)
+        {
+            _path = path;
+            _parent = new Lazy<FilePath>(parent);
         }
 
         public FilePath DirectoryPath => _parent.Value;
@@ -52,7 +57,7 @@ namespace Docms.Infrastructure.Files
             return _path.Replace('\\', '/');
         }
 
-        public static FilePath Create(string path)
+        public static FilePath Parse(string path)
         {
             if (string.IsNullOrEmpty(path))
             {
@@ -61,10 +66,29 @@ namespace Docms.Infrastructure.Files
             return new FilePath(path);
         }
 
+        public static bool TryParse(string path, out FilePath filepath)
+        {
+            if (IsValidPath(path))
+            {
+                filepath = new FilePath(path, true);
+                return true;
+            }
+
+            filepath = null;
+            return false;
+        }
+
+        private static bool IsValidPath(string path)
+        {
+            return path != null
+                && !(path.Contains("../") || path.Contains("..\\"))
+                && !invalidPathChars.Any(c => path.Contains(c));
+        }
+
         public FilePath Combine(string name)
         {
             var newPath = string.IsNullOrEmpty(_path) ? name : Path.Combine(_path, name);
-            return new FilePath(newPath);
+            return new FilePath(newPath, this);
         }
     }
 }
