@@ -77,6 +77,18 @@ namespace Docms.Client.Tests
         }
 
         [TestMethod]
+        public async Task 大きいファイルをサーバーにアップロードする()
+        {
+            if (noConnection) Assert.Fail("接続不良のため失敗");
+            await sut.VerifyTokenAsync().ConfigureAwait(false);
+            await sut.CreateOrUpdateDocumentAsync("test1/subtest1/test.txt", new MemoryStream(
+                Enumerable.Range(0, 300_000_000).Select(v => (byte)v).ToArray())
+            ).ConfigureAwait(false);
+            var entries = await sut.GetEntriesAsync("test1/subtest1").ConfigureAwait(false);
+            Assert.IsTrue(entries.Any(e => e.Path == "test1/subtest1/test.txt"));
+        }
+
+        [TestMethod]
         public async Task サーバーのファイルを移動する()
         {
             if (noConnection) Assert.Fail("接続不良のため失敗");
