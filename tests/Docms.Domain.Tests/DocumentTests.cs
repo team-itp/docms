@@ -1,5 +1,5 @@
 ﻿using Docms.Domain.Documents;
-using Docms.Domain.Events.Documents;
+using Docms.Domain.Documents.Events;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using System.Linq;
 

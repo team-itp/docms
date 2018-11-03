@@ -1,7 +1,6 @@
-﻿using Docms.Domain.Documents;
-using Docms.Domain.SeedWork;
+﻿using Docms.Domain.SeedWork;
 
-namespace Docms.Domain.Events.Documents
+namespace Docms.Domain.Documents.Events
 {
     public class DocumentDeletedEvent : DomainEvent<Document>
     {

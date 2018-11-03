@@ -1,7 +1,7 @@
 ﻿using System;
 using System.Threading;
 using System.Threading.Tasks;
-using Docms.Domain.Events.Identity;
+using Docms.Domain.Identity.Events;
 using Docms.Infrastructure;
 using Docms.Infrastructure.MediatR;
 using Docms.Queries.DeviceAuthorization;

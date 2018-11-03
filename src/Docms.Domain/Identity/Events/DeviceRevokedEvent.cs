@@ -1,7 +1,6 @@
-﻿using Docms.Domain.Identity;
-using Docms.Domain.SeedWork;
+﻿using Docms.Domain.SeedWork;
 
-namespace Docms.Domain.Events.Identity
+namespace Docms.Domain.Identity.Events
 {
     public class DeviceRevokedEvent : DomainEvent<Device>
     {

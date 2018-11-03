@@ -1,4 +1,4 @@
-﻿using Docms.Domain.Events.Identity;
+﻿using Docms.Domain.Identity.Events;
 using Docms.Domain.Identity;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using System;

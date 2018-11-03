@@ -1,4 +1,4 @@
-﻿using Docms.Domain.Events.Documents;
+﻿using Docms.Domain.Documents.Events;
 using Docms.Infrastructure;
 using Docms.Infrastructure.MediatR;
 using Docms.Queries.DocumentHistories;

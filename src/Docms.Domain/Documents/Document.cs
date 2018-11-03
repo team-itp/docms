@@ -1,4 +1,4 @@
-﻿using Docms.Domain.Events.Documents;
+﻿using Docms.Domain.Documents.Events;
 using Docms.Domain.SeedWork;
 using System;
 

@@ -1,6 +1,5 @@
 ﻿using Docms.Domain.Documents;
-using Docms.Domain.Events;
-using Docms.Domain.Events.Documents;
+using Docms.Domain.Documents.Events;
 using Docms.Infrastructure;
 using Docms.Infrastructure.Files;
 using Docms.Infrastructure.MediatR;

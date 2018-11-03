@@ -1,4 +1,4 @@
-﻿using Docms.Domain.Events.Identity;
+﻿using Docms.Domain.Identity.Events;
 using Docms.Domain.SeedWork;
 
 namespace Docms.Domain.Identity
