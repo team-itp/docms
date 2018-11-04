@@ -2,6 +2,7 @@
 using Microsoft.WindowsAzure.Storage.Blob;
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using System.Threading.Tasks;
@@ -31,23 +32,24 @@ namespace Docms.Infrastructure.Files
             if (path.DirectoryPath != null)
             {
                 var blockBlob = await GetBlockBlobAsync(path).ConfigureAwait(false);
-                if (await blockBlob.ExistsAsync())
+                if (await blockBlob.ExistsAsync().ConfigureAwait(false))
                 {
                     return new File(path, this);
                 }
             }
 
-            var blobDir = await GetBlobDirectoryAsync(path);
+            var blobDir = await GetBlobDirectoryAsync(path).ConfigureAwait(false);
             try
             {
-                var result = await blobDir.ListBlobsSegmentedAsync(null);
+                var result = await blobDir.ListBlobsSegmentedAsync(null).ConfigureAwait(false);
                 if (result.Results.Any())
                 {
                     return new Directory(path, this);
                 }
             }
-            catch (StorageException)
+            catch (StorageException ex)
             {
+                Trace.WriteLine(ex);
             }
             return default(Entry);
         }
@@ -114,7 +116,7 @@ namespace Docms.Infrastructure.Files
 
         public async Task MoveAsync(FilePath originalPath, FilePath destinationPath)
         {
-            if (!await ExistsAsync(originalPath) || await ExistsAsync(destinationPath))
+            if (!await ExistsAsync(originalPath).ConfigureAwait(false) || await ExistsAsync(destinationPath).ConfigureAwait(false))
             {
                 throw new InvalidOperationException();
             }
@@ -122,13 +124,13 @@ namespace Docms.Infrastructure.Files
             var destBlob = await GetBlockBlobAsync(destinationPath).ConfigureAwait(false);
             using (var ms = new MemoryStream())
             {
-                await origBlob.DownloadToStreamAsync(ms);
+                await origBlob.DownloadToStreamAsync(ms).ConfigureAwait(false);
                 ms.Seek(0, SeekOrigin.Begin);
 
-                await destBlob.UploadFromStreamAsync(ms);
+                await destBlob.UploadFromStreamAsync(ms).ConfigureAwait(false);
                 destBlob.Properties.ContentType = origBlob.Properties.ContentType;
-                await destBlob.SetPropertiesAsync();
-                await origBlob.DeleteAsync();
+                await destBlob.SetPropertiesAsync().ConfigureAwait(false);
+                await origBlob.DeleteAsync().ConfigureAwait(false);
             }
         }
 
@@ -137,7 +139,7 @@ namespace Docms.Infrastructure.Files
             if (entry.Path.DirectoryPath != null)
             {
                 var blockBlob = await GetBlockBlobAsync(entry.Path).ConfigureAwait(false);
-                if (await blockBlob.DeleteIfExistsAsync())
+                if (await blockBlob.DeleteIfExistsAsync().ConfigureAwait(false))
                 {
                     return;
                 }
@@ -157,7 +159,7 @@ namespace Docms.Infrastructure.Files
             {
                 if (item is CloudBlockBlob block)
                 {
-                    await block.DeleteAsync();
+                    await block.DeleteAsync().ConfigureAwait(false);
                 }
             }
         }
@@ -172,20 +174,20 @@ namespace Docms.Infrastructure.Files
         private async Task<CloudBlockBlob> GetBlockBlobAsync(FilePath path)
         {
             var container = _client.GetContainerReference(_baseContainerName);
-            await container.CreateIfNotExistsAsync();
+            await container.CreateIfNotExistsAsync().ConfigureAwait(false);
             return container.GetBlockBlobReference(path.ToString());
         }
 
         private async Task<CloudBlobDirectory> GetBlobDirectoryAsync(FilePath path)
         {
             var container = _client.GetContainerReference(_baseContainerName);
-            await container.CreateIfNotExistsAsync();
+            await container.CreateIfNotExistsAsync().ConfigureAwait(false);
             return container.GetDirectoryReference(path.ToString());
         }
 
         private async Task<bool> ExistsAsync(FilePath path)
         {
-            var entry = await GetEntryAsync(path);
+            var entry = await GetEntryAsync(path).ConfigureAwait(false);
             return entry != null;
         }
     }
