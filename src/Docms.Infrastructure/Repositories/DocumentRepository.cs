@@ -55,7 +55,7 @@ namespace Docms.Infrastructure.Repositories
         {
             return _context
                 .Documents
-                .AnyAsync(e => e.Path.Value.ToLowerInvariant().StartsWith(path + "/"));
+                .AnyAsync(e => e.Path != null && e.Path.Value.ToLowerInvariant().StartsWith(path + "/"));
         }
     }
 }
