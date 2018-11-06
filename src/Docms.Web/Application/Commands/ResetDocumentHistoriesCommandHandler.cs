@@ -1,6 +1,7 @@
 ﻿using Docms.Domain.Documents;
 using Docms.Infrastructure;
 using MediatR;
+using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 
@@ -35,7 +36,7 @@ namespace Docms.Web.Application.Commands
 
         private async Task RecreateAllFilesAsync()
         {
-            foreach (var document in await _documentRepository.GetDocumentsAsync())
+            foreach (var document in (await _documentRepository.GetDocumentsAsync()).ToList())
             {
                 if (document.Path == null)
                 {

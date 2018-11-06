@@ -21,13 +21,10 @@ namespace Docms.Infrastructure.MediatR
             domainEntities.ToList()
                 .ForEach(entity => entity.Entity.ClearDomainEvents());
 
-            var tasks = domainEvents
-                .Select(async (domainEvent) =>
-                {
-                    await mediator.Publish(DomainEventNotification.Create(domainEvent));
-                });
-
-            await Task.WhenAll(tasks);
+            foreach (var domainEvent in domainEvents)
+            {
+                await mediator.Publish(DomainEventNotification.Create(domainEvent));
+            }
         }
     }
 }
