@@ -4,7 +4,7 @@ using System.Collections.Generic;
 using System.IO;
 using System.Threading.Tasks;
 
-namespace Docms.Infrastructure.Storage
+namespace Docms.Infrastructure.Storage.InMemory
 {
     public class InMemoryDataStore : IDataStore
     {

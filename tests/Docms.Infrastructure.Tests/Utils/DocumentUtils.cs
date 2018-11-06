@@ -1,5 +1,6 @@
 ﻿using Docms.Domain.Documents;
 using Docms.Infrastructure.Storage;
+using Docms.Infrastructure.Storage.InMemory;
 using System;
 using System.Text;
 

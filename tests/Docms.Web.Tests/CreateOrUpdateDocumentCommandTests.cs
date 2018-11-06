@@ -2,6 +2,7 @@
 using Docms.Infrastructure.Files;
 using Docms.Infrastructure.Repositories;
 using Docms.Infrastructure.Storage;
+using Docms.Infrastructure.Storage.InMemory;
 using Docms.Web.Application.Commands;
 using Docms.Web.Tests.Utils;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
