@@ -1,9 +1,6 @@
 ﻿using Docms.Domain.Documents;
 using Docms.Infrastructure;
-using Docms.Infrastructure.DataStores;
-using Docms.Infrastructure.Files;
 using MediatR;
-using System;
 using System.Threading;
 using System.Threading.Tasks;
 
@@ -13,69 +10,51 @@ namespace Docms.Web.Application.Commands
     {
         private readonly DocmsContext _context;
         private readonly IDocumentRepository _documentRepository;
-        private readonly IFileStorage _fileStorage;
-        private readonly ITemporaryStore _temporaryStore;
+        private readonly IDataStore _dataStore;
 
         public ResetDocumentHistoriesCommandHandler(
             DocmsContext context,
             IDocumentRepository documentRepository,
-            IFileStorage fileStorage,
-            ITemporaryStore temporaryStore)
+            IDataStore dataStore)
         {
             _context = context;
             _documentRepository = documentRepository;
-            _fileStorage = fileStorage;
-            _temporaryStore = temporaryStore;
+            _dataStore = dataStore;
         }
 
         public async Task<bool> Handle(ResetDocumentHistoriesCommand request, CancellationToken cancellationToken = default(CancellationToken))
         {
-            _context.Documents.RemoveRange(_context.Documents);
-            await _context.SaveChangesAsync();
             _context.Entries.RemoveRange(_context.Entries);
             _context.DocumentHistories.RemoveRange(_context.DocumentHistories);
             await _context.SaveChangesAsync();
-
-            var dir = await _fileStorage.GetDirectoryAsync("");
-            await RecreateAllFilesAsync(dir);
+            await RecreateAllFilesAsync();
+            await _context.SaveEntitiesAsync();
 
             return true;
         }
 
-        private async Task RecreateAllFilesAsync(Directory dir)
+        private async Task RecreateAllFilesAsync()
         {
-            foreach (var entry in await _fileStorage.GetEntriesAsync(dir))
+            foreach (var document in await _documentRepository.GetDocumentsAsync())
             {
-                if (entry is Directory dirEntry)
+                if (document.Path == null)
                 {
-                    await RecreateAllFilesAsync(dirEntry);
+                    if (document.StorageKey != null)
+                    {
+                        await _dataStore.DeleteAsync(document.StorageKey);
+                    }
+                    continue;
                 }
-                if (entry is File fileEntry)
+
+                var data = await _dataStore.FindAsync(document.StorageKey ?? document.Path.Value);
+                if (data == null)
                 {
-                    await AddFileAsync(fileEntry);
+                    _context.Documents.Remove(document);
                 }
-            }
-        }
-
-        private async Task AddFileAsync(File fileEntry)
-        {
-            var tempData = await _temporaryStore.CreateAsync(await fileEntry.OpenAsync(), -1);
-            try
-            {
-                // ファイル情報の取得
-                var hash = Hash.CalculateHash(await tempData.OpenStreamAsync());
-                var fileSize = tempData.SizeOfData;
-                ContentTypeProvider.TryGetContentType(fileEntry.Path.Extension, out var contentType);
-                if (contentType == null) contentType = "application/octet-stream";
-
-                var utcNow = DateTime.UtcNow;
-                var document = new Document(new DocumentPath(fileEntry.Path.ToString()), contentType, fileSize, hash, utcNow, utcNow);
-                await _documentRepository.AddAsync(document);
-                await _documentRepository.UnitOfWork.SaveEntitiesAsync();
-            }
-            finally
-            {
-                await _temporaryStore.DisposeAsync(tempData);
+                else
+                {
+                    document.Recreate(data);
+                }
             }
         }
     }

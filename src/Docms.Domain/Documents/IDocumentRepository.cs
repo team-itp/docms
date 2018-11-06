@@ -6,10 +6,11 @@ namespace Docms.Domain.Documents
 {
     public interface IDocumentRepository : IRepository<Document>
     {
-        Task<IEnumerable<Document>> GetDocumentsAsync(string containerPath);
+        Task<IEnumerable<Document>> GetDocumentsAsync();
         Task<Document> GetAsync(int documentId);
         Task<Document> GetAsync(string documentPath);
         Task<Document> AddAsync(Document document);
         Task UpdateAsync(Document document);
+        Task<bool> IsContainerPath(string path);
     }
 }

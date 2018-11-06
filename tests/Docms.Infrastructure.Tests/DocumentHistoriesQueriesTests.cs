@@ -1,4 +1,4 @@
-﻿using Docms.Infrastructure.Files;
+﻿using Docms.Infrastructure.Storage;
 using Docms.Infrastructure.Queries;
 using Docms.Infrastructure.Tests.Utils;
 using Docms.Queries.DocumentHistories;

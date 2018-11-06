@@ -24,6 +24,8 @@ namespace Docms.Queries.Blobs
 
     public sealed class Blob : BlobEntry
     {
+        [Column("StorageKey")]
+        public string StorageKey { get; set; }
         [Column("ContentType")]
         public string ContentType { get; set; }
         [Column("FileSize")]

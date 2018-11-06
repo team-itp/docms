@@ -14,45 +14,25 @@ namespace Docms.Web.Tests
     public class MoveDocumentCommandTests
     {
         private MockDocumentRepository repository;
-        private LocalFileStorage localFileStorage;
         private MoveDocumentCommandHandler sut;
 
         [TestInitialize]
         public void Setup()
         {
             repository = new MockDocumentRepository();
-            localFileStorage = new LocalFileStorage("tmp");
-            sut = new MoveDocumentCommandHandler(repository, localFileStorage);
-        }
-
-        [TestCleanup]
-        public void Teardown()
-        {
-            if (System.IO.Directory.Exists("tmp"))
-            {
-                System.IO.Directory.Delete("tmp", true);
-            }
+            sut = new MoveDocumentCommandHandler(repository);
         }
 
         [TestMethod]
         public async Task コマンドを発行してファイルが移動すること()
         {
-            var dir = await localFileStorage.GetDirectoryAsync("test1");
-
-            var bytes = Encoding.UTF8.GetBytes("Hello, world");
-            await dir.SaveAsync("document1.txt", "text/plain", new MemoryStream());
-            await repository.AddAsync(new Document(new DocumentPath("test1/document1.txt"), "text/plain", bytes.Length, Hash.CalculateHash(bytes)));
-            using (var ms = new MemoryStream(Encoding.UTF8.GetBytes("Hello, world")))
+            await repository.AddAsync(DocumentUtils.Create("test1/document1.txt", "Hello, world"));
+            await sut.Handle(new MoveDocumentCommand()
             {
-                await sut.Handle(new MoveDocumentCommand()
-                {
-                    OriginalPath = new FilePath("test1/document1.txt"),
-                    DestinationPath = new FilePath("test2/document2.txt"),
-                });
-            }
+                OriginalPath = new FilePath("test1/document1.txt"),
+                DestinationPath = new FilePath("test2/document2.txt"),
+            });
             Assert.AreEqual("test2/document2.txt", repository.Entities.First().Path.Value);
-            Assert.IsNull(await localFileStorage.GetEntryAsync("test1/document1.txt"));
-            Assert.IsNotNull(await localFileStorage.GetEntryAsync("test2/document2.txt"));
         }
     }
 }

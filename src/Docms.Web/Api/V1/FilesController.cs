@@ -1,3 +1,4 @@
+using Docms.Domain.Documents;
 using Docms.Infrastructure.Files;
 using Docms.Queries.Blobs;
 using Docms.Web.Application.Commands;
@@ -17,10 +18,10 @@ namespace Docms.Web.Api.V1
     [ApiController]
     public class FilesController : ControllerBase
     {
-        private readonly IFileStorage _storage;
         private readonly IBlobsQueries _queries;
+        private readonly IDataStore _storage;
 
-        public FilesController(IFileStorage storage, IBlobsQueries queries)
+        public FilesController(IDataStore storage, IBlobsQueries queries)
         {
             _storage = storage;
             _queries = queries;
@@ -44,8 +45,8 @@ namespace Docms.Web.Api.V1
                     return new StatusCodeResult(304);
                 }
 
-                var file = await _storage.GetEntryAsync(path) as File;
-                return File(await file.OpenAsync(), blob.ContentType, entry.Name, new DateTimeOffset(blob.LastModified), new EntityTagHeaderValue("\"" + blob.Hash + "\""));
+                var data = await _storage.FindAsync(blob.StorageKey ?? blob.Path);
+                return File(await data.OpenStreamAsync(), blob.ContentType, blob.Name, new DateTimeOffset(blob.LastModified), new EntityTagHeaderValue("\"" + blob.Hash + "\""));
             }
             else
             {

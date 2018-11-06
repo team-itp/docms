@@ -1,7 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 
-namespace Docms.Infrastructure.Files
+namespace Docms.Infrastructure.Storage
 {
     public class ContentTypeProvider
     {

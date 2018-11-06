@@ -1,7 +1,7 @@
 ﻿using Docms.Domain.Documents;
 using Docms.Domain.Identity;
 using Docms.Infrastructure;
-using Docms.Infrastructure.DataStores;
+using Docms.Infrastructure.Storage;
 using Docms.Infrastructure.Files;
 using Docms.Infrastructure.Queries;
 using Docms.Infrastructure.Repositories;
@@ -163,8 +163,7 @@ namespace Docms.Web
             services.AddTransient<IBlobsQueries, BlobsQueries>();
             services.AddTransient<IDocumentHistoriesQueries, DocumentHistoriesQueries>();
             services.AddTransient<IDeviceGrantsQueries, DeviceGrantsQueries>();
-            services.AddSingleton<IFileStorage>(sv => new LocalFileStorage("App_Data/flies"));
-            services.AddSingleton<ITemporaryStore, TemporaryStore>();
+            services.AddSingleton<IDataStore, InMemoryDataStore>();
             return services;
         }
 

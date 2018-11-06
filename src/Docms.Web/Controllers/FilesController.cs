@@ -1,3 +1,4 @@
+using Docms.Domain.Documents;
 using Docms.Infrastructure.Files;
 using Docms.Queries.Blobs;
 using Docms.Web.Application.Commands;
@@ -9,6 +10,7 @@ using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Net.Http.Headers;
 using System;
+using System.Net;
 using System.Threading.Tasks;
 
 namespace Docms.Web.Controllers
@@ -18,10 +20,10 @@ namespace Docms.Web.Controllers
     [Route("files")]
     public class FilesController : Controller
     {
-        private readonly IFileStorage _storage;
+        private readonly IDataStore _storage;
         private readonly IBlobsQueries _queries;
 
-        public FilesController(IFileStorage storage, IBlobsQueries queries)
+        public FilesController(IDataStore storage, IBlobsQueries queries)
         {
             _storage = storage;
             _queries = queries;
@@ -50,12 +52,17 @@ namespace Docms.Web.Controllers
 
             if (Request.Headers.Keys.Contains("If-None-Match") && Request.Headers["If-None-Match"].ToString() == "\"" + entry.Hash + "\"")
             {
-                return new StatusCodeResult(304);
+                return new StatusCodeResult((int)HttpStatusCode.NotModified);
             }
 
-            var file = await _storage.GetEntryAsync(path) as File;
+            var data = await _storage.FindAsync(entry.StorageKey ?? entry.Path);
+            if (data == null)
+            {
+                return new StatusCodeResult((int)HttpStatusCode.InternalServerError);
+            }
+
             Response.Headers.Add("Cache-Control", "max-age=15");
-            return File(await file.OpenAsync(), entry.ContentType, entry.Name, new DateTimeOffset(entry.LastModified), new EntityTagHeaderValue("\"" + entry.Hash + "\""));
+            return File(await data.OpenStreamAsync(), entry.ContentType, entry.Name, new DateTimeOffset(entry.LastModified), new EntityTagHeaderValue("\"" + entry.Hash + "\""));
         }
 
         [HttpGet("upload/{*dirPath=}")]

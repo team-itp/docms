@@ -12,9 +12,14 @@ namespace Docms.Web.Tests.Utils
             return Task.FromResult(Entities.FirstOrDefault(e => e.Path?.Value == documentPath));
         }
 
-        public Task<IEnumerable<Document>> GetDocumentsAsync(string containerPath)
+        public Task<IEnumerable<Document>> GetDocumentsAsync()
         {
-            return Task.FromResult(Entities.Where(e => e.Path?.Parent?.Value == containerPath));
+            return Task.FromResult(Entities.AsEnumerable());
+        }
+
+        public Task<bool> IsContainerPath(string path)
+        {
+            return Task.FromResult(Entities.Any(e => e.Path?.Value?.ToLowerInvariant()?.StartsWith(path + "/") ?? false));
         }
     }
 }

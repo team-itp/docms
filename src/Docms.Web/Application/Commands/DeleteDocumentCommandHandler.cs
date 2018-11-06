@@ -1,5 +1,4 @@
 ﻿using Docms.Domain.Documents;
-using Docms.Infrastructure.Files;
 using MediatR;
 using System;
 using System.Threading;
@@ -10,14 +9,11 @@ namespace Docms.Web.Application.Commands
     public class DeleteDocumentCommandHandler : IRequestHandler<DeleteDocumentCommand, bool>
     {
         private readonly IDocumentRepository _documentRepository;
-        private readonly IFileStorage _fileStorage;
 
         public DeleteDocumentCommandHandler(
-            IDocumentRepository documentRepository,
-            IFileStorage fileStorage)
+            IDocumentRepository documentRepository)
         {
             _documentRepository = documentRepository;
-            _fileStorage = fileStorage;
         }
 
         public async Task<bool> Handle(DeleteDocumentCommand request, CancellationToken cancellationToken = default(CancellationToken))
@@ -27,8 +23,6 @@ namespace Docms.Web.Application.Commands
             {
                 throw new InvalidOperationException();
             }
-            var file = (await _fileStorage.GetEntryAsync(request.Path)) as File;
-            await _fileStorage.DeleteAsync(file);
             document.Delete();
             await _documentRepository.UpdateAsync(document);
             await _documentRepository.UnitOfWork.SaveEntitiesAsync();

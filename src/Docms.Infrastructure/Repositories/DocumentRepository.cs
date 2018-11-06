@@ -18,11 +18,10 @@ namespace Docms.Infrastructure.Repositories
             _context = context;
         }
 
-        public async Task<IEnumerable<Document>> GetDocumentsAsync(string containerPath)
+        public async Task<IEnumerable<Document>> GetDocumentsAsync()
         {
             return await _context
                 .Documents
-                .Where(e => e.Path.Value.StartsWith(containerPath))
                 .ToListAsync();
         }
 
@@ -50,6 +49,13 @@ namespace Docms.Infrastructure.Repositories
         {
             _context.Update(document);
             return Task.CompletedTask;
+        }
+
+        public Task<bool> IsContainerPath(string path)
+        {
+            return _context
+                .Documents
+                .AnyAsync(e => e.Path.Value.ToLowerInvariant().StartsWith(path + "/"));
         }
     }
 }

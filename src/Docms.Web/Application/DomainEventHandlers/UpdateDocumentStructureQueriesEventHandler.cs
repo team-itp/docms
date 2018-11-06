@@ -74,8 +74,9 @@ namespace Docms.Web.Application.DomainEventHandlers
                 Path = ev.Path.Value,
                 Name = ev.Path.Name,
                 ParentPath = ev.Path.Parent?.Value,
+                StorageKey = ev.StorageKey,
                 ContentType = ev.ContentType,
-                FileSize = ev.FileSize,
+                FileSize = ev.Data.Length,
                 Hash = ev.Hash,
                 Created = ev.Created,
                 LastModified = ev.LastModified,
@@ -116,6 +117,7 @@ namespace Docms.Web.Application.DomainEventHandlers
                 Path = ev.Path.Value,
                 Name = ev.Path.Name,
                 ParentPath = ev.Path.Parent?.Value,
+                StorageKey = oldBlob.StorageKey,
                 ContentType = oldBlob.ContentType,
                 FileSize = oldBlob.FileSize,
                 Hash = oldBlob.Hash,
@@ -134,9 +136,10 @@ namespace Docms.Web.Application.DomainEventHandlers
             var ev = notification.Event;
 
             var blob = await _db.Blobs.FirstOrDefaultAsync(e => e.Path == ev.Path.Value);
+            blob.StorageKey = ev.StorageKey;
             blob.ContentType = ev.ContentType;
-            blob.FileSize = ev.FileSize;
-            blob.Hash = ev.Hash;
+            blob.FileSize = ev.Data.Length;
+            blob.Hash = ev.Data.Hash;
             blob.Created = ev.Created;
             blob.LastModified = ev.LastModified;
 

@@ -2,7 +2,7 @@
 using System.IO;
 using System.Security.Cryptography;
 
-namespace Docms.Infrastructure.Files
+namespace Docms.Infrastructure.Storage
 {
     public class Hash
     {

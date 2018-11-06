@@ -17,16 +17,14 @@ namespace Docms.Web.Tests
     [TestClass]
     public class UpdateDeviceGrantsQueriesEventHandlerTests
     {
-        private DocmsContext ctx;
+        private MockDocmsContext ctx;
         private IUserStore<ApplicationUser> userStore;
         private UpdateDeviceGrantsQueriesEventHandler sut;
 
         [TestInitialize]
         public void Setup()
         {
-            ctx = new DocmsContext(new DbContextOptionsBuilder<DocmsContext>()
-                .UseInMemoryDatabase("UpdateDeviceGrantsQueriesEventHandlerTests")
-                .Options, new MockMediator());
+            ctx = new MockDocmsContext("UpdateDeviceGrantsQueriesEventHandlerTests");
             userStore = new MockUserStore();
             userStore.CreateAsync(new ApplicationUser()
             {
