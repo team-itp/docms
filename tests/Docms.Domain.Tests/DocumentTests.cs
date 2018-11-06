@@ -1,6 +1,7 @@
 ﻿using Docms.Domain.Documents;
 using Docms.Domain.Documents.Events;
 using Docms.Infrastructure.Storage;
+using Docms.Infrastructure.Storage.InMemory;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using System;
 using System.IO;
