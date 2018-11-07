@@ -9,7 +9,6 @@ namespace Docms.Domain.Documents.Events
         public string StorageKey { get; }
         public string ContentType { get; }
         public IData Data { get; }
-        public string Hash { get; }
         public DateTime Created { get; }
         public DateTime LastModified { get; }
 

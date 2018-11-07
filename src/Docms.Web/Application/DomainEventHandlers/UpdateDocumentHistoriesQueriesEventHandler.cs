@@ -33,7 +33,7 @@ namespace Docms.Web.Application.DomainEventHandlers
                 Path = ev.Path.ToString(),
                 ContentType = ev.ContentType,
                 FileSize = ev.Data.Length,
-                Hash = ev.Hash,
+                Hash = ev.Data.Hash,
                 Created = ev.Created,
                 LastModified = ev.LastModified,
             });

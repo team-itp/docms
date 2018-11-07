@@ -77,7 +77,7 @@ namespace Docms.Web.Application.DomainEventHandlers
                 StorageKey = ev.StorageKey,
                 ContentType = ev.ContentType,
                 FileSize = ev.Data.Length,
-                Hash = ev.Hash,
+                Hash = ev.Data.Hash,
                 Created = ev.Created,
                 LastModified = ev.LastModified,
             };
