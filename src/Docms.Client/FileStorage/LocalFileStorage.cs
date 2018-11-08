@@ -84,7 +84,12 @@ namespace Docms.Client.FileStorage
         public FileInfo GetFile(PathString path)
         {
             var fullpath = ConvertToFullPath(path);
-            return new FileInfo(fullpath);
+            var fileInfo = new FileInfo(fullpath);
+            if (fileInfo.Attributes.HasFlag(FileAttributes.Hidden) || fileInfo.Attributes.HasFlag(FileAttributes.System))
+            {
+                return null;
+            }
+            return fileInfo;
         }
 
         public FileInfo TempCopy(PathString path)
@@ -98,7 +103,13 @@ namespace Docms.Client.FileStorage
         public IEnumerable<PathString> GetFiles(PathString path)
         {
             var fullpath = ConvertToFullPath(path);
-            return Directory.GetFiles(fullpath).Select(ResolvePath);
+            return Directory.GetFiles(fullpath)
+                .Where(p =>
+                {
+                    var fileInfo = new FileInfo(p);
+                    return !(fileInfo.Attributes.HasFlag(FileAttributes.Hidden) || fileInfo.Attributes.HasFlag(FileAttributes.System));
+                })
+                .Select(ResolvePath);
         }
 
         public IEnumerable<PathString> GetDirectories(PathString path)
