@@ -151,6 +151,28 @@ namespace Docms.Client.FileSyncing
             }
         }
 
+        private async Task<bool> WhetherIfSameFileAsync(FileInfo fileInfo, PathString path)
+        {
+            var histories = await _db.Histories
+                .Where(e => e.Path == path.ToString())
+                .ToListAsync()
+                .ConfigureAwait(false);
+            if (histories.Any())
+            {
+                var syncFile = new SyncingFile(path.ToString(), histories);
+                return syncFile.Path != null
+                    && fileInfo.Length == syncFile.FileSize
+                    && _storage.CalculateHash(path) == syncFile.Hash;
+            }
+            else
+            {
+                var file = await _client.GetDocumentAsync(path.ToString()).ConfigureAwait(false);
+                return file != null
+                    && fileInfo.Length == file.FileSize
+                    && _storage.CalculateHash(path) == file.Hash;
+            }
+        }
+
         public async Task RequestCreationAsync(PathString path, CancellationToken cancellationToken = default(CancellationToken))
         {
             if (IgnorePattern(path))
@@ -160,12 +182,12 @@ namespace Docms.Client.FileSyncing
             {
                 return;
             }
+            if (await WhetherIfSameFileAsync(fileInfo, path))
+            {
+                return;
+            }
 
             _logger.Debug($"request creation {path}");
-            var file = await _client.GetDocumentAsync(path.ToString()).ConfigureAwait(false);
-            if (file == null
-                || fileInfo.Length != file.FileSize
-                || _storage.CalculateHash(path) != file.Hash)
             {
                 using (var fs = fileInfo.OpenRead())
                 {
@@ -246,6 +268,10 @@ namespace Docms.Client.FileSyncing
                 return;
             var fileInfo = _storage.GetFile(path);
             if (!File.Exists(fileInfo.FullName))
+            {
+                return;
+            }
+            if (await WhetherIfSameFileAsync(fileInfo, path))
             {
                 return;
             }

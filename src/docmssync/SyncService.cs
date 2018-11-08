@@ -221,42 +221,74 @@ namespace docmssync
 
         private async void _localFileStorageWatcher_FileDeleted(object sender, FileDeletedEventArgs e)
         {
-            await EnqueueTask(() =>
+            try
             {
-                _logger.Debug($"file deleted: {e.Path}");
-                _eventShrinker.Apply(new DocumentDeleted(e.Path));
-                return Task.CompletedTask;
-            });
+                await EnqueueTask(() =>
+                {
+                    _logger.Debug($"file deleted: {e.Path}");
+                    _eventShrinker.Apply(new DocumentDeleted(e.Path));
+                    return Task.CompletedTask;
+                });
+            }
+            catch (Exception ex)
+            {
+                _logger.Error("Error on execution _localFileStorageWatcher_FileCreated");
+                _logger.Error(ex);
+            }
         }
 
         private async void _localFileStorageWatcher_FileMoved(object sender, FileMovedEventArgs e)
         {
-            await EnqueueTask(() =>
+            try
             {
-                _logger.Debug($"file moved from path: {e.FromPath} to: {e.Path}");
-                _eventShrinker.Apply(new DocumentMoved(e.Path, e.FromPath));
-                return Task.CompletedTask;
-            });
+                await EnqueueTask(() =>
+                {
+                    _logger.Debug($"file moved from path: {e.FromPath} to: {e.Path}");
+                    _eventShrinker.Apply(new DocumentMoved(e.Path, e.FromPath));
+                    return Task.CompletedTask;
+                });
+            }
+            catch (Exception ex)
+            {
+                _logger.Error("Error on execution _localFileStorageWatcher_FileCreated");
+                _logger.Error(ex);
+            }
         }
 
         private async void _localFileStorageWatcher_FileModified(object sender, FileModifiedEventArgs e)
         {
-            await EnqueueTask(() =>
+            try
             {
-                _logger.Debug($"file modeifed: {e.Path}");
-                _eventShrinker.Apply(new DocumentUpdated(e.Path));
-                return Task.CompletedTask;
-            });
+                await EnqueueTask(() =>
+                {
+                    _logger.Debug($"file modeifed: {e.Path}");
+                    _eventShrinker.Apply(new DocumentUpdated(e.Path));
+                    return Task.CompletedTask;
+                });
+            }
+            catch (Exception ex)
+            {
+                _logger.Error("Error on execution _localFileStorageWatcher_FileCreated");
+                _logger.Error(ex);
+            }
         }
 
         private async void _localFileStorageWatcher_FileCreated(object sender, FileCreatedEventArgs e)
         {
-            await EnqueueTask(() =>
+            try
             {
-                _logger.Debug($"file created: {e.Path}");
-                _eventShrinker.Apply(new DocumentCreated(e.Path));
-                return Task.CompletedTask;
-            });
+                await EnqueueTask(() =>
+                {
+                    _logger.Debug($"file created: {e.Path}");
+                    _eventShrinker.Apply(new DocumentCreated(e.Path));
+                    return Task.CompletedTask;
+                });
+            }
+            catch (Exception ex)
+            {
+                _logger.Error("Error on execution _localFileStorageWatcher_FileCreated");
+                _logger.Error(ex);
+            }
         }
 
         protected override void OnStop()
