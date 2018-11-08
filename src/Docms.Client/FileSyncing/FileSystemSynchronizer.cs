@@ -65,6 +65,10 @@ namespace Docms.Client.FileSyncing
             foreach (var item in await _client.GetEntriesAsync(path.ToString()))
             {
                 cancellationToken.ThrowIfCancellationRequested();
+                if (IgnorePattern(new PathString(item.Path)))
+                {
+                    continue;
+                }
                 if (item is Document doc)
                 {
                     await _synchronizer.SyncAsync(new PathString(doc.Path)).ConfigureAwait(false);
@@ -81,12 +85,14 @@ namespace Docms.Client.FileSyncing
             foreach (var item in _storage.GetFiles(path))
             {
                 cancellationToken.ThrowIfCancellationRequested();
+                if (IgnorePattern(item))
+                {
+                    continue;
+                }
+
                 try
                 {
-                    if (!IgnorePattern(item))
-                    {
-                        await _synchronizer.SyncAsync(item).ConfigureAwait(false);
-                    }
+                    await _synchronizer.SyncAsync(item).ConfigureAwait(false);
                 }
                 catch (Exception ex)
                 {
