@@ -202,26 +202,56 @@ namespace Docms.Client.Api
 
         public async Task CreateOrUpdateDocumentAsync(string path, Stream stream, DateTime? created = null, DateTime? lastModified = null)
         {
-            using (var ms = new MemoryStream())
+            if (stream is MemoryStream ms)
             {
-                _logger.Info("requesting uploading for path: " + path);
-                var request = new RestRequest(_defaultPath + "files", Method.POST);
-                request.AddParameter("path", path ?? throw new ArgumentNullException(nameof(path)));
-                await stream.CopyToAsync(ms).ConfigureAwait(false);
-                ms.Seek(0, SeekOrigin.Begin);
-                request.AddFile("file", ms.ToArray(), path.Substring(path.LastIndexOf('/') > -1 ? path.LastIndexOf('/') : 0));
-                if (created != null)
-                {
-                    request.AddParameter("created", XmlConvert.ToString(created.Value, XmlDateTimeSerializationMode.Utc));
-                }
-                if (lastModified != null)
-                {
-                    request.AddParameter("lastModified", XmlConvert.ToString(lastModified.Value, XmlDateTimeSerializationMode.Utc));
-                }
-                request.AddHeader("Authorization", "Bearer " + _accessToken);
-                var result = await ExecuteAsync(request).ConfigureAwait(false);
-                ThrowIfNotSuccessfulStatus(result);
+                await CreateOrUpdateDocumentAsync(path, stream, ms.Length, created, lastModified).ConfigureAwait(false);
+                return;
             }
+
+            if (stream is FileStream fs)
+            {
+                await CreateOrUpdateDocumentAsync(path, stream, fs.Length, created, lastModified).ConfigureAwait(false);
+                return;
+            }
+
+            var tempFile = Path.GetTempFileName();
+            try
+            {
+                using (var tempFs = new FileStream(tempFile, FileMode.Create, FileAccess.ReadWrite, FileShare.ReadWrite))
+                {
+                    await stream.CopyToAsync(tempFs);
+                    tempFs.Seek(0, SeekOrigin.Begin);
+                    await CreateOrUpdateDocumentAsync(path, tempFs, tempFs.Length, created, lastModified).ConfigureAwait(false);
+                    return;
+                }
+            }
+            finally
+            {
+                if (File.Exists(tempFile))
+                {
+                    File.Delete(tempFile);
+                }
+            }
+
+        }
+
+        public async Task CreateOrUpdateDocumentAsync(string path, Stream stream, long contentLength, DateTime? created = null, DateTime? lastModified = null)
+        {
+            _logger.Info("requesting uploading for path: " + path);
+            var request = new RestRequest(_defaultPath + "files", Method.POST);
+            request.AddParameter("path", path ?? throw new ArgumentNullException(nameof(path)));
+            request.AddFile("file", sr => stream.CopyTo(sr), path.Substring(path.LastIndexOf('/') > -1 ? path.LastIndexOf('/') : 0), contentLength);
+            if (created != null)
+            {
+                request.AddParameter("created", XmlConvert.ToString(created.Value, XmlDateTimeSerializationMode.Utc));
+            }
+            if (lastModified != null)
+            {
+                request.AddParameter("lastModified", XmlConvert.ToString(lastModified.Value, XmlDateTimeSerializationMode.Utc));
+            }
+            request.AddHeader("Authorization", "Bearer " + _accessToken);
+            var result = await ExecuteAsync(request).ConfigureAwait(false);
+            ThrowIfNotSuccessfulStatus(result);
         }
 
         public async Task MoveDocumentAsync(string originalPath, string destinationPath)
