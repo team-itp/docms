@@ -162,7 +162,7 @@ namespace Docms.Web
             services.AddTransient<IBlobsQueries, BlobsQueries>();
             services.AddTransient<IDocumentHistoriesQueries, DocumentHistoriesQueries>();
             services.AddTransient<IDeviceGrantsQueries, DeviceGrantsQueries>();
-            services.AddSingleton<IDataStore>(new FileDataStore("App_Data/flies"));
+            services.AddSingleton<IDataStore>(new FileDataStore("App_Data/files"));
             return services;
         }
 
