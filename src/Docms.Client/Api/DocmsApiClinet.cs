@@ -4,6 +4,7 @@ using IdentityModel.Client;
 using Newtonsoft.Json;
 using NLog;
 using RestSharp;
+using RestSharp.Authenticators;
 using System;
 using System.Collections.Generic;
 using System.IO;
@@ -40,7 +41,8 @@ namespace Docms.Client.Api
             _defaultPath = (defaultPath ?? "").EndsWith("/") ? defaultPath : defaultPath + "/";
             _client = new RestClient(_serverUri)
             {
-                FollowRedirects = false
+                FollowRedirects = false,
+                Timeout = 10 * 60 * 1000
             };
             DefaultJsonSerializerSettings = new JsonSerializerSettings()
             {
@@ -86,6 +88,7 @@ namespace Docms.Client.Api
             _username = username;
             _password = password;
             _accessToken = response.AccessToken;
+            _client.Authenticator = new JwtAuthenticator(_accessToken);
         }
 
         /// <summary>
@@ -100,6 +103,7 @@ namespace Docms.Client.Api
                 "docms-client-secret");
 
             await client.RevokeAccessTokenAsync(_accessToken).ConfigureAwait(false);
+            _client.Authenticator = null;
             _logger.Debug("logout success.");
         }
 
@@ -156,7 +160,6 @@ namespace Docms.Client.Api
             {
                 request.AddQueryParameter("path", path);
             }
-            request.AddHeader("Authorization", "Bearer " + _accessToken);
             var result = await ExecuteAsync(request).ConfigureAwait(false);
             ThrowIfNotSuccessfulStatus(result);
             var container = JsonConvert.DeserializeObject<ContainerResponse>(result.Content, DefaultJsonSerializerSettings);
@@ -171,7 +174,6 @@ namespace Docms.Client.Api
             _logger.Info("requesting get document for path: " + path);
             var request = new RestRequest(_defaultPath + "files", Method.GET);
             request.AddQueryParameter("path", path ?? throw new ArgumentNullException(nameof(path)));
-            request.AddHeader("Authorization", "Bearer " + _accessToken);
             var result = await ExecuteAsync(request).ConfigureAwait(false);
             if (result.StatusCode == HttpStatusCode.NotFound)
             {
@@ -194,7 +196,6 @@ namespace Docms.Client.Api
                 request.AddQueryParameter("path", path);
                 request.AddQueryParameter("download", true.ToString());
             }
-            request.AddHeader("Authorization", "Bearer " + _accessToken);
             var result = await ExecuteAsync(request).ConfigureAwait(false);
             ThrowIfNotSuccessfulStatus(result);
             return new MemoryStream(result.RawBytes);
@@ -249,7 +250,6 @@ namespace Docms.Client.Api
             {
                 request.AddParameter("lastModified", XmlConvert.ToString(lastModified.Value, XmlDateTimeSerializationMode.Utc));
             }
-            request.AddHeader("Authorization", "Bearer " + _accessToken);
             var result = await ExecuteAsync(request).ConfigureAwait(false);
             ThrowIfNotSuccessfulStatus(result);
         }
@@ -260,7 +260,6 @@ namespace Docms.Client.Api
             var request = new RestRequest(_defaultPath + "files/move", Method.POST);
             request.AddParameter("destinationPath", destinationPath);
             request.AddParameter("originalPath", originalPath);
-            request.AddHeader("Authorization", "Bearer " + _accessToken);
             var result = await ExecuteAsync(request).ConfigureAwait(false);
             ThrowIfNotSuccessfulStatus(result);
         }
@@ -271,7 +270,6 @@ namespace Docms.Client.Api
             {
                 var request = new RestRequest(_defaultPath + "files", Method.DELETE);
                 request.AddQueryParameter("path", path);
-                request.AddHeader("Authorization", "Bearer " + _accessToken);
                 var result = await ExecuteAsync(request).ConfigureAwait(false);
                 ThrowIfNotSuccessfulStatus(result);
             }
@@ -301,7 +299,6 @@ namespace Docms.Client.Api
             {
                 request.AddQueryParameter("since", XmlConvert.ToString(since.Value, XmlDateTimeSerializationMode.Utc));
             }
-            request.AddHeader("Authorization", "Bearer " + _accessToken);
             var result = await ExecuteAsync(request).ConfigureAwait(false);
             ThrowIfNotSuccessfulStatus(result);
             return JsonConvert.DeserializeObject<List<History>>(result.Content, DefaultJsonSerializerSettings);
