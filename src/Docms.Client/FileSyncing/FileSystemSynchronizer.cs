@@ -71,7 +71,14 @@ namespace Docms.Client.FileSyncing
                 }
                 if (item is Document doc)
                 {
-                    await _synchronizer.SyncAsync(new PathString(doc.Path)).ConfigureAwait(false);
+                    try
+                    {
+                        await _synchronizer.SyncAsync(new PathString(doc.Path)).ConfigureAwait(false);
+                    }
+                    catch (Exception ex)
+                    {
+                        _logger.Debug(ex);
+                    }
                 }
                 if (item is Container con)
                 {
@@ -151,7 +158,7 @@ namespace Docms.Client.FileSyncing
             }
         }
 
-        private async Task<bool> WhetherIfSameFileAsync(FileInfo fileInfo, PathString path)
+        private async Task<bool> WhetherIfSameFileAsync(PathString path)
         {
             var histories = await _db.Histories
                 .Where(e => e.Path == path.ToString())
@@ -161,14 +168,14 @@ namespace Docms.Client.FileSyncing
             {
                 var syncFile = new SyncingFile(path.ToString(), histories);
                 return syncFile.Path != null
-                    && fileInfo.Length == syncFile.FileSize
+                    && _storage.GetLength(path) == syncFile.FileSize
                     && _storage.CalculateHash(path) == syncFile.Hash;
             }
             else
             {
                 var file = await _client.GetDocumentAsync(path.ToString()).ConfigureAwait(false);
                 return file != null
-                    && fileInfo.Length == file.FileSize
+                    && _storage.GetLength(path) == file.FileSize
                     && _storage.CalculateHash(path) == file.Hash;
             }
         }
@@ -177,23 +184,18 @@ namespace Docms.Client.FileSyncing
         {
             if (IgnorePattern(path))
                 return;
-            var fileInfo = _storage.GetFile(path);
-            if (!File.Exists(fileInfo.FullName))
+            if (!_storage.FileExists(path))
             {
                 return;
             }
-            if (await WhetherIfSameFileAsync(fileInfo, path))
+            if (await WhetherIfSameFileAsync(path))
             {
                 return;
             }
 
             _logger.Debug($"request creation {path}");
             {
-                using (var fs = fileInfo.OpenRead())
-                {
-                    await _client.CreateOrUpdateDocumentAsync(path.ToString(), fs, fileInfo.CreationTimeUtc, fileInfo.LastWriteTimeUtc).ConfigureAwait(false);
-                    _logger.Debug($"requested creation {path}");
-                }
+                await _synchronizer.UploadFileSafely(path);
             }
         }
 
@@ -201,8 +203,7 @@ namespace Docms.Client.FileSyncing
         {
             if (IgnorePattern(path))
                 return;
-            var fileInfo = _storage.GetFile(path);
-            if (File.Exists(fileInfo.FullName))
+            if (_storage.FileExists(path))
             {
                 return;
             }
@@ -225,8 +226,7 @@ namespace Docms.Client.FileSyncing
                 return;
             if (IgnorePattern(destinationPath))
                 return;
-            var destinationFileInfo = _storage.GetFile(destinationPath);
-            if (!destinationFileInfo.Exists)
+            if (!_storage.FileExists(destinationPath))
             {
                 return;
             }
@@ -236,15 +236,11 @@ namespace Docms.Client.FileSyncing
             if (originalFile == null)
             {
                 _logger.Debug($"{originalPath} on server is deleted");
-                using (var fs = destinationFileInfo.OpenRead())
-                {
-                    await _client.CreateOrUpdateDocumentAsync(destinationPath.ToString(), fs, destinationFileInfo.CreationTimeUtc, destinationFileInfo.LastWriteTimeUtc).ConfigureAwait(false);
-                    _logger.Debug($"requested creation {destinationPath}");
-                }
+                await _synchronizer.UploadFileSafely(destinationPath);
                 return;
             }
 
-            if (originalFile.FileSize == destinationFileInfo.Length
+            if (originalFile.FileSize == _storage.GetLength(destinationPath)
                 && originalFile.Hash == _storage.CalculateHash(destinationPath))
             {
                 await _client.MoveDocumentAsync(originalPath.ToString(), destinationPath.ToString()).ConfigureAwait(false);
@@ -252,11 +248,7 @@ namespace Docms.Client.FileSyncing
             }
             else
             {
-                using (var fs = destinationFileInfo.OpenRead())
-                {
-                    await _client.CreateOrUpdateDocumentAsync(destinationPath.ToString(), fs, destinationFileInfo.CreationTimeUtc, destinationFileInfo.LastWriteTimeUtc).ConfigureAwait(false);
-                    _logger.Debug($"requested creation {destinationPath}");
-                }
+                await _synchronizer.UploadFileSafely(destinationPath);
                 await _client.DeleteDocumentAsync(originalPath.ToString()).ConfigureAwait(false);
                 _logger.Debug($"requested deletion {originalPath}");
             }
@@ -266,49 +258,17 @@ namespace Docms.Client.FileSyncing
         {
             if (IgnorePattern(path))
                 return;
-            var fileInfo = _storage.GetFile(path);
-            if (!File.Exists(fileInfo.FullName))
+            if (!_storage.FileExists(path))
             {
                 return;
             }
-            if (await WhetherIfSameFileAsync(fileInfo, path))
+            if (await WhetherIfSameFileAsync(path))
             {
                 return;
             }
 
             _logger.Debug($"request changing {path}");
-            var file = await _client.GetDocumentAsync(path.ToString()).ConfigureAwait(false);
-            if (file == null
-                || fileInfo.Length != file.FileSize
-                || _storage.CalculateHash(path) != file.Hash)
-            {
-                _logger.Debug($"local file is newer than server's");
-                try
-                {
-                    using (var fs = fileInfo.OpenRead())
-                    {
-                        await _client.CreateOrUpdateDocumentAsync(path.ToString(), fs, fileInfo.CreationTimeUtc, fileInfo.LastWriteTimeUtc).ConfigureAwait(false);
-                        _logger.Debug($"requested changing {path}");
-                    }
-                }
-                catch (IOException ex)
-                {
-                    _logger.Debug("file update failed.");
-                    _logger.Debug(ex);
-
-                    var tempFileInfo = _storage.TempCopy(path);
-                    _logger.Debug($"file update copying to temp path: {tempFileInfo.FullName}");
-                    if (tempFileInfo.Exists)
-                    {
-                        using (var fs = tempFileInfo.OpenRead())
-                        {
-                            await _client.CreateOrUpdateDocumentAsync(path.ToString(), fs, fileInfo.CreationTimeUtc, fileInfo.LastWriteTimeUtc).ConfigureAwait(false);
-                            _logger.Debug($"requested changing {path}");
-                        }
-                        tempFileInfo.Delete();
-                    }
-                }
-            }
+            await _synchronizer.UploadFileSafely(path);
         }
     }
 }

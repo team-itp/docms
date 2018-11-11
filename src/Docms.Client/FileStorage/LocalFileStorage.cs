@@ -40,6 +40,11 @@ namespace Docms.Client.FileStorage
             File.SetLastWriteTimeUtc(fullpath, lastModified);
         }
 
+        public bool FileExists(PathString path)
+        {
+            return GetFile(path) != null;
+        }
+
         public string CalculateHash(PathString path)
         {
             var fullpath = ConvertToFullPath(path);
@@ -49,6 +54,26 @@ namespace Docms.Client.FileStorage
                 var hashBin = sha1.ComputeHash(fs);
                 return BitConverter.ToString(hashBin).Replace("-", "");
             }
+        }
+
+        public long GetLength(PathString path)
+        {
+            return GetFile(path).Length;
+        }
+
+        public DateTime GetCreated(PathString path)
+        {
+            return GetFile(path).CreationTimeUtc;
+        }
+
+        public DateTime GetLastModified(PathString path)
+        {
+            return GetFile(path).LastWriteTimeUtc;
+        }
+
+        public FileStream OpenRead(PathString path)
+        {
+            return GetFile(path).OpenRead();
         }
 
         public async Task Update(PathString path, Stream stream, DateTime lastModified)
@@ -89,7 +114,7 @@ namespace Docms.Client.FileStorage
             {
                 return null;
             }
-            return fileInfo;
+            return fileInfo.Exists ? fileInfo : null;
         }
 
         public FileInfo TempCopy(PathString path)

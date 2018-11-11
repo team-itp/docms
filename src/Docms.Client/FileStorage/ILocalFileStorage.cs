@@ -12,9 +12,13 @@ namespace Docms.Client.FileStorage
         Task Update(PathString path, Stream stream, DateTime lastModified);
         void MoveDocument(PathString originalPath, PathString destinationPath);
         void Delete(PathString path);
-        FileInfo GetFile(PathString path);
         FileInfo TempCopy(PathString path);
+        bool FileExists(PathString path);
         string CalculateHash(PathString path);
+        long GetLength(PathString localFilePath);
+        FileStream OpenRead(PathString path);
+        DateTime GetCreated(PathString localFilePath);
+        DateTime GetLastModified(PathString localFilePath);
         IEnumerable<PathString> GetFiles(PathString path);
         IEnumerable<PathString> GetDirectories(PathString path);
     }
