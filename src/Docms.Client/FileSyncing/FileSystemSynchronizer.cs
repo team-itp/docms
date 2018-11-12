@@ -193,10 +193,9 @@ namespace Docms.Client.FileSyncing
                 return;
             }
 
-            _logger.Debug($"request creation {path}");
-            {
-                await _synchronizer.UploadFileSafely(path);
-            }
+            _logger.Debug($"requesting upload {path}");
+            await _synchronizer.UploadFileSafely(path);
+            _logger.Debug($"{path} upload requested");
         }
 
         public async Task RequestDeletionAsync(PathString path, CancellationToken cancellationToken = default(CancellationToken))
@@ -217,7 +216,7 @@ namespace Docms.Client.FileSyncing
             }
 
             await _client.DeleteDocumentAsync(path.ToString()).ConfigureAwait(false);
-            _logger.Debug($"requested deletion {path}");
+            _logger.Debug($"{path} deletion requested");
         }
 
         public async Task RequestMovementAsync(PathString originalPath, PathString destinationPath, CancellationToken cancellationToken = default(CancellationToken))
@@ -235,22 +234,24 @@ namespace Docms.Client.FileSyncing
             var originalFile = await _client.GetDocumentAsync(originalPath.ToString()).ConfigureAwait(false);
             if (originalFile == null)
             {
-                _logger.Debug($"{originalPath} on server is deleted");
+                _logger.Debug($"{originalPath} on server is already deleted");
                 await _synchronizer.UploadFileSafely(destinationPath);
-                return;
+                 _logger.Debug($"{destinationPath} upload requested");
+               return;
             }
 
             if (originalFile.FileSize == _storage.GetLength(destinationPath)
                 && originalFile.Hash == _storage.CalculateHash(destinationPath))
             {
                 await _client.MoveDocumentAsync(originalPath.ToString(), destinationPath.ToString()).ConfigureAwait(false);
-                _logger.Debug($"requested movement {originalPath} to {destinationPath}");
+                _logger.Debug($"{originalPath} to {destinationPath} movement requested");
             }
             else
             {
                 await _synchronizer.UploadFileSafely(destinationPath);
+                _logger.Debug($"{destinationPath} upload requested");
                 await _client.DeleteDocumentAsync(originalPath.ToString()).ConfigureAwait(false);
-                _logger.Debug($"requested deletion {originalPath}");
+                _logger.Debug($"{originalPath} deletion requested");
             }
         }
 
@@ -269,6 +270,7 @@ namespace Docms.Client.FileSyncing
 
             _logger.Debug($"request changing {path}");
             await _synchronizer.UploadFileSafely(path);
+            _logger.Debug($"{path} upload requested");
         }
     }
 }

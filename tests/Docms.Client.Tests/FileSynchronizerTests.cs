@@ -100,18 +100,18 @@ namespace Docms.Client.Tests
         }
 
         [TestMethod]
-        public async Task ファイルがローカルに存在し内容が異なる場合ファイルの日時比較でサーバー側の方が新しい場合ローカルのファイルが上書きされる()
+        public async Task ファイルがローカルに存在し内容が異なる場合ローカルのファイルがアップロードされる_サーバー側の方が新しい場合()
         {
             var now = DateTime.UtcNow;
-            await mockClient.CreateOrUpdateDocumentAsync("test/document1.txt", CreateStream("Hello New")).ConfigureAwait(false);
-            await localFileStorage.Create(new PathString("test/document1.txt"), new MemoryStream(Encoding.UTF8.GetBytes("Hello")), now, now).ConfigureAwait(false);
+            await mockClient.CreateOrUpdateDocumentAsync("test/document1.txt", CreateStream("Hello")).ConfigureAwait(false);
+            await localFileStorage.Create(new PathString("test/document1.txt"), new MemoryStream(Encoding.UTF8.GetBytes("Hello New")), now, now).ConfigureAwait(false);
             await sut.SyncAsync(new PathString("test/document1.txt")).ConfigureAwait(false);
             Assert.IsTrue(localFileStorage.FileExists(new PathString("test/document1.txt")));
             Assert.AreEqual("Hello New", localFileStorage.ReadAllText(new PathString("test/document1.txt")));
         }
 
         [TestMethod]
-        public async Task ファイルがローカルに存在し内容が異なる場合ファイルの日時比較でローカル側の方が新しい場合ファイルは変更されない()
+        public async Task ファイルがローカルに存在し内容が異なる場合ローカルのファイルがアップロードされる_ローカル側の方が新しい場合()
         {
             await mockClient.CreateOrUpdateDocumentAsync("test/document1.txt", CreateStream("Hello")).ConfigureAwait(false);
             await Task.Delay(1).ConfigureAwait(false);

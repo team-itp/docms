@@ -111,12 +111,14 @@ namespace Docms.Client.Tests
         public async Task ローカルのファイルが読み取り中の場合でもアップロードされる()
         {
             await localFileStorage.Create(new PathString("日本語/日本語.txt"), CreateStream("日本語/日本語.txt"), new DateTime(2010, 1, 1), new DateTime(2010, 1, 1));
+            await localFileStorage.Create(new PathString("test/test2.txt"), CreateStream("test/test2.txt"), new DateTime(2010, 1, 1), new DateTime(2010, 1, 1));
             using (var fs = File.Open(Path.Combine(_watchingPath, "日本語/日本語.txt"), FileMode.Open, FileAccess.Write, FileShare.ReadWrite))
             {
                 await sut.InitializeAsync();
-                var document1 = await mockClient.GetDocumentAsync("日本語/日本語.txt");
-                Assert.AreEqual("日本語/日本語.txt", document1.Path);
+                Assert.IsNotNull(await mockClient.GetDocumentAsync("日本語/日本語.txt"));
                 Assert.AreEqual("日本語/日本語.txt", ExtractToString(await mockClient.DownloadAsync("日本語/日本語.txt")));
+                Assert.IsNotNull(await mockClient.GetDocumentAsync("test/test2.txt"));
+                Assert.AreEqual("test/test2.txt", ExtractToString(await mockClient.DownloadAsync("test/test2.txt")));
             }
         }
 

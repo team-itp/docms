@@ -42,7 +42,7 @@ namespace Docms.Client.Api
             _client = new RestClient(_serverUri)
             {
                 FollowRedirects = false,
-                Timeout = 10 * 60 * 1000
+                Timeout = 30 * 60 * 1000
             };
             DefaultJsonSerializerSettings = new JsonSerializerSettings()
             {

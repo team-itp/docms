@@ -75,21 +75,8 @@ namespace Docms.Client.FileSyncing
                 else
                 {
                     _logger.Debug($"{path} is not same as server");
-                    if (_storage.GetLastModified(path) > serverFile.LastModified)
-                    {
-                        _logger.Debug($"local file is newer than server's");
-                        await UploadFileSafely(path);
-                    }
-                    else
-                    {
-                        _logger.Debug($"local file is older than server's");
-                        using (var stream = await _client.DownloadAsync(path.ToString()).ConfigureAwait(false))
-                        {
-                            _storage.Delete(path);
-                            await _storage.Create(path, stream, serverFile.Created, serverFile.LastModified).ConfigureAwait(false);
-                            _logger.Debug($"{path} downloaded");
-                        }
-                    }
+                    await UploadFileSafely(path);
+                    _logger.Debug($"{path} upload requested.");
                 }
             }
             else
@@ -124,22 +111,20 @@ namespace Docms.Client.FileSyncing
                 using (var fs = _storage.OpenRead(path))
                 {
                     await _client.CreateOrUpdateDocumentAsync(path.ToString(), fs, _storage.GetCreated(path), _storage.GetLastModified(path)).ConfigureAwait(false);
-                    _logger.Debug($"{path} request update");
                 }
             }
             catch (System.IO.IOException ex)
             {
-                _logger.Debug("file update failed.");
+                _logger.Debug("failed to open file.");
                 _logger.Debug(ex);
 
                 var tempFileInfo = _storage.TempCopy(path);
-                _logger.Debug($"file update copying to temp path: {tempFileInfo.FullName}");
+                _logger.Debug($"open file copying to temp path: {tempFileInfo.FullName}");
                 if (tempFileInfo.Exists)
                 {
                     using (var fs = tempFileInfo.OpenRead())
                     {
                         await _client.CreateOrUpdateDocumentAsync(path.ToString(), fs, _storage.GetCreated(path), _storage.GetLastModified(path)).ConfigureAwait(false);
-                        _logger.Debug($"{path} request update");
                     }
                     tempFileInfo.Delete();
                 }
@@ -148,7 +133,8 @@ namespace Docms.Client.FileSyncing
 
         private bool GetIsSameFile(SyncingFile serverFile, PathString localFilePath)
         {
-            return _storage.GetLength(localFilePath) == serverFile.FileSize
+            return serverFile.AppliedHistories.Any()
+                && _storage.GetLength(localFilePath) == serverFile.FileSize
                 && _storage.CalculateHash(localFilePath) == serverFile.Hash;
         }
 
