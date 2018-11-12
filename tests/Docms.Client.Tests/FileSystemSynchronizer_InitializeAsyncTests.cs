@@ -4,8 +4,12 @@ using Docms.Client.SeedWork;
 using Docms.Client.Tests.Utils;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
+using NLog;
+using NLog.Config;
+using NLog.Targets;
 using System;
 using System.IO;
+using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
@@ -73,6 +77,12 @@ namespace Docms.Client.Tests
             await Task.Delay(1).ConfigureAwait(false);
             await sut.InitializeAsync().ConfigureAwait(false);
             await Task.Delay(1).ConfigureAwait(false);
+            Assert.AreEqual(0, localFileStorage.GetFiles(PathString.Root).Count());
+            Assert.AreEqual(2, localFileStorage.GetDirectories(PathString.Root).Count());
+            Assert.AreEqual(1, localFileStorage.GetFiles(PathString.Root.Combine("日本語")).Count());
+            Assert.AreEqual(0, localFileStorage.GetDirectories(PathString.Root.Combine("日本語")).Count());
+            Assert.AreEqual(2, localFileStorage.GetFiles(PathString.Root.Combine("test")).Count());
+            Assert.AreEqual(0, localFileStorage.GetDirectories(PathString.Root.Combine("test")).Count());
             Assert.AreEqual("日本語/日本語.txt", localFileStorage.ReadAllText(new PathString("日本語/日本語.txt")));
             Assert.AreEqual("test/test1.txt", localFileStorage.ReadAllText(new PathString("test/test1.txt")));
             Assert.AreEqual("test/test2.txt", localFileStorage.ReadAllText(new PathString("test/test2.txt")));
@@ -85,6 +95,29 @@ namespace Docms.Client.Tests
             await sut.InitializeAsync();
             var document1 = await mockClient.GetDocumentAsync("日本語/日本語.txt");
             Assert.AreEqual("日本語/日本語.txt", document1.Path);
+        }
+
+        [TestMethod]
+        public async Task ローカルのファイルが隠しファイルの場合はアップロードされない()
+        {
+            await localFileStorage.Create(new PathString("日本語/日本語.txt"), CreateStream("日本語/日本語.txt"), new DateTime(2010, 1, 1), new DateTime(2010, 1, 1));
+            File.SetAttributes(Path.Combine(_watchingPath, "日本語/日本語.txt"), FileAttributes.Hidden);
+
+            await sut.InitializeAsync();
+            Assert.IsNull(await mockClient.GetDocumentAsync("日本語/日本語.txt"));
+        }
+
+        [TestMethod]
+        public async Task ローカルのファイルが読み取り中の場合でもアップロードされる()
+        {
+            await localFileStorage.Create(new PathString("日本語/日本語.txt"), CreateStream("日本語/日本語.txt"), new DateTime(2010, 1, 1), new DateTime(2010, 1, 1));
+            using (var fs = File.Open(Path.Combine(_watchingPath, "日本語/日本語.txt"), FileMode.Open, FileAccess.Write, FileShare.ReadWrite))
+            {
+                await sut.InitializeAsync();
+                var document1 = await mockClient.GetDocumentAsync("日本語/日本語.txt");
+                Assert.AreEqual("日本語/日本語.txt", document1.Path);
+                Assert.AreEqual("日本語/日本語.txt", ExtractToString(await mockClient.DownloadAsync("日本語/日本語.txt")));
+            }
         }
 
         [TestMethod]

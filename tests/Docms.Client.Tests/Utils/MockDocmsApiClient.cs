@@ -34,7 +34,7 @@ namespace Docms.Client.Tests.Utils
 
             if (!entries.TryAdd(path, document))
             {
-                throw new InvalidOperationException();
+                throw new ServerException(400, "Bad Request");
             }
             streams.Add(path, data);
         }
@@ -43,7 +43,7 @@ namespace Docms.Client.Tests.Utils
         {
             if (!entries.TryGetValue(path, out var entry))
             {
-                throw new InvalidOperationException();
+                throw new ServerException(400, "Bad Request");
             }
             entries.Remove(path);
             streams.Remove(path);
@@ -171,7 +171,7 @@ namespace Docms.Client.Tests.Utils
         {
             if (!entries.TryGetValue(originalPath, out var entry))
             {
-                throw new InvalidOperationException();
+                throw new ServerException(400, "Bad Request");
             }
             var data = streams[originalPath];
             RemoveFile(originalPath);
@@ -184,7 +184,7 @@ namespace Docms.Client.Tests.Utils
         {
             if (!entries.TryGetValue(path, out var entry))
             {
-                throw new InvalidOperationException();
+                throw new ServerException(400, "Bad Request");
             }
             RemoveFile(path);
             AddDelete(path);

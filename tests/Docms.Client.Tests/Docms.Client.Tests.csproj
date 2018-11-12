@@ -16,4 +16,9 @@
     <ProjectReference Include="..\..\src\Docms.Client\Docms.Client.csproj" />
   </ItemGroup>
 
+  <ItemGroup>
+    <Content Update="NLog.config">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </Content>
+  </ItemGroup>
 </Project>
