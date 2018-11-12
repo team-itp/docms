@@ -73,12 +73,9 @@ namespace Docms.Client.Tests
             await Task.Delay(1).ConfigureAwait(false);
             await sut.InitializeAsync().ConfigureAwait(false);
             await Task.Delay(1).ConfigureAwait(false);
-            var file1 = localFileStorage.GetFile(new PathString("日本語/日本語.txt"));
-            Assert.AreEqual("日本語/日本語.txt", File.ReadAllText(file1.FullName));
-            var file2 = localFileStorage.GetFile(new PathString("test/test1.txt"));
-            Assert.AreEqual("test/test1.txt", File.ReadAllText(file2.FullName));
-            var file3 = localFileStorage.GetFile(new PathString("test/test2.txt"));
-            Assert.AreEqual("test/test2.txt", File.ReadAllText(file3.FullName));
+            Assert.AreEqual("日本語/日本語.txt", localFileStorage.ReadAllText(new PathString("日本語/日本語.txt")));
+            Assert.AreEqual("test/test1.txt", localFileStorage.ReadAllText(new PathString("test/test1.txt")));
+            Assert.AreEqual("test/test2.txt", localFileStorage.ReadAllText(new PathString("test/test2.txt")));
         }
 
         [TestMethod]
@@ -96,8 +93,7 @@ namespace Docms.Client.Tests
             await localFileStorage.Create(new PathString("日本語/日本語.txt"), CreateStream("日本語/日本語.txt new"), new DateTime(2010, 1, 1), new DateTime(2010, 1, 2));
             await mockClient.CreateOrUpdateDocumentAsync("日本語/日本語.txt", CreateStream("日本語/日本語.txt"), new DateTime(2010, 1, 1), new DateTime(2010, 1, 1)).ConfigureAwait(false);
             await sut.InitializeAsync().ConfigureAwait(false);
-            var file1 = localFileStorage.GetFile(new PathString("日本語/日本語.txt"));
-            Assert.AreEqual("日本語/日本語.txt new", File.ReadAllText(file1.FullName));
+            Assert.AreEqual("日本語/日本語.txt new", localFileStorage.ReadAllText(new PathString("日本語/日本語.txt")));
             var document1 = await mockClient.GetDocumentAsync("日本語/日本語.txt");
             Assert.AreEqual("日本語/日本語.txt", document1.Path);
             Assert.AreEqual("日本語/日本語.txt new", ExtractToString(await mockClient.DownloadAsync("日本語/日本語.txt")));

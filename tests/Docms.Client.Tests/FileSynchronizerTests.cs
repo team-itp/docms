@@ -64,8 +64,7 @@ namespace Docms.Client.Tests
         {
             await mockClient.CreateOrUpdateDocumentAsync("test/document1.txt", CreateStream("Hello")).ConfigureAwait(false);
             await sut.SyncAsync(new PathString("test/document1.txt")).ConfigureAwait(false);
-            var fi = localFileStorage.GetFile(new PathString("test/document1.txt"));
-            Assert.IsTrue(fi.Exists);
+            Assert.IsTrue(localFileStorage.FileExists(new PathString("test/document1.txt")));
         }
 
         [TestMethod]
@@ -74,9 +73,8 @@ namespace Docms.Client.Tests
             await mockClient.CreateOrUpdateDocumentAsync("test/document2.txt", CreateStream("Hello")).ConfigureAwait(false);
             await mockClient.MoveDocumentAsync("test/document2.txt", "test/document1.txt").ConfigureAwait(false);
             await sut.SyncAsync(new PathString("test/document1.txt"));
-            var fi = localFileStorage.GetFile(new PathString("test/document1.txt"));
-            Assert.IsTrue(fi.Exists);
-            Assert.AreEqual("Hello", File.ReadAllText(fi.FullName));
+            Assert.IsTrue(localFileStorage.FileExists(new PathString("test/document1.txt")));
+            Assert.AreEqual("Hello", localFileStorage.ReadAllText(new PathString("test/document1.txt")));
         }
 
         [TestMethod]
@@ -86,9 +84,8 @@ namespace Docms.Client.Tests
             await mockClient.DeleteDocumentAsync("test/document1.txt").ConfigureAwait(false);
             await mockClient.CreateOrUpdateDocumentAsync("test/document1.txt", CreateStream("Hello New")).ConfigureAwait(false);
             await sut.SyncAsync(new PathString("test/document1.txt")).ConfigureAwait(false);
-            var fi = localFileStorage.GetFile(new PathString("test/document1.txt"));
-            Assert.IsTrue(fi.Exists);
-            Assert.AreEqual("Hello New", File.ReadAllText(fi.FullName));
+            Assert.IsTrue(localFileStorage.FileExists(new PathString("test/document1.txt")));
+            Assert.AreEqual("Hello New", localFileStorage.ReadAllText(new PathString("test/document1.txt")));
         }
 
         [TestMethod]
@@ -98,9 +95,8 @@ namespace Docms.Client.Tests
             await mockClient.CreateOrUpdateDocumentAsync("test/document1.txt", CreateStream("Hello")).ConfigureAwait(false);
             await localFileStorage.Create(new PathString("test/document1.txt"), new MemoryStream(Encoding.UTF8.GetBytes("Hello")), now, now).ConfigureAwait(false);
             await sut.SyncAsync(new PathString("test/document1.txt")).ConfigureAwait(false);
-            var fi = localFileStorage.GetFile(new PathString("test/document1.txt"));
-            Assert.IsTrue(fi.Exists);
-            Assert.AreEqual(now, fi.LastWriteTimeUtc);
+            Assert.IsTrue(localFileStorage.FileExists(new PathString("test/document1.txt")));
+            Assert.AreEqual(now, localFileStorage.GetLastModified(new PathString("test/document1.txt")));
         }
 
         [TestMethod]
@@ -110,9 +106,8 @@ namespace Docms.Client.Tests
             await mockClient.CreateOrUpdateDocumentAsync("test/document1.txt", CreateStream("Hello New")).ConfigureAwait(false);
             await localFileStorage.Create(new PathString("test/document1.txt"), new MemoryStream(Encoding.UTF8.GetBytes("Hello")), now, now).ConfigureAwait(false);
             await sut.SyncAsync(new PathString("test/document1.txt")).ConfigureAwait(false);
-            var fi = localFileStorage.GetFile(new PathString("test/document1.txt"));
-            Assert.IsTrue(fi.Exists);
-            Assert.AreEqual("Hello New", File.ReadAllText(fi.FullName));
+            Assert.IsTrue(localFileStorage.FileExists(new PathString("test/document1.txt")));
+            Assert.AreEqual("Hello New", localFileStorage.ReadAllText(new PathString("test/document1.txt")));
         }
 
         [TestMethod]
@@ -123,9 +118,8 @@ namespace Docms.Client.Tests
             var now = DateTime.UtcNow;
             await localFileStorage.Create(new PathString("test/document1.txt"), new MemoryStream(Encoding.UTF8.GetBytes("Hello New")), now, now).ConfigureAwait(false);
             await sut.SyncAsync(new PathString("test/document1.txt")).ConfigureAwait(false);
-            var fi = localFileStorage.GetFile(new PathString("test/document1.txt"));
-            Assert.IsTrue(fi.Exists);
-            Assert.AreEqual("Hello New", ReadAllText(fi.OpenRead()));
+            Assert.IsTrue(localFileStorage.FileExists(new PathString("test/document1.txt")));
+            Assert.AreEqual("Hello New", localFileStorage.ReadAllText(new PathString("test/document1.txt")));
         }
 
         [TestMethod]
@@ -138,10 +132,8 @@ namespace Docms.Client.Tests
             await mockClient.MoveDocumentAsync("test/document1.txt", "test/testsub/document1.txt").ConfigureAwait(false);
             await Task.Delay(1).ConfigureAwait(false);
             await sut.SyncAsync(new PathString("test/document1.txt")).ConfigureAwait(false);
-            var fiOld = localFileStorage.GetFile(new PathString("test/document1.txt"));
-            Assert.IsFalse(fiOld.Exists);
-            var fiNew = localFileStorage.GetFile(new PathString("test/testsub/document1.txt"));
-            Assert.IsTrue(fiNew.Exists);
+            Assert.IsFalse(localFileStorage.FileExists(new PathString("test/document1.txt")));
+            Assert.IsTrue(localFileStorage.FileExists(new PathString("test/testsub/document1.txt")));
         }
 
         [TestMethod]
@@ -154,10 +146,8 @@ namespace Docms.Client.Tests
             await mockClient.MoveDocumentAsync("test/document1.txt", "test/testsub/document1.txt").ConfigureAwait(false);
             await Task.Delay(1).ConfigureAwait(false);
             await sut.SyncAsync(new PathString("test/document1.txt"));
-            var fiOld = localFileStorage.GetFile(new PathString("test/document1.txt"));
-            Assert.IsFalse(fiOld.Exists);
-            var fiNew = localFileStorage.GetFile(new PathString("test/testsub/document1.txt"));
-            Assert.IsTrue(fiNew.Exists);
+            Assert.IsFalse(localFileStorage.FileExists(new PathString("test/document1.txt")));
+            Assert.IsTrue(localFileStorage.FileExists(new PathString("test/testsub/document1.txt")));
         }
 
         [TestMethod]
@@ -165,8 +155,7 @@ namespace Docms.Client.Tests
         {
             await mockClient.CreateOrUpdateDocumentAsync("test/document1.txt", CreateStream("Hello")).ConfigureAwait(false);
             await sut.SyncAsync(new PathString("test/document1.txt"));
-            var fi = localFileStorage.GetFile(new PathString("test/document1.txt"));
-            fi.Delete();
+            localFileStorage.Delete(new PathString("test/document1.txt"));
             
             await sut.SyncAsync(new PathString("test/document1.txt"));
             Assert.IsNull(await mockClient.GetDocumentAsync("test/document1.txt"));

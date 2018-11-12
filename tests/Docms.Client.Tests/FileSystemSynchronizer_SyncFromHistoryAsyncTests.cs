@@ -51,8 +51,7 @@ namespace Docms.Client.Tests
         {
             await mockClient.CreateOrUpdateDocumentAsync("test/test1.txt", CreateStream("test/test1.txt")).ConfigureAwait(false);
             await sut.SyncFromHistoryAsync().ConfigureAwait(false);
-            var file = localFileStorage.GetFile(new PathString("test/test1.txt"));
-            Assert.AreEqual("test/test1.txt", File.ReadAllText(file.FullName));
+            Assert.AreEqual("test/test1.txt", localFileStorage.ReadAllText(new PathString("test/test1.txt")));
         }
 
         [TestMethod]
@@ -60,11 +59,10 @@ namespace Docms.Client.Tests
         {
             await mockClient.CreateOrUpdateDocumentAsync("test/test1.txt", CreateStream("test/test1.txt")).ConfigureAwait(false);
             await sut.SyncFromHistoryAsync().ConfigureAwait(false);
-            var file = localFileStorage.GetFile(new PathString("test/test1.txt"));
-            file.Delete();
+            localFileStorage.Delete(new PathString("test/test1.txt"));
 
             await sut.SyncFromHistoryAsync().ConfigureAwait(false);
-            Assert.IsFalse(file.Exists);
+            Assert.IsFalse(localFileStorage.FileExists(new PathString("test/test1.txt")));
         }
 
         [TestMethod]
@@ -73,12 +71,11 @@ namespace Docms.Client.Tests
             await mockClient.CreateOrUpdateDocumentAsync("test/test1.txt", CreateStream("test/test1.txt")).ConfigureAwait(false);
             await mockClient.DeleteDocumentAsync("test/test1.txt").ConfigureAwait(false);
 
-            var file = localFileStorage.GetFile(new PathString("test/test1.txt"));
-            Assert.IsFalse(File.Exists(file.FullName));
+            Assert.IsFalse(localFileStorage.FileExists(new PathString("test/test1.txt")));
 
             await sut.SyncFromHistoryAsync().ConfigureAwait(false);
 
-            Assert.IsFalse(File.Exists(file.FullName));
+            Assert.IsFalse(localFileStorage.FileExists(new PathString("test/test1.txt")));
         }
 
         [TestMethod]
@@ -88,15 +85,13 @@ namespace Docms.Client.Tests
             await mockClient.MoveDocumentAsync("test/test1.txt", "test/test2.txt").ConfigureAwait(false);
             await mockClient.CreateOrUpdateDocumentAsync("test/test2.txt", CreateStream("test/test2.txt")).ConfigureAwait(false);
 
-            var file1 = localFileStorage.GetFile(new PathString("test/test1.txt"));
-            var file2 = localFileStorage.GetFile(new PathString("test/test2.txt"));
-            Assert.IsFalse(File.Exists(file1.FullName));
-            Assert.IsFalse(File.Exists(file2.FullName));
+            Assert.IsFalse(localFileStorage.FileExists(new PathString("test/test1.txt")));
+            Assert.IsFalse(localFileStorage.FileExists(new PathString("test/test2.txt")));
 
             await sut.SyncFromHistoryAsync().ConfigureAwait(false);
 
-            Assert.IsFalse(File.Exists(file1.FullName));
-            Assert.IsTrue(File.Exists(file2.FullName));
+            Assert.IsFalse(localFileStorage.FileExists(new PathString("test/test1.txt")));
+            Assert.IsTrue(localFileStorage.FileExists(new PathString("test/test2.txt")));
         }
     }
 }

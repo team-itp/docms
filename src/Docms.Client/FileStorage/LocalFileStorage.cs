@@ -76,6 +76,15 @@ namespace Docms.Client.FileStorage
             return GetFile(path).OpenRead();
         }
 
+        public string ReadAllText(PathString path)
+        {
+            using (var fs = OpenRead(path))
+            using (var sr = new StreamReader(fs))
+            {
+                return sr.ReadToEnd();
+            }
+        }
+
         public async Task Update(PathString path, Stream stream, DateTime lastModified)
         {
             var fullpath = ConvertToFullPath(path);
@@ -106,7 +115,7 @@ namespace Docms.Client.FileStorage
             File.Move(originalFullPath, destinationFullPath);
         }
 
-        public FileInfo GetFile(PathString path)
+        private FileInfo GetFile(PathString path)
         {
             var fullpath = ConvertToFullPath(path);
             var fileInfo = new FileInfo(fullpath);
