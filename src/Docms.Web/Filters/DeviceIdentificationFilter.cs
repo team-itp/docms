@@ -62,11 +62,14 @@ namespace Docms.Web.Filters
                 if (string.IsNullOrWhiteSpace(deviceId))
                 {
                     deviceId = Guid.NewGuid().ToString();
+                    var expires = new DateTime(9999, 12, 31, 23, 59, 59, DateTimeKind.Utc);
                     context.HttpContext.Response.Cookies.Append("docms_device_id", deviceId, new CookieOptions()
                     {
                         HttpOnly = true,
                         IsEssential = true,
                         SameSite = SameSiteMode.Strict,
+                        MaxAge = expires - DateTime.UtcNow,
+                        Expires = expires,
                     });
                 }
 
