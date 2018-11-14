@@ -7,10 +7,15 @@ using Docms.Web.Filters;
 using Docms.Web.Models;
 using MediatR;
 using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Net.Http.Headers;
 using System;
+using System.Globalization;
+using System.IO;
+using System.Linq;
 using System.Net;
+using System.Net.Http;
 using System.Threading.Tasks;
 
 namespace Docms.Web.Controllers
@@ -42,15 +47,17 @@ namespace Docms.Web.Controllers
         }
 
 
-        [HttpGet("download/{*path}")]
-        public async Task<IActionResult> Download(string path)
+        [HttpHead("download/{*path}")]
+        public async Task<IActionResult> DownloadHead(string path)
         {
             if (!(await _queries.GetEntryAsync(path) is Blob entry))
             {
                 return NotFound();
             }
 
-            if (Request.Headers.Keys.Contains("If-None-Match") && Request.Headers["If-None-Match"].ToString() == "\"" + entry.Hash + "\"")
+            var headers = Request.GetTypedHeaders();
+            if (headers.IfNoneMatch != null
+                && headers.IfNoneMatch.Contains(new EntityTagHeaderValue("\"" + entry.Hash + "\"")))
             {
                 return new StatusCodeResult((int)HttpStatusCode.NotModified);
             }
@@ -59,6 +66,41 @@ namespace Docms.Web.Controllers
             if (data == null)
             {
                 return new StatusCodeResult((int)HttpStatusCode.InternalServerError);
+            }
+
+            Response.Headers.Add("Last-Modified", entry.LastModified.ToString("ddd, dd MMM yyyy HH:mm:ss", CultureInfo.InvariantCulture) + " GMT");
+            Response.Headers.Add("ETag", $"\"{entry.Hash}\"");
+            Response.Headers.Add("Accept-Ranges", "bytes");
+            Response.Headers.Add("Content-Length", entry.FileSize.ToString());
+            Response.Headers.Add("Conent-Type", entry.ContentType);
+            return Ok();
+        }
+
+
+        [HttpGet("download/{*path}")]
+        public async Task<IActionResult> Download(string path)
+        {
+            if (!(await _queries.GetEntryAsync(path) is Blob entry))
+            {
+                return NotFound();
+            }
+
+            var headers = Request.GetTypedHeaders();
+            if (headers.IfNoneMatch != null
+                && headers.IfNoneMatch.Contains(new EntityTagHeaderValue("\"" + entry.Hash + "\"")))
+            {
+                return new StatusCodeResult((int)HttpStatusCode.NotModified);
+            }
+
+            var data = await _storage.FindAsync(entry.StorageKey ?? entry.Path);
+            if (data == null)
+            {
+                return new StatusCodeResult((int)HttpStatusCode.InternalServerError);
+            }
+
+            if (headers.Range != null)
+            {
+                return new ByteRangeStreamContentResult(await data.OpenStreamAsync(), headers.Range, entry.ContentType);
             }
 
             Response.Headers.Add("Cache-Control", "max-age=15");
@@ -104,6 +146,29 @@ namespace Docms.Web.Controllers
                 }
             }
             return Redirect(Url.ViewFile(directryPath.ToString()));
+        }
+    }
+
+    internal class ByteRangeStreamContentResult : IActionResult
+    {
+        private Stream stream;
+        private RangeHeaderValue range;
+        private string contentType;
+
+        public ByteRangeStreamContentResult(Stream stream, RangeHeaderValue range, string contentType)
+        {
+            this.stream = stream;
+            this.range = range;
+            this.contentType = contentType;
+        }
+
+        public async Task ExecuteResultAsync(ActionContext context)
+        {
+            var rangeHeaderValue = new System.Net.Http.Headers.RangeHeaderValue(range.Ranges.First().From, range.Ranges.First().To);
+            var rangeContent = new ByteRangeStreamContent(stream, rangeHeaderValue, contentType);
+            context.HttpContext.Response.StatusCode = (int)HttpStatusCode.PartialContent;
+            await (await rangeContent.ReadAsStreamAsync()).CopyToAsync(context.HttpContext.Response.Body);
+            stream.Close();
         }
     }
 }
