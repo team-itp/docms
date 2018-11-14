@@ -12,10 +12,7 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.Net.Http.Headers;
 using System;
 using System.Globalization;
-using System.IO;
-using System.Linq;
 using System.Net;
-using System.Net.Http;
 using System.Threading.Tasks;
 
 namespace Docms.Web.Controllers
@@ -100,7 +97,7 @@ namespace Docms.Web.Controllers
 
             if (headers.Range != null)
             {
-                return new ByteRangeStreamContentResult(await data.OpenStreamAsync(), headers.Range, entry.ContentType);
+                return new VideoStreamResult(await data.OpenStreamAsync(), entry.ContentType);
             }
 
             Response.Headers.Add("Cache-Control", "max-age=15");
@@ -146,29 +143,6 @@ namespace Docms.Web.Controllers
                 }
             }
             return Redirect(Url.ViewFile(directryPath.ToString()));
-        }
-    }
-
-    internal class ByteRangeStreamContentResult : IActionResult
-    {
-        private Stream stream;
-        private RangeHeaderValue range;
-        private string contentType;
-
-        public ByteRangeStreamContentResult(Stream stream, RangeHeaderValue range, string contentType)
-        {
-            this.stream = stream;
-            this.range = range;
-            this.contentType = contentType;
-        }
-
-        public async Task ExecuteResultAsync(ActionContext context)
-        {
-            var rangeHeaderValue = new System.Net.Http.Headers.RangeHeaderValue(range.Ranges.First().From, range.Ranges.First().To);
-            var rangeContent = new ByteRangeStreamContent(stream, rangeHeaderValue, contentType);
-            context.HttpContext.Response.StatusCode = (int)HttpStatusCode.PartialContent;
-            await (await rangeContent.ReadAsStreamAsync()).CopyToAsync(context.HttpContext.Response.Body);
-            stream.Close();
         }
     }
 }
