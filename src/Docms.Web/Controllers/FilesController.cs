@@ -95,13 +95,8 @@ namespace Docms.Web.Controllers
                 return new StatusCodeResult((int)HttpStatusCode.InternalServerError);
             }
 
-            if (headers.Range != null)
-            {
-                return new VideoStreamResult(await data.OpenStreamAsync(), entry.ContentType);
-            }
-
             Response.Headers.Add("Cache-Control", "max-age=15");
-            return File(await data.OpenStreamAsync(), entry.ContentType, entry.Name, new DateTimeOffset(entry.LastModified), new EntityTagHeaderValue("\"" + entry.Hash + "\""));
+            return File(await data.OpenStreamAsync(), entry.ContentType, entry.Name, new DateTimeOffset(entry.LastModified), new EntityTagHeaderValue("\"" + entry.Hash + "\""), true);
         }
 
         [HttpGet("upload/{*dirPath=}")]
