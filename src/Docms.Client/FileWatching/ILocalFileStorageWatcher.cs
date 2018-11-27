@@ -2,7 +2,7 @@
 using System.Threading;
 using System.Threading.Tasks;
 
-namespace Docms.Client.FileStorage
+namespace Docms.Client.FileWatching
 {
     public interface ILocalFileStorageWatcher
     {

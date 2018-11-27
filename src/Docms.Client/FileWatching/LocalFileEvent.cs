@@ -1,7 +1,7 @@
 ﻿using Docms.Client.SeedWork;
 using System;
 
-namespace Docms.Client.FileStorage
+namespace Docms.Client.FileWatching
 {
     public abstract class LocalFileEvent
     {

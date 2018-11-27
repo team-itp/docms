@@ -1,4 +1,4 @@
-﻿using Docms.Client.FileTrees;
+﻿using Docms.Client.FileWatching;
 using Docms.Client.SeedWork;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using System.Linq;

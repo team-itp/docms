@@ -1,5 +1,4 @@
-﻿using Docms.Client.FileStorage;
-using Docms.Client.FileTrees;
+﻿using Docms.Client.FileWatching;
 using Docms.Client.SeedWork;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using System;
@@ -112,6 +111,7 @@ namespace Docms.Client.Tests
                 ev = e;
             });
             await CreateFile("content1.txt", "content1.txt");
+            await Task.Delay(1);
             Assert.AreEqual("content1.txt", ev.Path.ToString());
             Assert.IsNotNull(fileTree.GetFile(new PathString("content1.txt")));
         }

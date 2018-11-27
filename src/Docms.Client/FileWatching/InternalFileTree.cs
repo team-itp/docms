@@ -2,7 +2,7 @@
 using System;
 using System.Linq;
 
-namespace Docms.Client.FileTrees
+namespace Docms.Client.FileWatching
 {
     public class InternalFileTree
     {

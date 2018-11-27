@@ -2,7 +2,7 @@
 using System.Collections.Generic;
 using System.Linq;
 
-namespace Docms.Client.FileTrees
+namespace Docms.Client.FileWatching
 {
     public abstract class Node
     {

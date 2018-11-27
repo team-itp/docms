@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using Docms.Client.SeedWork;
 
-namespace Docms.Client.FileStorage
+namespace Docms.Client.FileWatching
 {
     public class LocalFileEventShrinker
     {

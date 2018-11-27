@@ -1,5 +1,4 @@
-﻿using Docms.Client.FileTrees;
-using Docms.Client.SeedWork;
+﻿using Docms.Client.SeedWork;
 using NLog;
 using System;
 using System.Collections.Concurrent;
@@ -9,7 +8,7 @@ using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 
-namespace Docms.Client.FileStorage
+namespace Docms.Client.FileWatching
 {
     public class LocalFileStorageWatcher : ILocalFileStorageWatcher
     {
