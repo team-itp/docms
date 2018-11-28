@@ -47,7 +47,7 @@ namespace Docms.Web.Application.Commands
                     continue;
                 }
 
-                var data = await _dataStore.FindAsync(document.StorageKey ?? document.Path.Value);
+                var data = await _dataStore.FindAsync(document.StorageKey ?? document.Path);
                 if (data == null)
                 {
                     _context.Documents.Remove(document);

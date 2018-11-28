@@ -2,7 +2,6 @@
 using Docms.Domain.SeedWork;
 using Microsoft.EntityFrameworkCore;
 using System.Collections.Generic;
-using System.Linq;
 using System.Threading.Tasks;
 
 namespace Docms.Infrastructure.Repositories
@@ -36,7 +35,7 @@ namespace Docms.Infrastructure.Repositories
         {
             return await _context
                 .Documents
-                .SingleOrDefaultAsync(e => e.Path != null && e.Path.Value == documentPath);
+                .SingleOrDefaultAsync(e => e.Path != null && e.Path.ToLowerInvariant() == documentPath);
         }
 
         public Task<Document> AddAsync(Document document)
@@ -55,7 +54,7 @@ namespace Docms.Infrastructure.Repositories
         {
             return _context
                 .Documents
-                .AnyAsync(e => e.Path != null && e.Path.Value.ToLowerInvariant().StartsWith(path + "/"));
+                .AnyAsync(e => e.Path != null && e.Path.ToLowerInvariant().StartsWith(path + "/"));
         }
     }
 }

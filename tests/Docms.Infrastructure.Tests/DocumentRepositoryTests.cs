@@ -19,7 +19,7 @@ namespace Docms.Infrastructure.Tests
             await sut.AddAsync(DocumentUtils.Create("dir1/test.txt", "Hello, world"));
             await sut.UnitOfWork.SaveEntitiesAsync();
             var document = await sut.GetAsync("dir1/test.txt");
-            Assert.AreEqual("dir1/test.txt", document.Path.Value);
+            Assert.AreEqual("dir1/test.txt", document.Path);
         }
 
         [TestMethod]

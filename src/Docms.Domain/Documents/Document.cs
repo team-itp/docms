@@ -6,7 +6,7 @@ namespace Docms.Domain.Documents
 {
     public class Document : Entity, IAggregateRoot
     {
-        public DocumentPath Path { get; set; }
+        public string Path { get; set; }
         public string ContentType { get; set; }
         public long FileSize { get; set; }
         public string Hash { get; set; }
@@ -30,7 +30,7 @@ namespace Docms.Domain.Documents
 
         public Document(DocumentPath path, string storageKey, string contentType, IData data, DateTime created, DateTime lastModified)
         {
-            Path = path ?? throw new ArgumentNullException(nameof(path));
+            Path = (path ?? throw new ArgumentNullException(nameof(path))).Value;
             StorageKey = storageKey ?? throw new ArgumentNullException(nameof(storageKey));
             ContentType = contentType ?? throw new ArgumentNullException(nameof(contentType));
             FileSize = data?.Length ?? throw new ArgumentNullException(nameof(data));
@@ -39,20 +39,20 @@ namespace Docms.Domain.Documents
             Created = created;
             LastModified = lastModified;
 
-            OnDocumentCreated(Path, StorageKey, ContentType, data, Created, LastModified);
+            OnDocumentCreated(path, StorageKey, ContentType, data, Created, LastModified);
         }
 
         public void Recreate(IData data)
         {
-            OnDocumentCreated(Path, StorageKey, ContentType, data, Created, LastModified);
+            OnDocumentCreated(new DocumentPath(Path), StorageKey, ContentType, data, Created, LastModified);
         }
 
         public void MoveTo(DocumentPath destinationPath)
         {
             var originalPath = Path;
-            Path = destinationPath;
+            Path = destinationPath.Value;
 
-            OnDocumentMoved(originalPath, destinationPath);
+            OnDocumentMoved(new DocumentPath(originalPath), destinationPath);
         }
 
         public void Update(string storageKey, string contentType, IData data)
@@ -78,7 +78,7 @@ namespace Docms.Domain.Documents
             var path = Path;
             Path = null;
 
-            OnDocumentDeleted(path);
+            OnDocumentDeleted(new DocumentPath(path));
         }
 
         private void OnDocumentCreated(DocumentPath path, string storageKey, string contentType, IData data, DateTime created, DateTime lastModified)
@@ -95,7 +95,7 @@ namespace Docms.Domain.Documents
 
         private void OnDocumentUpdated(string storageKey, string contentType, IData data, DateTime created, DateTime lastModified)
         {
-            var ev = new DocumentUpdatedEvent(this, Path, storageKey, contentType, data, created, lastModified);
+            var ev = new DocumentUpdatedEvent(this, new DocumentPath(Path), storageKey, contentType, data, created, lastModified);
             AddDomainEvent(ev);
         }
 

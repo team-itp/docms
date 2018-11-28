@@ -9,7 +9,7 @@ namespace Docms.Web.Tests.Utils
     {
         public Task<Document> GetAsync(string documentPath)
         {
-            return Task.FromResult(Entities.FirstOrDefault(e => e.Path?.Value == documentPath));
+            return Task.FromResult(Entities.FirstOrDefault(e => e.Path == documentPath));
         }
 
         public Task<IEnumerable<Document>> GetDocumentsAsync()
@@ -19,7 +19,7 @@ namespace Docms.Web.Tests.Utils
 
         public Task<bool> IsContainerPath(string path)
         {
-            return Task.FromResult(Entities.Any(e => e.Path?.Value?.ToLowerInvariant()?.StartsWith(path + "/") ?? false));
+            return Task.FromResult(Entities.Any(e => e.Path?.ToLowerInvariant()?.StartsWith(path + "/") ?? false));
         }
     }
 }

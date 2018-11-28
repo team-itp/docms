@@ -32,7 +32,7 @@ namespace Docms.Web.Tests
                 OriginalPath = new FilePath("test1/document1.txt"),
                 DestinationPath = new FilePath("test2/document2.txt"),
             });
-            Assert.AreEqual("test2/document2.txt", repository.Entities.First().Path.Value);
+            Assert.AreEqual("test2/document2.txt", repository.Entities.First().Path);
         }
     }
 }

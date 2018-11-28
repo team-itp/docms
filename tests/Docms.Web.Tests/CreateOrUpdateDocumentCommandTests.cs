@@ -86,8 +86,8 @@ namespace Docms.Web.Tests
                     ForceCreate = true
                 });
             }
-            var doc1 = repository.Entities.FirstOrDefault(e => e.Path.Value == "test1/document1.txt");
-            var doc2 = repository.Entities.FirstOrDefault(e => e.Path.Value == "test1/document1(1).txt");
+            var doc1 = repository.Entities.FirstOrDefault(e => e.Path == "test1/document1.txt");
+            var doc2 = repository.Entities.FirstOrDefault(e => e.Path == "test1/document1(1).txt");
             Assert.IsNotNull(doc1);
             Assert.IsNotNull(doc2);
             Assert.AreEqual("Hello, world", await ReadTextAsync(doc1.StorageKey));
@@ -110,7 +110,7 @@ namespace Docms.Web.Tests
                 });
             }
             var doc1 = repository.Entities.FirstOrDefault(e => e.Path == null);
-            var doc2 = repository.Entities.FirstOrDefault(e => e.Path?.Value == "test1/document1.txt");
+            var doc2 = repository.Entities.FirstOrDefault(e => e.Path == "test1/document1.txt");
             Assert.IsNotNull(doc1);
             Assert.IsNotNull(doc2);
             Assert.AreEqual("Hello, new world", await ReadTextAsync(doc2.StorageKey));
