@@ -4,7 +4,7 @@ using System.Collections.Generic;
 using System.IO;
 using System.Threading.Tasks;
 
-namespace Docms.Client.FileStorage
+namespace Docms.Client.LocalStorage
 {
     public interface ILocalFileStorage
     {

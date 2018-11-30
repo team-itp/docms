@@ -1,5 +1,5 @@
 ﻿using Docms.Client.Api;
-using Docms.Client.FileStorage;
+using Docms.Client.LocalStorage;
 using Docms.Client.SeedWork;
 using Microsoft.EntityFrameworkCore;
 using NLog;

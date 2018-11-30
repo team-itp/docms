@@ -6,7 +6,7 @@ using System.Linq;
 using System.Security.Cryptography;
 using System.Threading.Tasks;
 
-namespace Docms.Client.FileStorage
+namespace Docms.Client.LocalStorage
 {
     public class LocalFileStorage : ILocalFileStorage
     {

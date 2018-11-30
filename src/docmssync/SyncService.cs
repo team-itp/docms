@@ -1,5 +1,5 @@
 ﻿using Docms.Client.Api;
-using Docms.Client.FileStorage;
+using Docms.Client.LocalStorage;
 using Docms.Client.FileSyncing;
 using docmssync.Properties;
 using Microsoft.EntityFrameworkCore;

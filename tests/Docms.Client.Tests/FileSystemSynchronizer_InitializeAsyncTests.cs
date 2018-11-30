@@ -1,4 +1,4 @@
-﻿using Docms.Client.FileStorage;
+﻿using Docms.Client.LocalStorage;
 using Docms.Client.FileSyncing;
 using Docms.Client.SeedWork;
 using Docms.Client.Tests.Utils;
