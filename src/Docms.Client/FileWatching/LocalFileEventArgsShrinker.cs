@@ -29,6 +29,10 @@ namespace Docms.Client.FileWatching
         public LocalFileEventArgs Dequeue()
         {
             var next = Events.FirstOrDefault();
+            if (next == null)
+            {
+                return null;
+            }
             RemoveEvent(next);
             return next;
         }

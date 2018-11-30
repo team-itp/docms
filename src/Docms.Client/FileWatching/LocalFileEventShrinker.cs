@@ -26,6 +26,13 @@ namespace Docms.Client.FileWatching
             _ts.Switch(ev);
         }
 
+        public LocalFileEvent Dequeue()
+        {
+            var next = Events.FirstOrDefault();
+            RemoveEvent(next);
+            return next;
+        }
+
         public void Reset()
         {
             _events.Clear();

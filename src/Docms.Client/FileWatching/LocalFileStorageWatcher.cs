@@ -21,6 +21,7 @@ namespace Docms.Client.FileWatching
 
         private readonly string _basePath;
         private InternalFileTree _fileTree;
+        private LocalFileEventArgsShrinker _shrinker;
         private FileSystemWatcher _watcher;
         private ConcurrentQueue<Action> _tasks = new ConcurrentQueue<Action>();
         private CancellationTokenSource _processCts;
@@ -46,6 +47,7 @@ namespace Docms.Client.FileWatching
             _watcher.Deleted += new FileSystemEventHandler(_watcher_Deleted);
             _watcher.Error += new ErrorEventHandler(_watcher_Error);
             _fileTree = fileTree;
+            _shrinker = new LocalFileEventArgsShrinker();
             _taskHandle = new AutoResetEvent(false);
         }
 
@@ -63,6 +65,7 @@ namespace Docms.Client.FileWatching
                     try
                     {
                         _fileTree.Clear();
+                        _shrinker.Reset();
                         StartTracking(GetDirectory(PathString.Root), cancellationToken);
                         return;
                     }
@@ -130,6 +133,27 @@ namespace Docms.Client.FileWatching
                     }
                     else
                     {
+                        var ev = _shrinker.Dequeue();
+                        while (ev != null)
+                        {
+                            if (ev is FileCreatedEventArgs fcev)
+                            {
+                                FileCreated?.Invoke(this, fcev);
+                            }
+                            else if (ev is FileModifiedEventArgs fmev)
+                            {
+                                FileModified?.Invoke(this, fmev);
+                            }
+                            else if (ev is FileMovedEventArgs fmovev)
+                            {
+                                FileMoved?.Invoke(this, fmovev);
+                            }
+                            else if (ev is FileDeletedEventArgs fdev)
+                            {
+                                FileDeleted?.Invoke(this, fdev);
+                            }
+                            ev = _shrinker.Dequeue();
+                        }
                         WaitHandle.WaitAny(new WaitHandle[] { _taskHandle, cancellationToken.WaitHandle });
                         _taskHandle.Reset();
                     }
@@ -235,7 +259,7 @@ namespace Docms.Client.FileWatching
                 }
                 if (_fileTree.AddFile(path))
                 {
-                    FileCreated?.Invoke(this, new FileCreatedEventArgs(path));
+                    _shrinker.Apply(new FileCreatedEventArgs(path));
                 }
             }
             var dirInfo = GetDirectory(path);
@@ -266,7 +290,7 @@ namespace Docms.Client.FileWatching
             {
                 if (_fileTree.Update(path))
                 {
-                    FileModified?.Invoke(this, new FileModifiedEventArgs(path));
+                    _shrinker.Apply(new FileModifiedEventArgs(path));
                 }
             }
             var dirInfo = GetDirectory(path);
@@ -299,7 +323,7 @@ namespace Docms.Client.FileWatching
             if (fileNode != null)
             {
                 _fileTree.Move(fromPath, path);
-                FileMoved?.Invoke(this, new FileMovedEventArgs(path, fromPath));
+                _shrinker.Apply(new FileMovedEventArgs(path, fromPath));
             }
             var dirNode = _fileTree.GetDirectory(fromPath);
             if (dirNode != null)
@@ -317,7 +341,7 @@ namespace Docms.Client.FileWatching
             if (fileNode != null)
             {
                 _fileTree.Delete(path);
-                FileDeleted?.Invoke(this, new FileDeletedEventArgs(path));
+                _shrinker.Apply(new FileDeletedEventArgs(path));
             }
             var dirNode = _fileTree.GetDirectory(path);
             if (dirNode != null)
