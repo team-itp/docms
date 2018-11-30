@@ -367,7 +367,7 @@ namespace Docms.Client.Tests
         {
             const int DIRECTRY_COUNT = 10;
             const int FILE_COUNT = 10;
-            var ev = new List<LocalFileEvenArgs>();
+            var ev = new List<LocalFileEventArgs>();
             sut.FileCreated += new EventHandler<FileCreatedEventArgs>((s, e) => ev.Add(e));
             sut.FileModified += new EventHandler<FileModifiedEventArgs>((s, e) => ev.Add(e));
             sut.FileMoved += new EventHandler<FileMovedEventArgs>((s, e) => ev.Add(e));
