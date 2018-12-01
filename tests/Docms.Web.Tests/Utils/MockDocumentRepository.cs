@@ -19,7 +19,7 @@ namespace Docms.Web.Tests.Utils
 
         public Task<bool> IsContainerPath(string path)
         {
-            return Task.FromResult(Entities.Any(e => e.Path?.ToLowerInvariant()?.StartsWith(path + "/") ?? false));
+            return Task.FromResult(Entities.Any(e => e.Path?.ToLower()?.StartsWith(path + "/") ?? false));
         }
     }
 }

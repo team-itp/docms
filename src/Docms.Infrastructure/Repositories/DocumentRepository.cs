@@ -54,7 +54,7 @@ namespace Docms.Infrastructure.Repositories
         {
             return _context
                 .Documents
-                .AnyAsync(e => e.Path != null && e.Path.ToLower().StartsWith(path + "/"));
+                .AnyAsync(e => e.Path != null && EF.Functions.Like(e.Path.ToLower(), path.ToLower() + "/%"));
         }
     }
 }
