@@ -1,7 +1,6 @@
 ﻿using Docms.Domain.Documents;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
-using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 
 namespace Docms.Infrastructure.EntityConfigurations
 {
@@ -10,6 +9,7 @@ namespace Docms.Infrastructure.EntityConfigurations
         public void Configure(EntityTypeBuilder<Document> builder)
         {
             builder.Ignore(d => d.DomainEvents);
+            builder.HasIndex(d => d.Path);
         }
     }
 }

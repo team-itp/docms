@@ -87,6 +87,8 @@ namespace Docms.Infrastructure
                     value => value.Kind == DateTimeKind.Unspecified
                         ? DateTime.SpecifyKind(value, DateTimeKind.Utc)
                         : value);
+            modelBuilder.Entity<DocumentHistory>()
+                .HasIndex(d => d.Path);
             modelBuilder.Entity<DocumentCreated>()
                 .Property(d => d.Created)
                 .HasConversion(
@@ -129,6 +131,25 @@ namespace Docms.Infrastructure
                     value => value.Kind == DateTimeKind.Unspecified
                         ? DateTime.SpecifyKind(value, DateTimeKind.Utc)
                         : value);
+            modelBuilder.Entity<BlobEntry>()
+                .HasIndex(d => d.Path);
+            modelBuilder.Entity<BlobEntry>()
+                .HasIndex(d => d.ParentPath);
+            modelBuilder.Entity<Blob>()
+                .Property(d => d.Created)
+                .HasConversion(
+                    value => value,
+                    value => value.Kind == DateTimeKind.Unspecified
+                        ? DateTime.SpecifyKind(value, DateTimeKind.Utc)
+                        : value);
+            modelBuilder.Entity<Blob>()
+                 .Property(d => d.LastModified)
+                 .HasConversion(
+                     value => value,
+                     value => value.Kind == DateTimeKind.Unspecified
+                         ? DateTime.SpecifyKind(value, DateTimeKind.Utc)
+                         : value);
+
         }
     }
 
