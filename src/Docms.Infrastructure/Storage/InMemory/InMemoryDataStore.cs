@@ -14,7 +14,7 @@ namespace Docms.Infrastructure.Storage.InMemory
         {
             var time = DateTime.UtcNow;
             var guid = Guid.NewGuid();
-            return string.Format("{0}/{1}", time.Ticks % TimeSpan.TicksPerMillisecond, guid);
+            return string.Format("{0:yyyyMMddHH}/{1}", time, guid);
         }
 
         public Task<IData> CreateAsync(string key, Stream stream)

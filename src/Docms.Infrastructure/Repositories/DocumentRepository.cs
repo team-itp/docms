@@ -35,7 +35,7 @@ namespace Docms.Infrastructure.Repositories
         {
             return await _context
                 .Documents
-                .SingleOrDefaultAsync(e => e.Path != null && e.Path.ToLowerInvariant() == documentPath);
+                .SingleOrDefaultAsync(e => e.Path != null && e.Path.ToLower() == documentPath);
         }
 
         public Task<Document> AddAsync(Document document)
