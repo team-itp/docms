@@ -21,7 +21,7 @@ namespace Docms.Infrastructure.Queries
             var query = ctx.DocumentHistories as IQueryable<DocumentHistory>;
             if (!string.IsNullOrEmpty(path))
             {
-                query = query.Where(e => e.Path != null && EF.Functions.Like(e.Path.ToLower(), path.ToLower() + "%"));
+                query = query.Where(e => e.Path != null && EF.Functions.Like(e.Path, path + "%"));
             }
             if (since != null)
             {

@@ -35,7 +35,7 @@ namespace Docms.Infrastructure.Repositories
         {
             return await _context
                 .Documents
-                .SingleOrDefaultAsync(e => e.Path != null && e.Path.ToLower() == documentPath);
+                .SingleOrDefaultAsync(e => e.Path == documentPath);
         }
 
         public Task<Document> AddAsync(Document document)
@@ -54,7 +54,7 @@ namespace Docms.Infrastructure.Repositories
         {
             return _context
                 .Documents
-                .AnyAsync(e => e.Path != null && EF.Functions.Like(e.Path.ToLower(), path.ToLower() + "/%"));
+                .AnyAsync(e => e.Path != null && EF.Functions.Like(e.Path, path + "/%"));
         }
     }
 }
