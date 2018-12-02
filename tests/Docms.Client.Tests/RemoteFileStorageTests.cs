@@ -1,4 +1,5 @@
 ﻿using Docms.Client.RemoteStorage;
+using Docms.Client.SeedWork;
 using Docms.Client.Tests.Utils;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
@@ -44,7 +45,7 @@ namespace Docms.Client.Tests
             await CreateOrUpdateFile("dir1/content1.txt", "dir1/content1.txt");
             await sut.SyncAsync();
 
-            var remoteFile = await sut.GetAsync("dir1/content1.txt");
+            var remoteFile = await sut.GetAsync(new PathString("dir1/content1.txt"));
             Assert.AreEqual("dir1/content1.txt", remoteFile.Path);
             var history = remoteFile.RemoteFileHistories.Last();
             Assert.AreEqual("dir1/content1.txt", history.Path);
@@ -58,7 +59,7 @@ namespace Docms.Client.Tests
             await CreateOrUpdateFile("dir1/content1.txt", "dir1/content1.txt new");
             await sut.SyncAsync();
 
-            var remoteFile = await sut.GetAsync("dir1/content1.txt");
+            var remoteFile = await sut.GetAsync(new PathString("dir1/content1.txt"));
             Assert.AreEqual("dir1/content1.txt", remoteFile.Path);
             var history = remoteFile.RemoteFileHistories.Last();
             Assert.AreEqual("dir1/content1.txt", history.Path);
@@ -72,12 +73,12 @@ namespace Docms.Client.Tests
             await client.MoveDocumentAsync("dir1/content1.txt", "dir2/content2.txt");
             await sut.SyncAsync();
 
-            var remoteFile1 = await sut.GetAsync("dir1/content1.txt");
+            var remoteFile1 = await sut.GetAsync(new PathString("dir1/content1.txt"));
             Assert.IsTrue(remoteFile1.IsDeleted);
             var history1 = remoteFile1.RemoteFileHistories.Last();
             Assert.AreEqual("Deleted", history1.HistoryType);
 
-            var remoteFile2 = await sut.GetAsync("dir2/content2.txt");
+            var remoteFile2 = await sut.GetAsync(new PathString("dir2/content2.txt"));
             Assert.IsFalse(remoteFile2.IsDeleted);
             Assert.AreEqual(remoteFile1.ContentType, remoteFile2.ContentType);
             Assert.AreEqual(remoteFile1.FileSize, remoteFile2.FileSize);
@@ -100,7 +101,7 @@ namespace Docms.Client.Tests
             await client.DeleteDocumentAsync("dir1/content1.txt");
             await sut.SyncAsync();
 
-            var remoteFile1 = await sut.GetAsync("dir1/content1.txt");
+            var remoteFile1 = await sut.GetAsync(new PathString("dir1/content1.txt"));
             Assert.IsTrue(remoteFile1.IsDeleted);
             var history1 = remoteFile1.RemoteFileHistories.Last();
             Assert.AreEqual("Deleted", history1.HistoryType);

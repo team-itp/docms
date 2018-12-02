@@ -1,4 +1,5 @@
 ﻿using Docms.Client.Api;
+using Docms.Client.SeedWork;
 using Microsoft.EntityFrameworkCore;
 using System;
 using System.Linq;
@@ -29,14 +30,14 @@ namespace Docms.Client.RemoteStorage
             }
         }
 
-        public async Task<RemoteFile> GetAsync(string path)
+        public async Task<RemoteFile> GetAsync(PathString path)
         {
             var remoteFile = await _db.RemoteFiles
-                .FirstOrDefaultAsync(e => e.Path == path);
+                .FirstOrDefaultAsync(e => e.Path == path.ToString());
 
             if (remoteFile == null)
             {
-                remoteFile = new RemoteFile(path);
+                remoteFile = new RemoteFile(path.ToString());
                 await _db.AddAsync(remoteFile);
                 return remoteFile;
             }
@@ -58,7 +59,7 @@ namespace Docms.Client.RemoteStorage
                 return;
             }
 
-            var remoteFile = await GetAsync(history.Path);
+            var remoteFile = await GetAsync(new PathString(history.Path));
             remoteFile.Apply(history);
             await _db.SaveChangesAsync();
             _latestEventTimestamp = history.Timestamp;
