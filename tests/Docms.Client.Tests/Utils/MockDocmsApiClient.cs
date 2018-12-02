@@ -110,7 +110,7 @@ namespace Docms.Client.Tests.Utils
             });
         }
 
-        private void AddMove(string originalPath, string destinationPath, string contentType, byte[] data)
+        private void AddMove(string originalPath, string destinationPath, string contentType, byte[] data, DateTime created, DateTime lastModified)
         {
             var now = DateTime.UtcNow;
             AddHisotry(new DocumentMovedFromHistory()
@@ -120,8 +120,8 @@ namespace Docms.Client.Tests.Utils
                 ContentType = contentType,
                 Hash = CalculateHash(data),
                 FileSize = data.Length,
-                Created = now,
-                LastModified = now
+                Created = created,
+                LastModified = lastModified
             });
             AddHisotry(new DocumentMovedToHistory()
             {
@@ -176,7 +176,7 @@ namespace Docms.Client.Tests.Utils
             var data = streams[originalPath];
             RemoveFile(originalPath);
             AddFile(destinationPath, entry.ContentType, data, entry.Created, entry.LastModified);
-            AddMove(originalPath, destinationPath, entry.ContentType, data);
+            AddMove(originalPath, destinationPath, entry.ContentType, data, entry.Created, entry.LastModified);
             return Task.CompletedTask;
         }
 

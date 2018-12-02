@@ -17,7 +17,7 @@ namespace Docms.Client.RemoteStorage
         {
             _client = client;
             _db = db;
-            _latestEventTimestamp = _db.Histories.Any() ? _db.Histories.Max(e => e.Timestamp) : default(DateTime?);
+            _latestEventTimestamp = _db.RemoteFileHistories.Any() ? _db.RemoteFileHistories.Max(e => e.Timestamp) : default(DateTime?);
         }
 
         public async Task SyncAsync()
@@ -45,12 +45,8 @@ namespace Docms.Client.RemoteStorage
                 .Collection(r => r.RemoteFileHistories)
                 .LoadAsync();
 
-            foreach (var history in remoteFile.RemoteFileHistories)
-            {
-                await _db.Entry(history)
-                    .Navigation("History")
-                    .LoadAsync();
-            }
+            remoteFile.RemoteFileHistories =
+                remoteFile.RemoteFileHistories.OrderBy(e => e.Timestamp).ToList();
 
             return remoteFile;
         }
@@ -65,6 +61,7 @@ namespace Docms.Client.RemoteStorage
             var remoteFile = await GetAsync(history.Path);
             remoteFile.Apply(history);
             await _db.SaveChangesAsync();
+            _latestEventTimestamp = history.Timestamp;
         }
     }
 }

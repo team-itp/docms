@@ -29,7 +29,7 @@ namespace Docms.Client.Tests
             sut = new RemoteFileStorage(client, db);
         }
 
-        private async Task AddFile(string path, string content)
+        private async Task CreateOrUpdateFile(string path, string content)
         {
             await client.CreateOrUpdateDocumentAsync(
                 path,
@@ -39,14 +39,71 @@ namespace Docms.Client.Tests
         }
 
         [TestMethod]
-        public async Task サーバーのファイルの作成履歴よりファイルが作成されること()
+        public async Task サーバーでファイルが作成された場合に変更が正しく反映されること()
         {
-            await AddFile("dir1/content1.txt", "dir1/content1.txt");
+            await CreateOrUpdateFile("dir1/content1.txt", "dir1/content1.txt");
             await sut.SyncAsync();
 
             var remoteFile = await sut.GetAsync("dir1/content1.txt");
             Assert.AreEqual("dir1/content1.txt", remoteFile.Path);
-            Assert.AreEqual("dir1/content1.txt", remoteFile.RemoteFileHistories.First().History.Path);
+            var history = remoteFile.RemoteFileHistories.Last();
+            Assert.AreEqual("dir1/content1.txt", history.Path);
+            Assert.AreEqual("Created", history.HistoryType);
+        }
+
+        [TestMethod]
+        public async Task サーバーでファイルが作成されて更新された場合に変更が正しく反映されること()
+        {
+            await CreateOrUpdateFile("dir1/content1.txt", "dir1/content1.txt");
+            await CreateOrUpdateFile("dir1/content1.txt", "dir1/content1.txt new");
+            await sut.SyncAsync();
+
+            var remoteFile = await sut.GetAsync("dir1/content1.txt");
+            Assert.AreEqual("dir1/content1.txt", remoteFile.Path);
+            var history = remoteFile.RemoteFileHistories.Last();
+            Assert.AreEqual("dir1/content1.txt", history.Path);
+            Assert.AreEqual("Updated", history.HistoryType);
+        }
+
+        [TestMethod]
+        public async Task サーバーでファイルが作成されて移動された場合に変更が正しく反映されること()
+        {
+            await CreateOrUpdateFile("dir1/content1.txt", "dir1/content1.txt");
+            await client.MoveDocumentAsync("dir1/content1.txt", "dir2/content2.txt");
+            await sut.SyncAsync();
+
+            var remoteFile1 = await sut.GetAsync("dir1/content1.txt");
+            Assert.IsTrue(remoteFile1.IsDeleted);
+            var history1 = remoteFile1.RemoteFileHistories.Last();
+            Assert.AreEqual("Deleted", history1.HistoryType);
+
+            var remoteFile2 = await sut.GetAsync("dir2/content2.txt");
+            Assert.IsFalse(remoteFile2.IsDeleted);
+            Assert.AreEqual(remoteFile1.ContentType, remoteFile2.ContentType);
+            Assert.AreEqual(remoteFile1.FileSize, remoteFile2.FileSize);
+            Assert.AreEqual(remoteFile1.Hash, remoteFile2.Hash);
+            Assert.AreEqual(remoteFile1.Created, remoteFile2.Created);
+            Assert.AreEqual(remoteFile1.LastModified, remoteFile2.LastModified);
+            var history2 = remoteFile2.RemoteFileHistories.Last();
+            Assert.AreEqual("Created", history2.HistoryType);
+            Assert.AreEqual(remoteFile1.ContentType, history2.ContentType);
+            Assert.AreEqual(remoteFile1.FileSize, history2.FileSize);
+            Assert.AreEqual(remoteFile1.Hash, history2.Hash);
+            Assert.AreEqual(remoteFile1.Created, history2.Created);
+            Assert.AreEqual(remoteFile1.LastModified, history2.LastModified);
+        }
+
+        [TestMethod]
+        public async Task サーバーでファイルが作成されて削除された場合に変更が正しく反映されること()
+        {
+            await CreateOrUpdateFile("dir1/content1.txt", "dir1/content1.txt");
+            await client.DeleteDocumentAsync("dir1/content1.txt");
+            await sut.SyncAsync();
+
+            var remoteFile1 = await sut.GetAsync("dir1/content1.txt");
+            Assert.IsTrue(remoteFile1.IsDeleted);
+            var history1 = remoteFile1.RemoteFileHistories.Last();
+            Assert.AreEqual("Deleted", history1.HistoryType);
         }
     }
 }

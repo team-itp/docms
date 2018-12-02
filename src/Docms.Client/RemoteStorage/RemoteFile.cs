@@ -43,24 +43,17 @@ namespace Docms.Client.RemoteStorage
                 .Case<DocumentMovedToHistory>(x => Apply(x))
                 .Case<DocumentDeletedHistory>(x => Apply(x));
             ts.Switch(history);
-
-            RemoteFileHistories.Add(new RemoteFileHistory()
-            {
-                Id = Guid.NewGuid(),
-                Timestamp = history.Timestamp,
-                RemoteFile = this,
-                History = history,
-            });
         }
 
         public void Apply(DocumentCreatedHistory history)
         {
-            Path = history.Path;
             ContentType = history.ContentType;
             FileSize = history.FileSize;
             Hash = history.Hash;
             Created = history.Created;
             LastModified = history.LastModified;
+            IsDeleted = false;
+            AddHistory(history, "Created");
         }
 
         public void Apply(DocumentUpdatedHistory history)
@@ -70,27 +63,48 @@ namespace Docms.Client.RemoteStorage
             Hash = history.Hash;
             Created = history.Created;
             LastModified = history.LastModified;
+            AddHistory(history, "Updated");
         }
 
         public void Apply(DocumentMovedFromHistory history)
         {
-            Path = history.Path;
             ContentType = history.ContentType;
             FileSize = history.FileSize;
             Hash = history.Hash;
             Created = history.Created;
             LastModified = history.LastModified;
+            IsDeleted = false;
+            AddHistory(history, "Created");
         }
 
         public void Apply(DocumentMovedToHistory history)
         {
-            Path = history.NewPath;
+            IsDeleted = true;
+            AddHistory(history, "Deleted");
         }
 
         public void Apply(DocumentDeletedHistory history)
         {
-            Path = null;
             IsDeleted = true;
+            AddHistory(history, "Deleted");
+        }
+
+        private void AddHistory(History history, string historyType)
+        {
+            RemoteFileHistories.Add(new RemoteFileHistory()
+            {
+                Id = Guid.NewGuid(),
+                Timestamp = history.Timestamp,
+                HistoryId = history.Id,
+                HistoryType = historyType,
+                RemoteFile = this,
+                Path = Path,
+                ContentType = ContentType,
+                FileSize = FileSize,
+                Hash = Hash,
+                Created = Created,
+                LastModified = LastModified,
+            });
         }
     }
 }

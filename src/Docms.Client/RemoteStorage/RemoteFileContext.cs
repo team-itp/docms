@@ -14,13 +14,6 @@ namespace Docms.Client.RemoteStorage
 
         public DbSet<RemoteFile> RemoteFiles { get; set; }
         public DbSet<RemoteFileHistory> RemoteFileHistories { get; set; }
-
-        public DbSet<History> Histories { get; set; }
-        public DbSet<DocumentCreatedHistory> DocumentCreatedHistories { get; set; }
-        public DbSet<DocumentMovedFromHistory> DocumentMovedFromHistories { get; set; }
-        public DbSet<DocumentMovedToHistory> DocumentMovedToHistories { get; set; }
-        public DbSet<DocumentUpdatedHistory> DocumentUpdatedHistories { get; set; }
-        public DbSet<DocumentDeletedHistory> DocumentDeletedHistories { get; set; }
     }
 
     public class DocmsContextDesignFactory : IDesignTimeDbContextFactory<RemoteFileContext>
