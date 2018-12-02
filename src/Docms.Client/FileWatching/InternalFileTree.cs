@@ -7,10 +7,10 @@ namespace Docms.Client.FileWatching
 {
     public class InternalFileTree
     {
-        public DirectoryNode Root { get; } = new DirectoryNode("");
+        public LocalDirectoryNode Root { get; } = new LocalDirectoryNode("");
         public ConcurrentQueue<LocalFileEventArgs> EventQueues = new ConcurrentQueue<LocalFileEventArgs>();
 
-        public Node GetNode(PathString path)
+        public LocalNode GetNode(PathString path)
         {
             if (path.Name == "")
             {
@@ -27,27 +27,27 @@ namespace Docms.Client.FileWatching
             Root.Clear();
         }
 
-        public FileNode GetFile(PathString path)
+        public LocalFileNode GetFile(PathString path)
         {
-            return GetNode(path) as FileNode;
+            return GetNode(path) as LocalFileNode;
         }
 
-        public DirectoryNode GetDirectory(PathString path)
+        public LocalDirectoryNode GetDirectory(PathString path)
         {
-            return GetNode(path) as DirectoryNode;
+            return GetNode(path) as LocalDirectoryNode;
         }
 
-        private DirectoryNode EnsureDirectoryExists(PathString path)
+        private LocalDirectoryNode EnsureDirectoryExists(PathString path)
         {
             var node = GetNode(path);
             if (node == null)
             {
                 var dir = EnsureDirectoryExists(path.ParentPath);
-                var newDir = new DirectoryNode(path.Name);
+                var newDir = new LocalDirectoryNode(path.Name);
                 dir.AddChild(newDir);
                 return newDir;
             }
-            else if (node is DirectoryNode dir)
+            else if (node is LocalDirectoryNode dir)
             {
                 return dir;
             }
@@ -57,7 +57,7 @@ namespace Docms.Client.FileWatching
         public bool AddFile(PathString path)
         {
             var dir = EnsureDirectoryExists(path.ParentPath);
-            if (dir.AddChild(new FileNode(path.Name)))
+            if (dir.AddChild(new LocalFileNode(path.Name)))
             {
                 EventQueues.Enqueue(new FileCreatedEventArgs(path));
                 return true;
@@ -69,9 +69,9 @@ namespace Docms.Client.FileWatching
         {
             var destNode = GetNode(path);
             var srcNode = GetNode(oldPath);
-            if (srcNode is FileNode srcFile)
+            if (srcNode is LocalFileNode srcFile)
             {
-                if (destNode is DirectoryNode)
+                if (destNode is LocalDirectoryNode)
                 {
                     throw new InvalidOperationException();
                 }
@@ -88,9 +88,9 @@ namespace Docms.Client.FileWatching
                     return true;
                 }
             }
-            else if (srcNode is DirectoryNode srcDir)
+            else if (srcNode is LocalDirectoryNode srcDir)
             {
-                if (destNode is FileNode)
+                if (destNode is LocalFileNode)
                 {
                     throw new InvalidOperationException();
                 }
@@ -116,7 +116,7 @@ namespace Docms.Client.FileWatching
         public bool Update(PathString path)
         {
             var node = GetNode(path);
-            if (node is DirectoryNode dir)
+            if (node is LocalDirectoryNode dir)
             {
                 var result = true;
                 foreach (var child in dir.Children)
@@ -125,7 +125,7 @@ namespace Docms.Client.FileWatching
                 }
                 return result;
             }
-            else if (node is FileNode file)
+            else if (node is LocalFileNode file)
             {
                 EventQueues.Enqueue(new FileModifiedEventArgs(path));
                 return true;
@@ -141,7 +141,7 @@ namespace Docms.Client.FileWatching
             }
 
             var node = GetNode(path);
-            if (node is DirectoryNode dir)
+            if (node is LocalDirectoryNode dir)
             {
                 var result = true;
                 foreach (var childItem in dir.Children.ToArray())
@@ -154,7 +154,7 @@ namespace Docms.Client.FileWatching
                     return true;
                 }
             }
-            else if (node is FileNode file)
+            else if (node is LocalFileNode file)
             {
                 if (file.Remove())
                 {

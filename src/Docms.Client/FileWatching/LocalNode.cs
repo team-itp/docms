@@ -4,14 +4,14 @@ using System.Linq;
 
 namespace Docms.Client.FileWatching
 {
-    public abstract class Node
+    public abstract class LocalNode
     {
-        public Node(string name)
+        public LocalNode(string name)
         {
             Name = name;
         }
 
-        public DirectoryNode Parent { get; set; }
+        public LocalDirectoryNode Parent { get; set; }
         public string Name { get; set; }
 
         public bool Remove()
@@ -23,7 +23,7 @@ namespace Docms.Client.FileWatching
             return Parent.RemoveChild(this);
         }
 
-        public bool MoveTo(DirectoryNode destDir)
+        public bool MoveTo(LocalDirectoryNode destDir)
         {
             if (Parent == null)
             {
@@ -46,11 +46,11 @@ namespace Docms.Client.FileWatching
         }
     }
 
-    public sealed class DirectoryNode : Node
+    public sealed class LocalDirectoryNode : LocalNode
     {
-        private sealed class NodeCollection : Dictionary<string, Node>
+        private sealed class NodeCollection : Dictionary<string, LocalNode>
         {
-            public bool Add(Node node)
+            public bool Add(LocalNode node)
             {
                 var contains = ContainsKey(node.Name);
                 if (!contains)
@@ -61,26 +61,26 @@ namespace Docms.Client.FileWatching
                 return false;
             }
 
-            public bool Remove(Node node)
+            public bool Remove(LocalNode node)
             {
                 return Remove(node.Name);
             }
 
             public new void Clear()
             {
-                foreach (var dir in this.OfType<DirectoryNode>())
+                foreach (var dir in this.OfType<LocalDirectoryNode>())
                 {
                     dir.Clear();
                 }
             }
 
-            public Node Get(string name)
+            public LocalNode Get(string name)
             {
                 if (TryGetValue(name, out var node))
                 {
                     return node;
                 }
-                return default(Node);
+                return default(LocalNode);
             }
 
             public bool Rename(string name, string newName)
@@ -99,35 +99,35 @@ namespace Docms.Client.FileWatching
 
         private NodeCollection _children = new NodeCollection();
 
-        public DirectoryNode(string name) : base(name)
+        public LocalDirectoryNode(string name) : base(name)
         {
         }
 
-        public IEnumerable<Node> Children => _children.Values;
+        public IEnumerable<LocalNode> Children => _children.Values;
         public bool IsEmpty => _children.Count == 0;
 
-        public Node GetChild(string name)
+        public LocalNode GetChild(string name)
         {
             return _children.Get(name);
         }
 
-        public DirectoryNode GetDirectory(string name)
+        public LocalDirectoryNode GetDirectory(string name)
         {
-            return GetChild(name) as DirectoryNode;
+            return GetChild(name) as LocalDirectoryNode;
         }
 
-        public FileNode GetFile(string name)
+        public LocalFileNode GetFile(string name)
         {
-            return GetChild(name) as FileNode;
+            return GetChild(name) as LocalFileNode;
         }
 
-        public bool AddChild(Node node)
+        public bool AddChild(LocalNode node)
         {
             node.Parent = this;
             return _children.Add(node);
         }
 
-        public bool RemoveChild(Node node)
+        public bool RemoveChild(LocalNode node)
         {
             if (node.Parent != this)
             {
@@ -156,9 +156,9 @@ namespace Docms.Client.FileWatching
         }
     }
 
-    public sealed class FileNode : Node
+    public sealed class LocalFileNode : LocalNode
     {
-        public FileNode(string name) : base(name)
+        public LocalFileNode(string name) : base(name)
         {
         }
     }
