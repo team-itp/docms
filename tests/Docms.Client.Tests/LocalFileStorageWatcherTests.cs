@@ -111,7 +111,8 @@ namespace Docms.Client.Tests
                 ev = e;
             });
             await CreateFile("content1.txt", "content1.txt");
-            await Task.Delay(1);
+            await sut.StopWatch(false);
+
             Assert.AreEqual("content1.txt", ev.Path.ToString());
             Assert.IsNotNull(fileTree.GetFile(new PathString("content1.txt")));
         }
@@ -125,6 +126,8 @@ namespace Docms.Client.Tests
                 ev = e;
             });
             await CreateFile("dir/content1.txt", "dir/content1.txt");
+            await sut.StopWatch(false);
+
             Assert.AreEqual("dir/content1.txt", ev.Path.ToString());
             Assert.IsNotNull(fileTree.GetFile(new PathString("dir/content1.txt")));
         }
@@ -139,6 +142,8 @@ namespace Docms.Client.Tests
                 ev = e;
             });
             await UpdateFile("content1.txt", "content1.txt modified");
+            await sut.StopWatch(false);
+
             Assert.AreEqual("content1.txt", ev.Path.ToString());
             Assert.IsNotNull(fileTree.GetFile(new PathString("content1.txt")));
         }
@@ -153,6 +158,8 @@ namespace Docms.Client.Tests
                 ev = e;
             });
             await UpdateFile("dir/content1.txt", "dir/content1.txt modified");
+            await sut.StopWatch(false);
+
             Assert.AreEqual("dir/content1.txt", ev.Path.ToString());
             Assert.IsNotNull(fileTree.GetFile(new PathString("dir/content1.txt")));
         }
@@ -167,6 +174,8 @@ namespace Docms.Client.Tests
                 ev = e;
             });
             await MoveFile("content1.txt", "content2.txt");
+            await sut.StopWatch(false);
+
             Assert.AreEqual("content2.txt", ev.Path.ToString());
             Assert.IsNull(fileTree.GetFile(new PathString("content1.txt")));
             Assert.IsNotNull(fileTree.GetFile(new PathString("content2.txt")));
@@ -182,6 +191,8 @@ namespace Docms.Client.Tests
                 ev = e;
             });
             await MoveFile("dir/content1.txt", "dir/content2.txt");
+            await sut.StopWatch(false);
+
             Assert.AreEqual("dir/content2.txt", ev.Path.ToString());
             Assert.IsNull(fileTree.GetFile(new PathString("dir/content1.txt")));
             Assert.IsNotNull(fileTree.GetFile(new PathString("dir/content2.txt")));
@@ -421,14 +432,12 @@ namespace Docms.Client.Tests
                     for (var j = 0; j < FILE_COUNT; j++)
                     {
                         Assert.IsTrue(iter.MoveNext());
-                        if (iter.Current is FileCreatedEventArgs ce)
+                        while (!(iter.Current is FileCreatedEventArgs))
                         {
-                            Assert.AreEqual($"dir{i}/content{j}.txt", ce.Path.ToString());
+                            Assert.IsTrue(iter.MoveNext());
                         }
-                        else
-                        {
-                            Assert.Fail($"i:{i}, j:{j}, iter.Current:{iter.Current} {iter.Current.Path}");
-                        }
+                        var ce = iter.Current as FileCreatedEventArgs;
+                        Assert.AreEqual($"dir{i}/content{j}.txt", ce.Path.ToString());
                     }
                 }
 
@@ -437,14 +446,12 @@ namespace Docms.Client.Tests
                     for (var j = 0; j < FILE_COUNT; j++)
                     {
                         Assert.IsTrue(iter.MoveNext());
-                        if (iter.Current is FileModifiedEventArgs me)
+                        while (iter.Current.Path.ToString() != $"dir{i}/content{j}.txt")
                         {
-                            Assert.AreEqual($"dir{i}/content{j}.txt", me.Path.ToString());
+                            Assert.IsTrue(iter.MoveNext());
                         }
-                        else
-                        {
-                            Assert.Fail($"i:{i}, j:{j}, iter.Current:{iter.Current} {iter.Current.Path}");
-                        }
+                        var me = iter.Current as FileModifiedEventArgs;
+                        Assert.AreEqual($"dir{i}/content{j}.txt", me.Path.ToString());
                     }
                 }
 
@@ -453,15 +460,13 @@ namespace Docms.Client.Tests
                     for (var j = 0; j < FILE_COUNT; j++)
                     {
                         Assert.IsTrue(iter.MoveNext());
-                        if (iter.Current is FileMovedEventArgs me)
+                        while (!(iter.Current is FileMovedEventArgs))
                         {
-                            Assert.AreEqual($"dir{i}/moved_content{j}.txt", me.Path.ToString());
-                            Assert.AreEqual($"dir{i}/content{j}.txt", me.FromPath.ToString());
+                            Assert.IsTrue(iter.MoveNext());
                         }
-                        else
-                        {
-                            Assert.Fail($"i:{i}, j:{j}, iter.Current:{iter.Current} {iter.Current.Path}");
-                        }
+                        var me = iter.Current as FileMovedEventArgs;
+                        Assert.AreEqual($"dir{i}/moved_content{j}.txt", me.Path.ToString());
+                        Assert.AreEqual($"dir{i}/content{j}.txt", me.FromPath.ToString());
                     }
                 }
 
@@ -470,14 +475,12 @@ namespace Docms.Client.Tests
                     for (var j = 0; j < FILE_COUNT; j++)
                     {
                         Assert.IsTrue(iter.MoveNext());
-                        if (iter.Current is FileDeletedEventArgs de)
+                        while (!(iter.Current is FileDeletedEventArgs))
                         {
-                            Assert.AreEqual($"dir{i}/moved_content{j}.txt", de.Path.ToString());
+                            Assert.IsTrue(iter.MoveNext());
                         }
-                        else
-                        {
-                            Assert.Fail($"i:{i}, j:{j}, iter.Current:{iter.Current} {iter.Current.Path}");
-                        }
+                        var de = iter.Current as FileDeletedEventArgs;
+                        Assert.AreEqual($"dir{i}/moved_content{j}.txt", de.Path.ToString());
                     }
                 }
                 Assert.IsFalse(iter.MoveNext());

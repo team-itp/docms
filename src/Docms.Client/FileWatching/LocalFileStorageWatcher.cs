@@ -133,32 +133,42 @@ namespace Docms.Client.FileWatching
                     }
                     else
                     {
-                        var ev = _shrinker.Dequeue();
-                        while (ev != null)
-                        {
-                            if (ev is FileCreatedEventArgs fcev)
-                            {
-                                FileCreated?.Invoke(this, fcev);
-                            }
-                            else if (ev is FileModifiedEventArgs fmev)
-                            {
-                                FileModified?.Invoke(this, fmev);
-                            }
-                            else if (ev is FileMovedEventArgs fmovev)
-                            {
-                                FileMoved?.Invoke(this, fmovev);
-                            }
-                            else if (ev is FileDeletedEventArgs fdev)
-                            {
-                                FileDeleted?.Invoke(this, fdev);
-                            }
-                            ev = _shrinker.Dequeue();
-                        }
+                        FireEvents();
                         WaitHandle.WaitAny(new WaitHandle[] { _taskHandle, cancellationToken.WaitHandle });
                         _taskHandle.Reset();
                     }
                 }
             }).ConfigureAwait(false);
+        }
+
+        private void FireEvents()
+        {
+            while (_fileTree.EventQueues.TryDequeue(out var ev))
+            {
+                _shrinker.Apply(ev);
+            }
+
+            var sev = _shrinker.Dequeue();
+            while (sev != null)
+            {
+                if (sev is FileCreatedEventArgs fcev)
+                {
+                    FileCreated?.Invoke(this, fcev);
+                }
+                else if (sev is FileModifiedEventArgs fmev)
+                {
+                    FileModified?.Invoke(this, fmev);
+                }
+                else if (sev is FileMovedEventArgs fmovev)
+                {
+                    FileMoved?.Invoke(this, fmovev);
+                }
+                else if (sev is FileDeletedEventArgs fdev)
+                {
+                    FileDeleted?.Invoke(this, fdev);
+                }
+                sev = _shrinker.Dequeue();
+            }
         }
 
         public async Task StopWatch(bool nowait = true)
@@ -176,6 +186,7 @@ namespace Docms.Client.FileWatching
                     {
                         await _lastTask;
                     }
+                    FireEvents();
                     _processCts.Cancel();
                 }
                 await _processTask;
@@ -201,49 +212,37 @@ namespace Docms.Client.FileWatching
 
         private void _watcher_Created(object sender, FileSystemEventArgs e)
         {
-            Guid id = Guid.NewGuid();
-            _logger.Debug("_watcher_Created: event-id: " + id.ToString());
             EnqueueTask(() =>
             {
                 var path = ResolvePath(e.FullPath);
-                _logger.Debug("_watcher_Created: OnCreated executing. event-id: " + id.ToString() + " path: " + path.ToString());
                 OnCreated(path);
             });
         }
 
         private void _watcher_Changed(object sender, FileSystemEventArgs e)
         {
-            Guid id = Guid.NewGuid();
-            _logger.Debug("_watcher_Changed: event-id: " + id.ToString());
             EnqueueTask(() =>
             {
                 var path = ResolvePath(e.FullPath);
-                _logger.Debug("_watcher_Changed: OnModified executing. event-id: " + id.ToString() + " path: " + path.ToString());
                 OnModified(path);
             });
         }
 
         private void _watcher_Renamed(object sender, RenamedEventArgs e)
         {
-            Guid id = Guid.NewGuid();
-            _logger.Debug("_watcher_Renamed: event-id: " + id.ToString());
             EnqueueTask(() =>
             {
                 var path = ResolvePath(e.FullPath);
                 var oldPath = ResolvePath(e.OldFullPath);
-                _logger.Debug("_watcher_Renamed: OnMoved executing. event-id: " + id.ToString() + " path: " + path.ToString() + " old path: " + oldPath.ToString());
                 OnMoved(path, oldPath);
             });
         }
 
         private void _watcher_Deleted(object sender, FileSystemEventArgs e)
         {
-            Guid id = Guid.NewGuid();
-            _logger.Debug("_watcher_Deleted: event-id: " + id.ToString());
             EnqueueTask(() =>
             {
                 var path = ResolvePath(e.FullPath);
-                _logger.Debug("_watcher_Deleted: OnDeleted executing. event-id: " + id.ToString() + " path: " + path.ToString());
                 OnDeleted(path);
             });
         }
@@ -257,10 +256,7 @@ namespace Docms.Client.FileWatching
                 {
                     return;
                 }
-                if (_fileTree.AddFile(path))
-                {
-                    _shrinker.Apply(new FileCreatedEventArgs(path));
-                }
+                _fileTree.AddFile(path);
             }
             var dirInfo = GetDirectory(path);
             if (dirInfo != null)
@@ -270,87 +266,33 @@ namespace Docms.Client.FileWatching
                     return;
                 }
 
-                var files = dirInfo.GetFiles();
-                var dirs = dirInfo.GetDirectories();
-                foreach (var item in files)
-                {
-                    OnCreated(ResolvePath(item.FullName));
-                }
-                foreach (var item in dirs)
-                {
-                    OnCreated(ResolvePath(item.FullName));
-                }
+                AddDirectory(path, dirInfo);
             }
         }
 
         protected void OnModified(PathString path)
         {
-            var fileNode = _fileTree.GetFile(path);
-            if (fileNode != null)
+            var fileInfo = GetFile(path);
+            if (fileInfo != null)
             {
-                if (_fileTree.Update(path))
-                {
-                    _shrinker.Apply(new FileModifiedEventArgs(path));
-                }
+                _fileTree.Update(path);
+                return;
             }
             var dirInfo = GetDirectory(path);
             if (dirInfo != null)
             {
-                var files = dirInfo.GetFiles();
-                var dirs = dirInfo.GetDirectories();
-                foreach (var item in files)
-                {
-                    var itemPath = ResolvePath(item.FullName);
-                    if (_fileTree.GetFile(itemPath) == null)
-                    {
-                        OnCreated(itemPath);
-                    }
-                    else
-                    {
-                        OnModified(itemPath);
-                    }
-                }
-                foreach (var item in dirs)
-                {
-                    OnModified(ResolvePath(item.FullName));
-                }
+                AddDirectory(path, dirInfo);
             }
         }
 
         protected void OnMoved(PathString path, PathString fromPath)
         {
-            var fileNode = _fileTree.GetFile(fromPath);
-            if (fileNode != null)
-            {
-                _fileTree.Move(fromPath, path);
-                _shrinker.Apply(new FileMovedEventArgs(path, fromPath));
-            }
-            var dirNode = _fileTree.GetDirectory(fromPath);
-            if (dirNode != null)
-            {
-                foreach (var node in dirNode.Children.ToArray())
-                {
-                    OnMoved(path.Combine(node.Name), fromPath.Combine(node.Name));
-                }
-            }
+            _fileTree.Move(fromPath, path);
         }
 
         protected void OnDeleted(PathString path)
         {
-            var fileNode = _fileTree.GetFile(path);
-            if (fileNode != null)
-            {
-                _fileTree.Delete(path);
-                _shrinker.Apply(new FileDeletedEventArgs(path));
-            }
-            var dirNode = _fileTree.GetDirectory(path);
-            if (dirNode != null)
-            {
-                foreach (var node in dirNode.Children.ToArray())
-                {
-                    OnDeleted(path.Combine(node.Name));
-                }
-            }
+            _fileTree.Delete(path);
         }
 
         public FileInfo GetFile(PathString path)
@@ -390,6 +332,20 @@ namespace Docms.Client.FileWatching
             if (!Directory.Exists(fullpath))
             {
                 Directory.CreateDirectory(fullpath);
+            }
+        }
+
+        private void AddDirectory(PathString path, DirectoryInfo dirInfo)
+        {
+            var files = dirInfo.GetFiles();
+            var dirs = dirInfo.GetDirectories();
+            foreach (var item in files)
+            {
+                _fileTree.AddFile(path.Combine(item.Name));
+            }
+            foreach (var item in dirs)
+            {
+                OnCreated(path.Combine(item.Name));
             }
         }
     }
