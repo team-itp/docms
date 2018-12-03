@@ -38,9 +38,7 @@ namespace Docms.Client.RemoteStorage
 
             if (remoteFile == null)
             {
-                remoteFile = new RemoteFile(path.ToString());
-                await _db.AddAsync(remoteFile);
-                return remoteFile;
+                return null;
             }
 
             await _db.Entry(remoteFile)
@@ -60,7 +58,13 @@ namespace Docms.Client.RemoteStorage
                 return;
             }
 
-            var remoteFile = await GetAsync(new PathString(history.Path));
+            var path = new PathString(history.Path);
+            var remoteFile = await GetAsync(path);
+            if (remoteFile == null)
+            {
+                remoteFile = new RemoteFile(path.ToString());
+                await _db.AddAsync(remoteFile);
+            }
             remoteFile.Apply(history);
             await _db.SaveChangesAsync();
             _latestEventTimestamp = history.Timestamp;
@@ -81,6 +85,7 @@ namespace Docms.Client.RemoteStorage
                 {
                     return;
                 }
+                stream.Seek(0, SeekOrigin.Begin);
             }
 
             await _client.CreateOrUpdateDocumentAsync(

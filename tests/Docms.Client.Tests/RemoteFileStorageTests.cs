@@ -34,9 +34,14 @@ namespace Docms.Client.Tests
         {
             await client.CreateOrUpdateDocumentAsync(
                 path,
-                new MemoryStream(Encoding.UTF8.GetBytes(content)),
+                CreateStream(content),
                 DEFAULT_TIME,
                 DEFAULT_TIME);
+        }
+
+        private Stream CreateStream(string content)
+        {
+            return new MemoryStream(Encoding.UTF8.GetBytes(content));
         }
 
         [TestMethod]
@@ -105,6 +110,81 @@ namespace Docms.Client.Tests
             Assert.IsTrue(remoteFile1.IsDeleted);
             var history1 = remoteFile1.RemoteFileHistories.Last();
             Assert.AreEqual("Deleted", history1.HistoryType);
+        }
+
+        [TestMethod]
+        public async Task サーバーに存在しないファイルをアップロードして登録されること()
+        {
+            await sut.UploadAsync(
+                new PathString("dir1/content1.txt"),
+                CreateStream("dir1/content1.txt"),
+                DEFAULT_TIME,
+                DEFAULT_TIME.AddHours(1));
+
+            Assert.IsNull(await sut.GetAsync(new PathString("dir1/content1.txt")));
+
+            var document = await client.GetDocumentAsync("dir1/content1.txt");
+            var hash = Hash.CalculateHash(CreateStream("dir1/content1.txt"));
+            Assert.AreEqual(hash, Hash.CalculateHash(await document.OpenStreamAsync()));
+            Assert.AreEqual(DEFAULT_TIME, document.Created);
+            Assert.AreEqual(DEFAULT_TIME.AddHours(1), document.LastModified);
+
+            await sut.SyncAsync();
+
+            var remoteFile = await sut.GetAsync(new PathString("dir1/content1.txt"));
+            Assert.AreEqual(hash, remoteFile.Hash);
+            Assert.AreEqual(DEFAULT_TIME, remoteFile.Created);
+            Assert.AreEqual(DEFAULT_TIME.AddHours(1), remoteFile.LastModified);
+        }
+
+        [TestMethod]
+        public async Task サーバーに既に存在するファイル_最終更新日とファイルサイズが一致_をアップロードしてファイルが置き換わらないこと()
+        {
+            await CreateOrUpdateFile("dir1/content1.txt", "dir1/content1.txt");
+            await sut.SyncAsync();
+            await sut.UploadAsync(
+                new PathString("dir1/content1.txt"),
+                CreateStream("dir1/content1.new"), //同一のファイルサイズ
+                DEFAULT_TIME,
+                DEFAULT_TIME); //同一の時刻
+
+            var document = await client.GetDocumentAsync("dir1/content1.txt");
+            var hash = Hash.CalculateHash(CreateStream("dir1/content1.txt"));
+            Assert.AreEqual(hash, Hash.CalculateHash(await document.OpenStreamAsync()));
+        }
+
+        [TestMethod]
+        public async Task サーバーに既に存在するファイル_ハッシュが一致_をアップロードしてファイルが置き換わらないこと()
+        {
+            await CreateOrUpdateFile("dir1/content1.txt", "dir1/content1.txt");
+            await sut.SyncAsync();
+            await sut.UploadAsync(
+                new PathString("dir1/content1.txt"),
+                CreateStream("dir1/content1.txt"), //同一の内容
+                DEFAULT_TIME.AddHours(2),
+                DEFAULT_TIME.AddHours(1)); //異なる時刻
+
+            var document = await client.GetDocumentAsync("dir1/content1.txt");
+            Assert.AreEqual(DEFAULT_TIME, document.Created);
+            Assert.AreEqual(DEFAULT_TIME, document.LastModified);
+        }
+
+        [TestMethod]
+        public async Task サーバーに存在するファイルと異なるファイルをアップロードしてファイルが置き換わること()
+        {
+            await CreateOrUpdateFile("dir1/content1.txt", "dir1/content1.txt");
+            await sut.SyncAsync();
+            await sut.UploadAsync(
+                new PathString("dir1/content1.txt"),
+                CreateStream("dir1/content1.new"),
+                DEFAULT_TIME,
+                DEFAULT_TIME.AddHours(1));
+
+            var document = await client.GetDocumentAsync("dir1/content1.txt");
+            var hash = Hash.CalculateHash(CreateStream("dir1/content1.new"));
+            Assert.AreEqual(hash, Hash.CalculateHash(await document.OpenStreamAsync()));
+            Assert.AreEqual(DEFAULT_TIME, document.Created);
+            Assert.AreEqual(DEFAULT_TIME.AddHours(1), document.LastModified);
         }
     }
 }
