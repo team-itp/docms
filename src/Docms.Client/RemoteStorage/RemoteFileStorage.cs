@@ -2,6 +2,7 @@
 using Docms.Client.SeedWork;
 using Microsoft.EntityFrameworkCore;
 using System;
+using System.IO;
 using System.Linq;
 using System.Threading.Tasks;
 
@@ -63,6 +64,30 @@ namespace Docms.Client.RemoteStorage
             remoteFile.Apply(history);
             await _db.SaveChangesAsync();
             _latestEventTimestamp = history.Timestamp;
+        }
+
+        public async Task UploadAsync(PathString path, Stream stream, DateTime created, DateTime lastModified)
+        {
+            var remoteFile = await GetAsync(path).ConfigureAwait(false);
+            if (remoteFile != null)
+            {
+                if (remoteFile.FileSize == stream.Length
+                    && remoteFile.LastModified == lastModified)
+                {
+                    return;
+                }
+
+                if (remoteFile.Hash == Hash.CalculateHash(stream))
+                {
+                    return;
+                }
+            }
+
+            await _client.CreateOrUpdateDocumentAsync(
+                path.ToString(),
+                stream,
+                created,
+                lastModified);
         }
     }
 }

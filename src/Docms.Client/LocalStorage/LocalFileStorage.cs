@@ -3,7 +3,6 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
-using System.Security.Cryptography;
 using System.Threading.Tasks;
 
 namespace Docms.Client.LocalStorage
@@ -45,17 +44,6 @@ namespace Docms.Client.LocalStorage
             return GetFile(path) != null;
         }
 
-        public string CalculateHash(PathString path)
-        {
-            var fullpath = ConvertToFullPath(path);
-            using (var sha1 = SHA1.Create())
-            using (var fs = new FileStream(fullpath, FileMode.Open, FileAccess.Read, FileShare.ReadWrite | FileShare.Delete))
-            {
-                var hashBin = sha1.ComputeHash(fs);
-                return BitConverter.ToString(hashBin).Replace("-", "");
-            }
-        }
-
         public long GetLength(PathString path)
         {
             return GetFile(path).Length;
@@ -73,7 +61,7 @@ namespace Docms.Client.LocalStorage
 
         public FileStream OpenRead(PathString path)
         {
-            return GetFile(path).OpenRead();
+            return GetFile(path).Open(FileMode.Open, FileAccess.Read, FileShare.None);
         }
 
         public string ReadAllText(PathString path)
@@ -137,19 +125,27 @@ namespace Docms.Client.LocalStorage
         public IEnumerable<PathString> GetFiles(PathString path)
         {
             var fullpath = ConvertToFullPath(path);
-            return Directory.GetFiles(fullpath)
-                .Where(p =>
-                {
-                    var fileInfo = new FileInfo(p);
-                    return !(fileInfo.Attributes.HasFlag(FileAttributes.Hidden) || fileInfo.Attributes.HasFlag(FileAttributes.System));
-                })
-                .Select(ResolvePath);
+            if (Directory.Exists(fullpath))
+            {
+                return Directory.GetFiles(fullpath)
+                    .Where(p =>
+                    {
+                        var fileInfo = new FileInfo(p);
+                        return !(fileInfo.Attributes.HasFlag(FileAttributes.Hidden) || fileInfo.Attributes.HasFlag(FileAttributes.System));
+                    })
+                    .Select(ResolvePath);
+            }
+            return Array.Empty<PathString>();
         }
 
         public IEnumerable<PathString> GetDirectories(PathString path)
         {
             var fullpath = ConvertToFullPath(path);
-            return Directory.GetDirectories(fullpath).Select(ResolvePath);
+            if (Directory.Exists(fullpath))
+            {
+                return Directory.GetDirectories(fullpath).Select(ResolvePath);
+            }
+            return Array.Empty<PathString>();
         }
 
         private void EnsureDirectoryExists(string fullpath)

@@ -2,7 +2,7 @@
 using System.IO;
 using System.Security.Cryptography;
 
-namespace Docms.Client.LocalStorage
+namespace Docms.Client.RemoteStorage
 {
     public class Hash
     {

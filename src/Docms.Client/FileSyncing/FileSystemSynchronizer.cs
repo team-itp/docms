@@ -169,14 +169,14 @@ namespace Docms.Client.FileSyncing
                 var syncFile = new SyncingFile(path.ToString(), histories);
                 return syncFile.Path != null
                     && _storage.GetLength(path) == syncFile.FileSize
-                    && _storage.CalculateHash(path) == syncFile.Hash;
+                    && _storage.GetLastModified(path) == syncFile.LastModified;
             }
             else
             {
                 var file = await _client.GetDocumentAsync(path.ToString()).ConfigureAwait(false);
                 return file != null
                     && _storage.GetLength(path) == file.FileSize
-                    && _storage.CalculateHash(path) == file.Hash;
+                    && _storage.GetLastModified(path) == file.LastModified;
             }
         }
 
@@ -241,7 +241,7 @@ namespace Docms.Client.FileSyncing
             }
 
             if (originalFile.FileSize == _storage.GetLength(destinationPath)
-                && originalFile.Hash == _storage.CalculateHash(destinationPath))
+                && originalFile.LastModified == _storage.GetLastModified(destinationPath))
             {
                 await _client.MoveDocumentAsync(originalPath.ToString(), destinationPath.ToString()).ConfigureAwait(false);
                 _logger.Debug($"{originalPath} to {destinationPath} movement requested");

@@ -135,7 +135,7 @@ namespace Docms.Client.FileSyncing
         {
             return serverFile.AppliedHistories.Any()
                 && _storage.GetLength(localFilePath) == serverFile.FileSize
-                && _storage.CalculateHash(localFilePath) == serverFile.Hash;
+                && _storage.GetLastModified(localFilePath) == serverFile.LastModified;
         }
 
         public async Task<SyncingFile> LoadFileAsync(PathString path, List<History> serverHistories = null)

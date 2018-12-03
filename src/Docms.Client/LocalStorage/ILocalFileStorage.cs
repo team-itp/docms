@@ -14,7 +14,6 @@ namespace Docms.Client.LocalStorage
         void Delete(PathString path);
         FileInfo TempCopy(PathString path);
         bool FileExists(PathString path);
-        string CalculateHash(PathString path);
         long GetLength(PathString localFilePath);
         FileStream OpenRead(PathString path);
         DateTime GetCreated(PathString localFilePath);
