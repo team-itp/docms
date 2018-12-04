@@ -80,7 +80,7 @@ namespace Docms.Client.Tests
         }
 
         [TestMethod]
-        public async Task サーバーからファイルが削除されてローカルに存在しない場合ファイルが削除されること()
+        public async Task サーバーからファイルが削除されてローカルに同一のファイルが存在する場合ファイルが削除されること()
         {
             await CreateRemoteFile("content1.txt", "content1");
             await DeleteRemoteFile("content1.txt");
@@ -90,7 +90,36 @@ namespace Docms.Client.Tests
             await sut.UploadAsync();
 
             await remoteStorage.SyncAsync();
-            Assert.IsNull(await remoteStorage.GetAsync(new PathString("content1.txt")));
+            Assert.IsTrue((await remoteStorage.GetAsync(new PathString("content1.txt"))).IsDeleted);
+            Assert.IsFalse(localStorage.FileExists(new PathString("content1.txt")));
+        }
+
+        [TestMethod]
+        public async Task サーバーからファイルが削除されてローカルに同一ではないファイルが存在する場合ファイルがアップロードされること()
+        {
+            await CreateRemoteFile("content1.txt", "content1");
+            await DeleteRemoteFile("content1.txt");
+            await CreateLocalFile("content1.txt", "content1 different");
+            await remoteStorage.SyncAsync();
+
+            await sut.UploadAsync();
+
+            await remoteStorage.SyncAsync();
+            Assert.IsFalse((await remoteStorage.GetAsync(new PathString("content1.txt"))).IsDeleted);
+            Assert.IsTrue(localStorage.FileExists(new PathString("content1.txt")));
+            Assert.AreEqual("content1 different", localStorage.ReadAllText(new PathString("content1.txt")));
+        }
+
+        [TestMethod]
+        public async Task サーバーにファイルが存在しローカルにファイルが存在しない場合サーバー側のファイルが削除されること()
+        {
+            await CreateRemoteFile("content1.txt", "content1");
+            await remoteStorage.SyncAsync();
+
+            await sut.UploadAsync();
+
+            await remoteStorage.SyncAsync();
+            Assert.IsTrue((await remoteStorage.GetAsync(new PathString("content1.txt"))).IsDeleted);
             Assert.IsFalse(localStorage.FileExists(new PathString("content1.txt")));
         }
     }
