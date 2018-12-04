@@ -1,7 +1,8 @@
 ﻿using Docms.Client.Api;
-using Docms.Client.FileSyncing;
 using Docms.Client.FileWatching;
 using Docms.Client.LocalStorage;
+using Docms.Client.RemoteStorage;
+using Docms.Client.Uploading;
 using docmssync.Properties;
 using Microsoft.EntityFrameworkCore;
 using NLog;
@@ -23,8 +24,9 @@ namespace docmssync
         private ILocalFileStorage _localFileStorage;
         private ILocalFileStorageWatcher _localFileStorageWatcher;
         private LocalFileEventShrinker _eventShrinker;
-        private FileSyncingContext _context;
-        private FileSystemSynchronizer _synchronizer;
+        private RemoteFileContext _context;
+        private IRemoteFileStorage _remoteFileStorage;
+        private LocalFileUploader _uploader;
         private Timer _timer;
         private ConcurrentQueue<Func<Task>> _tasks = new ConcurrentQueue<Func<Task>>();
         private CancellationTokenSource _cts;
@@ -45,17 +47,22 @@ namespace docmssync
             {
                 Directory.CreateDirectory(_watchPath);
             }
-            _client = new DocmsApiClinet(Settings.Default.ServerUrl, "api/v1");
             _localFileStorage = new LocalFileStorage(_watchPath);
+
+            _client = new DocmsApiClinet(Settings.Default.ServerUrl, "api/v1");
+
             var dbDir = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData), "docmssync");
             if (Directory.Exists(dbDir))
             {
                 Directory.Delete(dbDir, true);
             }
             Directory.CreateDirectory(dbDir);
-            _context = new FileSyncingContext(new DbContextOptionsBuilder<FileSyncingContext>()
+            _context = new RemoteFileContext(new DbContextOptionsBuilder<RemoteFileContext>()
                 .UseSqlite(string.Format("Data Source={0}", Path.Combine(dbDir, "sync.db")))
                 .Options);
+            _context.Database.EnsureCreated();
+            _remoteFileStorage = new RemoteFileStorage(_client, _context);
+
             if (_localFileStorageWatcher == null)
             {
                 _localFileStorageWatcher = new LocalFileStorageWatcher(_watchPath);
@@ -80,13 +87,14 @@ namespace docmssync
             {
                 await _context.Database.EnsureCreatedAsync().ConfigureAwait(false);
                 await _client.LoginAsync(Settings.Default.UploadUserName, Settings.Default.UploadUserPassword).ConfigureAwait(false);
-                _synchronizer = new FileSystemSynchronizer(_client, _localFileStorage, _context);
+                _uploader = new LocalFileUploader(_localFileStorage, _remoteFileStorage);
                 _eventShrinker = new LocalFileEventShrinker();
 
                 await EnqueueTask(async () =>
                 {
+                    await _remoteFileStorage.SyncAsync().ConfigureAwait(false);
                     await _localFileStorageWatcher.StartWatch(_cts.Token).ConfigureAwait(false);
-                    await _synchronizer.InitializeAsync(_cts.Token).ConfigureAwait(false);
+                    await _uploader.UploadAsync(_cts.Token).ConfigureAwait(false);
                     _timer.Change(10000, 10000);
                 });
             }
@@ -110,8 +118,9 @@ namespace docmssync
             await _client.LoginAsync(Settings.Default.UploadUserName, Settings.Default.UploadUserPassword).ConfigureAwait(false);
             await EnqueueTask(async () =>
             {
+                await _remoteFileStorage.SyncAsync().ConfigureAwait(false);
                 await _localFileStorageWatcher.StartWatch(_cts.Token).ConfigureAwait(false);
-                await _synchronizer.InitializeAsync(_cts.Token).ConfigureAwait(false);
+                await _uploader.UploadAsync(_cts.Token).ConfigureAwait(false);
                 _timer.Change(10000, 10000);
             });
         }
@@ -190,24 +199,8 @@ namespace docmssync
                     {
                         foreach (var change in _eventShrinker.Events)
                         {
-                            if (change is DocumentCreated)
-                            {
-                                await _synchronizer.RequestCreationAsync(change.Path, _cts.Token).ConfigureAwait(false);
-                            }
-                            else if (change is DocumentUpdated)
-                            {
-                                await _synchronizer.RequestChangingAsync(change.Path, _cts.Token).ConfigureAwait(false);
-                            }
-                            else if (change is DocumentMoved moved)
-                            {
-                                await _synchronizer.RequestMovementAsync(moved.OldPath, moved.Path, _cts.Token).ConfigureAwait(false);
-                            }
-                            else if (change is DocumentDeleted)
-                            {
-                                await _synchronizer.RequestDeletionAsync(change.Path, _cts.Token).ConfigureAwait(false);
-                            }
                         }
-                        await _synchronizer.SyncFromHistoryAsync().ConfigureAwait(false);
+                        await _uploader.UploadAsync(_cts.Token).ConfigureAwait(false);
                         _eventShrinker.Reset();
                         isOk = true;
                     }

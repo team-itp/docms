@@ -26,7 +26,7 @@ namespace Docms.Client.RemoteStorage
 
         public async Task SyncAsync()
         {
-            var histories = await _client.GetHistoriesAsync(null, _latestEventTimestamp);
+            var histories = await _client.GetHistoriesAsync(null, _latestEventTimestamp).ConfigureAwait(false);
             foreach (var history in histories)
             {
                 await Apply(history).ConfigureAwait(false);
