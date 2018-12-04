@@ -2,6 +2,7 @@
 using Docms.Client.RemoteStorage;
 using Docms.Client.SeedWork;
 using System.IO;
+using System.Threading;
 using System.Threading.Tasks;
 
 namespace Docms.Client.Uploading
@@ -19,30 +20,30 @@ namespace Docms.Client.Uploading
             _remoteStorage = remoteStorage;
         }
 
-        public Task UploadAsync()
+        public Task UploadAsync(CancellationToken cancellationToken = default(CancellationToken))
         {
-            return UploadDirectoryAsync(PathString.Root);
+            return UploadDirectoryAsync(PathString.Root, cancellationToken);
         }
 
-        private async Task UploadDirectoryAsync(PathString dirPath)
+        private async Task UploadDirectoryAsync(PathString dirPath, CancellationToken cancellationToken)
         {
             var files = _localStorage.GetFiles(dirPath);
             var dirs = _localStorage.GetDirectories(dirPath);
             foreach (var path in files)
             {
-                await UploadFileSafelyAsync(path).ConfigureAwait(false);
+                await UploadFileSafelyAsync(path, cancellationToken).ConfigureAwait(false);
             }
             foreach (var path in dirs)
             {
-                await UploadDirectoryAsync(path).ConfigureAwait(false);
+                await UploadDirectoryAsync(path, cancellationToken).ConfigureAwait(false);
             }
         }
 
-        private async Task UploadFileSafelyAsync(PathString path)
+        private async Task<UploadFileResult> UploadFileSafelyAsync(PathString path, CancellationToken cancellationToken)
         {
             if (!_localStorage.FileExists(path))
             {
-                return;
+                return UploadFileResult.LocalFileNotFound;
             }
 
             var created = _localStorage.GetCreated(path);
@@ -50,25 +51,51 @@ namespace Docms.Client.Uploading
 
             try
             {
-                using (var fs = _localStorage.OpenRead(path))
+                try
                 {
-                    await _remoteStorage.UploadAsync(path, fs, created, lastModified)
-                        .ConfigureAwait(false);
-                }
-            }
-            catch (IOException)
-            {
-                var tempFileInfo = _localStorage.TempCopy(path);
-                if (tempFileInfo.Exists)
-                {
-                    using (var fs = tempFileInfo.OpenRead())
+                    using (var fs = _localStorage.OpenRead(path))
                     {
-                        await _remoteStorage.UploadAsync(path, fs, created, lastModified)
+                        await _remoteStorage.UploadAsync(path, fs, created, lastModified, cancellationToken)
                             .ConfigureAwait(false);
                     }
-                    tempFileInfo.Delete();
+                    return UploadFileResult.Success;
+                }
+                catch (IOException)
+                {
+                    var tempFileInfo = default(FileInfo);
+                    try
+                    {
+                        tempFileInfo = _localStorage.TempCopy(path);
+                    }
+                    catch (IOException)
+                    {
+                        return UploadFileResult.ShouldRetryLater;
+                    }
+                    if (tempFileInfo.Exists)
+                    {
+                        using (var fs = tempFileInfo.OpenRead())
+                        {
+                            await _remoteStorage.UploadAsync(path, fs, created, lastModified, cancellationToken)
+                                .ConfigureAwait(false);
+                        }
+                        tempFileInfo.Delete();
+                        return UploadFileResult.Success;
+                    }
+                    return UploadFileResult.ShouldRetryLater;
                 }
             }
+            catch (RemoteFileAlreadyDeletedException)
+            {
+                return UploadFileResult.RemoteFileAlreadDeleted;
+            }
         }
+    }
+
+    public enum UploadFileResult
+    {
+        LocalFileNotFound,
+        Success,
+        RemoteFileAlreadDeleted,
+        ShouldRetryLater
     }
 }
