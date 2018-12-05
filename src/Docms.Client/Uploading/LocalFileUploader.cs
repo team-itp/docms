@@ -55,7 +55,7 @@ namespace Docms.Client.Uploading
                     await DeleteFileIfExistsAsync(path, cancellationToken).ConfigureAwait(false);
                 }
             }
-            foreach (var path in dirs)
+            foreach (var path in dirs.Union(remoteDirs).Distinct())
             {
                 await UploadDirectoryAsync(path, cancellationToken).ConfigureAwait(false);
             }

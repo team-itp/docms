@@ -61,10 +61,11 @@ namespace Docms.Client.RemoteStorage
         public async Task<IEnumerable<PathString>> GetDirectoriesAsync(PathString dirPath)
         {
             return await _db.RemoteFiles
-                        .Where(f => f.ParentPath.StartsWith(dirPath.ToString() + "/"))
+                        .Where(f => dirPath == PathString.Root
+                            || f.ParentPath.StartsWith(dirPath.ToString() + "/"))
                         .Select(f => f.ParentPath)
                         .Distinct()
-                        .Select(p => new PathString(p))
+                        .Select(p => new PathString(p ?? ""))
                         .ToListAsync().ConfigureAwait(false);
         }
 
