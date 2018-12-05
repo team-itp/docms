@@ -1,4 +1,5 @@
 ﻿using Docms.Client.Api;
+using Docms.Client.Configurations;
 using Docms.Client.SeedWork;
 using Microsoft.EntityFrameworkCore;
 using System;
@@ -35,6 +36,10 @@ namespace Docms.Client.RemoteStorage
 
         public async Task<RemoteFile> GetAsync(PathString path)
         {
+            if (IgnoreFilePatterns.Default.IsMatch(path))
+            {
+                return null;
+            }
             var remoteFile = await _db.RemoteFiles
                 .FirstOrDefaultAsync(e => e.Path == path.ToString());
 
@@ -77,6 +82,11 @@ namespace Docms.Client.RemoteStorage
         public async Task UploadAsync(PathString path, Stream stream, DateTime created, DateTime lastModified, CancellationToken cancellationToken)
         {
             cancellationToken.ThrowIfCancellationRequested();
+            if (IgnoreFilePatterns.Default.IsMatch(path))
+            {
+                return;
+            }
+
             var remoteFile = await GetAsync(path).ConfigureAwait(false);
             if (remoteFile != null)
             {

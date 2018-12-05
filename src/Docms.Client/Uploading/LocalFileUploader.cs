@@ -1,6 +1,7 @@
 ﻿using Docms.Client.LocalStorage;
 using Docms.Client.RemoteStorage;
 using Docms.Client.SeedWork;
+using NLog;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
@@ -11,6 +12,7 @@ namespace Docms.Client.Uploading
 {
     public class LocalFileUploader
     {
+        private static readonly Logger _logger = LogManager.GetCurrentClassLogger();
         private ILocalFileStorage _localStorage;
         private IRemoteFileStorage _remoteStorage;
         private List<PathString> RetryPathList = new List<PathString>();
@@ -33,18 +35,7 @@ namespace Docms.Client.Uploading
                 RetryPathList = new List<PathString>();
                 foreach (var path in list)
                 {
-                    switch (await UploadFileSafelyAsync(path, cancellationToken).ConfigureAwait(false))
-                    {
-                        case UploadFileResult.LocalFileNotFound:
-                        case UploadFileResult.Success:
-                            break;
-                        case UploadFileResult.ShouldRetryLater:
-                            RetryPathList.Add(path);
-                            break;
-                        case UploadFileResult.RemoteFileAlreadDeleted:
-                            _localStorage.Delete(path);
-                            break;
-                    }
+                    await UploadFileSafelyAsync(path, cancellationToken).ConfigureAwait(false);
                 }
             }
         }
@@ -55,18 +46,7 @@ namespace Docms.Client.Uploading
             var dirs = _localStorage.GetDirectories(dirPath);
             foreach (var path in files)
             {
-                switch (await UploadFileSafelyAsync(path, cancellationToken).ConfigureAwait(false))
-                {
-                    case UploadFileResult.LocalFileNotFound:
-                    case UploadFileResult.Success:
-                        break;
-                    case UploadFileResult.ShouldRetryLater:
-                        RetryPathList.Add(path);
-                        break;
-                    case UploadFileResult.RemoteFileAlreadDeleted:
-                        _localStorage.Delete(path);
-                        break;
-                }
+                await UploadFileSafelyAsync(path, cancellationToken).ConfigureAwait(false);
             }
             foreach (var path in dirs)
             {
@@ -74,11 +54,11 @@ namespace Docms.Client.Uploading
             }
         }
 
-        private async Task<UploadFileResult> UploadFileSafelyAsync(PathString path, CancellationToken cancellationToken)
+        private async Task UploadFileSafelyAsync(PathString path, CancellationToken cancellationToken)
         {
             if (!_localStorage.FileExists(path))
             {
-                return UploadFileResult.LocalFileNotFound;
+                return;
             }
 
             var created = _localStorage.GetCreated(path);
@@ -93,7 +73,7 @@ namespace Docms.Client.Uploading
                         await _remoteStorage.UploadAsync(path, fs, created, lastModified, cancellationToken)
                             .ConfigureAwait(false);
                     }
-                    return UploadFileResult.Success;
+                    return;
                 }
                 catch (IOException)
                 {
@@ -104,7 +84,9 @@ namespace Docms.Client.Uploading
                     }
                     catch (IOException)
                     {
-                        return UploadFileResult.ShouldRetryLater;
+                        _logger.Info("failed to upload:" + path.ToString());
+                        RetryPathList.Add(path);
+                        return;
                     }
                     if (tempFileInfo.Exists)
                     {
@@ -114,23 +96,19 @@ namespace Docms.Client.Uploading
                                 .ConfigureAwait(false);
                         }
                         tempFileInfo.Delete();
-                        return UploadFileResult.Success;
+                        return;
                     }
-                    return UploadFileResult.ShouldRetryLater;
+                    _logger.Info("failed to upload:" + path.ToString());
+                    RetryPathList.Add(path);
+                    return;
                 }
             }
             catch (RemoteFileAlreadyDeletedException)
             {
-                return UploadFileResult.RemoteFileAlreadDeleted;
+                _logger.Info("remote file already deleted. deleting local file :" + path.ToString());
+                _localStorage.Delete(path);
+                _logger.Info("lacal file deleted :" + path.ToString());
             }
         }
-    }
-
-    public enum UploadFileResult
-    {
-        LocalFileNotFound,
-        Success,
-        RemoteFileAlreadDeleted,
-        ShouldRetryLater
     }
 }

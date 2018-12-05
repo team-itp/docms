@@ -1,4 +1,5 @@
-﻿using Docms.Client.SeedWork;
+﻿using Docms.Client.Configurations;
+using Docms.Client.SeedWork;
 using System;
 using System.Collections.Generic;
 using System.IO;
@@ -28,10 +29,15 @@ namespace Docms.Client.LocalStorage
 
         public async Task Create(PathString path, Stream stream, DateTime created, DateTime lastModified)
         {
+            if (IgnoreFilePatterns.Default.IsMatch(path))
+            {
+                return;
+            }
+
             var fullpath = ConvertToFullPath(path);
             EnsureDirectoryExists(Path.GetDirectoryName(fullpath));
 
-            using (var fs = new FileStream(fullpath, FileMode.Create, FileAccess.Write, FileShare.None))
+            using (var fs = new FileStream(fullpath, FileMode.Create, FileAccess.Write, FileShare.Write))
             {
                 await stream.CopyToAsync(fs).ConfigureAwait(false);
             }
@@ -73,12 +79,16 @@ namespace Docms.Client.LocalStorage
             }
         }
 
-        public async Task Update(PathString path, Stream stream, DateTime lastModified)
+        public async Task Update(PathString path, Stream stream, DateTime created, DateTime lastModified)
         {
+            if (IgnoreFilePatterns.Default.IsMatch(path))
+            {
+                return;
+            }
+
             var fullpath = ConvertToFullPath(path);
             EnsureDirectoryExists(Path.GetDirectoryName(fullpath));
-
-            using (var fs = new FileStream(fullpath, FileMode.Create, FileAccess.Write, FileShare.None))
+            using (var fs = new FileStream(fullpath, FileMode.Create, FileAccess.Write, FileShare.Write))
             {
                 await stream.CopyToAsync(fs).ConfigureAwait(false);
             }
@@ -87,6 +97,11 @@ namespace Docms.Client.LocalStorage
 
         public void Delete(PathString path)
         {
+            if (IgnoreFilePatterns.Default.IsMatch(path))
+            {
+                return;
+            }
+
             var fullpath = ConvertToFullPath(path);
             if (File.Exists(fullpath))
             {
@@ -96,18 +111,29 @@ namespace Docms.Client.LocalStorage
 
         public void MoveDocument(PathString originalPath, PathString destinationPath)
         {
+            if (IgnoreFilePatterns.Default.IsMatch(originalPath)
+                || IgnoreFilePatterns.Default.IsMatch(destinationPath))
+            {
+                return;
+            }
+
             var originalFullPath = ConvertToFullPath(originalPath);
             var destinationFullPath = ConvertToFullPath(destinationPath);
             EnsureDirectoryExists(Path.GetDirectoryName(destinationFullPath));
-
             File.Move(originalFullPath, destinationFullPath);
         }
 
         private FileInfo GetFile(PathString path)
         {
+            if (IgnoreFilePatterns.Default.IsMatch(path))
+            {
+                return null;
+            }
+
             var fullpath = ConvertToFullPath(path);
             var fileInfo = new FileInfo(fullpath);
-            if (fileInfo.Attributes.HasFlag(FileAttributes.Hidden) || fileInfo.Attributes.HasFlag(FileAttributes.System))
+            if (fileInfo.Attributes.HasFlag(FileAttributes.Hidden)
+                || fileInfo.Attributes.HasFlag(FileAttributes.System))
             {
                 return null;
             }
@@ -133,7 +159,8 @@ namespace Docms.Client.LocalStorage
                         var fileInfo = new FileInfo(p);
                         return !(fileInfo.Attributes.HasFlag(FileAttributes.Hidden) || fileInfo.Attributes.HasFlag(FileAttributes.System));
                     })
-                    .Select(ResolvePath);
+                    .Select(ResolvePath)
+                    .Where(p => !IgnoreFilePatterns.Default.IsMatch(path));
             }
             return Array.Empty<PathString>();
         }

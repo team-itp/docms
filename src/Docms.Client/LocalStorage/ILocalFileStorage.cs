@@ -9,7 +9,7 @@ namespace Docms.Client.LocalStorage
     public interface ILocalFileStorage
     {
         Task Create(PathString path, Stream stream, DateTime created, DateTime lastModified);
-        Task Update(PathString path, Stream stream, DateTime lastModified);
+        Task Update(PathString path, Stream stream, DateTime created, DateTime lastModified);
         void MoveDocument(PathString originalPath, PathString destinationPath);
         void Delete(PathString path);
         FileInfo TempCopy(PathString path);
