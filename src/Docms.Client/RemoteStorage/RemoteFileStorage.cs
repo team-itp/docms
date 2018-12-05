@@ -26,15 +26,6 @@ namespace Docms.Client.RemoteStorage
             _latestEventTimestamp = _db.RemoteFileHistories.Any() ? _db.RemoteFileHistories.Max(e => e.Timestamp) : default(DateTime?);
         }
 
-        public async Task SyncAsync()
-        {
-            var histories = await _client.GetHistoriesAsync(null, _latestEventTimestamp).ConfigureAwait(false);
-            foreach (var history in histories)
-            {
-                await Apply(history).ConfigureAwait(false);
-            }
-        }
-
         public async Task<RemoteFile> GetAsync(PathString path)
         {
             if (IgnoreFilePatterns.Default.IsMatch(path))
@@ -57,6 +48,33 @@ namespace Docms.Client.RemoteStorage
                 remoteFile.RemoteFileHistories.OrderBy(e => e.Timestamp).ToList();
 
             return remoteFile;
+        }
+
+        public async Task<IEnumerable<PathString>> GetFilesAsync(PathString dirPath)
+        {
+            return await _db.RemoteFiles
+                        .Where(f => f.ParentPath == dirPath.ToString())
+                        .Select(f => new PathString(f.Path))
+                        .ToListAsync().ConfigureAwait(false);
+        }
+
+        public async Task<IEnumerable<PathString>> GetDirectoriesAsync(PathString dirPath)
+        {
+            return await _db.RemoteFiles
+                        .Where(f => f.ParentPath.StartsWith(dirPath.ToString() + "/"))
+                        .Select(f => f.ParentPath)
+                        .Distinct()
+                        .Select(p => new PathString(p))
+                        .ToListAsync().ConfigureAwait(false);
+        }
+
+        public async Task SyncAsync()
+        {
+            var histories = await _client.GetHistoriesAsync(null, _latestEventTimestamp).ConfigureAwait(false);
+            foreach (var history in histories)
+            {
+                await Apply(history).ConfigureAwait(false);
+            }
         }
 
         private async Task Apply(History history)
@@ -137,7 +155,11 @@ namespace Docms.Client.RemoteStorage
                     case (int)HttpStatusCode.Conflict:
                     case (int)HttpStatusCode.Forbidden:
                     case (int)HttpStatusCode.ServiceUnavailable:
-                        await RetryUploadAsync(path, stream, created, lastModified, cancellationToken);
+                        await RetryAsync(path, () =>
+                        {
+                            return _client.CreateOrUpdateDocumentAsync(
+                                path.ToString(), stream, created, lastModified);
+                        }, cancellationToken);
                         break;
                     default:
                         throw;
@@ -145,7 +167,7 @@ namespace Docms.Client.RemoteStorage
             }
         }
 
-        private async Task RetryUploadAsync(PathString path, Stream stream, DateTime created, DateTime lastModified, CancellationToken cancellationToken)
+        private async Task RetryAsync(PathString path, Func<Task> func, CancellationToken cancellationToken)
         {
             var retryCount = 1;
             while (retryCount < 100)
@@ -153,11 +175,8 @@ namespace Docms.Client.RemoteStorage
                 cancellationToken.ThrowIfCancellationRequested();
                 try
                 {
-                    await _client.CreateOrUpdateDocumentAsync(
-                        path.ToString(),
-                        stream,
-                        created,
-                        lastModified);
+                    await func.Invoke().ConfigureAwait(false);
+                    return;
                 }
                 catch (ServerException ex)
                 {
@@ -166,40 +185,48 @@ namespace Docms.Client.RemoteStorage
                         case (int)HttpStatusCode.Conflict:
                         case (int)HttpStatusCode.Forbidden:
                         case (int)HttpStatusCode.ServiceUnavailable:
+                            var delay = Task.Delay(10000 * retryCount);
+                            delay.Wait(cancellationToken);
+                            retryCount++;
                             continue;
                         default:
                             throw;
                     }
                 }
-
-                var delay = Task.Delay((int)(10000 * retryCount));
-                delay.Wait(cancellationToken);
-                retryCount++;
             }
             throw new RetryTimeoutException(path, retryCount);
         }
 
-        public async Task<IEnumerable<PathString>> GetFilesAsync(PathString dirPath)
+        public async Task DeleteAsync(PathString path, CancellationToken cancellationToken)
         {
-            return await _db.RemoteFiles
-                        .Where(f => f.ParentPath == dirPath.ToString())
-                        .Select(f => new PathString(f.Path))
-                        .ToListAsync().ConfigureAwait(false);
-        }
+            cancellationToken.ThrowIfCancellationRequested();
+            if (IgnoreFilePatterns.Default.IsMatch(path))
+            {
+                return;
+            }
 
-        public async Task<IEnumerable<PathString>> GetDirectoriesAsync(PathString dirPath)
-        {
-            return await _db.RemoteFiles
-                        .Where(f => f.ParentPath.StartsWith(dirPath.ToString() + "/"))
-                        .Select(f => f.ParentPath)
-                        .Distinct()
-                        .Select(p => new PathString(p))
-                        .ToListAsync().ConfigureAwait(false);
-        }
-
-        public Task DeleteAsync(PathString path, CancellationToken cancellationToken)
-        {
-            throw new NotImplementedException();
+            try
+            {
+                await _client.DeleteDocumentAsync(path.ToString());
+            }
+            catch (ServerException ex)
+            {
+                switch (ex.StatusCode)
+                {
+                    case (int)HttpStatusCode.Conflict:
+                    case (int)HttpStatusCode.Forbidden:
+                    case (int)HttpStatusCode.ServiceUnavailable:
+                        await RetryAsync(path, () =>
+                        {
+                            return _client.DeleteDocumentAsync(path.ToString());
+                        }, cancellationToken);
+                        break;
+                    case (int)HttpStatusCode.NotFound:
+                        throw new RemoteFileAlreadyDeletedException(path);
+                    default:
+                        throw;
+                }
+            }
         }
     }
 }

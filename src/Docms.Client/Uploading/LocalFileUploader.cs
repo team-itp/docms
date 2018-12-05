@@ -46,11 +46,28 @@ namespace Docms.Client.Uploading
             var remoteDirs = await _remoteStorage.GetDirectoriesAsync(dirPath);
             foreach (var path in files.Union(remoteFiles).Distinct())
             {
-                await UploadFileSafelyAsync(path, cancellationToken).ConfigureAwait(false);
+                if (_localStorage.FileExists(path))
+                {
+                    await UploadFileSafelyAsync(path, cancellationToken).ConfigureAwait(false);
+                }
+                else
+                {
+                    await DeleteFileIfExistsAsync(path, cancellationToken).ConfigureAwait(false);
+                }
             }
-            foreach (var path in dirs.Union(remoteDirs).Distinct())
+            foreach (var path in dirs)
             {
                 await UploadDirectoryAsync(path, cancellationToken).ConfigureAwait(false);
+            }
+        }
+
+        private async Task DeleteFileIfExistsAsync(PathString path, CancellationToken cancellationToken)
+        {
+            cancellationToken.ThrowIfCancellationRequested();
+            var remoteFile = await _remoteStorage.GetAsync(path);
+            if (remoteFile != null && !remoteFile.IsDeleted)
+            {
+                await _remoteStorage.DeleteAsync(path, cancellationToken);
             }
         }
 
@@ -70,7 +87,7 @@ namespace Docms.Client.Uploading
             cancellationToken.ThrowIfCancellationRequested();
             if (!_localStorage.FileExists(path))
             {
-                await _remoteStorage.DeleteAsync(path, cancellationToken);
+                return;
             }
 
             var created = _localStorage.GetCreated(path);
