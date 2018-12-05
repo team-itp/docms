@@ -2,6 +2,7 @@
 using Docms.Client.RemoteStorage;
 using Docms.Client.SeedWork;
 using NLog;
+using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
@@ -31,34 +32,45 @@ namespace Docms.Client.Uploading
             await UploadDirectoryAsync(PathString.Root, cancellationToken);
             while (RetryPathList.Any())
             {
-                var list = RetryPathList;
-                RetryPathList = new List<PathString>();
-                foreach (var path in list)
-                {
-                    await UploadFileSafelyAsync(path, cancellationToken).ConfigureAwait(false);
-                }
+                cancellationToken.ThrowIfCancellationRequested();
+                await RetryUploadAsync(cancellationToken);
             }
         }
 
         private async Task UploadDirectoryAsync(PathString dirPath, CancellationToken cancellationToken)
         {
+            cancellationToken.ThrowIfCancellationRequested();
             var files = _localStorage.GetFiles(dirPath);
             var dirs = _localStorage.GetDirectories(dirPath);
-            foreach (var path in files)
+            var remoteFiles = await _remoteStorage.GetFilesAsync(dirPath);
+            var remoteDirs = await _remoteStorage.GetDirectoriesAsync(dirPath);
+            foreach (var path in files.Union(remoteFiles).Distinct())
             {
                 await UploadFileSafelyAsync(path, cancellationToken).ConfigureAwait(false);
             }
-            foreach (var path in dirs)
+            foreach (var path in dirs.Union(remoteDirs).Distinct())
             {
                 await UploadDirectoryAsync(path, cancellationToken).ConfigureAwait(false);
             }
         }
 
+        private async Task RetryUploadAsync(CancellationToken cancellationToken)
+        {
+            cancellationToken.ThrowIfCancellationRequested();
+            var list = RetryPathList;
+            RetryPathList = new List<PathString>();
+            foreach (var path in list)
+            {
+                await UploadFileSafelyAsync(path, cancellationToken).ConfigureAwait(false);
+            }
+        }
+
         private async Task UploadFileSafelyAsync(PathString path, CancellationToken cancellationToken)
         {
+            cancellationToken.ThrowIfCancellationRequested();
             if (!_localStorage.FileExists(path))
             {
-                return;
+                await _remoteStorage.DeleteAsync(path, cancellationToken);
             }
 
             var created = _localStorage.GetCreated(path);

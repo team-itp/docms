@@ -3,6 +3,7 @@ using Docms.Client.Configurations;
 using Docms.Client.SeedWork;
 using Microsoft.EntityFrameworkCore;
 using System;
+using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Net;
@@ -71,7 +72,7 @@ namespace Docms.Client.RemoteStorage
             var remoteFile = await GetAsync(path).ConfigureAwait(false);
             if (remoteFile == null)
             {
-                remoteFile = new RemoteFile(path.ToString());
+                remoteFile = new RemoteFile(path);
                 await _db.AddAsync(remoteFile).ConfigureAwait(false);
             }
             remoteFile.Apply(history);
@@ -176,6 +177,29 @@ namespace Docms.Client.RemoteStorage
                 retryCount++;
             }
             throw new RetryTimeoutException(path, retryCount);
+        }
+
+        public async Task<IEnumerable<PathString>> GetFilesAsync(PathString dirPath)
+        {
+            return await _db.RemoteFiles
+                        .Where(f => f.ParentPath == dirPath.ToString())
+                        .Select(f => new PathString(f.Path))
+                        .ToListAsync().ConfigureAwait(false);
+        }
+
+        public async Task<IEnumerable<PathString>> GetDirectoriesAsync(PathString dirPath)
+        {
+            return await _db.RemoteFiles
+                        .Where(f => f.ParentPath.StartsWith(dirPath.ToString() + "/"))
+                        .Select(f => f.ParentPath)
+                        .Distinct()
+                        .Select(p => new PathString(p))
+                        .ToListAsync().ConfigureAwait(false);
+        }
+
+        public Task DeleteAsync(PathString path, CancellationToken cancellationToken)
+        {
+            throw new NotImplementedException();
         }
     }
 }

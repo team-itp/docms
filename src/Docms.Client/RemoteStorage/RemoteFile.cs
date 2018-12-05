@@ -13,13 +13,17 @@ namespace Docms.Client.RemoteStorage
             RemoteFileHistories = new List<RemoteFileHistory>();
         }
 
-        public RemoteFile(string path) : this()
+        public RemoteFile(PathString path) : this()
         {
-            Path = path;
+            Path = path.ToString();
+            ParentPath = path.ParentPath.ToString();
+            Name = path.Name;
         }
 
         public Guid Id { get; set; }
         public string Path { get; set; }
+        public string ParentPath { get; set; }
+        public string Name { get; set; }
         public string ContentType { get; set; }
         public long FileSize { get; set; }
         public string Hash { get; set; }
