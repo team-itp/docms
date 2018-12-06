@@ -95,48 +95,39 @@ namespace Docms.Client.Uploading
 
             try
             {
+                using (var fs = _localStorage.OpenRead(path))
+                {
+                    await _remoteStorage.UploadAsync(path, fs, created, lastModified, cancellationToken)
+                        .ConfigureAwait(false);
+                }
+                return;
+            }
+            catch (IOException)
+            {
+                var tempFileInfo = default(FileInfo);
                 try
                 {
-                    using (var fs = _localStorage.OpenRead(path))
-                    {
-                        await _remoteStorage.UploadAsync(path, fs, created, lastModified, cancellationToken)
-                            .ConfigureAwait(false);
-                    }
-                    return;
+                    tempFileInfo = _localStorage.TempCopy(path);
                 }
                 catch (IOException)
                 {
-                    var tempFileInfo = default(FileInfo);
-                    try
-                    {
-                        tempFileInfo = _localStorage.TempCopy(path);
-                    }
-                    catch (IOException)
-                    {
-                        _logger.Info("failed to upload:" + path.ToString());
-                        RetryPathList.Add(path);
-                        return;
-                    }
-                    if (tempFileInfo.Exists)
-                    {
-                        using (var fs = tempFileInfo.OpenRead())
-                        {
-                            await _remoteStorage.UploadAsync(path, fs, created, lastModified, cancellationToken)
-                                .ConfigureAwait(false);
-                        }
-                        tempFileInfo.Delete();
-                        return;
-                    }
                     _logger.Info("failed to upload:" + path.ToString());
                     RetryPathList.Add(path);
                     return;
                 }
-            }
-            catch (RemoteFileAlreadyDeletedException)
-            {
-                _logger.Info("remote file already deleted. deleting local file :" + path.ToString());
-                _localStorage.Delete(path);
-                _logger.Info("lacal file deleted :" + path.ToString());
+                if (tempFileInfo.Exists)
+                {
+                    using (var fs = tempFileInfo.OpenRead())
+                    {
+                        await _remoteStorage.UploadAsync(path, fs, created, lastModified, cancellationToken)
+                            .ConfigureAwait(false);
+                    }
+                    tempFileInfo.Delete();
+                    return;
+                }
+                _logger.Info("failed to upload:" + path.ToString());
+                RetryPathList.Add(path);
+                return;
             }
         }
     }

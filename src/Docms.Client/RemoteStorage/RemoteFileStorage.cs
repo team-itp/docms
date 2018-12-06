@@ -111,17 +111,7 @@ namespace Docms.Client.RemoteStorage
             if (remoteFile != null)
             {
                 var hash = default(string);
-                if (remoteFile.IsDeleted)
-                {
-                    hash = Hash.CalculateHash(stream);
-                    stream.Seek(0, SeekOrigin.Begin);
-                    if (remoteFile.RemoteFileHistories
-                        .Any(h => h.Hash == hash))
-                    {
-                        throw new RemoteFileAlreadyDeletedException(path);
-                    }
-                }
-                else
+                if (!remoteFile.IsDeleted)
                 {
                     if (remoteFile.FileSize == stream.Length
                         && remoteFile.LastModified == lastModified)

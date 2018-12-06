@@ -79,7 +79,7 @@ namespace Docms.Client.Tests
         }
 
         [TestMethod]
-        public async Task サーバーからファイルが削除されてローカルに同一のファイルが存在する場合ファイルが削除されること()
+        public async Task サーバーからファイルが削除されてローカルに同一のファイルが存在する場合ファイルがアップロードされること()
         {
             await CreateRemoteFile("dir1/content1.txt", "content1");
             await DeleteRemoteFile("dir1/content1.txt");
@@ -89,8 +89,8 @@ namespace Docms.Client.Tests
             await sut.UploadAsync();
 
             await remoteStorage.SyncAsync();
-            Assert.IsTrue((await remoteStorage.GetAsync(new PathString("dir1/content1.txt"))).IsDeleted);
-            Assert.IsFalse(localStorage.FileExists(new PathString("dir1/content1.txt")));
+            Assert.IsFalse((await remoteStorage.GetAsync(new PathString("dir1/content1.txt"))).IsDeleted);
+            Assert.IsTrue(localStorage.FileExists(new PathString("dir1/content1.txt")));
         }
 
         [TestMethod]
