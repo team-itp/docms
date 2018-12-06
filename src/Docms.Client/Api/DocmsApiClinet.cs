@@ -266,6 +266,7 @@ namespace Docms.Client.Api
 
         public async Task DeleteDocumentAsync(string path)
         {
+            _logger.Info("requesting deletion for path: " + path);
             try
             {
                 var request = new RestRequest(_defaultPath + "files", Method.DELETE);
