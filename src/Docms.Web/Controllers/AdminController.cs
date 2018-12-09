@@ -5,6 +5,7 @@ using MediatR;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.EntityFrameworkCore;
 using System.Threading.Tasks;
 
 namespace Docms.Web.Controllers
@@ -39,8 +40,8 @@ namespace Docms.Web.Controllers
         public async Task<IActionResult> ListDevices([FromServices] IDeviceGrantsQueries queries)
         {
             ViewData["Message"] = TempData["Message"];
-            var devices = await queries.GetDevicesAsync();
-            return View(devices);
+            var devices = queries.GetDevices();
+            return View(await devices.ToListAsync());
         }
 
         [HttpPost("devices/grant")]
