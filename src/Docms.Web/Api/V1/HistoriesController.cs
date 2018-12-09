@@ -1,8 +1,11 @@
 ﻿using Docms.Queries.DocumentHistories;
+using Docms.Web.Extensions;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.EntityFrameworkCore;
 using System;
+using System.Linq;
 using System.Threading.Tasks;
 
 namespace Docms.Web.Api.V1
@@ -23,9 +26,24 @@ namespace Docms.Web.Api.V1
         [HttpGet]
         public async Task<IActionResult> Get(
             [FromQuery] string path,
-            [FromQuery] DateTime? since = null)
+            [FromQuery] DateTime? since = null,
+            [FromQuery] int? page = null,
+            [FromQuery] int? per_page = null)
         {
-            var histories = await _queries.GetHistoriesAsync(path ?? "", since);
+            var histories = _queries.GetHistories(path ?? "", since);
+            var cnt = await histories.CountAsync();
+            if (per_page != null)
+            {
+                Response.Headers.AddPaginationHeader(
+                    Url.Action("Get", "Histories", new { path, since }, Request.Scheme, Request.Host.Value),
+                    page ?? 1,
+                    per_page.Value,
+                    cnt);
+                return Ok(await histories
+                    .Skip(per_page.Value * ((page ?? 1) - 1))
+                    .Take(per_page.Value)
+                    .ToListAsync());
+            }
             return Ok(histories);
         }
     }

@@ -1,9 +1,7 @@
 ﻿using Docms.Queries.DocumentHistories;
 using Microsoft.EntityFrameworkCore;
 using System;
-using System.Collections.Generic;
 using System.Linq;
-using System.Threading.Tasks;
 
 namespace Docms.Infrastructure.Queries
 {
@@ -16,19 +14,19 @@ namespace Docms.Infrastructure.Queries
             this.ctx = ctx;
         }
 
-        public async Task<IEnumerable<DocumentHistory>> GetHistoriesAsync(string path, DateTime? since = default(DateTime?))
+        public IQueryable<DocumentHistory> GetHistories(string path, DateTime? since = default(DateTime?))
         {
             var query = ctx.DocumentHistories as IQueryable<DocumentHistory>;
             if (!string.IsNullOrEmpty(path))
             {
-                query = query.Where(e => e.Path != null && EF.Functions.Like(e.Path, path + "%"));
+                query = query.Where(e => e.Path == path || EF.Functions.Like(e.Path, path + "/%"));
             }
             if (since != null)
             {
                 var sinceUtc = since.Value.ToUniversalTime();
                 query = query.Where(e => e.Timestamp >= sinceUtc);
             }
-            return await query.OrderBy(e => e.Timestamp).ToListAsync();
+            return query.OrderBy(e => e.Timestamp);
         }
     }
 }

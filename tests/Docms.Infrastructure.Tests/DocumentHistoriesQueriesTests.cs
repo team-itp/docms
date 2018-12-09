@@ -26,12 +26,14 @@ namespace Docms.Infrastructure.Tests
             sut = new DocumentHistoriesQueries(ctx);
 
             Created(ctx, "path1/subpath1/document1.txt", 1);
-            Created(ctx, "path1/subpath1/document2.txt", 2);
-            Created(ctx, "path1/subpath1document2.txt", 3);
-            Moved(ctx, "path1/subpath1/document2.txt", "path2/subpath1/document1.txt", 2);
-            Updated(ctx, "path1/subpath1/document1.txt", 4);
+            Created(ctx, "path1/subpath1/subsubpath1/document1.txt", 2);
+            Created(ctx, "path1/subpath1/subsubpath1/document2.txt", 3);
+            Created(ctx, "path1/subpath1/document2.txt", 4);
+            Created(ctx, "path1/subpath1document2.txt", 5);
+            Moved(ctx, "path1/subpath1/document2.txt", "path2/subpath1/document1.txt", 4);
+            Updated(ctx, "path1/subpath1/document1.txt", 6);
             Deleted(ctx, "path1/subpath1/document1.txt");
-            Created(ctx, "path2/document1.txt", 4);
+            Created(ctx, "path2/document1.txt", 7);
             await ctx.SaveChangesAsync();
         }
 
@@ -111,15 +113,15 @@ namespace Docms.Infrastructure.Tests
         [TestMethod]
         public async Task 条件なしでルートを指定した場合ドキュメントの履歴がすべて取得できること()
         {
-            var histories = await sut.GetHistoriesAsync("");
-            Assert.AreEqual(await ctx.DocumentHistories.CountAsync(), histories.Count());
+            var histories = sut.GetHistories("");
+            Assert.AreEqual(await ctx.DocumentHistories.CountAsync(), await histories.CountAsync());
         }
 
         [TestMethod]
         public async Task ディレクトリを指定した場合当該のドキュメント配下の履歴がすべて取得できること()
         {
-            var histories = await sut.GetHistoriesAsync("path1/subpath1");
-            Assert.AreEqual(5, histories.Count());
+            var histories = sut.GetHistories("path1/subpath1");
+            Assert.AreEqual(7, await histories.CountAsync());
         }
 
         [TestMethod]
@@ -129,8 +131,8 @@ namespace Docms.Infrastructure.Tests
             await Task.Delay(1);
             Created(ctx, "path1/newdocument.txt", 1);
             await ctx.SaveChangesAsync();
-            var histories = await sut.GetHistoriesAsync("", since);
-            Assert.AreEqual(1, histories.Count());
+            var histories = sut.GetHistories("", since);
+            Assert.AreEqual(1, await histories.CountAsync());
         }
     }
 }
