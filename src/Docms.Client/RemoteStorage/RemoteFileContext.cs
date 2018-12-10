@@ -9,7 +9,16 @@ namespace Docms.Client.RemoteStorage
     {
         public RemoteFileContext(DbContextOptions<RemoteFileContext> options) : base(options)
         {
-            Debug.WriteLine("DocmsContext::ctor ->" + this.GetHashCode());
+            Debug.WriteLine("RemoteFileContext::ctor ->" + this.GetHashCode());
+        }
+
+        protected override void OnModelCreating(ModelBuilder modelBuilder)
+        {
+            base.OnModelCreating(modelBuilder);
+            modelBuilder.Entity<RemoteFile>()
+                .HasIndex(p => p.Path);
+            modelBuilder.Entity<RemoteFile>()
+                .HasIndex(p => p.ParentPath);
         }
 
         public DbSet<RemoteFile> RemoteFiles { get; set; }
