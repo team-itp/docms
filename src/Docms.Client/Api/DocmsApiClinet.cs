@@ -148,7 +148,14 @@ namespace Docms.Client.Api
         {
             if (!result.IsSuccessful)
             {
-                throw new ServerException((int)result.StatusCode, result.Content);
+                if (result.ErrorException != null)
+                {
+                    throw new ServerException(result.Content, result.ErrorException);
+                }
+                else
+                {
+                    throw new ServerException((int)result.StatusCode, result.Content);
+                }
             }
         }
 
@@ -303,7 +310,7 @@ namespace Docms.Client.Api
             request.AddQueryParameter("per_page", "100");
             var result = await ExecuteAsync(request).ConfigureAwait(false);
             ThrowIfNotSuccessfulStatus(result);
- 
+
             var resultList = JsonConvert.DeserializeObject<List<History>>(result.Content, DefaultJsonSerializerSettings);
             var pagination = PaginationHeader.Parse(result.Headers.FirstOrDefault(h => h.Name == "Link")?.Value?.ToString());
             while (!string.IsNullOrEmpty(pagination?.Next))

@@ -48,5 +48,10 @@ namespace Docms.Client.Api
             StatusCode = httpStatusCode;
             Content = content;
         }
+
+        public ServerException(string content, Exception innerException) : base("サーバーとの通信でエラーが発生しました。", innerException)
+        {
+            Content = content;
+        }
     }
 }

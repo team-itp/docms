@@ -1,9 +1,10 @@
 using System;
+using System.Collections.Generic;
 using System.IO;
 
 namespace Docms.Client.SeedWork
 {
-    public class PathString
+    public class PathString : IEquatable<PathString>
     {
         public static PathString Root { get; } = new PathString("");
 
@@ -38,6 +39,22 @@ namespace Docms.Client.SeedWork
         public override string ToString()
         {
             return _path;
+        }
+
+        public override bool Equals(object obj)
+        {
+            return Equals(obj as PathString);
+        }
+
+        public bool Equals(PathString other)
+        {
+            return other != null &&
+                   _path == other._path;
+        }
+
+        public override int GetHashCode()
+        {
+            return 2090457805 + EqualityComparer<string>.Default.GetHashCode(_path);
         }
     }
 }

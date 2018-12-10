@@ -92,42 +92,48 @@ namespace Docms.Client.Uploading
 
             var created = _localStorage.GetCreated(path);
             var lastModified = _localStorage.GetLastModified(path);
-
             try
             {
-                using (var fs = _localStorage.OpenRead(path))
-                {
-                    await _remoteStorage.UploadAsync(path, fs, created, lastModified, cancellationToken)
-                        .ConfigureAwait(false);
-                }
-                return;
-            }
-            catch (IOException)
-            {
-                var tempFileInfo = default(FileInfo);
                 try
                 {
-                    tempFileInfo = _localStorage.TempCopy(path);
-                }
-                catch (IOException)
-                {
-                    _logger.Info("failed to upload:" + path.ToString());
-                    RetryPathList.Add(path);
-                    return;
-                }
-                if (tempFileInfo.Exists)
-                {
-                    using (var fs = tempFileInfo.OpenRead())
+                    using (var fs = _localStorage.OpenRead(path))
                     {
                         await _remoteStorage.UploadAsync(path, fs, created, lastModified, cancellationToken)
                             .ConfigureAwait(false);
                     }
-                    tempFileInfo.Delete();
                     return;
                 }
+                catch (IOException)
+                {
+                    var tempFileInfo = default(FileInfo);
+                    try
+                    {
+                        tempFileInfo = _localStorage.TempCopy(path);
+                    }
+                    catch (IOException)
+                    {
+                        _logger.Info("failed to upload:" + path.ToString());
+                        RetryPathList.Add(path);
+                        return;
+                    }
+                    if (tempFileInfo.Exists)
+                    {
+                        using (var fs = tempFileInfo.OpenRead())
+                        {
+                            await _remoteStorage.UploadAsync(path, fs, created, lastModified, cancellationToken)
+                                .ConfigureAwait(false);
+                        }
+                        tempFileInfo.Delete();
+                        return;
+                    }
+                    throw;
+                }
+            }
+            catch (Exception ex)
+            {
+                _logger.Error(ex);
                 _logger.Info("failed to upload:" + path.ToString());
                 RetryPathList.Add(path);
-                return;
             }
         }
     }

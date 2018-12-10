@@ -2,6 +2,7 @@
 using Docms.Client.Configurations;
 using Docms.Client.SeedWork;
 using Microsoft.EntityFrameworkCore;
+using NLog;
 using System;
 using System.Collections.Generic;
 using System.IO;
@@ -14,6 +15,8 @@ namespace Docms.Client.RemoteStorage
 {
     public class RemoteFileStorage : IRemoteFileStorage
     {
+        private Logger _logger = LogManager.LogFactory.GetCurrentClassLogger();
+
         private IDocmsApiClient _client;
         private RemoteFileContext _db;
 
@@ -28,8 +31,10 @@ namespace Docms.Client.RemoteStorage
 
         public async Task<RemoteFile> GetAsync(PathString path)
         {
+            _logger.Debug($"RemoteFileStorage#GetAsync:{path} start");
             if (IgnoreFilePatterns.Default.IsMatch(path))
             {
+                _logger.Debug("RemoteFileStorage#GetAsync:ignored end");
                 return null;
             }
             var remoteFile = await _db.RemoteFiles
@@ -37,6 +42,7 @@ namespace Docms.Client.RemoteStorage
 
             if (remoteFile == null)
             {
+                _logger.Debug("RemoteFileStorage#GetAsync:file not found end");
                 return null;
             }
 
@@ -47,6 +53,7 @@ namespace Docms.Client.RemoteStorage
             remoteFile.RemoteFileHistories =
                 remoteFile.RemoteFileHistories.OrderBy(e => e.Timestamp).ToList();
 
+            _logger.Debug("RemoteFileStorage#GetAsync:found end");
             return remoteFile;
         }
 
