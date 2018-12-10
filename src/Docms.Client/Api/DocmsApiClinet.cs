@@ -300,9 +300,20 @@ namespace Docms.Client.Api
             {
                 request.AddQueryParameter("since", XmlConvert.ToString(since.Value, XmlDateTimeSerializationMode.Utc));
             }
+            request.AddQueryParameter("per_page", "100");
             var result = await ExecuteAsync(request).ConfigureAwait(false);
             ThrowIfNotSuccessfulStatus(result);
-            return JsonConvert.DeserializeObject<List<History>>(result.Content, DefaultJsonSerializerSettings);
+ 
+            var resultList = JsonConvert.DeserializeObject<List<History>>(result.Content, DefaultJsonSerializerSettings);
+            var pagination = PaginationHeader.Parse(result.Headers.FirstOrDefault(h => h.Name == "Link")?.Value?.ToString());
+            while (!string.IsNullOrEmpty(pagination?.Next))
+            {
+                request = new RestRequest(pagination.Next, Method.GET);
+                result = await ExecuteAsync(request).ConfigureAwait(false);
+                resultList.AddRange(JsonConvert.DeserializeObject<List<History>>(result.Content, DefaultJsonSerializerSettings));
+                pagination = PaginationHeader.Parse(result.Headers.FirstOrDefault(h => h.Name == "Link")?.Value?.ToString());
+            }
+            return resultList;
         }
     }
 }
