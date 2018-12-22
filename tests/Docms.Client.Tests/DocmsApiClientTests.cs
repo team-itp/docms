@@ -9,12 +9,11 @@ using System.Threading.Tasks;
 namespace Docms.Client.Tests
 {
     [TestClass]
-    [Ignore]
-    public class DocmsApiClinetTests
+    public class DocmsApiClientTests
     {
         private static bool noConnection;
 
-        private DocmsApiClinet sut;
+        private DocmsApiClient sut;
 
         [TestInitialize]
         public async Task Setup()
@@ -23,7 +22,7 @@ namespace Docms.Client.Tests
 
             try
             {
-                sut = new DocmsApiClinet("http://localhost:51693");
+                sut = new DocmsApiClient("http://localhost:51693");
                 await sut.LoginAsync("testuser", "Passw0rd").ConfigureAwait(false);
             }
             catch (Exception)

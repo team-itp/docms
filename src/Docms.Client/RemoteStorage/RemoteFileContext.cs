@@ -1,5 +1,4 @@
-﻿using Docms.Client.Api;
-using Microsoft.EntityFrameworkCore;
+﻿using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Design;
 using System.Diagnostics;
 

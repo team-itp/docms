@@ -15,7 +15,7 @@ using System.Xml;
 
 namespace Docms.Client.Api
 {
-    public class DocmsApiClinet : IDocmsApiClient
+    public class DocmsApiClient : IDocmsApiClient
     {
         private static readonly Logger _logger = LogManager.GetCurrentClassLogger();
 
@@ -31,7 +31,7 @@ namespace Docms.Client.Api
 
         public JsonSerializerSettings DefaultJsonSerializerSettings { get; set; }
 
-        public DocmsApiClinet(string uri, string defaultPath = "api/v1")
+        public DocmsApiClient(string uri, string defaultPath = "api/v1")
         {
             if (string.IsNullOrWhiteSpace(uri))
             {

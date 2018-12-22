@@ -20,7 +20,7 @@ namespace docmssync
         private static readonly Logger _logger = LogManager.GetCurrentClassLogger();
 
         private string _watchPath;
-        private DocmsApiClinet _client;
+        private DocmsApiClient _client;
         private ILocalFileStorage _localFileStorage;
         private ILocalFileStorageWatcher _localFileStorageWatcher;
         private LocalFileEventShrinker _eventShrinker;
@@ -49,7 +49,7 @@ namespace docmssync
             }
             _localFileStorage = new LocalFileStorage(_watchPath);
 
-            _client = new DocmsApiClinet(Settings.Default.ServerUrl, "api/v1");
+            _client = new DocmsApiClient(Settings.Default.ServerUrl, "api/v1");
 
             var dbDir = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData), "docmssync");
             if (Directory.Exists(dbDir))
