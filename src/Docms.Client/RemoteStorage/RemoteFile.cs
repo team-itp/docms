@@ -6,24 +6,18 @@ using System.Linq;
 
 namespace Docms.Client.RemoteStorage
 {
-    public class RemoteFile
+    public class RemoteFile : RemoteNode
     {
-        protected RemoteFile()
+        protected RemoteFile() : base()
         {
             RemoteFileHistories = new List<RemoteFileHistory>();
         }
 
-        public RemoteFile(PathString path) : this()
+        public RemoteFile(PathString path) : base(path)
         {
-            Path = path.ToString();
-            ParentPath = path.ParentPath.ToString();
-            Name = path.Name;
+            RemoteFileHistories = new List<RemoteFileHistory>();
         }
 
-        public Guid Id { get; set; }
-        public string Path { get; set; }
-        public string ParentPath { get; set; }
-        public string Name { get; set; }
         public string ContentType { get; set; }
         public long FileSize { get; set; }
         public string Hash { get; set; }
@@ -102,7 +96,6 @@ namespace Docms.Client.RemoteStorage
                 HistoryId = history.Id,
                 HistoryType = historyType,
                 RemoteFile = this,
-                Path = Path,
                 ContentType = ContentType,
                 FileSize = FileSize,
                 Hash = Hash,

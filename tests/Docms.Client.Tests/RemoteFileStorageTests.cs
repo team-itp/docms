@@ -53,7 +53,6 @@ namespace Docms.Client.Tests
             var remoteFile = await sut.GetAsync(new PathString("dir1/content1.txt"));
             Assert.AreEqual("dir1/content1.txt", remoteFile.Path);
             var history = remoteFile.RemoteFileHistories.Last();
-            Assert.AreEqual("dir1/content1.txt", history.Path);
             Assert.AreEqual("Created", history.HistoryType);
         }
 
@@ -67,7 +66,6 @@ namespace Docms.Client.Tests
             var remoteFile = await sut.GetAsync(new PathString("dir1/content1.txt"));
             Assert.AreEqual("dir1/content1.txt", remoteFile.Path);
             var history = remoteFile.RemoteFileHistories.Last();
-            Assert.AreEqual("dir1/content1.txt", history.Path);
             Assert.AreEqual("Updated", history.HistoryType);
         }
 

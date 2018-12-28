@@ -14,12 +14,14 @@ namespace Docms.Client.RemoteStorage
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
             base.OnModelCreating(modelBuilder);
-            modelBuilder.Entity<RemoteFile>()
+            modelBuilder.Entity<RemoteNode>()
                 .HasIndex(p => p.Path);
-            modelBuilder.Entity<RemoteFile>()
+            modelBuilder.Entity<RemoteNode>()
                 .HasIndex(p => p.ParentPath);
         }
 
+        public DbSet<RemoteNode> RemoteNodes { get; set; }
+        public DbSet<RemoteContainer> RemoteContainers { get; set; }
         public DbSet<RemoteFile> RemoteFiles { get; set; }
         public DbSet<RemoteFileHistory> RemoteFileHistories { get; set; }
     }
