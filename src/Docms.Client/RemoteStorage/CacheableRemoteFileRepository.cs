@@ -8,8 +8,34 @@ using System.Threading.Tasks;
 
 namespace Docms.Client.RemoteStorage
 {
-    class CacheableRemoteFileRepository : IRemoteFileRepository
+    public class CacheableRemoteFileRepository : IRemoteFileRepository
     {
+        private class RemoteFileEqualityByIdComparer : IEqualityComparer<RemoteFile>
+        {
+            public bool Equals(RemoteFile x, RemoteFile y)
+            {
+                return x.Id == y.Id;
+            }
+
+            public int GetHashCode(RemoteFile obj)
+            {
+                return obj.Id.GetHashCode();
+            }
+        }
+
+        private class RemoteFileHistoryEqualityByHistoryIdComparer : IEqualityComparer<RemoteFileHistory>
+        {
+            public bool Equals(RemoteFileHistory x, RemoteFileHistory y)
+            {
+                return x.HistoryId == y.HistoryId;
+            }
+
+            public int GetHashCode(RemoteFileHistory obj)
+            {
+                return obj.HistoryId.GetHashCode();
+            }
+        }
+
         private ILogger _logger = LogManager.GetCurrentClassLogger();
 
         private RemoteFileContext _db;
@@ -18,7 +44,9 @@ namespace Docms.Client.RemoteStorage
         private Dictionary<PathString, RemoteContainer> _containers = new Dictionary<PathString, RemoteContainer>();
         private Dictionary<Guid, List<RemoteFileHistory>> _histories = new Dictionary<Guid, List<RemoteFileHistory>>();
         private HashSet<Guid> _appliedHistoryIds = new HashSet<Guid>();
-        private List<RemoteFileHistory> _historiesToAdd = new List<RemoteFileHistory>();
+        private HashSet<RemoteFileHistory> _historiesToAdd = new HashSet<RemoteFileHistory>(new RemoteFileHistoryEqualityByHistoryIdComparer());
+        private HashSet<RemoteFile> _addedRemoteFiles = new HashSet<RemoteFile>(new RemoteFileEqualityByIdComparer());
+        private HashSet<RemoteFile> _updatedRemoteFiles = new HashSet<RemoteFile>(new RemoteFileEqualityByIdComparer());
 
         public CacheableRemoteFileRepository(RemoteFileContext db)
         {
@@ -70,7 +98,8 @@ namespace Docms.Client.RemoteStorage
             }
 
             container = await _db.RemoteContainers
-                .FirstOrDefaultAsync(c => (object.Equals(containerPath, PathString.Root) && c.Path == null)
+                .FirstOrDefaultAsync(c => (object.Equals(containerPath, PathString.Root) 
+                    && c.Path == PathString.Root.ToString())
                     || c.Path == containerPath.ToString());
 
             if (container == null)
@@ -79,8 +108,10 @@ namespace Docms.Client.RemoteStorage
             }
 
             container.Children = await _db.RemoteNodes
-                .Where(c => (object.Equals(containerPath, PathString.Root) && c.Path == null)
-                    || c.Path == containerPath.ToString())
+                .Where(c => (object.Equals(containerPath, PathString.Root) 
+                    && c.ParentPath == PathString.Root.ToString() 
+                    && c.Path != PathString.Root.ToString())
+                    || c.ParentPath == containerPath.ToString())
                 .OrderBy(c => c.Name)
                 .ToListAsync();
 
@@ -181,6 +212,8 @@ namespace Docms.Client.RemoteStorage
             }
             var copiedRemoteFile = Clone(remoteFile);
             container.AddChild(copiedRemoteFile);
+            _addedRemoteFiles.Add(copiedRemoteFile);
+
             foreach (var history in remoteFile.RemoteFileHistories)
             {
                 if (_appliedHistoryIds.Add(history.HistoryId))
@@ -192,18 +225,17 @@ namespace Docms.Client.RemoteStorage
 
         private async Task<RemoteContainer> CreateAndCacheEmptyContainer(PathString containerPath)
         {
+            if (object.Equals(containerPath, PathString.Root))
+            {
+                var rootContainer = new RemoteContainer(PathString.Root);
+                _containers.Add(containerPath, rootContainer);
+                return rootContainer;
+            }
+
             var parentContainer = await FetchAndCacheContainer(containerPath.ParentPath);
             if (parentContainer == null)
             {
-                if (object.Equals(containerPath.ParentPath, PathString.Root))
-                {
-                    parentContainer = new RemoteContainer(containerPath.ParentPath);
-                    _containers.Add(containerPath.ParentPath, parentContainer);
-                }
-                else
-                {
-                    parentContainer = await CreateAndCacheEmptyContainer(containerPath.ParentPath);
-                }
+                parentContainer = await CreateAndCacheEmptyContainer(containerPath.ParentPath);
             }
             var container = new RemoteContainer(containerPath);
             _containers.Add(containerPath, container);
@@ -233,6 +265,13 @@ namespace Docms.Client.RemoteStorage
             file.LastModified = remoteFile.LastModified;
             file.IsDeleted = remoteFile.IsDeleted;
 
+            if (!_addedRemoteFiles.Contains(file))
+            {
+                _updatedRemoteFiles.Remove(file);
+                _updatedRemoteFiles.Add(file);
+            }
+
+
             foreach (var history in remoteFile.RemoteFileHistories)
             {
                 if (_appliedHistoryIds.Add(history.HistoryId))
@@ -248,9 +287,24 @@ namespace Docms.Client.RemoteStorage
             }
         }
 
-        public Task SaveAsync()
+        public async Task SaveAsync()
         {
-            return Task.CompletedTask;
+            foreach(var file in _addedRemoteFiles)
+            {
+                _db.RemoteFiles.Add(file);
+            }
+            foreach (var file in _updatedRemoteFiles)
+            {
+                _db.RemoteFiles.Update(file);
+            }
+            foreach (var history in _historiesToAdd)
+            {
+                _db.RemoteFileHistories.Add(history);
+            }
+            await _db.SaveChangesAsync();
+            _addedRemoteFiles.Clear();
+            _updatedRemoteFiles.Clear();
+            _historiesToAdd.Clear();
         }
     }
 }
