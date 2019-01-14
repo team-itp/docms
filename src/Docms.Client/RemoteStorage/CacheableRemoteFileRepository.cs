@@ -276,33 +276,34 @@ namespace Docms.Client.RemoteStorage
             }
         }
 
-        public async Task SaveAsync()
+        public Task SaveAsync()
         {
-            try
-            {
-                foreach (var node in _addedRemoteNodes)
-                {
-                    if (node is RemoteFile file)
-                    {
-                        file.RemoteFileHistories = _histories[node.Id];
-                    }
-                    _db.RemoteNodes.Add(node);
-                }
-                foreach (var node in _updatedRemoteNodes)
-                {
-                    if (node is RemoteFile file)
-                    {
-                        file.RemoteFileHistories = _histories[node.Id];
-                    }
-                    _db.RemoteNodes.Update(node);
-                }
-                await _db.SaveChangesAsync();
-            }
-            finally
-            {
-                _addedRemoteNodes.Clear();
-                _updatedRemoteNodes.Clear();
-            }
+            //try
+            //{
+            //    foreach (var node in _addedRemoteNodes)
+            //    {
+            //        if (node is RemoteFile file)
+            //        {
+            //            file.RemoteFileHistories = _histories[node.Id];
+            //        }
+            //        _db.RemoteNodes.Add(node);
+            //    }
+            //    foreach (var node in _updatedRemoteNodes)
+            //    {
+            //        if (node is RemoteFile file)
+            //        {
+            //            file.RemoteFileHistories = _histories[node.Id];
+            //        }
+            //        _db.RemoteNodes.Update(node);
+            //    }
+            //    await _db.SaveChangesAsync();
+            //}
+            //finally
+            //{
+            //    _addedRemoteNodes.Clear();
+            //    _updatedRemoteNodes.Clear();
+            //}
+            return Task.CompletedTask;
         }
     }
 }

@@ -89,27 +89,28 @@ namespace docmssync
 
         private async void StartAsync()
         {
-            while (!_cts.IsCancellationRequested)
-            {
-                try
-                {
-                    await _client.LoginAsync(Settings.Default.UploadUserName, Settings.Default.UploadUserPassword).ConfigureAwait(false);
-                    _uploader = new LocalFileUploader(_localFileStorage, _remoteFileStorage);
-                    _eventShrinker = new LocalFileEventShrinker();
+            await _client.LoginAsync(Settings.Default.UploadUserName, Settings.Default.UploadUserPassword).ConfigureAwait(false);
+            _uploader = new LocalFileUploader(_localFileStorage, _remoteFileStorage);
+            _eventShrinker = new LocalFileEventShrinker();
 
-                    await EnqueueTask(async () =>
+            await EnqueueTask(async () =>
+            {
+                await _remoteFileStorage.SyncAsync().ConfigureAwait(false);
+                await _localFileStorageWatcher.StartWatch(_cts.Token).ConfigureAwait(false);
+                while (!_cts.IsCancellationRequested)
+                {
+                    try
                     {
-                        await _remoteFileStorage.SyncAsync().ConfigureAwait(false);
-                        await _localFileStorageWatcher.StartWatch(_cts.Token).ConfigureAwait(false);
                         await _uploader.UploadAsync(_cts.Token).ConfigureAwait(false);
                         _timer.Change(10000, 10000);
-                    });
+                        return;
+                    }
+                    catch (Exception ex)
+                    {
+                        _logger.Debug(ex);
+                    }
                 }
-                catch (Exception ex)
-                {
-                    _logger.Debug(ex);
-                }
-            }
+            });
         }
 
         private async Task ResetProcessAsync(CancellationToken token = default(CancellationToken))
