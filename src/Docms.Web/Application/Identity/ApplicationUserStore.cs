@@ -26,7 +26,7 @@ namespace Docms.Web.Application.Identity
             Id = "admin",
             Name = "管理者",
             AccountName = "admin",
-            Password = "jEQE5hLa",
+            Password = "05Jgx6Uh",
             Department = -1,
             TeamId = null,
         };
