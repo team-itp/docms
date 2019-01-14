@@ -53,7 +53,7 @@ namespace Docms.Client.RemoteStorage
             _db = db;
         }
 
-        public async Task<RemoteFile> Find(PathString path)
+        public async Task<RemoteFile> FindAsync(PathString path)
         {
             var containerPath = path.ParentPath;
             if (_containers.TryGetValue(containerPath, out var container))
@@ -98,7 +98,7 @@ namespace Docms.Client.RemoteStorage
             }
 
             container = await _db.RemoteContainers
-                .FirstOrDefaultAsync(c => (object.Equals(containerPath, PathString.Root) 
+                .FirstOrDefaultAsync(c => (object.Equals(containerPath, PathString.Root)
                     && c.Path == PathString.Root.ToString())
                     || c.Path == containerPath.ToString());
 
@@ -108,8 +108,8 @@ namespace Docms.Client.RemoteStorage
             }
 
             container.Children = await _db.RemoteNodes
-                .Where(c => (object.Equals(containerPath, PathString.Root) 
-                    && c.ParentPath == PathString.Root.ToString() 
+                .Where(c => (object.Equals(containerPath, PathString.Root)
+                    && c.ParentPath == PathString.Root.ToString()
                     && c.Path != PathString.Root.ToString())
                     || c.ParentPath == containerPath.ToString())
                 .OrderBy(c => c.Name)
@@ -134,8 +134,7 @@ namespace Docms.Client.RemoteStorage
                     .ToListAsync()
                     .ConfigureAwait(false);
 
-                histories =
-                    remoteFile.RemoteFileHistories
+                histories = histories
                         .OrderBy(e => e.Timestamp)
                         .ToList();
 
@@ -289,7 +288,7 @@ namespace Docms.Client.RemoteStorage
 
         public async Task SaveAsync()
         {
-            foreach(var file in _addedRemoteFiles)
+            foreach (var file in _addedRemoteFiles)
             {
                 _db.RemoteFiles.Add(file);
             }

@@ -95,6 +95,7 @@ namespace Docms.Client.RemoteStorage
                 Timestamp = history.Timestamp,
                 HistoryId = history.Id,
                 HistoryType = historyType,
+                RemoteFileId = Id,
                 RemoteFile = this,
                 ContentType = ContentType,
                 FileSize = FileSize,

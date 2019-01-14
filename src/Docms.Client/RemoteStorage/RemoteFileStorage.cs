@@ -37,7 +37,7 @@ namespace Docms.Client.RemoteStorage
                 return null;
             }
 
-            return await _repository.Find(path)
+            return await _repository.FindAsync(path)
                 .ConfigureAwait(false);
         }
 

@@ -1,6 +1,5 @@
-using System;
-using System.Runtime.Serialization;
 using Docms.Client.SeedWork;
+using System;
 
 namespace Docms.Client.RemoteStorage
 {

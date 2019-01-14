@@ -9,7 +9,7 @@ namespace Docms.Client.RemoteStorage
     {
         DateTime? LatestEventTimestamp { get; }
 
-        Task<RemoteFile> Find(PathString path);
+        Task<RemoteFile> FindAsync(PathString path);
         Task<IEnumerable<PathString>> GetFilesAsync(PathString dirPath);
         Task<IEnumerable<PathString>> GetDirectoriesAsync(PathString dirPath);
         Task<bool> IsAlreadyAppliedHistoryAsync(Guid id);
