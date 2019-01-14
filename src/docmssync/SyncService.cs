@@ -42,6 +42,12 @@ namespace docmssync
 
         protected override void OnStart(string[] args)
         {
+            Initialize();
+            StartAsync();
+        }
+
+        private void Initialize()
+        {
             _watchPath = Settings.Default.WatchPath;
             if (!Directory.Exists(_watchPath))
             {
@@ -61,6 +67,7 @@ namespace docmssync
                 .UseSqlite(string.Format("Data Source={0}", Path.Combine(dbDir, "sync.db")))
                 .Options);
             _context.Database.EnsureCreated();
+
             _remoteFileStorage = new RemoteFileStorage(_client, _context);
 
             if (_localFileStorageWatcher == null)
@@ -78,30 +85,30 @@ namespace docmssync
             _cts = new CancellationTokenSource();
             _taskHandle = new AutoResetEvent(false);
             _processTask = ProcessAsync(_cts.Token);
-            StartAsync();
         }
 
         private async void StartAsync()
         {
-            try
+            while (!_cts.IsCancellationRequested)
             {
-                await _context.Database.EnsureCreatedAsync().ConfigureAwait(false);
-                await _client.LoginAsync(Settings.Default.UploadUserName, Settings.Default.UploadUserPassword).ConfigureAwait(false);
-                _uploader = new LocalFileUploader(_localFileStorage, _remoteFileStorage);
-                _eventShrinker = new LocalFileEventShrinker();
-
-                await EnqueueTask(async () =>
+                try
                 {
-                    await _remoteFileStorage.SyncAsync().ConfigureAwait(false);
-                    await _localFileStorageWatcher.StartWatch(_cts.Token).ConfigureAwait(false);
-                    await _uploader.UploadAsync(_cts.Token).ConfigureAwait(false);
-                    _timer.Change(10000, 10000);
-                });
-            }
-            catch (Exception ex)
-            {
-                _logger.Debug(ex);
-                Stop();
+                    await _client.LoginAsync(Settings.Default.UploadUserName, Settings.Default.UploadUserPassword).ConfigureAwait(false);
+                    _uploader = new LocalFileUploader(_localFileStorage, _remoteFileStorage);
+                    _eventShrinker = new LocalFileEventShrinker();
+
+                    await EnqueueTask(async () =>
+                    {
+                        await _remoteFileStorage.SyncAsync().ConfigureAwait(false);
+                        await _localFileStorageWatcher.StartWatch(_cts.Token).ConfigureAwait(false);
+                        await _uploader.UploadAsync(_cts.Token).ConfigureAwait(false);
+                        _timer.Change(10000, 10000);
+                    });
+                }
+                catch (Exception ex)
+                {
+                    _logger.Debug(ex);
+                }
             }
         }
 
