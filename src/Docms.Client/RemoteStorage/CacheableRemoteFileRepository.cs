@@ -10,14 +10,14 @@ namespace Docms.Client.RemoteStorage
 {
     public class CacheableRemoteFileRepository : IRemoteFileRepository
     {
-        private class RemoteFileEqualityByIdComparer : IEqualityComparer<RemoteFile>
+        private class RemoteNodeEqualityByIdComparer : IEqualityComparer<RemoteNode>
         {
-            public bool Equals(RemoteFile x, RemoteFile y)
+            public bool Equals(RemoteNode x, RemoteNode y)
             {
                 return x.Id == y.Id;
             }
 
-            public int GetHashCode(RemoteFile obj)
+            public int GetHashCode(RemoteNode obj)
             {
                 return obj.Id.GetHashCode();
             }
@@ -44,9 +44,8 @@ namespace Docms.Client.RemoteStorage
         private Dictionary<PathString, RemoteContainer> _containers = new Dictionary<PathString, RemoteContainer>();
         private Dictionary<Guid, List<RemoteFileHistory>> _histories = new Dictionary<Guid, List<RemoteFileHistory>>();
         private HashSet<Guid> _appliedHistoryIds = new HashSet<Guid>();
-        private HashSet<RemoteFileHistory> _historiesToAdd = new HashSet<RemoteFileHistory>(new RemoteFileHistoryEqualityByHistoryIdComparer());
-        private HashSet<RemoteFile> _addedRemoteFiles = new HashSet<RemoteFile>(new RemoteFileEqualityByIdComparer());
-        private HashSet<RemoteFile> _updatedRemoteFiles = new HashSet<RemoteFile>(new RemoteFileEqualityByIdComparer());
+        private HashSet<RemoteNode> _addedRemoteNodes = new HashSet<RemoteNode>(new RemoteNodeEqualityByIdComparer());
+        private HashSet<RemoteNode> _updatedRemoteNodes = new HashSet<RemoteNode>(new RemoteNodeEqualityByIdComparer());
 
         public CacheableRemoteFileRepository(RemoteFileContext db)
         {
@@ -211,14 +210,12 @@ namespace Docms.Client.RemoteStorage
             }
             var copiedRemoteFile = Clone(remoteFile);
             container.AddChild(copiedRemoteFile);
-            _addedRemoteFiles.Add(copiedRemoteFile);
+            _addedRemoteNodes.Add(copiedRemoteFile);
+            _histories[remoteFile.Id] = remoteFile.RemoteFileHistories.ToList();
 
             foreach (var history in remoteFile.RemoteFileHistories)
             {
-                if (_appliedHistoryIds.Add(history.HistoryId))
-                {
-                    _historiesToAdd.Add(history);
-                }
+                _appliedHistoryIds.Add(history.HistoryId);
             }
         }
 
@@ -228,6 +225,7 @@ namespace Docms.Client.RemoteStorage
             {
                 var rootContainer = new RemoteContainer(PathString.Root);
                 _containers.Add(containerPath, rootContainer);
+                _addedRemoteNodes.Add(rootContainer);
                 return rootContainer;
             }
 
@@ -238,6 +236,7 @@ namespace Docms.Client.RemoteStorage
             }
             var container = new RemoteContainer(containerPath);
             _containers.Add(containerPath, container);
+            _addedRemoteNodes.Add(container);
             parentContainer.AddChild(container);
             return container;
         }
@@ -264,46 +263,46 @@ namespace Docms.Client.RemoteStorage
             file.LastModified = remoteFile.LastModified;
             file.IsDeleted = remoteFile.IsDeleted;
 
-            if (!_addedRemoteFiles.Contains(file))
+            if (!_addedRemoteNodes.Contains(file))
             {
-                _updatedRemoteFiles.Remove(file);
-                _updatedRemoteFiles.Add(file);
+                _updatedRemoteNodes.Remove(file);
+                _updatedRemoteNodes.Add(file);
             }
-
+            _histories[remoteFile.Id] = remoteFile.RemoteFileHistories.ToList();
 
             foreach (var history in remoteFile.RemoteFileHistories)
             {
-                if (_appliedHistoryIds.Add(history.HistoryId))
-                {
-                    _historiesToAdd.Add(history);
-                    if (!_histories.TryGetValue(remoteFile.Id, out var histories))
-                    {
-                        histories = new List<RemoteFileHistory>();
-                        _histories.Add(remoteFile.Id, histories);
-                    }
-                    histories.Add(history);
-                }
+                _appliedHistoryIds.Add(history.HistoryId);
             }
         }
 
         public async Task SaveAsync()
         {
-            foreach (var file in _addedRemoteFiles)
+            try
             {
-                _db.RemoteFiles.Add(file);
+                foreach (var node in _addedRemoteNodes)
+                {
+                    if (node is RemoteFile file)
+                    {
+                        file.RemoteFileHistories = _histories[node.Id];
+                    }
+                    _db.RemoteNodes.Add(node);
+                }
+                foreach (var node in _updatedRemoteNodes)
+                {
+                    if (node is RemoteFile file)
+                    {
+                        file.RemoteFileHistories = _histories[node.Id];
+                    }
+                    _db.RemoteNodes.Update(node);
+                }
+                await _db.SaveChangesAsync();
             }
-            foreach (var file in _updatedRemoteFiles)
+            finally
             {
-                _db.RemoteFiles.Update(file);
+                _addedRemoteNodes.Clear();
+                _updatedRemoteNodes.Clear();
             }
-            foreach (var history in _historiesToAdd)
-            {
-                _db.RemoteFileHistories.Add(history);
-            }
-            await _db.SaveChangesAsync();
-            _addedRemoteFiles.Clear();
-            _updatedRemoteFiles.Clear();
-            _historiesToAdd.Clear();
         }
     }
 }
