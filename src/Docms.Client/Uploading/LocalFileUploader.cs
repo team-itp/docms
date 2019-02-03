@@ -11,7 +11,7 @@ using System.Threading.Tasks;
 
 namespace Docms.Client.Uploading
 {
-    public class LocalFileUploader
+    public class LocalFileUploader : ILocalFileUploader
     {
         private static readonly Logger _logger = LogManager.GetCurrentClassLogger();
         private ILocalFileStorage _localStorage;

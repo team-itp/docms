@@ -18,14 +18,12 @@ namespace Docms.Client.RemoteStorage
         private IDocmsApiClient _client;
         private IRemoteFileRepository _repository;
 
-        private DateTime? _latestEventTimestamp;
+        private DateTime? _latestEventTimestamp => _repository.LatestEventTimestamp;
 
         public RemoteFileStorage(IDocmsApiClient client, RemoteFileContext db)
         {
             _client = client;
             _repository = new CacheableRemoteFileRepository(db);
-
-            _latestEventTimestamp = _repository.LatestEventTimestamp;
         }
 
         public async Task<RemoteFile> GetAsync(PathString path)
@@ -82,7 +80,6 @@ namespace Docms.Client.RemoteStorage
                 await _repository.AddAsync(remoteFile).ConfigureAwait(false);
             }
             remoteFile.Apply(history);
-            _latestEventTimestamp = history.Timestamp;
             await _repository.UpdateAsync(remoteFile);
         }
 
