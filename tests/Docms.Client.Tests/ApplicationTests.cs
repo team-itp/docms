@@ -28,6 +28,11 @@ namespace Docms.Client.Tests
         public TaskCompletionSource<bool> InitializedCompletionSource = new TaskCompletionSource<bool>();
         public TaskCompletionSource<bool> DisposedCompletionSource = new TaskCompletionSource<bool>();
 
+        public MockApplicationContext(ILocalFileUploader uploader)
+        {
+            Uploader = uploader;
+        }
+
         public ILocalFileUploader Uploader { get; set; }
 
         public Task InitializeAsync()
@@ -50,7 +55,7 @@ namespace Docms.Client.Tests
         {
             List<Func<CancellationToken, Task>> handlers = new List<Func<CancellationToken, Task>>();
             var mockUploader = new MockLocalFileUploader(handlers);
-            var mockContext = new MockApplicationContext();
+            var mockContext = new MockApplicationContext(mockUploader);
             var sut = new Application(mockContext);
             Assert.IsFalse(mockContext.InitializedCompletionSource.Task.IsCompleted);
             var task = Task.Run(() => sut.Run());
@@ -63,6 +68,73 @@ namespace Docms.Client.Tests
             Task.WaitAny(new[] { task }, 100);
             Assert.IsTrue(task.IsCompleted);
         }
+
+        [TestMethod]
+        public void 正常なキューを載せて正常に処理が実行される()
+        {
+            var are = new AutoResetEvent(false);
+            List<Func<CancellationToken, Task>> handlers = new List<Func<CancellationToken, Task>>();
+            handlers.Add(token =>
+            {
+                var tcs = new TaskCompletionSource<bool>();
+                Task.Run(() =>
+                {
+                    are.WaitOne();
+                    tcs.SetResult(true);
+                });
+                return tcs.Task;
+            });
+            var mockUploader = new MockLocalFileUploader(handlers);
+            var mockContext = new MockApplicationContext(mockUploader);
+            var sut = new Application(mockContext);
+            var task = Task.Run(() => sut.Run());
+
+            var uploadTask = sut.UploadAllFilesAsync();
+            Task.WaitAny(new[] { uploadTask }, 100);
+            Assert.IsFalse(uploadTask.IsCompleted);
+
+            are.Set();
+            Task.WaitAny(new[] { uploadTask }, 100);
+            Assert.IsTrue(uploadTask.IsCompleted);
+
+            sut.Quit();
+            Task.WaitAny(new[] { task }, 100);
+            Assert.IsTrue(task.IsCompleted);
+        }
+
+        [TestMethod]
+        public void キューをキャンセルできる()
+        {
+            var are = new AutoResetEvent(false);
+            List<Func<CancellationToken, Task>> handlers = new List<Func<CancellationToken, Task>>();
+            handlers.Add(token =>
+            {
+                var tcs = new TaskCompletionSource<bool>();
+                Task.Run(() =>
+                {
+                    are.WaitOne();
+                    tcs.SetCanceled();
+                });
+                return tcs.Task;
+            });
+            var mockUploader = new MockLocalFileUploader(handlers);
+            var mockContext = new MockApplicationContext(mockUploader);
+            var sut = new Application(mockContext);
+            var task = Task.Run(() => sut.Run());
+
+            var uploadTask = sut.UploadAllFilesAsync();
+            Task.WaitAny(new[] { uploadTask }, 100);
+            sut.Quit();
+
+            Task.WaitAny(new[] { uploadTask }, 100);
+            Assert.IsFalse(uploadTask.IsCompleted);
+
+            are.Set();
+            Task.WaitAny(new[] { uploadTask }, 100);
+            Assert.IsTrue(uploadTask.IsCanceled);
+            Assert.IsTrue(task.IsCompleted);
+        }
+
     }
 
 }

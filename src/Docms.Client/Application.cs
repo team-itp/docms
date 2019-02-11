@@ -1,6 +1,4 @@
-﻿using Docms.Client.FileWatching;
-using Docms.Client.SeedWork;
-using NLog;
+﻿using NLog;
 using System;
 using System.Collections.Concurrent;
 using System.Threading;
@@ -36,7 +34,13 @@ namespace Docms.Client
                 if (_tasks.TryDequeue(out var action))
                 {
                     _currentTask = action.Invoke(_cts.Token);
-                    Task.WaitAny(new Task[] { _currentTask }, _cts.Token);
+                    try
+                    {
+                        Task.WaitAny(new Task[] { _currentTask }, _cts.Token);
+                    }
+                    catch (OperationCanceledException)
+                    {
+                    }
                 }
                 else
                 {
@@ -57,7 +61,7 @@ namespace Docms.Client
             ApplicationInitialized?.Invoke(this, new EventArgs());
         }
 
-        public Task EnqueueTask(Func<CancellationToken, Task> task)
+        private Task EnqueueTask(Func<CancellationToken, Task> task)
         {
             TaskCompletionSource<bool> tcs = new TaskCompletionSource<bool>();
             _tasks.Enqueue(async token =>
@@ -89,10 +93,17 @@ namespace Docms.Client
 
         public async Task UploadAllFilesAsync()
         {
-            await EnqueueTask(async token =>
+            try
             {
-                await _context.Uploader.UploadAsync(_cts.Token).ConfigureAwait(false);
-            });
+                await EnqueueTask(async token =>
+                {
+                    await _context.Uploader.UploadAsync(_cts.Token).ConfigureAwait(false);
+                });
+            }
+            catch (Exception ex)
+            {
+                _logger.Error(ex);
+            }
         }
     }
 }
