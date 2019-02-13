@@ -33,12 +33,12 @@ namespace Docms.Client
             {
                 if (_tasks.TryDequeue(out var action))
                 {
-                    _currentTask = action.Invoke(_cts.Token);
                     try
                     {
+                        _currentTask = action.Invoke(_cts.Token);
                         Task.WaitAny(new Task[] { _currentTask }, _cts.Token);
                     }
-                    catch (OperationCanceledException)
+                    catch (Exception)
                     {
                     }
                 }
@@ -50,7 +50,10 @@ namespace Docms.Client
             }
             if (_currentTask != null)
             {
-                _currentTask.Wait();
+                while (!_currentTask.IsCompleted)
+                {
+                    Thread.Sleep(10);
+                }
             }
         }
 
@@ -64,16 +67,26 @@ namespace Docms.Client
         private Task EnqueueTask(Func<CancellationToken, Task> task)
         {
             TaskCompletionSource<bool> tcs = new TaskCompletionSource<bool>();
+            var taskId = Guid.NewGuid();
+            _logger.Debug($"Task enqueued: {taskId}");
             _tasks.Enqueue(async token =>
             {
+                _logger.Debug($"Task started: {taskId}");
                 try
                 {
                     await task.Invoke(token).ConfigureAwait(false);
+                    _logger.Debug($"Task successfully completed: {taskId}");
                     tcs.SetResult(true);
+                }
+                catch (OperationCanceledException)
+                {
+                    _logger.Debug($"Task canceled: {taskId}");
+                    tcs.SetCanceled();
+                    throw;
                 }
                 catch (Exception ex)
                 {
-                    _logger.Error(ex);
+                    _logger.Debug($"Task failed: {taskId}");
                     tcs.SetException(ex);
                 }
             });
@@ -83,12 +96,14 @@ namespace Docms.Client
 
         public void Quit()
         {
+            _logger.Debug("Application is shutting down.");
             _cts.Cancel();
             if (_currentTask != null)
             {
-                _currentTask.Wait();
+                Task.WaitAll(_currentTask);
             }
             _context.Dispose();
+            _logger.Debug("Application shutdown.");
         }
 
         public async Task UploadAllFilesAsync()
@@ -97,8 +112,12 @@ namespace Docms.Client
             {
                 await EnqueueTask(async token =>
                 {
-                    await _context.Uploader.UploadAsync(_cts.Token).ConfigureAwait(false);
+                    await _context.Uploader.UploadAsync(token).ConfigureAwait(false);
                 });
+            }
+            catch (OperationCanceledException)
+            {
+                throw;
             }
             catch (Exception ex)
             {

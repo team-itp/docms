@@ -1,8 +1,8 @@
 ﻿using Docms.Client.Uploading;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
+using NLog;
 using System;
 using System.Collections.Generic;
-using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 
@@ -17,9 +17,13 @@ namespace Docms.Client.Tests
             this.callbacks = callbacks;
         }
 
-        public Task UploadAsync(CancellationToken cancellationToken = default(CancellationToken))
+        public async Task UploadAsync(CancellationToken cancellationToken = default(CancellationToken))
         {
-            return Task.WhenAll(callbacks.Select(c => c.Invoke(cancellationToken)));
+            foreach (var cb in callbacks)
+            {
+                await cb.Invoke(cancellationToken);
+                cancellationToken.ThrowIfCancellationRequested();
+            }
         }
     }
 
@@ -50,6 +54,8 @@ namespace Docms.Client.Tests
     [TestClass]
     public class ApplicationTests
     {
+        ILogger logger = LogManager.GetCurrentClassLogger();
+
         [TestMethod]
         public void アプリケーションを起動して終了する()
         {
@@ -88,6 +94,7 @@ namespace Docms.Client.Tests
             var mockContext = new MockApplicationContext(mockUploader);
             var sut = new Application(mockContext);
             var task = Task.Run(() => sut.Run());
+            Task.WaitAny(new[] { task }, 100);
 
             var uploadTask = sut.UploadAllFilesAsync();
             Task.WaitAny(new[] { uploadTask }, 100);
@@ -97,13 +104,63 @@ namespace Docms.Client.Tests
             Task.WaitAny(new[] { uploadTask }, 100);
             Assert.IsTrue(uploadTask.IsCompleted);
 
-            sut.Quit();
-            Task.WaitAny(new[] { task }, 100);
-            Assert.IsTrue(task.IsCompleted);
+            var quitTask = Task.Run(() => sut.Quit());
+            Task.WaitAny(new[] { quitTask }, 100);
+
+            Assert.IsTrue(uploadTask.IsCompletedSuccessfully);
+            Assert.IsTrue(task.IsCompletedSuccessfully);
+            Assert.IsTrue(quitTask.IsCompletedSuccessfully);
         }
 
         [TestMethod]
         public void キューをキャンセルできる()
+        {
+            var are = new AutoResetEvent(false);
+            var secondFlg = false;
+            List<Func<CancellationToken, Task>> handlers = new List<Func<CancellationToken, Task>>();
+            handlers.Add(token =>
+            {
+                var tcs = new TaskCompletionSource<bool>();
+                Task.Run(() =>
+                {
+                    are.WaitOne();
+                    tcs.SetResult(true);
+                });
+                return tcs.Task;
+            });
+            handlers.Add(token =>
+            {
+                secondFlg = true;
+                return Task.CompletedTask;
+            });
+            var mockUploader = new MockLocalFileUploader(handlers);
+            var mockContext = new MockApplicationContext(mockUploader);
+            var sut = new Application(mockContext);
+            var task = Task.Run(() => sut.Run());
+            Task.WaitAny(new[] { task }, 100);
+
+            var uploadTask = sut.UploadAllFilesAsync();
+            Task.WaitAny(new[] { uploadTask }, 100);
+            var quitTask = Task.Run(() => sut.Quit());
+            Task.WaitAny(new[] { quitTask }, 100);
+
+            Assert.IsFalse(uploadTask.IsCompleted);
+
+            are.Set();
+
+            while (!quitTask.IsCompleted && !task.IsCompleted)
+            {
+                Thread.Sleep(10);
+            }
+
+            Assert.IsTrue(uploadTask.IsCanceled);
+            Assert.IsTrue(task.IsCompletedSuccessfully);
+
+            Assert.IsFalse(secondFlg);
+        }
+
+        [TestMethod]
+        public void キューでエラーが発生しても処理が継続する()
         {
             var are = new AutoResetEvent(false);
             List<Func<CancellationToken, Task>> handlers = new List<Func<CancellationToken, Task>>();
@@ -113,7 +170,7 @@ namespace Docms.Client.Tests
                 Task.Run(() =>
                 {
                     are.WaitOne();
-                    tcs.SetCanceled();
+                    tcs.SetException(new Exception());
                 });
                 return tcs.Task;
             });
@@ -121,20 +178,32 @@ namespace Docms.Client.Tests
             var mockContext = new MockApplicationContext(mockUploader);
             var sut = new Application(mockContext);
             var task = Task.Run(() => sut.Run());
+            Task.WaitAny(new[] { task }, 100);
 
-            var uploadTask = sut.UploadAllFilesAsync();
-            Task.WaitAny(new[] { uploadTask }, 100);
-            sut.Quit();
-
-            Task.WaitAny(new[] { uploadTask }, 100);
-            Assert.IsFalse(uploadTask.IsCompleted);
-
+            var uploadTask1 = sut.UploadAllFilesAsync();
+            Task.WaitAny(new[] { uploadTask1 }, 100);
             are.Set();
-            Task.WaitAny(new[] { uploadTask }, 100);
-            Assert.IsTrue(uploadTask.IsCanceled);
-            Assert.IsTrue(task.IsCompleted);
-        }
 
+            handlers.Clear();
+            var execFlg = false;
+            handlers.Add(token =>
+            {
+                execFlg = true;
+                return Task.CompletedTask;
+            });
+
+            var uploadTask2 = sut.UploadAllFilesAsync();
+            Task.WaitAny(new[] { uploadTask2 }, 100);
+
+            var quitTask = Task.Run(() => sut.Quit());
+            Task.WaitAny(new[] { quitTask }, 100);
+
+            Assert.IsFalse(uploadTask1.IsCompleted && uploadTask1.IsFaulted);
+            Assert.IsTrue(uploadTask2.IsCompletedSuccessfully);
+            Assert.IsTrue(task.IsCompletedSuccessfully);
+
+            Assert.IsTrue(execFlg);
+        }
     }
 
 }
