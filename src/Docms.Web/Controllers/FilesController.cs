@@ -1,6 +1,7 @@
 using Docms.Domain.Documents;
 using Docms.Infrastructure.Files;
 using Docms.Queries.Blobs;
+using Docms.Queries.DocumentHistories;
 using Docms.Web.Application.Commands;
 using Docms.Web.Extensions;
 using Docms.Web.Filters;
@@ -9,9 +10,11 @@ using MediatR;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.Net.Http.Headers;
 using System;
 using System.Globalization;
+using System.Linq;
 using System.Net;
 using System.Threading.Tasks;
 
@@ -23,31 +26,57 @@ namespace Docms.Web.Controllers
     public class FilesController : Controller
     {
         private readonly IDataStore _storage;
-        private readonly IBlobsQueries _queries;
+        private readonly IBlobsQueries _blobs;
+        private readonly IDocumentHistoriesQueries _histories;
 
-        public FilesController(IDataStore storage, IBlobsQueries queries)
+        public FilesController(IDataStore storage, IBlobsQueries blobs, IDocumentHistoriesQueries histories)
         {
             _storage = storage;
-            _queries = queries;
+            _blobs = blobs;
+            _histories = histories;
         }
 
         [HttpGet("view/{*path=}")]
         public async Task<IActionResult> Index(string path)
         {
-            var entry = await _queries.GetEntryAsync(path);
+            var entry = await _blobs.GetEntryAsync(path);
             if (entry == null)
             {
-                return NotFound();
+                return Redirect(Url.ViewFile(path.Split("/").Last()));
             }
             ViewData["DirPath"] = entry is BlobContainer ? entry.Path : entry.ParentPath;
             return View(entry);
+        }
+
+        [HttpGet("histories/{*path=}")]
+        public async Task<IActionResult> Histories(string path,
+            [FromQuery] int? page = null,
+            [FromQuery] int? per_page = null)
+        {
+            var entry = await _blobs.GetEntryAsync(path);
+            if (entry == null)
+            {
+                return Redirect(Url.ViewFile(path.Split("/").Last()));
+            }
+            ViewData["DirPath"] = entry is BlobContainer ? entry.Path : entry.ParentPath;
+
+            var histories = _histories.GetHistories(path ?? "")
+                .Where(h => h is DocumentCreated || h is DocumentDeleted)
+                .OrderByDescending(h => h.Timestamp);
+            var cnt = await histories.CountAsync();
+            int p = page ?? 1;
+            int pp = per_page ?? 10;
+            return View(
+                new PageableList<DocumentHistory>(
+                    await histories.Skip(pp * (p - 1)).Take(pp).ToListAsync(),
+                    p, pp, cnt));
         }
 
 
         [HttpHead("download/{*path}")]
         public async Task<IActionResult> DownloadHead(string path)
         {
-            if (!(await _queries.GetEntryAsync(path) is Blob entry))
+            if (!(await _blobs.GetEntryAsync(path) is Blob entry))
             {
                 return NotFound();
             }
@@ -77,7 +106,7 @@ namespace Docms.Web.Controllers
         [HttpGet("download/{*path}")]
         public async Task<IActionResult> Download(string path)
         {
-            if (!(await _queries.GetEntryAsync(path) is Blob entry))
+            if (!(await _blobs.GetEntryAsync(path) is Blob entry))
             {
                 return NotFound();
             }

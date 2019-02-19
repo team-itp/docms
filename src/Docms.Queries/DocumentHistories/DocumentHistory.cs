@@ -10,8 +10,10 @@ namespace Docms.Queries.DocumentHistories
         [Key]
         public Guid Id { get; set; }
         [Column("Timestamp")]
+        [Required]
         public DateTime Timestamp { get; set; }
         [Column("Path")]
+        [Required]
         public string Path { get; set; }
     }
 

@@ -3,32 +3,40 @@
 
 @{
     ViewData["Title"] = Model.Name ?? "ファイル一覧";
+    var dirPath = ViewBag.DirPath as string;
 }
 
-<nav>
-    <ul class="breadcrumb">
-        <li class="breadcrumb-item">
-            <a href="@Url.ViewFile("")">TOP</a>
-        </li>
-        @if (Model.Path != null)
-        {
-            var sb = new System.Text.StringBuilder();
-            @foreach (var pathComponent in Model.Path.Split('/'))
+<nav class="rounded mb-3" style="background-color: #e9ecef">
+    <div class="d-flex justify-content-between align-items-center">
+        <ul class="breadcrumb bg-transparent m-0">
+            <li class="breadcrumb-item">
+                <a href="@Url.ViewFile("")">TOP</a>
+            </li>
+            @if (dirPath != null)
             {
-                <li class="breadcrumb-item">
-                    @if (sb.Append(pathComponent).ToString() == Model.Path)
-                    {
-                        <span class="active">@pathComponent</span>
-                    }
-                    else
-                    {
-                        <a href="@Url.ViewFile(sb.ToString())">@pathComponent</a>
-                    }
-                </li>
-                sb.Append('/');
+                var sb = new System.Text.StringBuilder();
+                @foreach (var pathComponent in dirPath.Split('/'))
+                {
+                    <li class="breadcrumb-item">
+                        @if (sb.Append(pathComponent).ToString() == dirPath)
+                        {
+                            <span class="active">@pathComponent</span>
+                        }
+                        else
+                        {
+                            <a href="@Url.ViewFile(sb.ToString())">@pathComponent</a>
+                        }
+                    </li>
+                    sb.Append('/');
+                }
             }
-        }
-    </ul>
+        </ul>
+        <div class="pr-3">
+            <a href="@Url.FileHistory(dirPath)">
+                <span class="fa fa-history"></span>
+            </a>
+        </div>
+    </div>
 </nav>
 
 @if (Model is BlobContainer)
@@ -37,6 +45,7 @@
         @foreach (var entry in (Model as BlobContainer).Entries)
         {
             <div class="list-group-item d-flex justify-content-start align-items-center">
+                <a name="@entry.Name" />
                 @if (entry is BlobContainer)
                 {
                     <div class="mr-3">
