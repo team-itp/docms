@@ -15,8 +15,9 @@
             var sb = new System.Text.StringBuilder();
             @foreach (var pathComponent in dirPath.Split('/'))
             {
+                sb.Append(pathComponent);
                 <li class="breadcrumb-item">
-                    <a href="@Url.ViewFile(sb.ToString())">@pathComponent</a>
+                    <a href="@(Url.ViewFile(sb.ToString()))">@pathComponent</a>
                 </li>
                 sb.Append('/');
             }
