@@ -21,11 +21,11 @@ namespace Docms.Client
         public void Run()
         {
             _logger.Debug("Application started.");
-            while(!_shutdownStarted)
+            while (!_shutdownStarted)
             {
                 if (_operations.TryDequeue(out var operation))
                 {
-                    lock(this)
+                    lock (this)
                     {
                         _currentOperation = operation;
                     }
@@ -38,7 +38,7 @@ namespace Docms.Client
             _logger.Debug("Application shutdown.");
         }
 
-        public Task Invoke(ApplicationOperation operation, CancellationToken cancellationToken)
+        public Task Invoke(ApplicationOperation operation, CancellationToken cancellationToken = default(CancellationToken))
         {
             if (!cancellationToken.IsCancellationRequested)
             {
@@ -51,9 +51,9 @@ namespace Docms.Client
         public void Shutdown()
         {
             _logger.Debug("Application is shutting down.");
-            _shutdownStarted = true;
-            lock(this)
+            lock (this)
             {
+                _shutdownStarted = true;
                 if (_currentOperation != null)
                 {
                     _currentOperation.Abort();

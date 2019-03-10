@@ -5,17 +5,24 @@ namespace Docms.Client.Operations
 {
     public class ApplicationOperation
     {
-        public Task Task { get; internal set; }
-        public bool IsAborted { get; internal set; }
+        Action action;
 
-        internal void Abort()
+        public ApplicationOperation(Action action)
         {
-            throw new NotImplementedException();
+            this.action = action;
         }
 
-        internal void Start()
+        public Task Task { get; private set; }
+        public bool IsAborted { get; private set; }
+
+        public void Abort()
         {
-            throw new NotImplementedException();
+            IsAborted = true;
+        }
+
+        public void Start()
+        {
+            action.Invoke();
         }
     }
 }
