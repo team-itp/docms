@@ -59,21 +59,21 @@ namespace Docms.Client.Tests
         [TestMethod]
         public void 処理開始後にキャンセルした場合処理が正常終了の場合にタスクも正常となる()
         {
-            var are = new AutoResetEvent(false);
+            var are1 = new AutoResetEvent(false);
+            var are2 = new AutoResetEvent(false);
             var cts = new CancellationTokenSource();
             var sut = new ApplicationOperation(token => {
-                are.Set();
-                are.Reset();
-                are.WaitOne();
+                are1.Set();
+                are2.WaitOne();
             }, cts.Token);
             var task = Task.Run(() => sut.Start());
-            are.WaitOne();
+            are1.WaitOne();
             cts.Cancel();
 
             Assert.IsFalse(sut.IsAborted);
             Assert.AreEqual(TaskStatus.WaitingForActivation, sut.Task.Status);
 
-            are.Set();
+            are2.Set();
             task.Wait();
 
             Assert.IsFalse(sut.IsAborted);
@@ -83,22 +83,22 @@ namespace Docms.Client.Tests
         [TestMethod]
         public void 処理開始後にキャンセルした場合処理がキャンセルの場合にオペレーションもキャンセルになる()
         {
-            var are = new AutoResetEvent(false);
+            var are1 = new AutoResetEvent(false);
+            var are2 = new AutoResetEvent(false);
             var cts = new CancellationTokenSource();
             var sut = new ApplicationOperation(token => {
-                are.Set();
-                are.Reset();
-                are.WaitOne();
+                are1.Set();
+                are2.WaitOne();
                 cts.Token.ThrowIfCancellationRequested();
             }, cts.Token);
             var task = Task.Run(() => sut.Start());
-            are.WaitOne();
+            are1.WaitOne();
             cts.Cancel();
 
             Assert.IsFalse(sut.IsAborted);
             Assert.AreEqual(TaskStatus.WaitingForActivation, sut.Task.Status);
 
-            are.Set();
+            are2.Set();
             task.Wait();
 
             Assert.IsFalse(sut.IsAborted);

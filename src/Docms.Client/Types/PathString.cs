@@ -21,7 +21,7 @@ namespace Docms.Client.Types
             ? null
             : _path.Contains("/")
             ? new PathString(Path.GetDirectoryName(_path))
-            : new PathString("");
+            : Root;
 
         public string[] PathComponents => _path.Split('/');
         public string Name => Path.GetFileName(_path);

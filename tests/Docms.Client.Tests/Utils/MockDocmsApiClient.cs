@@ -226,15 +226,15 @@ namespace Docms.Client.Tests.Utils
             return Task.FromResult(entriesInPath.AsEnumerable());
         }
 
-        public Task<IEnumerable<History>> GetHistoriesAsync(string path, DateTime? lastSynced)
+        public Task<IEnumerable<History>> GetHistoriesAsync(string path, Guid? lastHistoryId = null)
         {
             var historiesKvs = histories.Where(key => string.IsNullOrEmpty(path) || key.Key.StartsWith(path));
             var historyValues = historiesKvs.SelectMany(kv => kv.Value);
-            if (lastSynced != null)
-            {
-                historyValues = historyValues.Where(h => h.Timestamp > lastSynced.Value);
-            }
             historyValues = historyValues.OrderBy(e => e.Timestamp);
+            if (lastHistoryId != null)
+            {
+                historyValues = historyValues.SkipWhile(h => h.Id != lastHistoryId.Value).Skip(1);
+            }
             return Task.FromResult(historyValues.ToArray() as IEnumerable<History>);
         }
 

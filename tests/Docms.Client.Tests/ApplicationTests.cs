@@ -42,28 +42,29 @@ namespace Docms.Client.Tests
         {
             var executed1 = false;
             var executed2 = false;
-            var are = new AutoResetEvent(false);
+            var are1 = new AutoResetEvent(false);
+            var are2 = new AutoResetEvent(false);
+            var are3 = new AutoResetEvent(false);
             var sut = new Application();
             var task = Task.Run(() => sut.Run());
             sut.Invoke(token =>
             {
                 executed1 = true;
-                are.Set();
-                are.Reset();
-                are.WaitOne();
+                are1.Set();
+                are2.WaitOne();
             });
             sut.Invoke(token =>
             {
                 executed2 = true;
-                are.Set();
+                are3.Set();
             });
 
-            are.WaitOne();
+            are1.WaitOne();
             Assert.IsTrue(executed1);
             Assert.IsFalse(executed2);
-            are.Set();
-            are.Reset();
-            are.WaitOne();
+
+            are2.Set();
+            are3.WaitOne();
             Assert.IsTrue(executed2);
             sut.Shutdown();
         }
@@ -73,28 +74,27 @@ namespace Docms.Client.Tests
         {
             var executed1 = false;
             var executed2 = false;
-            var are = new AutoResetEvent(false);
+            var are1 = new AutoResetEvent(false);
+            var are2 = new AutoResetEvent(false);
             var sut = new Application();
             var task = Task.Run(() => sut.Run());
             sut.Invoke(token =>
             {
                 executed1 = true;
-                are.Set();
-                are.Reset();
-                are.WaitOne();
+                are1.Set();
+                are2.WaitOne();
             });
             sut.Invoke(token =>
             {
                 executed2 = true;
-                are.Set();
             });
 
-            are.WaitOne();
+            are1.WaitOne();
             Assert.IsTrue(executed1);
             Assert.IsFalse(executed2);
 
             sut.Shutdown();
-            are.Set();
+            are2.Set();
             task.Wait();
             Assert.IsFalse(executed2);
         }
@@ -103,25 +103,25 @@ namespace Docms.Client.Tests
         public void アプリケーションで実行時にCancellationTokenを指定してcancelした場合に当該のオペレーションが実行されない()
         {
             var executed2 = false;
-            var are = new AutoResetEvent(false);
+            var are1 = new AutoResetEvent(false);
+            var are2 = new AutoResetEvent(false);
+            var are3 = new AutoResetEvent(false);
             var cts = new CancellationTokenSource();
             var sut = new Application();
             var task = Task.Run(() => sut.Run());
             sut.Invoke(token =>
             {
-                are.Set();
-                are.Reset();
-                are.WaitOne();
+                are1.Set();
+                are2.WaitOne();
             });
             sut.Invoke(token =>
             {
                 executed2 = true;
-                are.Set();
             }, cts.Token);
 
-            are.WaitOne();
+            are1.WaitOne();
             cts.Cancel();
-            are.Set();
+            are2.Set();
 
             Assert.IsFalse(executed2);
             sut.Shutdown();
