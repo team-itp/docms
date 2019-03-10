@@ -1,5 +1,4 @@
-﻿using Docms.Client.Operations;
-using Microsoft.VisualStudio.TestTools.UnitTesting;
+﻿using Microsoft.VisualStudio.TestTools.UnitTesting;
 using System.Threading;
 using System.Threading.Tasks;
 
@@ -27,11 +26,11 @@ namespace Docms.Client.Tests
             var are = new AutoResetEvent(false);
             var sut = new Application();
             var task = Task.Run(() => sut.Run());
-            sut.Invoke(new ApplicationOperation(() =>
+            sut.Invoke(token =>
             {
                 executed = true;
                 are.Set();
-            }));
+            });
 
             are.WaitOne();
             sut.Shutdown();
@@ -46,18 +45,18 @@ namespace Docms.Client.Tests
             var are = new AutoResetEvent(false);
             var sut = new Application();
             var task = Task.Run(() => sut.Run());
-            sut.Invoke(new ApplicationOperation(() =>
+            sut.Invoke(token =>
             {
                 executed1 = true;
                 are.Set();
                 are.Reset();
                 are.WaitOne();
-            }));
-            sut.Invoke(new ApplicationOperation(() =>
+            });
+            sut.Invoke(token =>
             {
                 executed2 = true;
                 are.Set();
-            }));
+            });
 
             are.WaitOne();
             Assert.IsTrue(executed1);
@@ -77,18 +76,18 @@ namespace Docms.Client.Tests
             var are = new AutoResetEvent(false);
             var sut = new Application();
             var task = Task.Run(() => sut.Run());
-            sut.Invoke(new ApplicationOperation(() =>
+            sut.Invoke(token =>
             {
                 executed1 = true;
                 are.Set();
                 are.Reset();
                 are.WaitOne();
-            }));
-            sut.Invoke(new ApplicationOperation(() =>
+            });
+            sut.Invoke(token =>
             {
                 executed2 = true;
                 are.Set();
-            }));
+            });
 
             are.WaitOne();
             Assert.IsTrue(executed1);
@@ -96,9 +95,7 @@ namespace Docms.Client.Tests
 
             sut.Shutdown();
             are.Set();
-
-            Task.WaitAny(new[] { task }, 20);
-            Assert.IsTrue(task.IsCompleted);
+            task.Wait();
             Assert.IsFalse(executed2);
         }
 
@@ -110,17 +107,17 @@ namespace Docms.Client.Tests
             var cts = new CancellationTokenSource();
             var sut = new Application();
             var task = Task.Run(() => sut.Run());
-            sut.Invoke(new ApplicationOperation(() =>
+            sut.Invoke(token =>
             {
                 are.Set();
                 are.Reset();
                 are.WaitOne();
-            }));
-            sut.Invoke(new ApplicationOperation(() =>
+            });
+            sut.Invoke(token =>
             {
                 executed2 = true;
                 are.Set();
-            }), cts.Token);
+            }, cts.Token);
 
             are.WaitOne();
             cts.Cancel();

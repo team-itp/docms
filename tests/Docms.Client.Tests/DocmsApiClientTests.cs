@@ -9,6 +9,7 @@ using System.Threading.Tasks;
 namespace Docms.Client.Tests
 {
     [TestClass]
+    [Ignore]
     public class DocmsApiClientTests
     {
         private static bool noConnection;

@@ -1,5 +1,6 @@
 ﻿using Docms.Client.Operations;
 using NLog;
+using System;
 using System.Collections.Concurrent;
 using System.Threading;
 using System.Threading.Tasks;
@@ -38,11 +39,11 @@ namespace Docms.Client
             _logger.Debug("Application shutdown.");
         }
 
-        public Task Invoke(ApplicationOperation operation, CancellationToken cancellationToken = default(CancellationToken))
+        public Task Invoke(Action<CancellationToken> action, CancellationToken cancellationToken = default(CancellationToken))
         {
-            if (!cancellationToken.IsCancellationRequested)
+            var operation = new ApplicationOperation(action, cancellationToken);
+            if (!operation.IsAborted)
             {
-                cancellationToken.Register(() => operation.Abort());
                 _operations.Enqueue(operation);
             }
             return operation.Task;
