@@ -27,15 +27,16 @@ namespace Docms.Web.Api.V1
         public async Task<IActionResult> Get(
             [FromQuery] string path,
             [FromQuery] DateTime? since = null,
+            [FromQuery] Guid? last_history_id = null,
             [FromQuery] int? page = null,
             [FromQuery] int? per_page = null)
         {
-            var histories = _queries.GetHistories(path ?? "", since);
+            var histories = _queries.GetHistories(path ?? "", since, last_history_id);
             var cnt = await histories.CountAsync();
             if (per_page != null)
             {
                 Response.Headers.AddPaginationHeader(
-                    Url.Action("Get", "Histories", new { path, since }, Request.Scheme, Request.Host.Value),
+                    Url.Action("Get", "Histories", new { path, last_history_id }, Request.Scheme, Request.Host.Value),
                     page ?? 1,
                     per_page.Value,
                     cnt);

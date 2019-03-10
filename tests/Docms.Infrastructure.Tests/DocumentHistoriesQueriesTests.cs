@@ -134,5 +134,15 @@ namespace Docms.Infrastructure.Tests
             var histories = sut.GetHistories("", since);
             Assert.AreEqual(1, await histories.CountAsync());
         }
+
+        [TestMethod]
+        public async Task HistoryIdを指定して履歴を検索出来ること()
+        {
+            var historyId = (await ctx.DocumentHistories.OrderByDescending(h => h.Timestamp).FirstAsync()).Id;
+            Created(ctx, "path1/newdocument.txt", 1);
+            await ctx.SaveChangesAsync();
+            var histories = sut.GetHistories("", null, historyId);
+            Assert.AreEqual(1, await histories.CountAsync());
+        }
     }
 }

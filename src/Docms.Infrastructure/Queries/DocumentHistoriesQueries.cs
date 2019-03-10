@@ -14,7 +14,7 @@ namespace Docms.Infrastructure.Queries
             this.ctx = ctx;
         }
 
-        public IQueryable<DocumentHistory> GetHistories(string path, DateTime? since = default(DateTime?))
+        public IQueryable<DocumentHistory> GetHistories(string path, DateTime? since = default(DateTime?), Guid? lastHistoryId = default(Guid?))
         {
             var query = ctx.DocumentHistories as IQueryable<DocumentHistory>;
             if (!string.IsNullOrEmpty(path))
@@ -26,7 +26,22 @@ namespace Docms.Infrastructure.Queries
                 var sinceUtc = since.Value.ToUniversalTime();
                 query = query.Where(e => e.Timestamp >= sinceUtc);
             }
-            return query.OrderBy(e => e.Timestamp);
+            if (lastHistoryId != null)
+            {
+                var lastHistory = ctx.DocumentHistories.Find(lastHistoryId.Value);
+                var histories = ctx.DocumentHistories
+                    .Where(e => e.Timestamp == lastHistory.Timestamp)
+                    .OrderBy(h => h.Id)
+                    .Select(h=> h.Id)
+                    .ToList()
+                    .TakeWhile(h => h != lastHistoryId.Value)
+                    .ToList();
+                histories.Add(lastHistory.Id);
+                query = query.Where(e => e.Timestamp >= lastHistory.Timestamp && !histories.Contains(e.Id));
+            }
+
+            query = query.OrderBy(e => e.Timestamp).ThenBy(e => e.Id);
+            return query;
         }
     }
 }
