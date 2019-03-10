@@ -1,7 +1,7 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Text.RegularExpressions;
-using Docms.Client.SeedWork;
+using Docms.Client.Types;
 
 namespace Docms.Client.Configurations
 {

@@ -46,7 +46,7 @@ namespace docmssync
             Console.CancelKeyPress += (s, e) =>
             {
                 timer.Dispose();
-                application.Quit();
+                application.Shutdown();
                 Environment.Exit(0);
             };
             try

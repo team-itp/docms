@@ -2,7 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 
-namespace Docms.Client.SeedWork
+namespace Docms.Client.Types
 {
     public class PathString : IEquatable<PathString>
     {
