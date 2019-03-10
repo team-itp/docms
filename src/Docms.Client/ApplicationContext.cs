@@ -4,6 +4,5 @@ namespace Docms.Client
 {
     public class ApplicationContext
     {
-        public CancellationToken ApplicationShuttingDownToken { get; set; }
     }
 }
