@@ -43,5 +43,19 @@ namespace Docms.Client.RemoteDocuments
             }
             return null;
         }
+
+        public void RemoveChild(RemoteNode remoteNode)
+        {
+            if (children.TryGetValue(remoteNode.Name, out var value) && remoteNode == value)
+            {
+                children.Remove(remoteNode.Name);
+                remoteNode.ClearParent();
+            }
+
+            if (!children.Any() && Name != null && Parent != null)
+            {
+                Parent.RemoveChild(this);
+            }
+        }
     }
 }

@@ -1,5 +1,4 @@
-﻿using System;
-using Docms.Client.Types;
+﻿using Docms.Client.Types;
 
 namespace Docms.Client.RemoteDocuments
 {
@@ -9,7 +8,11 @@ namespace Docms.Client.RemoteDocuments
 
         public string Name { get; private set; }
 
-        public PathString Path => Name == null ? PathString.Root : Parent.Path.Combine(Name);
+        public PathString Path => Name == null
+            ? PathString.Root
+            : Parent == null
+            ? null
+            : Parent.Path.Combine(Name);
 
         public RemoteNode(string name)
         {
@@ -19,6 +22,11 @@ namespace Docms.Client.RemoteDocuments
         internal void SetParent(RemoteContainer parent)
         {
             Parent = parent;
+        }
+
+        internal void ClearParent()
+        {
+            Parent = null;
         }
     }
 }
