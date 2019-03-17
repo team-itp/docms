@@ -10,19 +10,17 @@ using System.Threading.Tasks;
 
 namespace Docms.Client.RemoteDocuments
 {
-    public class RemoteDocumentStorage
+    public class RemoteDocumentStorage : DocumentStorageBase
     {
         private LocalDbContext localDb;
         private IDocmsApiClient api;
         private HashSet<Guid> appliedHistoryIds;
-        private ContainerNode Root { get; }
 
         public RemoteDocumentStorage(IDocmsApiClient api, LocalDbContext localDb)
         {
             this.api = api;
             this.localDb = localDb;
             appliedHistoryIds = new HashSet<Guid>();
-            Root = ContainerNode.CreateRootContainer();
         }
 
         public async Task UpdateAsync()
@@ -67,50 +65,6 @@ namespace Docms.Client.RemoteDocuments
             }
         }
 
-        private ContainerNode GetOrCreateContainer(PathString path)
-        {
-            if (path == PathString.Root)
-            {
-                return Root;
-            }
-            var dir = Root;
-            foreach (var component in path.PathComponents)
-            {
-                var subDir = dir.GetChild(component);
-                if (subDir == null)
-                {
-                    subDir = new ContainerNode(component);
-                    dir.AddChild(subDir);
-                }
-                if (subDir is DocumentNode doc)
-                {
-                    throw new InvalidOperationException();
-                }
-                dir = subDir as ContainerNode;
-            }
-            return dir;
-        }
-
-        private ContainerNode GetContainer(PathString path)
-        {
-            var node = GetNode(path);
-            if (node is ContainerNode container)
-            {
-                return container;
-            }
-            throw new InvalidOperationException();
-        }
-
-        private DocumentNode GetDocument(PathString path)
-        {
-            var node = GetNode(path);
-            if (node is DocumentNode document)
-            {
-                return document;
-            }
-            throw new InvalidOperationException();
-        }
-
         private void Apply(DocumentCreatedHistory history)
         {
             var path = new PathString(history.Path);
@@ -134,28 +88,6 @@ namespace Docms.Client.RemoteDocuments
             var container = GetContainer(path.ParentPath);
             var document = GetDocument(path);
             container.RemoveChild(document);
-        }
-
-        public Node GetNode(PathString path)
-        {
-            if (path == PathString.Root)
-            {
-                return Root;
-            }
-            var dir = Root;
-            foreach (var component in path.ParentPath.PathComponents)
-            {
-                if (!string.IsNullOrEmpty(component))
-                {
-                    var subDir = dir.GetChild(component) as ContainerNode;
-                    if (subDir == null)
-                    {
-                        return null;
-                    }
-                    dir = subDir;
-                }
-            }
-            return dir.GetChild(path.Name);
         }
     }
 }
