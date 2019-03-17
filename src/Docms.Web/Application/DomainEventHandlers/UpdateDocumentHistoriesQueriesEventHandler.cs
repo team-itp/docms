@@ -4,7 +4,6 @@ using Docms.Infrastructure.MediatR;
 using Docms.Queries.DocumentHistories;
 using MediatR;
 using System;
-using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 
@@ -31,6 +30,7 @@ namespace Docms.Web.Application.DomainEventHandlers
                 Id = ev.Id,
                 Timestamp = ev.Timestamp,
                 Path = ev.Path.ToString(),
+                StorageKey = ev.StorageKey,
                 ContentType = ev.ContentType,
                 FileSize = ev.Data.Length,
                 Hash = ev.Data.Hash,
@@ -48,6 +48,7 @@ namespace Docms.Web.Application.DomainEventHandlers
                 Id = ev.Id,
                 Timestamp = ev.Timestamp,
                 Path = ev.Path.ToString(),
+                StorageKey = ev.StorageKey,
                 ContentType = ev.ContentType,
                 FileSize = ev.Data.Length,
                 Hash = ev.Data.Hash,
@@ -60,55 +61,24 @@ namespace Docms.Web.Application.DomainEventHandlers
         public async Task Handle(DomainEventNotification<DocumentMovedEvent> notification, CancellationToken cancellationToken = default(CancellationToken))
         {
             var ev = notification.Event;
-            var lastEv = _db.DocumentHistories
-                .Where(e => e.Path == ev.OldPath.ToString())
-                .Where(e => e is DocumentCreated || e is DocumentUpdated)
-                .OrderByDescending(e => e.Timestamp)
-                .FirstOrDefault();
-
-            var contentType = default(string);
-            var fileSize = default(long);
-            var hash = default(string);
-            var created = default(DateTime);
-            var lastModified = default(DateTime);
-
-            if (lastEv is DocumentCreated documentCreated)
-            {
-                contentType = documentCreated.ContentType;
-                fileSize = documentCreated.FileSize;
-                hash = documentCreated.Hash;
-                created = documentCreated.Created;
-                lastModified = documentCreated.LastModified;
-            }
-            else
-            {
-                var documentUpdated = lastEv as DocumentUpdated;
-                contentType = documentUpdated.ContentType;
-                fileSize = documentUpdated.FileSize;
-                hash = documentUpdated.Hash;
-                created = documentUpdated.Created;
-                lastModified = documentUpdated.LastModified;
-            }
-
-            _db.DocumentMovedFromOldPath.Add(new DocumentMovedFromOldPath()
+            _db.DocumentCreated.Add(new DocumentCreated()
             {
                 Id = ev.Id,
                 Timestamp = ev.Timestamp,
-                Path = ev.Path.ToString(),
-                OldPath = ev.OldPath.ToString(),
-                ContentType = contentType,
-                FileSize = fileSize,
-                Hash = hash,
-                Created = created,
-                LastModified = lastModified,
+                Path = ev.NewPath.ToString(),
+                StorageKey = ev.Entity.StorageKey,
+                ContentType = ev.Entity.ContentType,
+                FileSize = ev.Entity.FileSize,
+                Hash = ev.Entity.Hash,
+                Created = ev.Entity.Created,
+                LastModified = ev.Entity.LastModified,
             });
 
-            _db.DocumentMovedToNewPath.Add(new DocumentMovedToNewPath()
+            _db.DocumentDeleted.Add(new DocumentDeleted()
             {
                 Id = Guid.NewGuid(),
                 Timestamp = ev.Timestamp,
-                Path = ev.OldPath.ToString(),
-                NewPath = ev.Path.ToString(),
+                Path = ev.NewPath.ToString()
             });
             await _db.SaveChangesAsync();
         }

@@ -19,6 +19,8 @@ namespace Docms.Queries.DocumentHistories
 
     public class DocumentCreated : DocumentHistory
     {
+        [Column("StorageKey")]
+        public string StorageKey { get; set; }
         [Column("ContentType")]
         public string ContentType { get; set; }
         [Column("FileSize")]
@@ -29,32 +31,12 @@ namespace Docms.Queries.DocumentHistories
         public DateTime Created { get; set; }
         [Column("LastModified")]
         public DateTime LastModified { get; set; }
-    }
-
-    public class DocumentMovedFromOldPath : DocumentHistory
-    {
-        [Column("OldPath")]
-        public string OldPath { get; set; }
-        [Column("ContentType")]
-        public string ContentType { get; set; }
-        [Column("FileSize")]
-        public long FileSize { get; set; }
-        [Column("Hash")]
-        public string Hash { get; set; }
-        [Column("Created")]
-        public DateTime Created { get; set; }
-        [Column("LastModified")]
-        public DateTime LastModified { get; set; }
-    }
-
-    public class DocumentMovedToNewPath : DocumentHistory
-    {
-        [Column("NewPath")]
-        public string NewPath { get; set; }
     }
 
     public class DocumentUpdated : DocumentHistory
     {
+        [Column("StorageKey")]
+        public string StorageKey { get; set; }
         [Column("ContentType")]
         public string ContentType { get; set; }
         [Column("FileSize")]

@@ -63,24 +63,22 @@ namespace Docms.Infrastructure.Tests
         private void Moved(DocmsContext ctx, string from, string to, int contentId)
         {
             var now = DateTime.UtcNow;
-            ctx.DocumentMovedFromOldPath.Add(new DocumentMovedFromOldPath()
+            ctx.DocumentCreated.Add(new DocumentCreated()
             {
                 Id = Guid.NewGuid(),
                 Timestamp = DateTime.UtcNow,
                 Path = to,
-                OldPath = from,
                 ContentType = "text/plain",
                 FileSize = 5 + contentId.ToString().Length,
                 Hash = Hash.CalculateHash(Encoding.UTF8.GetBytes("Hello" + contentId)),
                 Created = now,
                 LastModified = now
             });
-            ctx.DocumentMovedToNewPath.Add(new DocumentMovedToNewPath()
+            ctx.DocumentDeleted.Add(new DocumentDeleted()
             {
                 Id = Guid.NewGuid(),
                 Timestamp = DateTime.UtcNow,
-                Path = from,
-                NewPath = to
+                Path = from
             });
         }
 

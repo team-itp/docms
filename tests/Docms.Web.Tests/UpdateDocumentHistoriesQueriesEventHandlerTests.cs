@@ -75,8 +75,8 @@ namespace Docms.Web.Tests
 
             await sut.Handle(new DomainEventNotification<DocumentMovedEvent>(ev2 as DocumentMovedEvent));
             Assert.AreEqual(1, await ctx.DocumentHistories.Where(f => f.Path == "path1/subpath1/content1.txt" && f is DocumentCreated).CountAsync());
-            Assert.AreEqual(1, await ctx.DocumentHistories.Where(f => f.Path == "path1/subpath1/content1.txt" && f is DocumentMovedToNewPath).CountAsync());
-            Assert.AreEqual(1, await ctx.DocumentHistories.Where(f => f.Path == "path2/subpath1/document1.txt" && f is DocumentMovedFromOldPath).CountAsync());
+            Assert.AreEqual(1, await ctx.DocumentHistories.Where(f => f.Path == "path1/subpath1/content1.txt" && f is DocumentCreated).CountAsync());
+            Assert.AreEqual(1, await ctx.DocumentHistories.Where(f => f.Path == "path2/subpath1/document1.txt" && f is DocumentDeleted).CountAsync());
         }
 
         [TestMethod]

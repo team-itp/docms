@@ -5,12 +5,12 @@ namespace Docms.Domain.Documents.Events
     public class DocumentMovedEvent : DomainEvent<Document>
     {
         public DocumentPath Path { get; }
-        public DocumentPath OldPath { get; }
+        public DocumentPath NewPath { get; }
 
         public DocumentMovedEvent(Document document, DocumentPath originalPath, DocumentPath destinationPath) : base(document)
         {
-            OldPath = originalPath;
-            Path = destinationPath;
+            Path = originalPath;
+            NewPath = destinationPath;
         }
     }
 }

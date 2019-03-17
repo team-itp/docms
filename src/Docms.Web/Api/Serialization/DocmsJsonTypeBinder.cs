@@ -12,8 +12,6 @@ namespace Docms.Web.Api.Serialization
         {
             {typeof(DocumentCreated), "document_created" },
             {typeof(DocumentUpdated), "document_updated" },
-            {typeof(DocumentMovedFromOldPath), "document_moved_from" },
-            {typeof(DocumentMovedToNewPath), "document_moved_to" },
             {typeof(DocumentDeleted), "document_deleted" },
             {typeof(BlobContainer), "container" },
             {typeof(Blob), "document" },

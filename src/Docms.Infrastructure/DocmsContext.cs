@@ -37,8 +37,6 @@ namespace Docms.Infrastructure
         #region "Document Histories Queries"
         public DbSet<DocumentHistory> DocumentHistories { get; set; }
         public DbSet<DocumentCreated> DocumentCreated { get; set; }
-        public DbSet<DocumentMovedFromOldPath> DocumentMovedFromOldPath { get; set; }
-        public DbSet<DocumentMovedToNewPath> DocumentMovedToNewPath { get; set; }
         public DbSet<DocumentUpdated> DocumentUpdated { get; set; }
         public DbSet<DocumentDeleted> DocumentDeleted { get; set; }
         #endregion
@@ -111,20 +109,6 @@ namespace Docms.Infrastructure
                         ? DateTime.SpecifyKind(value, DateTimeKind.Utc)
                         : value);
             modelBuilder.Entity<DocumentUpdated>()
-                .Property(d => d.LastModified)
-                .HasConversion(
-                    value => value,
-                    value => value.Kind == DateTimeKind.Unspecified
-                        ? DateTime.SpecifyKind(value, DateTimeKind.Utc)
-                        : value);
-            modelBuilder.Entity<DocumentMovedFromOldPath>()
-                .Property(d => d.Created)
-                .HasConversion(
-                    value => value,
-                    value => value.Kind == DateTimeKind.Unspecified
-                        ? DateTime.SpecifyKind(value, DateTimeKind.Utc)
-                        : value);
-            modelBuilder.Entity<DocumentMovedFromOldPath>()
                 .Property(d => d.LastModified)
                 .HasConversion(
                     value => value,

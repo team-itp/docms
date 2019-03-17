@@ -106,17 +106,17 @@ namespace Docms.Web.Application.DomainEventHandlers
         {
             var ev = notification.Event;
 
-            var oldBlob = await _db.Blobs.FirstOrDefaultAsync(e => e.Path == ev.OldPath.Value);
+            var oldBlob = await _db.Blobs.FirstOrDefaultAsync(e => e.Path == ev.Path.Value);
             _db.Blobs.Remove(oldBlob);
             await _db.SaveChangesAsync();
-            await RemoveEmptyContainerAsync(ev.OldPath.Parent);
+            await RemoveEmptyContainerAsync(ev.Path.Parent);
             await _db.SaveChangesAsync();
 
             var blob = new Blob()
             {
-                Path = ev.Path.Value,
-                Name = ev.Path.Name,
-                ParentPath = ev.Path.Parent?.Value,
+                Path = ev.NewPath.Value,
+                Name = ev.NewPath.Name,
+                ParentPath = ev.NewPath.Parent?.Value,
                 StorageKey = oldBlob.StorageKey,
                 ContentType = oldBlob.ContentType,
                 FileSize = oldBlob.FileSize,
@@ -127,7 +127,7 @@ namespace Docms.Web.Application.DomainEventHandlers
 
             _db.Blobs.Add(blob);
 
-            await AddParentContainerAsync(ev.Path.Parent);
+            await AddParentContainerAsync(ev.NewPath.Parent);
             await _db.SaveChangesAsync();
         }
 
