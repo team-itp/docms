@@ -9,10 +9,12 @@ namespace Docms.Queries.Blobs
     {
         [Column("Path")]
         [Key]
+        [MaxLength(4000)]
         public string Path { get; set; }
         [Column("Name")]
         public string Name { get; set; }
         [Column("ParentPath")]
+        [MaxLength(4000)]
         public string ParentPath { get; set; }
     }
 

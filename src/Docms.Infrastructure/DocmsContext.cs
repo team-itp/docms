@@ -86,7 +86,7 @@ namespace Docms.Infrastructure
                         ? DateTime.SpecifyKind(value, DateTimeKind.Utc)
                         : value);
             modelBuilder.Entity<DocumentHistory>()
-                .HasIndex(d => d.Timestamp);
+                .HasIndex("Path", "Timestamp");
             modelBuilder.Entity<DocumentCreated>()
                 .Property(d => d.Created)
                 .HasConversion(

@@ -14,6 +14,7 @@ namespace Docms.Queries.DocumentHistories
         public DateTime Timestamp { get; set; }
         [Column("Path")]
         [Required]
+        [MaxLength(4000)]
         public string Path { get; set; }
     }
 
