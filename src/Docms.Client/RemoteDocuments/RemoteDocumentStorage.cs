@@ -56,14 +56,6 @@ namespace Docms.Client.RemoteDocuments
             {
                 Apply(created);
             }
-            else if (history is DocumentMovedFromHistory movedFrom)
-            {
-                Apply(movedFrom);
-            }
-            else if (history is DocumentMovedToHistory movedTo)
-            {
-                Apply(movedTo);
-            }
             else if (history is DocumentUpdatedHistory updated)
             {
                 Apply(updated);
@@ -125,15 +117,6 @@ namespace Docms.Client.RemoteDocuments
             dir.AddChild(new RemoteDocument(path.Name, history.ContentType, history.FileSize, history.Hash, history.Created, history.LastModified));
         }
 
-        private void Apply(DocumentMovedFromHistory history)
-        {
-
-        }
-
-        private void Apply(DocumentMovedToHistory history)
-        {
-
-        }
 
         private void Apply(DocumentUpdatedHistory history)
         {
@@ -145,9 +128,12 @@ namespace Docms.Client.RemoteDocuments
             doc.LastModified = history.LastModified;
         }
 
-        private void Apply(DocumentDeletedHistory created)
+        private void Apply(DocumentDeletedHistory history)
         {
-
+            var path = new PathString(history.Path);
+            var container = GetContainer(path.ParentPath);
+            var document = GetDocument(path);
+            container.RemoveChild(document);
         }
 
         public RemoteNode GetNode(PathString path)

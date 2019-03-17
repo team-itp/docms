@@ -93,5 +93,37 @@ namespace Docms.Client.Tests
             Assert.AreEqual(new PathString("dir1/file2.txt"), file2.Path);
             Assert.AreEqual("dir1/file2.txt updated".Length, file2.FileSize);
         }
+
+        [TestMethod]
+        public async Task サーバーから履歴を読み込んでディレクトリ構造を構築する_移動()
+        {
+            await DocmsApiUtils.Create(apiClient, "file1.txt");
+            await DocmsApiUtils.Create(apiClient, "dir1/file2.txt");
+            await DocmsApiUtils.Create(apiClient, "file3.txt");
+            await DocmsApiUtils.Update(apiClient, "file1.txt");
+            await DocmsApiUtils.Update(apiClient, "dir1/file2.txt");
+            await DocmsApiUtils.Move(apiClient, "file1.txt", "file1_moved.txt");
+            await DocmsApiUtils.Move(apiClient, "dir1/file2.txt", "file2_moved.txt");
+            await DocmsApiUtils.Move(apiClient, "file3.txt", "dir1/file3.txt");
+            await DocmsApiUtils.Move(apiClient, "dir1/file3.txt", "file3_moved.txt");
+            await sut.UpdateAsync();
+            var rootNodes = (sut.GetNode(PathString.Root) as RemoteContainer).Children;
+            Assert.AreEqual(3, rootNodes.Count());
+
+            var file1 = rootNodes.First() as RemoteDocument;
+            Assert.AreEqual("file1_moved.txt", file1.Name);
+            Assert.AreEqual(new PathString("file1_moved.txt"), file1.Path);
+            Assert.AreEqual("file1.txt updated".Length, file1.FileSize);
+
+            var file2 = rootNodes.Skip(1).First() as RemoteDocument;
+            Assert.AreEqual("file2_moved.txt", file2.Name);
+            Assert.AreEqual(new PathString("file2_moved.txt"), file2.Path);
+            Assert.AreEqual("dir1/file2.txt updated".Length, file2.FileSize);
+
+            var file3 = rootNodes.Skip(2).First() as RemoteDocument;
+            Assert.AreEqual("file3_moved.txt", file3.Name);
+            Assert.AreEqual(new PathString("file3_moved.txt"), file3.Path);
+            Assert.AreEqual("file3.txt".Length, file3.FileSize);
+        }
     }
 }

@@ -23,5 +23,10 @@ namespace Docms.Client.Tests.Utils
             var str = Encoding.UTF8.GetString(ms.ToArray()) + " updated";
             await apiClient.CreateOrUpdateDocumentAsync(path, new MemoryStream(Encoding.UTF8.GetBytes(str)), file.Created, file.LastModified.AddHours(1));
         }
+
+        public static Task Move(IDocmsApiClient apiClient, string fromPath, string toPath)
+        {
+            return apiClient.MoveDocumentAsync(fromPath, toPath);
+        }
     }
 }

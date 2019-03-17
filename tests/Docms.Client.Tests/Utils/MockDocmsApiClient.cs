@@ -113,20 +113,18 @@ namespace Docms.Client.Tests.Utils
         private void AddMove(string originalPath, string destinationPath, string contentType, byte[] data, DateTime created, DateTime lastModified)
         {
             var now = DateTime.UtcNow;
-            AddHisotry(new DocumentMovedFromHistory()
+            AddHisotry(new DocumentCreatedHistory()
             {
                 Path = destinationPath,
-                OldPath = originalPath,
                 ContentType = contentType,
                 Hash = CalculateHash(data),
                 FileSize = data.Length,
                 Created = created,
                 LastModified = lastModified
             });
-            AddHisotry(new DocumentMovedToHistory()
+            AddHisotry(new DocumentDeletedHistory()
             {
-                Path = originalPath,
-                NewPath = destinationPath,
+                Path = originalPath
             });
         }
 
