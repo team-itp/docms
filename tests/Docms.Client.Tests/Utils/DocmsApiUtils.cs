@@ -13,5 +13,15 @@ namespace Docms.Client.Tests.Utils
             var time = new DateTime(2019, 1, 1, 10, 11, 12, DateTimeKind.Utc);
             return apiClient.CreateOrUpdateDocumentAsync(path, new MemoryStream(Encoding.UTF8.GetBytes(path)), time, time);
         }
+
+        public static async Task Update(IDocmsApiClient apiClient, string path)
+        {
+            var file = await apiClient.GetDocumentAsync(path);
+            var stream = await apiClient.DownloadAsync(path);
+            var ms = new MemoryStream();
+            await stream.CopyToAsync(ms);
+            var str = Encoding.UTF8.GetString(ms.ToArray()) + " updated";
+            await apiClient.CreateOrUpdateDocumentAsync(path, new MemoryStream(Encoding.UTF8.GetBytes(str)), file.Created, file.LastModified.AddHours(1));
+        }
     }
 }

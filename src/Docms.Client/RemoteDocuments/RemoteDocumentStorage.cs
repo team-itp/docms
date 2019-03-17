@@ -83,56 +83,66 @@ namespace Docms.Client.RemoteDocuments
             var dir = Root;
             foreach (var component in path.PathComponents)
             {
-                var subDir = dir.GetChild(component) as RemoteContainer;
+                var subDir = dir.GetChild(component);
                 if (subDir == null)
                 {
                     subDir = new RemoteContainer(component);
                     dir.AddChild(subDir);
                 }
-                dir = subDir;
+                if (subDir is RemoteDocument doc)
+                {
+                    throw new InvalidOperationException();
+                }
+                dir = subDir as RemoteContainer;
             }
             return dir;
         }
 
         private RemoteContainer GetContainer(PathString path)
         {
-            if (path == PathString.Root)
+            var node = GetNode(path);
+            if (node is RemoteContainer container)
             {
-                return Root;
+                return container;
             }
-            var dir = Root;
-            foreach (var component in path.PathComponents)
-            {
-                var subDir = dir.GetChild(component) as RemoteContainer;
-                if (subDir == null)
-                {
-                    return null;
-                }
-                dir = subDir;
-            }
-            return dir;
+            throw new InvalidOperationException();
         }
 
-        private void Apply(DocumentCreatedHistory created)
+        private RemoteDocument GetDocument(PathString path)
         {
-            var path = new PathString(created.Path);
+            var node = GetNode(path);
+            if (node is RemoteDocument document)
+            {
+                return document;
+            }
+            throw new InvalidOperationException();
+        }
+
+        private void Apply(DocumentCreatedHistory history)
+        {
+            var path = new PathString(history.Path);
             var dir = GetOrCreateContainer(path.ParentPath);
-            dir.AddChild(new RemoteDocument(path.Name, created.ContentType, created.FileSize, created.Hash, created.Created, created.LastModified));
+            dir.AddChild(new RemoteDocument(path.Name, history.ContentType, history.FileSize, history.Hash, history.Created, history.LastModified));
         }
 
-        private void Apply(DocumentMovedFromHistory created)
+        private void Apply(DocumentMovedFromHistory history)
         {
 
         }
 
-        private void Apply(DocumentMovedToHistory created)
+        private void Apply(DocumentMovedToHistory history)
         {
 
         }
 
-        private void Apply(DocumentUpdatedHistory created)
+        private void Apply(DocumentUpdatedHistory history)
         {
-
+            var doc = GetDocument(new PathString(history.Path));
+            doc.ContentType = history.ContentType;
+            doc.FileSize = history.FileSize;
+            doc.Hash = history.Hash;
+            doc.Created = history.Created;
+            doc.LastModified = history.LastModified;
         }
 
         private void Apply(DocumentDeletedHistory created)
@@ -146,7 +156,20 @@ namespace Docms.Client.RemoteDocuments
             {
                 return Root;
             }
-            return GetContainer(path.ParentPath)?.GetChild(path.Name);
+            var dir = Root;
+            foreach (var component in path.ParentPath.PathComponents)
+            {
+                if (!string.IsNullOrEmpty(component))
+                {
+                    var subDir = dir.GetChild(component) as RemoteContainer;
+                    if (subDir == null)
+                    {
+                        return null;
+                    }
+                    dir = subDir;
+                }
+            }
+            return dir.GetChild(path.Name);
         }
     }
 }
