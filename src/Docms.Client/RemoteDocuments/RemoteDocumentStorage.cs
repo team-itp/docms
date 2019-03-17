@@ -1,5 +1,6 @@
 ﻿using Docms.Client.Api;
 using Docms.Client.Data;
+using Docms.Client.Documents;
 using Docms.Client.Types;
 using Microsoft.EntityFrameworkCore;
 using System;
@@ -14,14 +15,14 @@ namespace Docms.Client.RemoteDocuments
         private LocalDbContext localDb;
         private IDocmsApiClient api;
         private HashSet<Guid> appliedHistoryIds;
-        private RemoteContainer Root { get; }
+        private ContainerNode Root { get; }
 
         public RemoteDocumentStorage(IDocmsApiClient api, LocalDbContext localDb)
         {
             this.api = api;
             this.localDb = localDb;
             appliedHistoryIds = new HashSet<Guid>();
-            Root = RemoteContainer.CreateRootContainer();
+            Root = ContainerNode.CreateRootContainer();
         }
 
         public async Task UpdateAsync()
@@ -66,7 +67,7 @@ namespace Docms.Client.RemoteDocuments
             }
         }
 
-        private RemoteContainer GetOrCreateContainer(PathString path)
+        private ContainerNode GetOrCreateContainer(PathString path)
         {
             if (path == PathString.Root)
             {
@@ -78,32 +79,32 @@ namespace Docms.Client.RemoteDocuments
                 var subDir = dir.GetChild(component);
                 if (subDir == null)
                 {
-                    subDir = new RemoteContainer(component);
+                    subDir = new ContainerNode(component);
                     dir.AddChild(subDir);
                 }
-                if (subDir is RemoteDocument doc)
+                if (subDir is DocumentNode doc)
                 {
                     throw new InvalidOperationException();
                 }
-                dir = subDir as RemoteContainer;
+                dir = subDir as ContainerNode;
             }
             return dir;
         }
 
-        private RemoteContainer GetContainer(PathString path)
+        private ContainerNode GetContainer(PathString path)
         {
             var node = GetNode(path);
-            if (node is RemoteContainer container)
+            if (node is ContainerNode container)
             {
                 return container;
             }
             throw new InvalidOperationException();
         }
 
-        private RemoteDocument GetDocument(PathString path)
+        private DocumentNode GetDocument(PathString path)
         {
             var node = GetNode(path);
-            if (node is RemoteDocument document)
+            if (node is DocumentNode document)
             {
                 return document;
             }
@@ -114,14 +115,13 @@ namespace Docms.Client.RemoteDocuments
         {
             var path = new PathString(history.Path);
             var dir = GetOrCreateContainer(path.ParentPath);
-            dir.AddChild(new RemoteDocument(path.Name, history.ContentType, history.FileSize, history.Hash, history.Created, history.LastModified));
+            dir.AddChild(new DocumentNode(path.Name, history.FileSize, history.Hash, history.Created, history.LastModified));
         }
 
 
         private void Apply(DocumentUpdatedHistory history)
         {
             var doc = GetDocument(new PathString(history.Path));
-            doc.ContentType = history.ContentType;
             doc.FileSize = history.FileSize;
             doc.Hash = history.Hash;
             doc.Created = history.Created;
@@ -136,7 +136,7 @@ namespace Docms.Client.RemoteDocuments
             container.RemoveChild(document);
         }
 
-        public RemoteNode GetNode(PathString path)
+        public Node GetNode(PathString path)
         {
             if (path == PathString.Root)
             {
@@ -147,7 +147,7 @@ namespace Docms.Client.RemoteDocuments
             {
                 if (!string.IsNullOrEmpty(component))
                 {
-                    var subDir = dir.GetChild(component) as RemoteContainer;
+                    var subDir = dir.GetChild(component) as ContainerNode;
                     if (subDir == null)
                     {
                         return null;

@@ -1,10 +1,10 @@
 ﻿using Docms.Client.Types;
 
-namespace Docms.Client.RemoteDocuments
+namespace Docms.Client.Documents
 {
-    public abstract class RemoteNode
+    public abstract class Node
     {
-        public RemoteContainer Parent { get; private set; }
+        public ContainerNode Parent { get; private set; }
 
         public string Name { get; private set; }
 
@@ -14,12 +14,12 @@ namespace Docms.Client.RemoteDocuments
             ? null
             : Parent.Path.Combine(Name);
 
-        public RemoteNode(string name)
+        public Node(string name)
         {
             Name = name;
         }
 
-        internal void SetParent(RemoteContainer parent)
+        internal void SetParent(ContainerNode parent)
         {
             Parent = parent;
         }

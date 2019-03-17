@@ -2,30 +2,30 @@
 using System.Collections.Generic;
 using System.Linq;
 
-namespace Docms.Client.RemoteDocuments
+namespace Docms.Client.Documents
 {
-    public class RemoteContainer : RemoteNode
+    public class ContainerNode : Node
     {
-        private Dictionary<string, RemoteNode> children;
+        private Dictionary<string, Node> children;
 
-        public IEnumerable<RemoteNode> Children => children.Values.OrderBy(n => n.Name);
+        public IEnumerable<Node> Children => children.Values.OrderBy(n => n.Name);
 
-        private RemoteContainer() : base(null)
+        private ContainerNode() : base(null)
         {
-            children = new Dictionary<string, RemoteNode>();
+            children = new Dictionary<string, Node>();
         }
 
-        public RemoteContainer(string name) : base(name ?? throw new ArgumentNullException(nameof(name)))
+        public ContainerNode(string name) : base(name ?? throw new ArgumentNullException(nameof(name)))
         {
-            children = new Dictionary<string, RemoteNode>();
+            children = new Dictionary<string, Node>();
         }
 
-        public static RemoteContainer CreateRootContainer()
+        public static ContainerNode CreateRootContainer()
         {
-            return new RemoteContainer();
+            return new ContainerNode();
         }
 
-        public void AddChild(RemoteNode node)
+        public void AddChild(Node node)
         {
             if (children.ContainsKey(node.Name))
             {
@@ -35,7 +35,7 @@ namespace Docms.Client.RemoteDocuments
             node.SetParent(this);
         }
 
-        public RemoteNode GetChild(string name)
+        public Node GetChild(string name)
         {
             if (children.TryGetValue(name, out var value))
             {
@@ -44,7 +44,7 @@ namespace Docms.Client.RemoteDocuments
             return null;
         }
 
-        public void RemoveChild(RemoteNode remoteNode)
+        public void RemoveChild(Node remoteNode)
         {
             if (children.TryGetValue(remoteNode.Name, out var value) && remoteNode == value)
             {

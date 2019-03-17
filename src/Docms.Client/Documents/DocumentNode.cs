@@ -1,19 +1,17 @@
 ﻿using System;
 
-namespace Docms.Client.RemoteDocuments
+namespace Docms.Client.Documents
 {
-    public class RemoteDocument : RemoteNode
+    public class DocumentNode : Node
     {
-        public RemoteDocument(string name, string contentType, long fileSize, string hash, DateTime created, DateTime lastModified) : base(name)
+        public DocumentNode(string name, long fileSize, string hash, DateTime created, DateTime lastModified) : base(name)
         {
-            ContentType = contentType;
             FileSize = fileSize;
             Hash = hash;
             Created = created;
             LastModified = lastModified;
         }
 
-        public string ContentType { get; set; }
         public long FileSize { get; set; }
         public string Hash { get; set; }
         public DateTime Created { get; set; }

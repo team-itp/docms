@@ -1,4 +1,4 @@
-﻿using Docms.Client.RemoteDocuments;
+﻿using Docms.Client.Documents;
 using Docms.Client.Types;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using System;
@@ -7,13 +7,13 @@ using System.Linq;
 namespace Docms.Client.Tests
 {
     [TestClass]
-    public class RemoteNodeTests
+    public class NodeTests
     {
         [TestMethod]
         public void ルートコンテナーを作成し子供のファイルを格納できること()
         {
-            var document = new RemoteDocument("file.txt", "application/octed-stream", 10, "AAAA", new DateTime(2019, 1, 1, 10, 11, 12, DateTimeKind.Utc), new DateTime(2019, 1, 1, 10, 11, 12, DateTimeKind.Utc));
-            var sut = RemoteContainer.CreateRootContainer();
+            var document = new DocumentNode("file.txt", 10, "AAAA", new DateTime(2019, 1, 1, 10, 11, 12, DateTimeKind.Utc), new DateTime(2019, 1, 1, 10, 11, 12, DateTimeKind.Utc));
+            var sut = ContainerNode.CreateRootContainer();
             sut.AddChild(document);
             Assert.AreEqual(new PathString("file.txt"), document.Path);
         }
@@ -21,9 +21,9 @@ namespace Docms.Client.Tests
         [TestMethod]
         public void ルートコンテナーを作成し子供のコンテナーにファイルを格納できること()
         {
-            var document = new RemoteDocument("file.txt", "application/octed-stream", 10, "AAAA", new DateTime(2019, 1, 1, 10, 11, 12, DateTimeKind.Utc), new DateTime(2019, 1, 1, 10, 11, 12, DateTimeKind.Utc));
-            var root = RemoteContainer.CreateRootContainer();
-            var sut = new RemoteContainer("test1");
+            var document = new DocumentNode("file.txt", 10, "AAAA", new DateTime(2019, 1, 1, 10, 11, 12, DateTimeKind.Utc), new DateTime(2019, 1, 1, 10, 11, 12, DateTimeKind.Utc));
+            var root = ContainerNode.CreateRootContainer();
+            var sut = new ContainerNode("test1");
             root.AddChild(sut);
             sut.AddChild(document);
             Assert.AreEqual(new PathString("test1/file.txt"), document.Path);
@@ -32,8 +32,8 @@ namespace Docms.Client.Tests
         [TestMethod]
         public void ルートコンテナーのファイルを削除できること()
         {
-            var document = new RemoteDocument("file.txt", "application/octed-stream", 10, "AAAA", new DateTime(2019, 1, 1, 10, 11, 12, DateTimeKind.Utc), new DateTime(2019, 1, 1, 10, 11, 12, DateTimeKind.Utc));
-            var sut = RemoteContainer.CreateRootContainer();
+            var document = new DocumentNode("file.txt", 10, "AAAA", new DateTime(2019, 1, 1, 10, 11, 12, DateTimeKind.Utc), new DateTime(2019, 1, 1, 10, 11, 12, DateTimeKind.Utc));
+            var sut = ContainerNode.CreateRootContainer();
             sut.AddChild(document);
             sut.RemoveChild(document);
             Assert.AreEqual(0, sut.Children.Count());
@@ -42,9 +42,9 @@ namespace Docms.Client.Tests
         [TestMethod]
         public void サブコンテナーのファイルを削除できること()
         {
-            var document = new RemoteDocument("file.txt", "application/octed-stream", 10, "AAAA", new DateTime(2019, 1, 1, 10, 11, 12, DateTimeKind.Utc), new DateTime(2019, 1, 1, 10, 11, 12, DateTimeKind.Utc));
-            var root = RemoteContainer.CreateRootContainer();
-            var sut = new RemoteContainer("test1");
+            var document = new DocumentNode("file.txt", 10, "AAAA", new DateTime(2019, 1, 1, 10, 11, 12, DateTimeKind.Utc), new DateTime(2019, 1, 1, 10, 11, 12, DateTimeKind.Utc));
+            var root = ContainerNode.CreateRootContainer();
+            var sut = new ContainerNode("test1");
             root.AddChild(sut);
             sut.AddChild(document);
             sut.RemoveChild(document);
@@ -55,10 +55,10 @@ namespace Docms.Client.Tests
         [TestMethod]
         public void サブコンテナーに2件のファイルがある場合に1件のファイルを削除できること()
         {
-            var document1 = new RemoteDocument("file1.txt", "application/octed-stream", 10, "AAAA", new DateTime(2019, 1, 1, 10, 11, 12, DateTimeKind.Utc), new DateTime(2019, 1, 1, 10, 11, 12, DateTimeKind.Utc));
-            var document2 = new RemoteDocument("file2.txt", "application/octed-stream", 10, "AAAA", new DateTime(2019, 1, 1, 10, 11, 12, DateTimeKind.Utc), new DateTime(2019, 1, 1, 10, 11, 12, DateTimeKind.Utc));
-            var root = RemoteContainer.CreateRootContainer();
-            var sut = new RemoteContainer("test1");
+            var document1 = new DocumentNode("file1.txt", 10, "AAAA", new DateTime(2019, 1, 1, 10, 11, 12, DateTimeKind.Utc), new DateTime(2019, 1, 1, 10, 11, 12, DateTimeKind.Utc));
+            var document2 = new DocumentNode("file2.txt", 10, "AAAA", new DateTime(2019, 1, 1, 10, 11, 12, DateTimeKind.Utc), new DateTime(2019, 1, 1, 10, 11, 12, DateTimeKind.Utc));
+            var root = ContainerNode.CreateRootContainer();
+            var sut = new ContainerNode("test1");
             root.AddChild(sut);
             sut.AddChild(document1);
             sut.AddChild(document2);
