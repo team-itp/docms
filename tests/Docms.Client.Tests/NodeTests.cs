@@ -68,5 +68,30 @@ namespace Docms.Client.Tests
             Assert.AreEqual(1, root.Children.Count());
             Assert.AreEqual(new PathString("test1"), root.Children.First().Path);
         }
+
+        [TestMethod]
+        public void 全てのファイルを列挙する()
+        {
+            var document1 = new DocumentNode("file1.txt", 10, "AAAA", new DateTime(2019, 1, 1, 10, 11, 12, DateTimeKind.Utc), new DateTime(2019, 1, 1, 10, 11, 12, DateTimeKind.Utc));
+            var document2 = new DocumentNode("file2.txt", 10, "AAAA", new DateTime(2019, 1, 1, 10, 11, 12, DateTimeKind.Utc), new DateTime(2019, 1, 1, 10, 11, 12, DateTimeKind.Utc));
+            var document3 = new DocumentNode("file3.txt", 10, "AAAA", new DateTime(2019, 1, 1, 10, 11, 12, DateTimeKind.Utc), new DateTime(2019, 1, 1, 10, 11, 12, DateTimeKind.Utc));
+            var document4 = new DocumentNode("file4.txt", 10, "AAAA", new DateTime(2019, 1, 1, 10, 11, 12, DateTimeKind.Utc), new DateTime(2019, 1, 1, 10, 11, 12, DateTimeKind.Utc));
+            var root = ContainerNode.CreateRootContainer();
+            var sub = new ContainerNode("test1");
+            var subSub = new ContainerNode("subTest1");
+            root.AddChild(sub);
+            root.AddChild(document1);
+            sub.AddChild(document2);
+            sub.AddChild(subSub);
+            subSub.AddChild(document3);
+            subSub.AddChild(document4);
+
+            var docs = root.ListAllDocuments().ToList();
+            Assert.AreEqual(4, docs.Count);
+            Assert.AreEqual(new PathString("file1.txt"), docs[0].Path);
+            Assert.AreEqual(new PathString("test1/file2.txt"), docs[1].Path);
+            Assert.AreEqual(new PathString("test1/subTest1/file3.txt"), docs[2].Path);
+            Assert.AreEqual(new PathString("test1/subTest1/file4.txt"), docs[3].Path);
+        }
     }
 }

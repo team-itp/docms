@@ -59,5 +59,23 @@ namespace Docms.Client.Documents
                 Parent.RemoveChild(this);
             }
         }
+
+        public IEnumerable<DocumentNode> ListAllDocuments()
+        {
+            foreach (var child in Children)
+            {
+                if (child is DocumentNode d)
+                {
+                    yield return d;
+                }
+                else if (child is ContainerNode c)
+                {
+                    foreach (var doc in c.ListAllDocuments())
+                    {
+                        yield return doc;
+                    }
+                }
+            }
+        }
     }
 }
