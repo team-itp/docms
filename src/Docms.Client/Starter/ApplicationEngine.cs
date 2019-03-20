@@ -1,4 +1,5 @@
-﻿using System;
+﻿using Docms.Client.Operations;
+using System;
 using System.Threading;
 
 namespace Docms.Client.Starter
@@ -18,7 +19,7 @@ namespace Docms.Client.Starter
 
         public void FailInitialization(Exception ex)
         {
-            application.Invoke(token => application.Shutdown(), default(CancellationToken));
+            application.Invoke(new ActionOperation(token => application.Shutdown(), default(CancellationToken)));
         }
     }
 }

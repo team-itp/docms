@@ -1,4 +1,5 @@
-﻿using System;
+﻿using Docms.Client.Operations;
+using System;
 using System.Threading;
 using System.Threading.Tasks;
 
@@ -8,6 +9,6 @@ namespace Docms.Client
     {
         void Run();
         void Shutdown();
-        Task Invoke(Action<CancellationToken> action, CancellationToken cancellationToken = default(CancellationToken));
+        Task Invoke(IOperation operation);
     }
 }

@@ -12,7 +12,7 @@ namespace Docms.Client.Tests
         public void 処理が完了した場合にTaskが完了となる()
         {
             var executed = false;
-            var sut = new ApplicationOperation(token => { executed = true; }, CancellationToken.None);
+            var sut = new ActionOperation(token => { executed = true; }, CancellationToken.None);
             Assert.IsFalse(sut.IsAborted);
             Assert.AreEqual(TaskStatus.WaitingForActivation, sut.Task.Status);
             sut.Start();
@@ -24,7 +24,7 @@ namespace Docms.Client.Tests
         public void 当初からCancellationTokenがCancel状態の場合IsAbortがtrueに設定される()
         {
             var executed = false;
-            var sut = new ApplicationOperation(token => { executed = true; }, new CancellationToken(true));
+            var sut = new ActionOperation(token => { executed = true; }, new CancellationToken(true));
             Assert.IsTrue(sut.IsAborted);
             Assert.AreEqual(TaskStatus.Canceled, sut.Task.Status);
             sut.Start();
@@ -35,7 +35,7 @@ namespace Docms.Client.Tests
         public void インスタンス生成後にAbortが呼ばれた場合()
         {
             var executed = false;
-            var sut = new ApplicationOperation(token => { executed = true; }, CancellationToken.None);
+            var sut = new ActionOperation(token => { executed = true; }, CancellationToken.None);
             sut.Abort();
             Assert.IsTrue(sut.IsAborted);
             Assert.AreEqual(TaskStatus.Canceled, sut.Task.Status);
@@ -48,7 +48,7 @@ namespace Docms.Client.Tests
         {
             var executed = false;
             var cts = new CancellationTokenSource();
-            var sut = new ApplicationOperation(token => { executed = true; }, cts.Token);
+            var sut = new ActionOperation(token => { executed = true; }, cts.Token);
             cts.Cancel();
             Assert.IsTrue(sut.IsAborted);
             Assert.AreEqual(TaskStatus.Canceled, sut.Task.Status);
@@ -62,7 +62,7 @@ namespace Docms.Client.Tests
             var are1 = new AutoResetEvent(false);
             var are2 = new AutoResetEvent(false);
             var cts = new CancellationTokenSource();
-            var sut = new ApplicationOperation(token => {
+            var sut = new ActionOperation(token => {
                 are1.Set();
                 are2.WaitOne();
             }, cts.Token);
@@ -86,7 +86,7 @@ namespace Docms.Client.Tests
             var are1 = new AutoResetEvent(false);
             var are2 = new AutoResetEvent(false);
             var cts = new CancellationTokenSource();
-            var sut = new ApplicationOperation(token => {
+            var sut = new ActionOperation(token => {
                 are1.Set();
                 are2.WaitOne();
                 cts.Token.ThrowIfCancellationRequested();

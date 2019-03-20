@@ -1,17 +1,14 @@
-﻿using Docms.Client.Data;
-using Docms.Client.Starter;
+﻿using Docms.Client.Starter;
 using Docms.Client.Tests.Utils;
-using Microsoft.EntityFrameworkCore;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using System;
 using System.IO;
 using System.Linq;
-using System.Threading;
-using System.Threading.Tasks;
 
 namespace Docms.Client.Tests
 {
     [TestClass]
+    [Ignore]
     public class ApplicationStarterTests
     {
         const string SERVER_URL = "http://localhost:51693";

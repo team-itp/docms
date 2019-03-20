@@ -4,15 +4,14 @@ using System.Threading.Tasks;
 
 namespace Docms.Client.Operations
 {
-    public class ApplicationOperation
+    public abstract class OperationBase : IOperation
     {
-        private Action<CancellationToken> action;
         private TaskCompletionSource<object> tcs;
         private CancellationTokenSource cts;
         private bool isStarted;
         private bool isFinished;
 
-        public ApplicationOperation(Action<CancellationToken> action, CancellationToken cancellationToken)
+        public OperationBase(CancellationToken cancellationToken)
         {
             IsAborted = cancellationToken.IsCancellationRequested;
             if (IsAborted)
@@ -22,7 +21,6 @@ namespace Docms.Client.Operations
             }
             else
             {
-                this.action = action;
                 tcs = new TaskCompletionSource<object>();
                 cts = new CancellationTokenSource();
                 Task = tcs.Task;
@@ -63,7 +61,7 @@ namespace Docms.Client.Operations
 
             try
             {
-                action.Invoke(cts.Token);
+                Execute(cts.Token);
                 tcs.SetResult(null);
             }
             catch (OperationCanceledException)
@@ -80,5 +78,7 @@ namespace Docms.Client.Operations
             }
 
         }
+
+        protected abstract void Execute(CancellationToken token);
     }
 }

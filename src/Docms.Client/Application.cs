@@ -11,12 +11,12 @@ namespace Docms.Client
     {
         private static readonly Logger _logger = LogManager.GetCurrentClassLogger();
         private bool _shutdownStarted;
-        private ConcurrentQueue<ApplicationOperation> _operations;
-        private ApplicationOperation _currentOperation;
+        private ConcurrentQueue<IOperation> _operations;
+        private IOperation _currentOperation;
 
         public Application()
         {
-            _operations = new ConcurrentQueue<ApplicationOperation>();
+            _operations = new ConcurrentQueue<IOperation>();
         }
 
         public void Run()
@@ -39,9 +39,8 @@ namespace Docms.Client
             _logger.Debug("Application shutdown.");
         }
 
-        public Task Invoke(Action<CancellationToken> action, CancellationToken cancellationToken = default(CancellationToken))
+        public Task Invoke(IOperation operation)
         {
-            var operation = new ApplicationOperation(action, cancellationToken);
             if (!operation.IsAborted)
             {
                 _operations.Enqueue(operation);
