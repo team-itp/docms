@@ -28,31 +28,10 @@ namespace Docms.Client.DocumentStores
             var files = Directory.GetFiles(fullContainerPath);
             var dirs = Directory.GetDirectories(fullContainerPath);
             var startIndex = fullContainerPath.Length;
-            foreach (var filepath in files)
-            {
-                var fp = new PathString(filepath.Substring(startIndex));
-                var fileNode = node.GetChild(fp.Name) as DocumentNode;
-                if (File.Exists(filepath))
-                {
-                    if (fileNode != null)
-                    {
-                        UpdateFile(filepath, fileNode);
-                    }
-                    else
-                    {
-                        fileNode = CreateFile(filepath, fp.Name);
-                        node.AddChild(fileNode);
-                    }
-                }
-                else if (fileNode != null)
-                {
-                    node.RemoveChild(fileNode);
-                }
-            }
 
             foreach (var dirpath in dirs)
             {
-                var dp = new PathString(dirpath.Substring(startIndex));
+                var dp = new PathString(dirpath.Substring(startIndex + 1));
                 var dirNode = node.GetChild(dp.Name) as ContainerNode;
                 if (Directory.Exists(dirpath))
                 {
@@ -70,6 +49,27 @@ namespace Docms.Client.DocumentStores
                 else if (dirNode != null)
                 {
                     node.RemoveChild(dirNode);
+                }
+            }
+            foreach (var filepath in files)
+            {
+                var fp = new PathString(filepath.Substring(startIndex + 1));
+                var fileNode = node.GetChild(fp.Name) as DocumentNode;
+                if (File.Exists(filepath))
+                {
+                    if (fileNode != null)
+                    {
+                        UpdateFile(filepath, fileNode);
+                    }
+                    else
+                    {
+                        fileNode = CreateFile(filepath, fp.Name);
+                        node.AddChild(fileNode);
+                    }
+                }
+                else if (fileNode != null)
+                {
+                    node.RemoveChild(fileNode);
                 }
             }
         }

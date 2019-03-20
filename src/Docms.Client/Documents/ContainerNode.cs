@@ -8,7 +8,9 @@ namespace Docms.Client.Documents
     {
         private Dictionary<string, Node> children;
 
-        public IEnumerable<Node> Children => children.Values.OrderBy(n => n.Name);
+        public IEnumerable<Node> Children => children.Values
+            .Where(n => (n is ContainerNode c) ? c.children.Count > 0 : true)
+            .OrderBy(n => n.Name);
 
         private ContainerNode() : base(null)
         {
