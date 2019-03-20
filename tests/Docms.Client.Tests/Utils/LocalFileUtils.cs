@@ -1,5 +1,4 @@
-﻿using Docms.Client.Api;
-using System;
+﻿using System;
 using System.IO;
 using System.Text;
 using System.Threading.Tasks;
@@ -18,16 +17,17 @@ namespace Docms.Client.Tests.Utils
                 Directory.CreateDirectory(Path.GetDirectoryName(fullpath));
             }
             await File.WriteAllBytesAsync(fullpath, Encoding.UTF8.GetBytes(path)).ConfigureAwait(false);
-            File.SetCreationTime(fullpath, DEFAULT_CREATE_TIME);
-            File.SetLastWriteTime(fullpath, DEFAULT_CREATE_TIME);
+            File.SetCreationTimeUtc(fullpath, DEFAULT_CREATE_TIME);
+            File.SetLastWriteTimeUtc(fullpath, DEFAULT_CREATE_TIME);
         }
 
         public static async Task Update(string basepath, string path)
         {
             var fullpath = Path.Combine(basepath, path);
+            var lastWriteTime = File.GetLastWriteTimeUtc(fullpath);
             var str = Encoding.UTF8.GetString(File.ReadAllBytes(fullpath)) + " updated";
             await File.WriteAllBytesAsync(fullpath, Encoding.UTF8.GetBytes(str));
-            File.SetLastWriteTime(fullpath, File.GetLastWriteTime(fullpath).AddHours(1));
+            File.SetLastWriteTimeUtc(fullpath, lastWriteTime.AddHours(1));
         }
 
         public static Task Move(string basepath, string fromPath, string toPath)

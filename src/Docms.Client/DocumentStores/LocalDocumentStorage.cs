@@ -80,8 +80,8 @@ namespace Docms.Client.DocumentStores
         {
             var fileInfo = new FileInfo(filefullpath);
             var (filesize, hash) = CalculateHash(fileInfo);
-            var created = fileInfo.CreationTime;
-            var lastModified = fileInfo.LastWriteTime;
+            var created = fileInfo.CreationTimeUtc;
+            var lastModified = fileInfo.LastWriteTimeUtc;
             return new DocumentNode(name, filesize, hash, created, lastModified);
         }
 
@@ -112,8 +112,8 @@ namespace Docms.Client.DocumentStores
                 || fileInfo.CreationTimeUtc != fileNode.Created)
             {
                 var (fileSize, hash) = CalculateHash(fileInfo);
-                var created = fileInfo.CreationTime;
-                var lastModified = fileInfo.LastWriteTime;
+                var created = fileInfo.CreationTimeUtc;
+                var lastModified = fileInfo.LastWriteTimeUtc;
                 fileNode.Update(fileSize, hash, created, lastModified);
             }
         }

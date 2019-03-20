@@ -57,7 +57,10 @@ namespace Docms.Client.Starter
                 context.LocalStorage = new LocalDocumentStorage(watchPath, context.Db);
                 context.RemoteStorage = new RemoteDocumentStorage(context.Api, context.Db);
 
-                await context.LocalStorage.Sync();
+                await context.LocalStorage.Initialize().ConfigureAwait(false);
+                await context.LocalStorage.Sync().ConfigureAwait(false);
+
+                await context.RemoteStorage.Initialize().ConfigureAwait(false);
                 await context.RemoteStorage.Sync().ConfigureAwait(false);
 
                 engine.Start(context);
