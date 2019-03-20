@@ -8,7 +8,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 
-namespace Docms.Client.RemoteDocuments
+namespace Docms.Client.DocumentStores
 {
     public class RemoteDocumentStorage : DocumentStorageBase
     {

@@ -2,7 +2,7 @@
 using Docms.Client.Types;
 using System;
 
-namespace Docms.Client.RemoteDocuments
+namespace Docms.Client.DocumentStores
 {
     public abstract class DocumentStorageBase
     {
@@ -24,8 +24,7 @@ namespace Docms.Client.RemoteDocuments
             {
                 if (!string.IsNullOrEmpty(component))
                 {
-                    var subDir = dir.GetChild(component) as ContainerNode;
-                    if (subDir == null)
+                    if (!(dir.GetChild(component) is ContainerNode subDir))
                     {
                         return null;
                     }

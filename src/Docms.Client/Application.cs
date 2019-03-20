@@ -7,7 +7,7 @@ using System.Threading.Tasks;
 
 namespace Docms.Client
 {
-    public class Application
+    public class Application : IApplication
     {
         private static readonly Logger _logger = LogManager.GetCurrentClassLogger();
         private bool _shutdownStarted;

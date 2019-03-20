@@ -1,5 +1,5 @@
 ﻿using Docms.Client.Documents;
-using Docms.Client.RemoteDocuments;
+using Docms.Client.DocumentStores;
 using Docms.Client.Types;
 using System.Collections.Generic;
 using System.IO;
@@ -13,6 +13,10 @@ namespace Docms.Client.DocumentStores
         public LocalDocumentStorage(string pathToLocalRoot)
         {
             this.pathToLocalRoot = pathToLocalRoot;
+            if (!Directory.Exists(pathToLocalRoot))
+            {
+                throw new DirectoryNotFoundException(pathToLocalRoot);
+            }
         }
 
         public void SyncLocalDocument()

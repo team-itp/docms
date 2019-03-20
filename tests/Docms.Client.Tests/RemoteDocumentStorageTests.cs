@@ -1,6 +1,6 @@
 ﻿using Docms.Client.Data;
 using Docms.Client.Documents;
-using Docms.Client.RemoteDocuments;
+using Docms.Client.DocumentStores;
 using Docms.Client.Tests.Utils;
 using Docms.Client.Types;
 using Microsoft.EntityFrameworkCore;
