@@ -10,9 +10,7 @@ namespace Docms.Client.Documents
 
         public PathString Path => Name == null
             ? PathString.Root
-            : Parent == null
-            ? null
-            : Parent.Path.Combine(Name);
+            : Parent?.Path.Combine(Name);
 
         public Node(string name)
         {

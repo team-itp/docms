@@ -1,32 +1,30 @@
-﻿using Docms.Client.Documents;
-using Docms.Client.DocumentStores;
+﻿using Docms.Client.Data;
+using Docms.Client.Documents;
 using Docms.Client.Types;
-using System.Collections.Generic;
 using System.IO;
+using System.Threading.Tasks;
 
 namespace Docms.Client.DocumentStores
 {
     public class LocalDocumentStorage : DocumentStorageBase
     {
+        private readonly LocalDbContext localDb;
         public string pathToLocalRoot;
 
-        public LocalDocumentStorage(string pathToLocalRoot)
+        public LocalDocumentStorage(string pathToLocalRoot, LocalDbContext localDb)
         {
+            this.localDb = localDb;
             this.pathToLocalRoot = pathToLocalRoot;
-            if (!Directory.Exists(pathToLocalRoot))
-            {
-                throw new DirectoryNotFoundException(pathToLocalRoot);
-            }
         }
 
-        public void SyncLocalDocument()
+        public override Task Sync()
         {
-            Sync(Root);
+            SyncInternal(Root);
+            return Task.CompletedTask;
         }
 
-        private void Sync(ContainerNode node)
+        private void SyncInternal(ContainerNode node)
         {
-            var localChanges = new List<LocalChange>();
             var nodePath = node.Path;
             var fullContainerPath = nodePath == PathString.Root ? pathToLocalRoot : Path.Combine(pathToLocalRoot, nodePath.ToLocalPath());
             var files = Directory.GetFiles(fullContainerPath);
@@ -41,13 +39,13 @@ namespace Docms.Client.DocumentStores
                 {
                     if (dirNode != null)
                     {
-                        Sync(dirNode as ContainerNode);
+                        SyncInternal(dirNode as ContainerNode);
                     }
                     else
                     {
                         dirNode = new ContainerNode(dp.Name);
                         node.AddChild(dirNode);
-                        Sync(dirNode);
+                        SyncInternal(dirNode);
                     }
                 }
                 else if (dirNode != null)
@@ -82,8 +80,8 @@ namespace Docms.Client.DocumentStores
         {
             var fileInfo = new FileInfo(filefullpath);
             var (filesize, hash) = CalculateHash(fileInfo);
-            var created = fileInfo.CreationTimeUtc;
-            var lastModified = fileInfo.LastWriteTimeUtc;
+            var created = fileInfo.CreationTime;
+            var lastModified = fileInfo.LastWriteTime;
             return new DocumentNode(name, filesize, hash, created, lastModified);
         }
 
@@ -110,13 +108,28 @@ namespace Docms.Client.DocumentStores
         private void UpdateFile(string filefullpath, DocumentNode fileNode)
         {
             var fileInfo = new FileInfo(filefullpath);
-            var (filesize, hash) = CalculateHash(fileInfo);
-            var created = fileInfo.CreationTimeUtc;
-            var lastModified = fileInfo.LastWriteTimeUtc;
-            fileNode.FileSize = filesize;
-            fileNode.Hash = hash;
-            fileNode.Created = created;
-            fileNode.LastModified = lastModified;
+            if (fileInfo.Length != fileNode.FileSize 
+                || fileInfo.CreationTimeUtc != fileNode.Created)
+            {
+                var (fileSize, hash) = CalculateHash(fileInfo);
+                var created = fileInfo.CreationTime;
+                var lastModified = fileInfo.LastWriteTime;
+                fileNode.Update(fileSize, hash, created, lastModified);
+            }
+        }
+
+        public override Task Initialize()
+        {
+            Load(localDb.LocalDocuments);
+            return Task.CompletedTask;
+        }
+
+        public override Task Save()
+        {
+            localDb.LocalDocuments.RemoveRange(localDb.LocalDocuments);
+            localDb.LocalDocuments.AddRange(Persist());
+            localDb.SaveChangesAsync();
+            return Task.CompletedTask;
         }
     }
 }

@@ -1,7 +1,9 @@
-﻿using Docms.Client.Documents;
+﻿using Docms.Client.Data;
+using Docms.Client.Documents;
 using Docms.Client.DocumentStores;
 using Docms.Client.Tests.Utils;
 using Docms.Client.Types;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using System;
 using System.IO;
@@ -14,6 +16,7 @@ namespace Docms.Client.Tests
     public class LocalDocumentStorageTests
     {
         private string tempDir;
+        private LocalDbContext localDb;
         private LocalDocumentStorage sut;
 
         [TestInitialize]
@@ -21,7 +24,11 @@ namespace Docms.Client.Tests
         {
             tempDir = Path.Combine(Path.GetTempPath(), Guid.NewGuid().ToString());
             Directory.CreateDirectory(tempDir);
-            sut = new LocalDocumentStorage(tempDir);
+            localDb = new LocalDbContext(new DbContextOptionsBuilder<LocalDbContext>()
+                .UseInMemoryDatabase(Guid.NewGuid().ToString())
+                .Options);
+
+            sut = new LocalDocumentStorage(tempDir, localDb);
         }
 
         [TestCleanup]
@@ -37,7 +44,7 @@ namespace Docms.Client.Tests
         public async Task ローカルのファイルとNodeの構造を同期する_ファイルがRootに一件の場合()
         {
             await LocalFileUtils.Create(tempDir, "file1.txt");
-            sut.SyncLocalDocument();
+            await sut.Sync();
             var nodes = (sut.GetNode(PathString.Root) as ContainerNode).Children;
             Assert.AreEqual(1, nodes.Count());
             Assert.AreEqual(new PathString("file1.txt"), nodes.First().Path);
@@ -48,7 +55,7 @@ namespace Docms.Client.Tests
         {
             await LocalFileUtils.Create(tempDir, "file1.txt");
             await LocalFileUtils.Create(tempDir, "file2.txt");
-            sut.SyncLocalDocument();
+            await sut.Sync();
             var nodes = (sut.GetNode(PathString.Root) as ContainerNode).Children;
             Assert.AreEqual(2, nodes.Count());
             Assert.AreEqual(new PathString("file1.txt"), nodes.First().Path);
@@ -58,10 +65,10 @@ namespace Docms.Client.Tests
         [TestMethod]
         public async Task ローカルのファイルとNodeの構造を同期する_ファイルがルートに1件とサブフォルダに2件の場合()
         {
-            await LocalFileUtils.Create(tempDir,  "file1.txt");
-            await LocalFileUtils.Create(tempDir,  "dir/file1.txt");
-            await LocalFileUtils.Create(tempDir,  "dir/file2.txt");
-            sut.SyncLocalDocument();
+            await LocalFileUtils.Create(tempDir, "file1.txt");
+            await LocalFileUtils.Create(tempDir, "dir/file1.txt");
+            await LocalFileUtils.Create(tempDir, "dir/file2.txt");
+            await sut.Sync();
             var nodes = (sut.GetNode(PathString.Root) as ContainerNode).Children;
             Assert.AreEqual(2, nodes.Count());
             var dir = nodes.First() as ContainerNode;
@@ -74,11 +81,11 @@ namespace Docms.Client.Tests
         [TestMethod]
         public async Task ローカルのファイルとNodeの構造を同期する_更新()
         {
-            await LocalFileUtils.Create(tempDir,  "file1.txt");
-            await LocalFileUtils.Create(tempDir,  "dir1/file2.txt");
-            await LocalFileUtils.Update(tempDir,  "file1.txt");
-            await LocalFileUtils.Update(tempDir,  "dir1/file2.txt");
-            sut.SyncLocalDocument();
+            await LocalFileUtils.Create(tempDir, "file1.txt");
+            await LocalFileUtils.Create(tempDir, "dir1/file2.txt");
+            await LocalFileUtils.Update(tempDir, "file1.txt");
+            await LocalFileUtils.Update(tempDir, "dir1/file2.txt");
+            await sut.Sync();
             var rootNodes = (sut.GetNode(PathString.Root) as ContainerNode).Children;
             Assert.AreEqual(2, rootNodes.Count());
 
@@ -103,16 +110,16 @@ namespace Docms.Client.Tests
         [TestMethod]
         public async Task ローカルのファイルとNodeの構造を同期する_移動()
         {
-            await LocalFileUtils.Create(tempDir,  "file1.txt");
-            await LocalFileUtils.Create(tempDir,  "dir1/file2.txt");
-            await LocalFileUtils.Create(tempDir,  "file3.txt");
-            await LocalFileUtils.Update(tempDir,  "file1.txt");
-            await LocalFileUtils.Update(tempDir,  "dir1/file2.txt");
-            await LocalFileUtils.Move(tempDir,  "file1.txt", "file1_moved.txt");
-            await LocalFileUtils.Move(tempDir,  "dir1/file2.txt", "file2_moved.txt");
-            await LocalFileUtils.Move(tempDir,  "file3.txt", "dir1/file3.txt");
-            await LocalFileUtils.Move(tempDir,  "dir1/file3.txt", "file3_moved.txt");
-            sut.SyncLocalDocument();
+            await LocalFileUtils.Create(tempDir, "file1.txt");
+            await LocalFileUtils.Create(tempDir, "dir1/file2.txt");
+            await LocalFileUtils.Create(tempDir, "file3.txt");
+            await LocalFileUtils.Update(tempDir, "file1.txt");
+            await LocalFileUtils.Update(tempDir, "dir1/file2.txt");
+            await LocalFileUtils.Move(tempDir, "file1.txt", "file1_moved.txt");
+            await LocalFileUtils.Move(tempDir, "dir1/file2.txt", "file2_moved.txt");
+            await LocalFileUtils.Move(tempDir, "file3.txt", "dir1/file3.txt");
+            await LocalFileUtils.Move(tempDir, "dir1/file3.txt", "file3_moved.txt");
+            await sut.Sync();
             var rootNodes = (sut.GetNode(PathString.Root) as ContainerNode).Children;
             Assert.AreEqual(3, rootNodes.Count());
 
@@ -130,6 +137,46 @@ namespace Docms.Client.Tests
             Assert.AreEqual("file3_moved.txt", file3.Name);
             Assert.AreEqual(new PathString("file3_moved.txt"), file3.Path);
             Assert.AreEqual("file3.txt".Length, file3.FileSize);
+        }
+
+        [TestMethod]
+        public async Task データベースにデータを保存し再構築する()
+        {
+            await LocalFileUtils.Create(tempDir, "file1.txt");
+            await LocalFileUtils.Create(tempDir, "dir1/file2.txt");
+            await LocalFileUtils.Update(tempDir, "file1.txt");
+            await LocalFileUtils.Update(tempDir, "dir1/file2.txt");
+            await sut.Sync();
+            await sut.Save();
+
+            sut = new LocalDocumentStorage(tempDir, localDb);
+            await sut.Initialize();
+            await sut.Save();
+
+            sut = new LocalDocumentStorage(tempDir, localDb);
+            await sut.Initialize();
+
+            var rootNodes = (sut.GetNode(PathString.Root) as ContainerNode).Children;
+            Assert.AreEqual(2, rootNodes.Count());
+
+            var file1 = rootNodes.Last() as DocumentNode;
+            Assert.AreEqual("file1.txt", file1.Name);
+            Assert.AreEqual(new PathString("file1.txt"), file1.Path);
+            Assert.AreEqual("file1.txt updated".Length, file1.FileSize);
+            Assert.AreEqual(LocalFileUtils.DEFAULT_CREATE_TIME, file1.Created);
+            Assert.AreEqual(LocalFileUtils.DEFAULT_CREATE_TIME.AddHours(1), file1.LastModified);
+
+            var dir1 = rootNodes.First() as ContainerNode;
+            Assert.AreEqual("dir1", dir1.Name);
+            Assert.AreEqual(new PathString("dir1"), dir1.Path);
+
+            var subNodes = (sut.GetNode(new PathString("dir1")) as ContainerNode).Children;
+            Assert.AreEqual(1, subNodes.Count());
+
+            var file2 = subNodes.First() as DocumentNode;
+            Assert.AreEqual("file2.txt", file2.Name);
+            Assert.AreEqual(new PathString("dir1/file2.txt"), file2.Path);
+            Assert.AreEqual("dir1/file2.txt updated".Length, file2.FileSize);
         }
     }
 }

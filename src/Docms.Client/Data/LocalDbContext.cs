@@ -1,4 +1,5 @@
-﻿using Docms.Client.Api;
+﻿using System.Collections.Generic;
+using Docms.Client.Api;
 using Microsoft.EntityFrameworkCore;
 
 namespace Docms.Client.Data
@@ -13,5 +14,7 @@ namespace Docms.Client.Data
         public DbSet<DocumentCreatedHistory> DocumentCreatedHistories { get; set; }
         public DbSet<DocumentUpdatedHistory> DocumentUpdatedHistories { get; set; }
         public DbSet<DocumentDeletedHistory> DocumentDeletedHistories { get; set; }
+        public DbSet<Document> LocalDocuments { get; set; }
+        public DbSet<Document> RemoteDocuments { get; set; }
     }
 }

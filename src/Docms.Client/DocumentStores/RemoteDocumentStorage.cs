@@ -23,7 +23,7 @@ namespace Docms.Client.DocumentStores
             appliedHistoryIds = new HashSet<Guid>();
         }
 
-        public async Task UpdateAsync()
+        public override async Task Sync()
         {
             var latestHistory = localDb.Histories.OrderByDescending(h => h.Timestamp).FirstOrDefault();
             var allHistories = await localDb.Histories.ToListAsync().ConfigureAwait(false);
@@ -76,10 +76,7 @@ namespace Docms.Client.DocumentStores
         private void Apply(DocumentUpdatedHistory history)
         {
             var doc = GetDocument(new PathString(history.Path));
-            doc.FileSize = history.FileSize;
-            doc.Hash = history.Hash;
-            doc.Created = history.Created;
-            doc.LastModified = history.LastModified;
+            doc.Update(history.FileSize, history.Hash, history.Created, history.LastModified);
         }
 
         private void Apply(DocumentDeletedHistory history)
@@ -88,6 +85,20 @@ namespace Docms.Client.DocumentStores
             var container = GetContainer(path.ParentPath);
             var document = GetDocument(path);
             container.RemoveChild(document);
+        }
+
+        public override Task Initialize()
+        {
+            Load(localDb.LocalDocuments);
+            return Task.CompletedTask;
+        }
+
+        public override Task Save()
+        {
+            localDb.LocalDocuments.RemoveRange(localDb.LocalDocuments);
+            localDb.LocalDocuments.AddRange(Persist());
+            localDb.SaveChangesAsync();
+            return Task.CompletedTask;
         }
     }
 }

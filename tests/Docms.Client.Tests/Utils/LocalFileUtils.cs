@@ -8,17 +8,18 @@ namespace Docms.Client.Tests.Utils
 {
     public static class LocalFileUtils
     {
+        public static readonly DateTime DEFAULT_CREATE_TIME = new DateTime(2019, 1, 1, 10, 11, 12, DateTimeKind.Utc);
+
         public static async Task Create(string basepath, string path)
         {
-            var time = new DateTime(2019, 1, 1, 10, 11, 12, DateTimeKind.Utc);
             var fullpath = Path.Combine(basepath, path);
             if (!Directory.Exists(Path.GetDirectoryName(fullpath)))
             {
                 Directory.CreateDirectory(Path.GetDirectoryName(fullpath));
             }
             await File.WriteAllBytesAsync(fullpath, Encoding.UTF8.GetBytes(path)).ConfigureAwait(false);
-            File.SetCreationTime(fullpath, time);
-            File.SetLastWriteTime(fullpath, time);
+            File.SetCreationTime(fullpath, DEFAULT_CREATE_TIME);
+            File.SetLastWriteTime(fullpath, DEFAULT_CREATE_TIME);
         }
 
         public static async Task Update(string basepath, string path)

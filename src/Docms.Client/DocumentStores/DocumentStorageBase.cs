@@ -1,6 +1,10 @@
-﻿using Docms.Client.Documents;
+﻿using Docms.Client.Data;
+using Docms.Client.Documents;
 using Docms.Client.Types;
 using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Threading.Tasks;
 
 namespace Docms.Client.DocumentStores
 {
@@ -77,5 +81,34 @@ namespace Docms.Client.DocumentStores
             }
             return dir;
         }
+
+        public void Load(IEnumerable<Document> documents)
+        {
+            foreach(var doc in documents)
+            {
+                var path = new PathString(doc.Path);
+                var parent = GetOrCreateContainer(path.ParentPath);
+                var docNode = new DocumentNode(path.Name, doc.FileSize, doc.Hash, doc.Created, doc.LastModified);
+                parent.AddChild(docNode);
+            }
+        }
+
+        public IEnumerable<Document> Persist()
+        {
+            return Root.ListAllDocuments()
+                .Select(d => new Document()
+                {
+                    Path = d.Path.ToString(),
+                    FileSize = d.FileSize,
+                    Hash = d.Hash,
+                    Created = d.Created,
+                    LastModified = d.LastModified,
+                    SyncStatus = d.SyncStatus
+                });
+        }
+
+        public abstract Task Initialize();
+        public abstract Task Sync();
+        public abstract Task Save();
     }
 }

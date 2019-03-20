@@ -36,7 +36,10 @@ namespace Docms.Client.Starter
                 context.Api = new DocmsApiClient(serverUrl);
                 await context.Api.LoginAsync(uploadUserName, uploadUserPassword).ConfigureAwait(false);
 
-                context.LocalStorage = new LocalDocumentStorage(watchPath);
+                if (!Directory.Exists(watchPath))
+                {
+                    throw new DirectoryNotFoundException(watchPath);
+                }
 
                 var configDir = Path.Combine(watchPath, ".docms");
                 var configDirInfo = new DirectoryInfo(configDir);
@@ -51,10 +54,11 @@ namespace Docms.Client.Starter
                     .Options);
                 await context.Db.Database.EnsureCreatedAsync().ConfigureAwait(false);
 
+                context.LocalStorage = new LocalDocumentStorage(watchPath, context.Db);
                 context.RemoteStorage = new RemoteDocumentStorage(context.Api, context.Db);
 
-                context.LocalStorage.SyncLocalDocument();
-                await context.RemoteStorage.UpdateAsync().ConfigureAwait(false);
+                await context.LocalStorage.Sync();
+                await context.RemoteStorage.Sync().ConfigureAwait(false);
 
                 engine.Start(context);
             }

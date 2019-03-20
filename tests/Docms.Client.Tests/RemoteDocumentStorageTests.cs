@@ -32,7 +32,7 @@ namespace Docms.Client.Tests
         public async Task サーバーから履歴を読み込んでディレクトリ構造を構築する_ファイルがRootに一件の場合()
         {
             await DocmsApiUtils.Create(apiClient, "file1.txt");
-            await sut.UpdateAsync();
+            await sut.Sync();
             var nodes = (sut.GetNode(PathString.Root) as ContainerNode).Children;
             Assert.AreEqual(1, nodes.Count());
             Assert.AreEqual(new PathString("file1.txt"), nodes.First().Path);
@@ -43,7 +43,7 @@ namespace Docms.Client.Tests
         {
             await DocmsApiUtils.Create(apiClient, "file1.txt");
             await DocmsApiUtils.Create(apiClient, "file2.txt");
-            await sut.UpdateAsync();
+            await sut.Sync();
             var nodes = (sut.GetNode(PathString.Root) as ContainerNode).Children;
             Assert.AreEqual(2, nodes.Count());
             Assert.AreEqual(new PathString("file1.txt"), nodes.First().Path);
@@ -56,7 +56,7 @@ namespace Docms.Client.Tests
             await DocmsApiUtils.Create(apiClient, "file1.txt");
             await DocmsApiUtils.Create(apiClient, "dir/file1.txt");
             await DocmsApiUtils.Create(apiClient, "dir/file2.txt");
-            await sut.UpdateAsync();
+            await sut.Sync();
             var nodes = (sut.GetNode(PathString.Root) as ContainerNode).Children;
             Assert.AreEqual(2, nodes.Count());
             var dir = nodes.First() as ContainerNode;
@@ -73,7 +73,7 @@ namespace Docms.Client.Tests
             await DocmsApiUtils.Create(apiClient, "dir1/file2.txt");
             await DocmsApiUtils.Update(apiClient, "file1.txt");
             await DocmsApiUtils.Update(apiClient, "dir1/file2.txt");
-            await sut.UpdateAsync();
+            await sut.Sync();
             var rootNodes = (sut.GetNode(PathString.Root) as ContainerNode).Children;
             Assert.AreEqual(2, rootNodes.Count());
 
@@ -107,7 +107,7 @@ namespace Docms.Client.Tests
             await DocmsApiUtils.Move(apiClient, "dir1/file2.txt", "file2_moved.txt");
             await DocmsApiUtils.Move(apiClient, "file3.txt", "dir1/file3.txt");
             await DocmsApiUtils.Move(apiClient, "dir1/file3.txt", "file3_moved.txt");
-            await sut.UpdateAsync();
+            await sut.Sync();
             var rootNodes = (sut.GetNode(PathString.Root) as ContainerNode).Children;
             Assert.AreEqual(3, rootNodes.Count());
 
@@ -125,6 +125,46 @@ namespace Docms.Client.Tests
             Assert.AreEqual("file3_moved.txt", file3.Name);
             Assert.AreEqual(new PathString("file3_moved.txt"), file3.Path);
             Assert.AreEqual("file3.txt".Length, file3.FileSize);
+        }
+
+        [TestMethod]
+        public async Task データベースにデータを保存し再構築する()
+        {
+            await DocmsApiUtils.Create(apiClient, "file1.txt");
+            await DocmsApiUtils.Create(apiClient, "dir1/file2.txt");
+            await DocmsApiUtils.Update(apiClient, "file1.txt");
+            await DocmsApiUtils.Update(apiClient, "dir1/file2.txt");
+            await sut.Sync();
+            await sut.Save();
+
+            sut = new RemoteDocumentStorage(apiClient, localDb);
+            await sut.Initialize();
+            await sut.Save();
+
+            sut = new RemoteDocumentStorage(apiClient, localDb);
+            await sut.Initialize();
+
+            var rootNodes = (sut.GetNode(PathString.Root) as ContainerNode).Children;
+            Assert.AreEqual(2, rootNodes.Count());
+
+            var file1 = rootNodes.Last() as DocumentNode;
+            Assert.AreEqual("file1.txt", file1.Name);
+            Assert.AreEqual(new PathString("file1.txt"), file1.Path);
+            Assert.AreEqual("file1.txt updated".Length, file1.FileSize);
+            Assert.AreEqual(LocalFileUtils.DEFAULT_CREATE_TIME, file1.Created);
+            Assert.AreEqual(LocalFileUtils.DEFAULT_CREATE_TIME.AddHours(1), file1.LastModified);
+
+            var dir1 = rootNodes.First() as ContainerNode;
+            Assert.AreEqual("dir1", dir1.Name);
+            Assert.AreEqual(new PathString("dir1"), dir1.Path);
+
+            var subNodes = (sut.GetNode(new PathString("dir1")) as ContainerNode).Children;
+            Assert.AreEqual(1, subNodes.Count());
+
+            var file2 = subNodes.First() as DocumentNode;
+            Assert.AreEqual("file2.txt", file2.Name);
+            Assert.AreEqual(new PathString("dir1/file2.txt"), file2.Path);
+            Assert.AreEqual("dir1/file2.txt updated".Length, file2.FileSize);
         }
     }
 }
