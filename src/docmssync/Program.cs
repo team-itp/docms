@@ -16,29 +16,32 @@ namespace docmssync
         static void Main()
         {
             _logger.Debug("Program started.");
-
             var app = new Application();
-            var starter = new ApplicationStarter(
-                Settings.Default.WatchPath,
-                Settings.Default.ServerUrl,
-                Settings.Default.UploadClientId,
-                Settings.Default.UploadUserName,
-                Settings.Default.UploadUserPassword);
-            var engine = new ApplicationEngine(app);
-            starter.Start(engine);
             Console.CancelKeyPress += (s, e) =>
             {
                 _logger.Debug("Program canceled.");
                 app.Shutdown();
                 Environment.Exit(0);
             };
+
+            var starter = new ApplicationStarter(
+                Settings.Default.WatchPath,
+                Settings.Default.ServerUrl,
+                Settings.Default.UploadClientId,
+                Settings.Default.UploadUserName,
+                Settings.Default.UploadUserPassword);
+            var task = starter.StartAsync(app);
             try
             {
-                app.Run();
+                if (task.Result)
+                {
+                    app.Run();
+                }
             }
-            catch (Exception ex)
+            catch(Exception ex)
             {
                 _logger.Error(ex);
+                Environment.Exit(1);
             }
         }
     }

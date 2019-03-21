@@ -1,8 +1,6 @@
 ﻿using Docms.Client.Operations;
 using NLog;
-using System;
 using System.Collections.Concurrent;
-using System.Threading;
 using System.Threading.Tasks;
 
 namespace Docms.Client

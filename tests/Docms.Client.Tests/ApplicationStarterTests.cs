@@ -3,7 +3,7 @@ using Docms.Client.Tests.Utils;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using System;
 using System.IO;
-using System.Linq;
+using System.Threading.Tasks;
 
 namespace Docms.Client.Tests
 {
@@ -16,13 +16,13 @@ namespace Docms.Client.Tests
         const string USER_NAME = "testuser";
         const string PASSWORD = "Passw0rd";
         private string watchPath;
-        private MockApplicationEngine engine;
+        private MockApplication app;
         private ApplicationStarter sut;
 
         [TestInitialize]
         public void Setup()
         {
-            engine = new MockApplicationEngine();
+            app = new MockApplication();
             watchPath = Path.Combine(Path.GetTempPath(), Guid.NewGuid().ToString());
             if (!Directory.Exists(watchPath))
             {
@@ -40,45 +40,37 @@ namespace Docms.Client.Tests
         }
 
         [TestMethod]
-        public void 初期化処理でログインに失敗した場合Applicationを終了する()
-        {
-            sut = new ApplicationStarter(watchPath, SERVER_URL, CLIENT_ID, USER_NAME, "invalid_password");
-            sut.Start(engine);
-            engine.WatiUntilStateChanges();
-            Assert.IsTrue(engine.IsFailed);
-        }
-
-        [TestMethod]
-        public void 初期化処理でフォルダが存在しない場合Applicationを終了する()
+        public async Task 初期化処理でフォルダが存在しない場合戻り値がFalseになる()
         {
             Directory.Delete(watchPath, true);
             sut = new ApplicationStarter(watchPath, SERVER_URL, CLIENT_ID, USER_NAME, PASSWORD);
-            sut.Start(engine);
-            engine.WatiUntilStateChanges();
-            Assert.IsTrue(engine.IsFailed);
+            Assert.IsFalse(await sut.StartAsync(app));
         }
 
+
         [TestMethod]
-        public void 初期化処理でDbContextの初期化に失敗した場合エラーとなる()
+        public async Task 初期化処理でDbContextの初期化に失敗した場合戻り値がFalseになる()
         {
             Directory.CreateDirectory(Path.Combine(watchPath, ".docms"));
             using (var stream = File.Open(Path.Combine(watchPath, ".docms", "data.db"), FileMode.CreateNew, FileAccess.Write, FileShare.None))
             {
                 sut = new ApplicationStarter(watchPath, SERVER_URL, CLIENT_ID, USER_NAME, PASSWORD);
-                sut.Start(engine);
-                engine.WatiUntilStateChanges();
+                Assert.IsFalse(await sut.StartAsync(app));
             }
-            Assert.IsTrue(engine.IsFailed);
         }
 
         [TestMethod]
-        public void 初期化処理が完了しサーバーのファイル履歴がすべて読み込まれていること()
+        public async Task 初期化処理でログインに失敗した場合戻り値がFalseになる()
+        {
+            sut = new ApplicationStarter(watchPath, SERVER_URL, CLIENT_ID, USER_NAME, "invalid_password");
+            Assert.IsFalse(await sut.StartAsync(app));
+        }
+
+        [TestMethod]
+        public async Task 初期化処理が完了した場合戻り値がTrueになる()
         {
             sut = new ApplicationStarter(watchPath, SERVER_URL, CLIENT_ID, USER_NAME, PASSWORD);
-            sut.Start(engine);
-            engine.WatiUntilStateChanges();
-            Assert.IsTrue(engine.IsStarted);
-            Assert.IsTrue(engine.Context.Db.Histories.Any());
+            Assert.IsTrue(await sut.StartAsync(app));
         }
     }
 }

@@ -1,9 +1,7 @@
-﻿using Docms.Client.Data;
-using Docms.Client.Documents;
+﻿using Docms.Client.Documents;
 using Docms.Client.DocumentStores;
 using Docms.Client.Tests.Utils;
 using Docms.Client.Types;
-using Microsoft.EntityFrameworkCore;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using System;
 using System.IO;
@@ -16,7 +14,7 @@ namespace Docms.Client.Tests
     public class LocalDocumentStorageTests
     {
         private string tempDir;
-        private LocalDbContext localDb;
+        private MockLocalDbContext localDb;
         private LocalDocumentStorage sut;
 
         [TestInitialize]
@@ -24,9 +22,7 @@ namespace Docms.Client.Tests
         {
             tempDir = Path.Combine(Path.GetTempPath(), Guid.NewGuid().ToString());
             Directory.CreateDirectory(tempDir);
-            localDb = new LocalDbContext(new DbContextOptionsBuilder<LocalDbContext>()
-                .UseInMemoryDatabase(Guid.NewGuid().ToString())
-                .Options);
+            localDb = new MockLocalDbContext();
 
             sut = new LocalDocumentStorage(tempDir, localDb);
         }

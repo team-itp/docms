@@ -11,7 +11,7 @@ namespace Docms.Client.Operations
         private bool isStarted;
         private bool isFinished;
 
-        public OperationBase(CancellationToken cancellationToken)
+        public OperationBase(CancellationToken cancellationToken = default(CancellationToken))
         {
             IsAborted = cancellationToken.IsCancellationRequested;
             if (IsAborted)

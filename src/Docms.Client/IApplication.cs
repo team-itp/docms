@@ -1,6 +1,5 @@
 ﻿using Docms.Client.Operations;
 using System;
-using System.Threading;
 using System.Threading.Tasks;
 
 namespace Docms.Client

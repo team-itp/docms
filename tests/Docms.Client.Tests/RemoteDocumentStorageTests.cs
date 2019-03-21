@@ -3,9 +3,7 @@ using Docms.Client.Documents;
 using Docms.Client.DocumentStores;
 using Docms.Client.Tests.Utils;
 using Docms.Client.Types;
-using Microsoft.EntityFrameworkCore;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
-using System;
 using System.Linq;
 using System.Threading.Tasks;
 
@@ -16,15 +14,13 @@ namespace Docms.Client.Tests
     {
         private MockDocmsApiClient apiClient;
         private RemoteDocumentStorage sut;
-        private LocalDbContext localDb;
+        private MockLocalDbContext localDb;
 
         [TestInitialize]
         public void Setup()
         {
             apiClient = new MockDocmsApiClient();
-            localDb = new LocalDbContext(new DbContextOptionsBuilder<LocalDbContext>()
-                .UseInMemoryDatabase(Guid.NewGuid().ToString())
-                .Options);
+            localDb = new MockLocalDbContext();
             sut = new RemoteDocumentStorage(apiClient, localDb);
         }
 

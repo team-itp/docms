@@ -8,7 +8,7 @@ using System.Threading.Tasks;
 
 namespace Docms.Client.DocumentStores
 {
-    public abstract class DocumentStorageBase
+    public abstract class DocumentStorageBase : IDocumentStorage
     {
         public ContainerNode Root { get; }
 
