@@ -27,7 +27,7 @@ namespace Docms.Client.Tests
             var are = new AutoResetEvent(false);
             var sut = new Application();
             var task = Task.Run(() => sut.Run());
-            sut.Invoke(new ActionOperation(token =>
+            sut.Invoke(new GenericSyncOperation(token =>
             {
                 executed = true;
                 are.Set();
@@ -48,13 +48,13 @@ namespace Docms.Client.Tests
             var are3 = new AutoResetEvent(false);
             var sut = new Application();
             var task = Task.Run(() => sut.Run());
-            sut.Invoke(new ActionOperation(token =>
+            sut.Invoke(new GenericSyncOperation(token =>
             {
                 executed1 = true;
                 are1.Set();
                 are2.WaitOne();
             }));
-            sut.Invoke(new ActionOperation(token =>
+            sut.Invoke(new GenericSyncOperation(token =>
             {
                 executed2 = true;
                 are3.Set();
@@ -79,13 +79,13 @@ namespace Docms.Client.Tests
             var are2 = new AutoResetEvent(false);
             var sut = new Application();
             var task = Task.Run(() => sut.Run());
-            sut.Invoke(new ActionOperation(token =>
+            sut.Invoke(new GenericSyncOperation(token =>
             {
                 executed1 = true;
                 are1.Set();
                 are2.WaitOne();
             }));
-            sut.Invoke(new ActionOperation(token =>
+            sut.Invoke(new GenericSyncOperation(token =>
             {
                 executed2 = true;
             }));
@@ -110,12 +110,12 @@ namespace Docms.Client.Tests
             var cts = new CancellationTokenSource();
             var sut = new Application();
             var task = Task.Run(() => sut.Run());
-            sut.Invoke(new ActionOperation(token =>
+            sut.Invoke(new GenericSyncOperation(token =>
             {
                 are1.Set();
                 are2.WaitOne();
             }));
-            sut.Invoke(new ActionOperation(token =>
+            sut.Invoke(new GenericSyncOperation(token =>
             {
                 executed2 = true;
             }, cts.Token));

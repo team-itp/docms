@@ -3,11 +3,11 @@ using System.Threading;
 
 namespace Docms.Client.Operations
 {
-    public class ActionOperation : OperationBase
+    public class GenericSyncOperation : SyncOperationBase
     {
         private Action<CancellationToken> action;
 
-        public ActionOperation(Action<CancellationToken> action, CancellationToken cancellationToken = default(CancellationToken)) : base(cancellationToken)
+        public GenericSyncOperation(Action<CancellationToken> action, CancellationToken cancellationToken = default(CancellationToken)) : base(cancellationToken)
         {
             this.action = action;
         }

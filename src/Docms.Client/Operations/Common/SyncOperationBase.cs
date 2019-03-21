@@ -4,14 +4,14 @@ using System.Threading.Tasks;
 
 namespace Docms.Client.Operations
 {
-    public abstract class OperationBase : IOperation
+    public abstract class SyncOperationBase : IOperation
     {
         private TaskCompletionSource<object> tcs;
         private CancellationTokenSource cts;
         private bool isStarted;
         private bool isFinished;
 
-        public OperationBase(CancellationToken cancellationToken = default(CancellationToken))
+        public SyncOperationBase(CancellationToken cancellationToken = default(CancellationToken))
         {
             IsAborted = cancellationToken.IsCancellationRequested;
             if (IsAborted)
