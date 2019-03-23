@@ -8,9 +8,9 @@ namespace Docms.Client.Operations
     public class ChangesIntoOperationsOperationResult
     {
         public CancellationTokenSource CancellationTokenSource { get; } = new CancellationTokenSource();
-        public List<IOperation> Operations { get; } = new List<IOperation>();
+        public List<AsyncOperationBase> Operations { get; } = new List<AsyncOperationBase>();
         public CancellationToken CancellationToken => CancellationTokenSource.Token;
-        public void Add(IOperation operation)
+        public void Add(AsyncOperationBase operation)
         {
             Operations.Add(operation);
         }
@@ -48,14 +48,14 @@ namespace Docms.Client.Operations
                     }
                     else
                     {
-                        result.Add(new DownloadRemoteDocumentOperaiton(context, remote.Path, result.CancellationToken));
+                        result.Add(new DownloadRemoteDocumentOperation(context, remote.Path, result.CancellationToken));
                     }
                 }
                 else
                 {
                     if (local.SyncStatus == SyncStatus.UpToDate)
                     {
-                        result.Add(new DownloadRemoteDocumentOperaiton(context, remote.Path, result.CancellationToken));
+                        result.Add(new DownloadRemoteDocumentOperation(context, remote.Path, result.CancellationToken));
                     }
                     else
                     {

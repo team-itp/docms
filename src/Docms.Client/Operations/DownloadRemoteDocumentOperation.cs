@@ -5,12 +5,12 @@ using System.Threading.Tasks;
 
 namespace Docms.Client.Operations
 {
-    public class UploadLocalDocumentOperation : AsyncOperationBase
+    public class DownloadRemoteDocumentOperation : AsyncOperationBase
     {
         private readonly ApplicationContext context;
         private readonly PathString path;
 
-        public UploadLocalDocumentOperation(ApplicationContext context, PathString path, CancellationToken cancellationToken) : base(cancellationToken)
+        public DownloadRemoteDocumentOperation(ApplicationContext context, PathString path, CancellationToken cancellationToken) : base(cancellationToken)
         {
             this.context = context;
             this.path = path;

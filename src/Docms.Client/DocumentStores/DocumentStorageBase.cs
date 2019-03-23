@@ -88,7 +88,7 @@ namespace Docms.Client.DocumentStores
             {
                 var path = new PathString(doc.Path);
                 var parent = GetOrCreateContainer(path.ParentPath);
-                var docNode = new DocumentNode(path.Name, doc.FileSize, doc.Hash, doc.Created, doc.LastModified);
+                var docNode = new DocumentNode(path.Name, doc.FileSize, doc.Hash, doc.Created, doc.LastModified, doc.SyncStatus);
                 parent.AddChild(docNode);
             }
         }
