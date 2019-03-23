@@ -16,5 +16,6 @@ namespace Docms.Client.Data
         public DbSet<DocumentDeletedHistory> DocumentDeletedHistories { get; set; }
         public DbSet<Document> LocalDocuments { get; set; }
         public DbSet<Document> RemoteDocuments { get; set; }
+        public DbSet<SyncHistory> SyncHistories { get; set; }
     }
 }
