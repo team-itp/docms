@@ -43,21 +43,25 @@ namespace Docms.Client
                     {
                         if (comp > 0)
                         {
-                            result.Add(null, rv);
-                            rn = re.MoveNext();
-                            if (!rn)
-                            {
-                                break;
-                            }
-                        }
-                        else if (comp < 0)
-                        {
                             result.Add(lv, null);
                             ln = le.MoveNext();
                             if (!ln)
                             {
                                 break;
                             }
+                            lv = le.Current;
+                            comp = rv.Path.ToString().CompareTo(lv.Path.ToString());
+                        }
+                        else if (comp < 0)
+                        {
+                            result.Add(null, rv);
+                            rn = re.MoveNext();
+                            if (!rn)
+                            {
+                                break;
+                            }
+                            rv = re.Current;
+                            comp = rv.Path.ToString().CompareTo(lv.Path.ToString());
                         }
                     }
                     if (HasDirefference(lv, rv))
@@ -80,10 +84,10 @@ namespace Docms.Client
                 }
                 if (rn)
                 {
-                    result.Add(null, le.Current);
+                    result.Add(null, re.Current);
                     while (re.MoveNext())
                     {
-                        result.Add(null, le.Current);
+                        result.Add(null, re.Current);
                     }
                 }
             }
