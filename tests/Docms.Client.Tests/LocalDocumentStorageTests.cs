@@ -6,6 +6,7 @@ using Microsoft.VisualStudio.TestTools.UnitTesting;
 using System;
 using System.IO;
 using System.Linq;
+using System.Text;
 using System.Threading.Tasks;
 
 namespace Docms.Client.Tests
@@ -173,6 +174,21 @@ namespace Docms.Client.Tests
             Assert.AreEqual("file2.txt", file2.Name);
             Assert.AreEqual(new PathString("dir1/file2.txt"), file2.Path);
             Assert.AreEqual("dir1/file2.txt updated".Length, file2.FileSize);
+        }
+        [TestMethod]
+        public async Task ロックされていないファイルのストリームを開く()
+        {
+            await LocalFileUtils.Create(tempDir, "file1.txt");
+            await sut.Sync();
+            using (var token = sut.GetDocumentStreamToken(new PathString("file1.txt")))
+            {
+                var ms = new MemoryStream();
+                using (var stream = await token.GetStreamAsync())
+                {
+                    await stream.CopyToAsync(ms);
+                    Assert.AreEqual("file1.txt", Encoding.UTF8.GetString(ms.ToArray()));
+                }
+            }
         }
     }
 }

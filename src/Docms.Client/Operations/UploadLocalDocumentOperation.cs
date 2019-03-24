@@ -16,9 +16,17 @@ namespace Docms.Client.Operations
             this.path = path;
         }
 
-        protected override Task ExecuteAsync(CancellationToken token)
+        protected override async Task ExecuteAsync(CancellationToken token)
         {
-            throw new NotImplementedException();
+            token.ThrowIfCancellationRequested();
+            var document = context.LocalStorage.GetDocument(path);
+            using (var streamToken = context.LocalStorage.GetDocumentStreamToken(path))
+            {
+                using (var stream = await streamToken.GetStreamAsync())
+                {
+                    await context.Api.CreateOrUpdateDocumentAsync(path.ToString(), stream, document.Created, document.LastModified).ConfigureAwait(false);
+                }
+            }
         }
     }
 }

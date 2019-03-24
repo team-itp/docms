@@ -1,6 +1,7 @@
 ﻿using Docms.Client.Data;
 using Docms.Client.Documents;
 using Docms.Client.Types;
+using System;
 using System.IO;
 using System.Threading.Tasks;
 
@@ -76,6 +77,11 @@ namespace Docms.Client.DocumentStores
             }
         }
 
+        public string GetFullPath(PathString path)
+        {
+            return Path.Combine(this.pathToLocalRoot, path.ToLocalPath());
+        }
+
         private DocumentNode CreateFile(string filefullpath, string name)
         {
             var fileInfo = new FileInfo(filefullpath);
@@ -130,6 +136,11 @@ namespace Docms.Client.DocumentStores
             localDb.LocalDocuments.AddRange(Persist());
             localDb.SaveChangesAsync();
             return Task.CompletedTask;
+        }
+
+        public override IDocumentStreamToken GetDocumentStreamToken(PathString path)
+        {
+            return new LocalDocumentStreamToken(path, this);
         }
     }
 }

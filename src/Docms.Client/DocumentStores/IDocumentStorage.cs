@@ -1,8 +1,7 @@
-﻿using System.Collections.Generic;
-using System.Threading.Tasks;
-using Docms.Client.Data;
-using Docms.Client.Documents;
+﻿using Docms.Client.Documents;
 using Docms.Client.Types;
+using System.IO;
+using System.Threading.Tasks;
 
 namespace Docms.Client.DocumentStores
 {
@@ -12,6 +11,7 @@ namespace Docms.Client.DocumentStores
 
         ContainerNode GetContainer(PathString path);
         DocumentNode GetDocument(PathString path);
+        IDocumentStreamToken GetDocumentStreamToken(PathString path);
         Node GetNode(PathString path);
         Task Initialize();
         Task Save();

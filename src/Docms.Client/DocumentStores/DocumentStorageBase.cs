@@ -3,6 +3,7 @@ using Docms.Client.Documents;
 using Docms.Client.Types;
 using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
 using System.Threading.Tasks;
 
@@ -110,5 +111,6 @@ namespace Docms.Client.DocumentStores
         public abstract Task Initialize();
         public abstract Task Sync();
         public abstract Task Save();
+        public abstract IDocumentStreamToken GetDocumentStreamToken(PathString path);
     }
 }

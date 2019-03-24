@@ -5,6 +5,7 @@ using Docms.Client.Types;
 using Microsoft.EntityFrameworkCore;
 using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
 using System.Threading.Tasks;
 
@@ -21,6 +22,11 @@ namespace Docms.Client.DocumentStores
             this.api = api;
             this.localDb = localDb;
             appliedHistoryIds = new HashSet<Guid>();
+        }
+
+        public override IDocumentStreamToken GetDocumentStreamToken(PathString path)
+        {
+            return new RemoteDocumentStreamToken(path, api);
         }
 
         public override async Task Sync()
