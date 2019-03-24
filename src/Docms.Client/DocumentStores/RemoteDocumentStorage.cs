@@ -24,11 +24,6 @@ namespace Docms.Client.DocumentStores
             appliedHistoryIds = new HashSet<Guid>();
         }
 
-        public override IDocumentStreamToken GetDocumentStreamToken(PathString path)
-        {
-            return new RemoteDocumentStreamToken(path, api);
-        }
-
         public override async Task Sync()
         {
             var latestHistory = localDb.Histories.OrderByDescending(h => h.Timestamp).FirstOrDefault();
@@ -105,6 +100,16 @@ namespace Docms.Client.DocumentStores
             localDb.LocalDocuments.AddRange(Persist());
             localDb.SaveChangesAsync();
             return Task.CompletedTask;
+        }
+
+        public override async Task<IDocumentStreamToken> ReadDocument(PathString path)
+        {
+            return new DefaultStreamToken(await api.DownloadAsync(path.ToString()));
+        }
+
+        public override Task WriteDocument(PathString path, Stream stream, DateTime created, DateTime lastModified)
+        {
+            return api.CreateOrUpdateDocumentAsync(path.ToString(), stream, created, lastModified);
         }
     }
 }

@@ -42,6 +42,10 @@ namespace Docms.Client.DocumentStores
         public ContainerNode GetContainer(PathString path)
         {
             var node = GetNode(path);
+            if (node == null)
+            {
+                return null;
+            }
             if (node is ContainerNode container)
             {
                 return container;
@@ -52,6 +56,10 @@ namespace Docms.Client.DocumentStores
         public DocumentNode GetDocument(PathString path)
         {
             var node = GetNode(path);
+            if (node == null)
+            {
+                return null;
+            }
             if (node is DocumentNode document)
             {
                 return document;
@@ -111,6 +119,7 @@ namespace Docms.Client.DocumentStores
         public abstract Task Initialize();
         public abstract Task Sync();
         public abstract Task Save();
-        public abstract IDocumentStreamToken GetDocumentStreamToken(PathString path);
+        public abstract Task<IDocumentStreamToken> ReadDocument(PathString path);
+        public abstract Task WriteDocument(PathString path, Stream stream, DateTime created, DateTime lastModified);
     }
 }

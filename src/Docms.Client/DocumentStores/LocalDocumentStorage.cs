@@ -114,7 +114,7 @@ namespace Docms.Client.DocumentStores
         private void UpdateFile(string filefullpath, DocumentNode fileNode)
         {
             var fileInfo = new FileInfo(filefullpath);
-            if (fileInfo.Length != fileNode.FileSize 
+            if (fileInfo.Length != fileNode.FileSize
                 || fileInfo.CreationTimeUtc != fileNode.Created)
             {
                 var (fileSize, hash) = CalculateHash(fileInfo);
@@ -138,9 +138,60 @@ namespace Docms.Client.DocumentStores
             return Task.CompletedTask;
         }
 
-        public override IDocumentStreamToken GetDocumentStreamToken(PathString path)
+        public override Task<IDocumentStreamToken> ReadDocument(PathString path)
         {
-            return new LocalDocumentStreamToken(path, this);
+            var fullpath = GetFullPath(path);
+            var fileInfo = new FileInfo(fullpath);
+            var document = GetDocument(path);
+            if (document.LastModified != fileInfo.LastWriteTimeUtc
+                || document.FileSize != fileInfo.Length)
+            {
+                throw new LocalDocumentChangedException(path, document);
+            }
+            try
+            {
+                var stream = fileInfo.Open(FileMode.Open, FileAccess.Read, FileShare.ReadWrite);
+                if (document.LastModified != File.GetLastWriteTimeUtc(fullpath))
+                {
+                    // 再チェック
+                    throw new LocalDocumentChangedException(path, document);
+                }
+                return Task.FromResult<IDocumentStreamToken>(new DefaultStreamToken(stream));
+            }
+            catch (IOException)
+            {
+                var tempFileInfo = new FileInfo(Path.Combine(Path.GetTempPath(), Path.GetTempFileName()));
+                File.Copy(fullpath, tempFileInfo.FullName);
+                var stream = tempFileInfo.Open(FileMode.Open, FileAccess.Read, FileShare.None);
+                if (document.Hash != Hash.CalculateHash(stream))
+                {
+                    // 再チェック
+                    throw new LocalDocumentChangedException(path, document);
+                }
+                return Task.FromResult<IDocumentStreamToken>(new DefaultStreamToken(stream, () => tempFileInfo.Delete()));
+            }
+        }
+
+        public override async Task WriteDocument(PathString path, Stream stream, DateTime created, DateTime lastModified)
+        {
+            var fullpath = GetFullPath(path);
+            var fileInfo = new FileInfo(fullpath);
+            if (fileInfo.Exists)
+            {
+                var (fileSize, hash) = CalculateHash(fileInfo);
+                var document = GetDocument(path);
+                if (document.SyncStatus != SyncStatus.UpToDate
+                    || document.LastModified != fileInfo.LastWriteTimeUtc
+                    || document.Hash != hash)
+                {
+                    throw new LocalDocumentChangedException(path, document);
+                }
+                fileInfo.Delete();
+            }
+            using(FileStream fs = fileInfo.Open(FileMode.Create, FileAccess.Write))
+            {
+                await stream.CopyToAsync(fs);
+            }
         }
     }
 }

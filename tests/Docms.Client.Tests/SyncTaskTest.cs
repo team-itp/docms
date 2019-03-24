@@ -50,6 +50,12 @@ namespace Docms.Client.Tests
             context.MockLocalStorage.Load(new[]
             {
                 new Document() {Path = "test1.txt", FileSize = 1, Hash = "HASH1", Created = DEFAULT_TIME, LastModified = DEFAULT_TIME, SyncStatus = SyncStatus.NeedsUpToDate},
+                new Document() {Path = "test2.txt", FileSize = 1, Hash = "HASH1", Created = DEFAULT_TIME, LastModified = DEFAULT_TIME, SyncStatus = SyncStatus.UpToDate},
+            });
+            context.MockRemoteStorage.Load(new[]
+            {
+                new Document() {Path = "test2.txt", FileSize = 2, Hash = "HASH1", Created = DEFAULT_TIME, LastModified = DEFAULT_TIME, SyncStatus = SyncStatus.UpToDate},
+                new Document() {Path = "test3.txt", FileSize = 1, Hash = "HASH1", Created = DEFAULT_TIME, LastModified = DEFAULT_TIME, SyncStatus = SyncStatus.UpToDate},
             });
             var operation = default(IOperation);
             Task.Run(() => sut.Start());
@@ -72,6 +78,14 @@ namespace Docms.Client.Tests
             // UploadLocalDocumentOperation
             operation = context.MockApp.GetNextOperation();
             Assert.IsTrue(operation is UploadLocalDocumentOperation);
+            operation.Start();
+            // DownloadRemoteDocumentOperation
+            operation = context.MockApp.GetNextOperation();
+            Assert.IsTrue(operation is DownloadRemoteDocumentOperation);
+            operation.Start();
+            // DownloadRemoteDocumentOperation
+            operation = context.MockApp.GetNextOperation();
+            Assert.IsTrue(operation is DeleteRemoteDocumentOperation);
             operation.Start();
 
             Assert.IsTrue(sut.IsCompleted);

@@ -1,5 +1,4 @@
 ﻿using Docms.Client.Types;
-using System;
 using System.Threading;
 using System.Threading.Tasks;
 
@@ -16,9 +15,14 @@ namespace Docms.Client.Operations
             this.path = path;
         }
 
-        protected override Task ExecuteAsync(CancellationToken token)
+        protected override async Task ExecuteAsync(CancellationToken token)
         {
-            throw new NotImplementedException();
+            token.ThrowIfCancellationRequested();
+            var document = context.RemoteStorage.GetDocument(path);
+            using (var streamToken = await context.RemoteStorage.ReadDocument(path))
+            {
+                await context.LocalStorage.WriteDocument(path, streamToken.Stream, document.Created, document.LastModified);
+            }
         }
     }
 }

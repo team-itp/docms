@@ -180,14 +180,11 @@ namespace Docms.Client.Tests
         {
             await LocalFileUtils.Create(tempDir, "file1.txt");
             await sut.Sync();
-            using (var token = sut.GetDocumentStreamToken(new PathString("file1.txt")))
+            using (var token = await sut.ReadDocument(new PathString("file1.txt")))
             {
                 var ms = new MemoryStream();
-                using (var stream = await token.GetStreamAsync())
-                {
-                    await stream.CopyToAsync(ms);
-                    Assert.AreEqual("file1.txt", Encoding.UTF8.GetString(ms.ToArray()));
-                }
+                await token.Stream.CopyToAsync(ms);
+                Assert.AreEqual("file1.txt", Encoding.UTF8.GetString(ms.ToArray()));
             }
         }
     }
