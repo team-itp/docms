@@ -9,10 +9,6 @@ namespace Docms.Client
 {
     public class Application : IApplication
     {
-        public event EventHandler<InvokeEventArgs> BeforeInvoke;
-        public event EventHandler<InvokeEventArgs> InvocationCanceled;
-        public event EventHandler<InvokeEventArgs> AfterInvoke;
-
         private static readonly Logger _logger = LogManager.GetCurrentClassLogger();
         private bool _shutdownStarted;
         private ConcurrentQueue<IOperation> _operations;
@@ -38,17 +34,14 @@ namespace Docms.Client
                     {
                         var stopwatch = new Stopwatch();
                         _logger.Trace(ReadableOperationLog("operation started", _currentOperation));
-                        BeforeInvoke?.Invoke(this, new InvokeEventArgs() { Operation = _currentOperation });
                         stopwatch.Start();
                         operation.Start();
                         stopwatch.Stop();
-                        AfterInvoke?.Invoke(this, new InvokeEventArgs() { Operation = _currentOperation });
                         _logger.Trace(ReadableOperationLog("operation ended in " + stopwatch.Elapsed, _currentOperation));
                     }
                     else
                     {
                         _logger.Trace(ReadableOperationLog("operation canceled", _currentOperation));
-                        InvocationCanceled?.Invoke(this, new InvokeEventArgs() { Operation = _currentOperation });
                     }
                 }
             }

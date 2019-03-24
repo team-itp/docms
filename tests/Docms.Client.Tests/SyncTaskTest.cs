@@ -1,14 +1,18 @@
-﻿using Docms.Client.Operations;
+﻿using Docms.Client.Data;
+using Docms.Client.Operations;
 using Docms.Client.Tasks;
 using Docms.Client.Tests.Utils;
+using Docms.Client.Types;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using System;
+using System.Threading.Tasks;
 
 namespace Docms.Client.Tests
 {
     [TestClass]
     public class SyncTaskTest
     {
+        private static readonly DateTime DEFAULT_TIME = new DateTime(2019, 3, 21, 10, 11, 12, DateTimeKind.Utc);
         private MockApplicationContext context;
         private SyncTask sut;
 
@@ -22,11 +26,55 @@ namespace Docms.Client.Tests
         [TestMethod]
         public void ローカルファイルの同期処理を実行する()
         {
-            sut.Start();
             var operation = default(IOperation);
-            context.App.BeforeInvoke += new EventHandler<InvokeEventArgs>((s, e) => operation = e.Operation);
-            context.MockApp.Process();
+            Task.Run(() => sut.Start());
+            // LocalDocumentStorageSyncOperation
+            operation = context.MockApp.GetNextOperation();
             Assert.IsTrue(operation is LocalDocumentStorageSyncOperation);
+            operation.Start();
+            // RemoteDocumentStorageSyncOperation
+            operation = context.MockApp.GetNextOperation();
+            Assert.IsTrue(operation is RemoteDocumentStorageSyncOperation);
+            operation.Start();
+            // DetermineDiffOperation
+            operation = context.MockApp.GetNextOperation();
+            Assert.IsTrue(operation is DetermineDiffOperation);
+            operation.Start();
+
+            Assert.IsTrue(sut.IsCompleted);
+        }
+
+        [TestMethod]
+        public void ローカルファイルに変更がある場合に正しくアップロードされること()
+        {
+            context.MockLocalStorage.Load(new[]
+            {
+                new Document() {Path = "test1.txt", FileSize = 1, Hash = "HASH1", Created = DEFAULT_TIME, LastModified = DEFAULT_TIME, SyncStatus = SyncStatus.NeedsUpToDate},
+            });
+            var operation = default(IOperation);
+            Task.Run(() => sut.Start());
+            // LocalDocumentStorageSyncOperation
+            operation = context.MockApp.GetNextOperation();
+            Assert.IsTrue(operation is LocalDocumentStorageSyncOperation);
+            operation.Start();
+            // RemoteDocumentStorageSyncOperation
+            operation = context.MockApp.GetNextOperation();
+            Assert.IsTrue(operation is RemoteDocumentStorageSyncOperation);
+            operation.Start();
+            // DetermineDiffOperation
+            operation = context.MockApp.GetNextOperation();
+            Assert.IsTrue(operation is DetermineDiffOperation);
+            operation.Start();
+            // ChangesIntoOperationsOperation
+            operation = context.MockApp.GetNextOperation();
+            Assert.IsTrue(operation is ChangesIntoOperationsOperation);
+            operation.Start();
+            // UploadLocalDocumentOperation
+            operation = context.MockApp.GetNextOperation();
+            Assert.IsTrue(operation is UploadLocalDocumentOperation);
+            operation.Start();
+
+            Assert.IsTrue(sut.IsCompleted);
         }
     }
 }

@@ -34,7 +34,7 @@ namespace Docms.Client.Tests.Operations
                 new Document() {Path = "test2.txt", FileSize = 1, Hash = "HASH1", Created = DEFAULT_TIME, LastModified = DEFAULT_TIME, SyncStatus = SyncStatus.UpToDate},
             });
             sut.Start();
-            var result = context.MockCurrentTask.LastArgs[0] as DetermineDiffOperationResult;
+            var result = context.MockCurrentTask.LastResult as DetermineDiffOperationResult;
             Assert.AreEqual(2, result.Diffs.Count);
             Assert.IsNotNull(result.Diffs[0].local);
             Assert.IsNull(result.Diffs[0].remote);
@@ -56,7 +56,7 @@ namespace Docms.Client.Tests.Operations
                 new Document() {Path = "test3.txt", FileSize = 1, Hash = "HASH1", Created = DEFAULT_TIME, LastModified = DEFAULT_TIME, SyncStatus = SyncStatus.UpToDate},
             });
             sut.Start();
-            var result = context.MockCurrentTask.LastArgs[0] as DetermineDiffOperationResult;
+            var result = context.MockCurrentTask.LastResult as DetermineDiffOperationResult;
             Assert.AreEqual(2, result.Diffs.Count);
             Assert.IsNull(result.Diffs[0].local);
             Assert.IsNotNull(result.Diffs[0].remote);
@@ -82,7 +82,7 @@ namespace Docms.Client.Tests.Operations
                 new Document() {Path = "dir1/subDir2/test4.txt", FileSize = 1, Hash = "HASH1", Created = DEFAULT_TIME, LastModified = DEFAULT_TIME, SyncStatus = SyncStatus.UpToDate},
             });
             sut.Start();
-            var result = context.MockCurrentTask.LastArgs[0] as DetermineDiffOperationResult;
+            var result = context.MockCurrentTask.LastResult as DetermineDiffOperationResult;
             Assert.AreEqual(0, result.Diffs.Count);
         }
 
@@ -104,7 +104,7 @@ namespace Docms.Client.Tests.Operations
                 new Document() {Path = "dir1/subDir2/test4.txt", FileSize = 1, Hash = "HASH1", Created = DEFAULT_TIME, LastModified = DEFAULT_TIME.AddHours(1), SyncStatus = SyncStatus.UpToDate},
             });
             sut.Start();
-            var result = context.MockCurrentTask.LastArgs[0] as DetermineDiffOperationResult;
+            var result = context.MockCurrentTask.LastResult as DetermineDiffOperationResult;
             Assert.AreEqual(2, result.Diffs.Count);
         }
     }

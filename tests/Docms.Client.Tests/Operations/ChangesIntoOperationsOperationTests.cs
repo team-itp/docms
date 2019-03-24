@@ -43,7 +43,7 @@ namespace Docms.Client.Tests.Operations
                 null);
             var sut = new ChangesIntoOperationsOperation(context, prevResult);
             sut.Start();
-            var result = context.MockCurrentTask.LastArgs[0] as ChangesIntoOperationsOperationResult;
+            var result = context.MockCurrentTask.LastResult as ChangesIntoOperationsOperationResult;
             Assert.AreEqual(1, result.Operations.Count);
             Assert.IsTrue(result.Operations[0] is UploadLocalDocumentOperation);
         }
@@ -57,7 +57,7 @@ namespace Docms.Client.Tests.Operations
                 context.RemoteStorage.GetDocument(new PathString("test1.txt")));
             var sut = new ChangesIntoOperationsOperation(context, prevResult);
             sut.Start();
-            var result = context.MockCurrentTask.LastArgs[0] as ChangesIntoOperationsOperationResult;
+            var result = context.MockCurrentTask.LastResult as ChangesIntoOperationsOperationResult;
             Assert.AreEqual(1, result.Operations.Count);
             Assert.IsTrue(result.Operations[0] is DeleteRemoteDocumentOperation);
         }
@@ -81,7 +81,7 @@ namespace Docms.Client.Tests.Operations
                 context.RemoteStorage.GetDocument(new PathString("test1.txt")));
             var sut = new ChangesIntoOperationsOperation(context, prevResult);
             sut.Start();
-            var result = context.MockCurrentTask.LastArgs[0] as ChangesIntoOperationsOperationResult;
+            var result = context.MockCurrentTask.LastResult as ChangesIntoOperationsOperationResult;
             Assert.AreEqual(1, result.Operations.Count);
             Assert.IsTrue(result.Operations[0] is DownloadRemoteDocumentOperation);
         }
@@ -95,7 +95,7 @@ namespace Docms.Client.Tests.Operations
                 context.RemoteStorage.GetDocument(new PathString("dir1/test3.txt")));
             var sut = new ChangesIntoOperationsOperation(context, prevResult);
             sut.Start();
-            var result = context.MockCurrentTask.LastArgs[0] as ChangesIntoOperationsOperationResult;
+            var result = context.MockCurrentTask.LastResult as ChangesIntoOperationsOperationResult;
             Assert.AreEqual(1, result.Operations.Count);
             Assert.IsTrue(result.Operations[0] is UploadLocalDocumentOperation);
         }
@@ -109,7 +109,7 @@ namespace Docms.Client.Tests.Operations
                 context.RemoteStorage.GetDocument(new PathString("dir1/subDir2/test4.txt")));
             var sut = new ChangesIntoOperationsOperation(context, prevResult);
             sut.Start();
-            var result = context.MockCurrentTask.LastArgs[0] as ChangesIntoOperationsOperationResult;
+            var result = context.MockCurrentTask.LastResult as ChangesIntoOperationsOperationResult;
             Assert.AreEqual(1, result.Operations.Count);
             Assert.IsTrue(result.Operations[0] is DownloadRemoteDocumentOperation);
         }

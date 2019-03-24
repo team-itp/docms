@@ -4,11 +4,13 @@ namespace Docms.Client.Tests.Utils
 {
     class MockTask : ITask
     {
-        public object[] LastArgs { get; set; }
+        public object LastResult { get; set; }
 
-        public void Next(params object[] args)
+        public bool IsCompleted { get; set; }
+
+        public void Next(object args)
         {
-            LastArgs = args;
+            LastResult = args;
         }
     }
 }

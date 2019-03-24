@@ -2,6 +2,7 @@
 {
     public interface ITask
     {
-        void Next(params object[] args);
+        bool IsCompleted { get; }
+        void Next(object result);
     }
 }
