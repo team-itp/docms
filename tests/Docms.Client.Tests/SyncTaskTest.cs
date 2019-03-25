@@ -32,14 +32,17 @@ namespace Docms.Client.Tests
             operation = context.MockApp.GetNextOperation();
             Assert.IsTrue(operation is LocalDocumentStorageSyncOperation);
             operation.Start();
+            Assert.AreEqual(TaskStatus.RanToCompletion, operation.Task.Status);
             // RemoteDocumentStorageSyncOperation
             operation = context.MockApp.GetNextOperation();
             Assert.IsTrue(operation is RemoteDocumentStorageSyncOperation);
             operation.Start();
+            Assert.AreEqual(TaskStatus.RanToCompletion, operation.Task.Status);
             // DetermineDiffOperation
             operation = context.MockApp.GetNextOperation();
             Assert.IsTrue(operation is DetermineDiffOperation);
             operation.Start();
+            Assert.AreEqual(TaskStatus.RanToCompletion, operation.Task.Status);
 
             Assert.IsTrue(sut.IsCompleted);
         }
@@ -63,30 +66,37 @@ namespace Docms.Client.Tests
             operation = context.MockApp.GetNextOperation();
             Assert.IsTrue(operation is LocalDocumentStorageSyncOperation);
             operation.Start();
+            Assert.AreEqual(TaskStatus.RanToCompletion, operation.Task.Status);
             // RemoteDocumentStorageSyncOperation
             operation = context.MockApp.GetNextOperation();
             Assert.IsTrue(operation is RemoteDocumentStorageSyncOperation);
             operation.Start();
+            Assert.AreEqual(TaskStatus.RanToCompletion, operation.Task.Status);
             // DetermineDiffOperation
             operation = context.MockApp.GetNextOperation();
             Assert.IsTrue(operation is DetermineDiffOperation);
             operation.Start();
+            Assert.AreEqual(TaskStatus.RanToCompletion, operation.Task.Status);
             // ChangesIntoOperationsOperation
             operation = context.MockApp.GetNextOperation();
             Assert.IsTrue(operation is ChangesIntoOperationsOperation);
             operation.Start();
+            Assert.AreEqual(TaskStatus.RanToCompletion, operation.Task.Status);
             // UploadLocalDocumentOperation
             operation = context.MockApp.GetNextOperation();
             Assert.IsTrue(operation is UploadLocalDocumentOperation);
             operation.Start();
+            Assert.AreEqual(TaskStatus.RanToCompletion, operation.Task.Status);
             // DownloadRemoteDocumentOperation
             operation = context.MockApp.GetNextOperation();
             Assert.IsTrue(operation is DownloadRemoteDocumentOperation);
             operation.Start();
+            Assert.AreEqual(TaskStatus.RanToCompletion, operation.Task.Status);
             // DownloadRemoteDocumentOperation
             operation = context.MockApp.GetNextOperation();
             Assert.IsTrue(operation is DeleteRemoteDocumentOperation);
             operation.Start();
+            Assert.AreEqual(TaskStatus.RanToCompletion, operation.Task.Status);
 
             Assert.IsTrue(sut.IsCompleted);
         }
