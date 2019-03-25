@@ -1,6 +1,7 @@
 ﻿using Docms.Client.Api;
 using Docms.Client.Data;
 using Docms.Client.DocumentStores;
+using Docms.Client.FileSystem;
 using Microsoft.EntityFrameworkCore;
 using NLog;
 using System;
@@ -41,8 +42,9 @@ namespace Docms.Client.Starter
 
                 context.App = app;
                 context.Api = ResolveApi();
+                context.FileSystem = ResolveFileSystem(watchPath);
                 context.Db = ResolveLocalDbContext();
-                context.LocalStorage = ResolveLocalStorage(context.Db);
+                context.LocalStorage = ResolveLocalStorage(context.FileSystem, context.Db);
                 context.RemoteStorage = ResolveRemoteStorage(context.Api, context.Db);
 
                 await context.Api.LoginAsync(uploadUserName, uploadUserPassword).ConfigureAwait(false);
@@ -66,9 +68,9 @@ namespace Docms.Client.Starter
             return new RemoteDocumentStorage(api, db);
         }
 
-        private LocalDocumentStorage ResolveLocalStorage(LocalDbContext db)
+        private LocalDocumentStorage ResolveLocalStorage(IFileSystem fileSystem, LocalDbContext db)
         {
-            return new LocalDocumentStorage(watchPath, db);
+            return new LocalDocumentStorage(fileSystem, db);
         }
 
         private LocalDbContext ResolveLocalDbContext()
@@ -84,6 +86,11 @@ namespace Docms.Client.Starter
             return new LocalDbContext(new DbContextOptionsBuilder<LocalDbContext>()
                 .UseSqlite(string.Format("Data Source={0}", Path.Combine(configDir, "data.db")))
                 .Options);
+        }
+
+        private IFileSystem ResolveFileSystem(string watchPath)
+        {
+            return new LocalFileSystem(watchPath);
         }
 
         private IDocmsApiClient ResolveApi()

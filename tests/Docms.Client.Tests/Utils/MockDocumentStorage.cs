@@ -23,15 +23,5 @@ namespace Docms.Client.Tests.Utils
         {
             return Task.CompletedTask;
         }
-
-        public override Task<IDocumentStreamToken> ReadDocument(PathString path)
-        {
-            return Task.FromResult<IDocumentStreamToken>(new DefaultStreamToken(new MemoryStream(Encoding.UTF8.GetBytes(path.ToString()))));
-        }
-
-        public override Task WriteDocument(PathString path, Stream stream, DateTime created, DateTime lastModified)
-        {
-            return Task.CompletedTask;
-        }
     }
 }

@@ -6,6 +6,7 @@ namespace Docms.Client.Types
 {
     public enum SyncHistoryType
     {
-        Upload
+        Upload,
+        Download
     }
 }

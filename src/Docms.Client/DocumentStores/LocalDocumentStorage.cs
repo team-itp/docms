@@ -1,8 +1,8 @@
 ﻿using Docms.Client.Data;
 using Docms.Client.Documents;
-using Docms.Client.Types;
-using System;
+using Docms.Client.FileSystem;
 using System.IO;
+using System.Linq;
 using System.Threading.Tasks;
 
 namespace Docms.Client.DocumentStores
@@ -10,12 +10,12 @@ namespace Docms.Client.DocumentStores
     public class LocalDocumentStorage : DocumentStorageBase
     {
         private readonly LocalDbContext localDb;
-        public string pathToLocalRoot;
+        private readonly IFileSystem fileSystem;
 
-        public LocalDocumentStorage(string pathToLocalRoot, LocalDbContext localDb)
+        public LocalDocumentStorage(IFileSystem fileSystem, LocalDbContext localDb)
         {
             this.localDb = localDb;
-            this.pathToLocalRoot = pathToLocalRoot;
+            this.fileSystem = fileSystem;
         }
 
         public override Task Sync()
@@ -27,16 +27,14 @@ namespace Docms.Client.DocumentStores
         private void SyncInternal(ContainerNode node)
         {
             var nodePath = node.Path;
-            var fullContainerPath = nodePath == PathString.Root ? pathToLocalRoot : Path.Combine(pathToLocalRoot, nodePath.ToLocalPath());
-            var files = Directory.GetFiles(fullContainerPath);
-            var dirs = Directory.GetDirectories(fullContainerPath);
-            var startIndex = fullContainerPath.Length;
+            var files = fileSystem.GetFiles(node.Path).ToList();
+            var dirs = fileSystem.GetDirectories(node.Path).ToList();
 
             foreach (var dirpath in dirs)
             {
-                var dp = new PathString(dirpath.Substring(startIndex + 1));
-                var dirNode = node.GetChild(dp.Name) as ContainerNode;
-                if (Directory.Exists(dirpath))
+                var dirNode = node.GetChild(dirpath.Name) as ContainerNode;
+                var dir = fileSystem.GetDirectoryInfo(dirpath);
+                if (dir != null)
                 {
                     if (dirNode != null)
                     {
@@ -44,7 +42,7 @@ namespace Docms.Client.DocumentStores
                     }
                     else
                     {
-                        dirNode = new ContainerNode(dp.Name);
+                        dirNode = new ContainerNode(dirpath.Name);
                         node.AddChild(dirNode);
                         SyncInternal(dirNode);
                     }
@@ -56,17 +54,23 @@ namespace Docms.Client.DocumentStores
             }
             foreach (var filepath in files)
             {
-                var fp = new PathString(filepath.Substring(startIndex + 1));
-                var fileNode = node.GetChild(fp.Name) as DocumentNode;
-                if (File.Exists(filepath))
+                var fileNode = node.GetChild(filepath.Name) as DocumentNode;
+                var fi = fileSystem.GetFileInfo(filepath);
+                if (fi != null)
                 {
                     if (fileNode != null)
                     {
-                        UpdateFile(filepath, fileNode);
+                        if (fi.FileSize != fileNode.FileSize
+                            || fi.Created != fileNode.Created)
+                        {
+                            var hash = CalculateHash(fi);
+                            fileNode.Update(fi.FileSize, hash, fi.Created, fi.LastModified);
+                        }
                     }
                     else
                     {
-                        fileNode = CreateFile(filepath, fp.Name);
+                        var hash = CalculateHash(fi);
+                        fileNode = new DocumentNode(filepath.Name, fi.FileSize, hash, fi.Created, fi.LastModified);
                         node.AddChild(fileNode);
                     }
                 }
@@ -77,29 +81,13 @@ namespace Docms.Client.DocumentStores
             }
         }
 
-        public string GetFullPath(PathString path)
-        {
-            return Path.Combine(this.pathToLocalRoot, path.ToLocalPath());
-        }
-
-        private DocumentNode CreateFile(string filefullpath, string name)
-        {
-            var fileInfo = new FileInfo(filefullpath);
-            var (filesize, hash) = CalculateHash(fileInfo);
-            var created = fileInfo.CreationTimeUtc;
-            var lastModified = fileInfo.LastWriteTimeUtc;
-            return new DocumentNode(name, filesize, hash, created, lastModified);
-        }
-
-        private (long fileSize, string hash) CalculateHash(FileInfo fileInfo)
+        private string CalculateHash(IFileInfo fileInfo)
         {
             var hash = default(string);
-            var fileSize = -1L;
             try
             {
-                using (FileStream fs = fileInfo.Open(FileMode.Open, FileAccess.Read, FileShare.Read))
+                using (var fs = fileInfo.OpenRead())
                 {
-                    fileSize = fs.Length;
                     hash = Hash.CalculateHash(fs);
                 }
             }
@@ -108,20 +96,7 @@ namespace Docms.Client.DocumentStores
                 // TODO
                 throw ex;
             }
-            return (fileSize, hash);
-        }
-
-        private void UpdateFile(string filefullpath, DocumentNode fileNode)
-        {
-            var fileInfo = new FileInfo(filefullpath);
-            if (fileInfo.Length != fileNode.FileSize
-                || fileInfo.CreationTimeUtc != fileNode.Created)
-            {
-                var (fileSize, hash) = CalculateHash(fileInfo);
-                var created = fileInfo.CreationTimeUtc;
-                var lastModified = fileInfo.LastWriteTimeUtc;
-                fileNode.Update(fileSize, hash, created, lastModified);
-            }
+            return hash;
         }
 
         public override Task Initialize()
@@ -136,62 +111,6 @@ namespace Docms.Client.DocumentStores
             localDb.LocalDocuments.AddRange(Persist());
             localDb.SaveChangesAsync();
             return Task.CompletedTask;
-        }
-
-        public override Task<IDocumentStreamToken> ReadDocument(PathString path)
-        {
-            var fullpath = GetFullPath(path);
-            var fileInfo = new FileInfo(fullpath);
-            var document = GetDocument(path);
-            if (document.LastModified != fileInfo.LastWriteTimeUtc
-                || document.FileSize != fileInfo.Length)
-            {
-                throw new LocalDocumentChangedException(path, document);
-            }
-            try
-            {
-                var stream = fileInfo.Open(FileMode.Open, FileAccess.Read, FileShare.ReadWrite);
-                if (document.LastModified != File.GetLastWriteTimeUtc(fullpath))
-                {
-                    // 再チェック
-                    throw new LocalDocumentChangedException(path, document);
-                }
-                return Task.FromResult<IDocumentStreamToken>(new DefaultStreamToken(stream));
-            }
-            catch (IOException)
-            {
-                var tempFileInfo = new FileInfo(Path.Combine(Path.GetTempPath(), Path.GetTempFileName()));
-                File.Copy(fullpath, tempFileInfo.FullName);
-                var stream = tempFileInfo.Open(FileMode.Open, FileAccess.Read, FileShare.None);
-                if (document.Hash != Hash.CalculateHash(stream))
-                {
-                    // 再チェック
-                    throw new LocalDocumentChangedException(path, document);
-                }
-                return Task.FromResult<IDocumentStreamToken>(new DefaultStreamToken(stream, () => tempFileInfo.Delete()));
-            }
-        }
-
-        public override async Task WriteDocument(PathString path, Stream stream, DateTime created, DateTime lastModified)
-        {
-            var fullpath = GetFullPath(path);
-            var fileInfo = new FileInfo(fullpath);
-            if (fileInfo.Exists)
-            {
-                var (fileSize, hash) = CalculateHash(fileInfo);
-                var document = GetDocument(path);
-                if (document.SyncStatus != SyncStatus.UpToDate
-                    || document.LastModified != fileInfo.LastWriteTimeUtc
-                    || document.Hash != hash)
-                {
-                    throw new LocalDocumentChangedException(path, document);
-                }
-                fileInfo.Delete();
-            }
-            using(FileStream fs = fileInfo.Open(FileMode.Create, FileAccess.Write))
-            {
-                await stream.CopyToAsync(fs);
-            }
         }
     }
 }

@@ -1,7 +1,5 @@
 ﻿using Docms.Client.Documents;
 using Docms.Client.Types;
-using System;
-using System.IO;
 using System.Threading.Tasks;
 
 namespace Docms.Client.DocumentStores
@@ -16,8 +14,5 @@ namespace Docms.Client.DocumentStores
         Task Initialize();
         Task Save();
         Task Sync();
-
-        Task<IDocumentStreamToken> ReadDocument(PathString path);
-        Task WriteDocument(PathString path, Stream stream, DateTime created, DateTime lastModified);
     }
 }

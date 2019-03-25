@@ -1,4 +1,6 @@
-﻿using Docms.Client.Types;
+﻿using Docms.Client.Data;
+using Docms.Client.Types;
+using System;
 using System.Threading;
 using System.Threading.Tasks;
 
@@ -18,10 +20,47 @@ namespace Docms.Client.Operations
         protected override async Task ExecuteAsync(CancellationToken token)
         {
             token.ThrowIfCancellationRequested();
-            var document = context.RemoteStorage.GetDocument(path);
-            using (var streamToken = await context.RemoteStorage.ReadDocument(path))
+            var remoteDocument = context.RemoteStorage.GetDocument(path);
+            var localDocument = context.LocalStorage.GetDocument(path);
+            var file = context.FileSystem.GetFileInfo(path);
+            if (file != null)
             {
-                await context.LocalStorage.WriteDocument(path, streamToken.Stream, document.Created, document.LastModified);
+                if (localDocument == null)
+                {
+                    // 判断したときと状況が変わったためキャンセル
+                    return;
+                }
+                if (localDocument.FileSize != file.FileSize
+                    || localDocument.LastModified != file.LastModified)
+                {
+                    // 判断したときと状況が変わったためキャンセル
+                    return;
+                }
+            }
+            using (var stream = await context.Api.DownloadAsync(path.ToString()))
+            {
+                var fi = context.FileSystem.GetFileInfo(path);
+                if (fi.FileSize != file.FileSize
+                    || fi.LastModified != file.LastModified)
+                {
+                    // ダウンロード中に変更されていないことをもう一度確認
+                    return;
+                }
+                using (var fs = fi.OpenWrite())
+                {
+                    await stream.CopyToAsync(fs);
+                }
+                context.Db.SyncHistories.Add(new SyncHistory()
+                {
+                    Id = Guid.NewGuid(),
+                    Timestamp = DateTime.Now,
+                    Path = path.ToString(),
+                    FileSize = remoteDocument.FileSize,
+                    Hash = remoteDocument.Hash,
+                    Type = SyncHistoryType.Download
+                });
+                await context.Db.SaveChangesAsync();
+
             }
         }
     }

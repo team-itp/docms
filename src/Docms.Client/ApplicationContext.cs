@@ -1,6 +1,7 @@
 ﻿using Docms.Client.Api;
 using Docms.Client.Data;
 using Docms.Client.DocumentStores;
+using Docms.Client.FileSystem;
 using Docms.Client.Tasks;
 
 namespace Docms.Client
@@ -9,6 +10,7 @@ namespace Docms.Client
     {
         public IApplication App { get; set; }
         public IDocmsApiClient Api { get; set; }
+        public IFileSystem FileSystem { get; set; }
         public LocalDbContext Db { get; set; }
         public IDocumentStorage LocalStorage { get; set; }
         public IDocumentStorage RemoteStorage { get; set; }

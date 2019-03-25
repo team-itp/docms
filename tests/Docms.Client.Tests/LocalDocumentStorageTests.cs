@@ -1,5 +1,6 @@
 ﻿using Docms.Client.Documents;
 using Docms.Client.DocumentStores;
+using Docms.Client.FileSystem;
 using Docms.Client.Tests.Utils;
 using Docms.Client.Types;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
@@ -15,6 +16,7 @@ namespace Docms.Client.Tests
     public class LocalDocumentStorageTests
     {
         private string tempDir;
+        private LocalFileSystem localFileSystem;
         private MockLocalDbContext localDb;
         private LocalDocumentStorage sut;
 
@@ -23,9 +25,9 @@ namespace Docms.Client.Tests
         {
             tempDir = Path.Combine(Path.GetTempPath(), Guid.NewGuid().ToString());
             Directory.CreateDirectory(tempDir);
+            localFileSystem = new LocalFileSystem(tempDir);
             localDb = new MockLocalDbContext();
-
-            sut = new LocalDocumentStorage(tempDir, localDb);
+            sut = new LocalDocumentStorage(localFileSystem, localDb);
         }
 
         [TestCleanup]
@@ -146,11 +148,11 @@ namespace Docms.Client.Tests
             await sut.Sync();
             await sut.Save();
 
-            sut = new LocalDocumentStorage(tempDir, localDb);
+            sut = new LocalDocumentStorage(localFileSystem, localDb);
             await sut.Initialize();
             await sut.Save();
 
-            sut = new LocalDocumentStorage(tempDir, localDb);
+            sut = new LocalDocumentStorage(localFileSystem, localDb);
             await sut.Initialize();
 
             var rootNodes = (sut.GetNode(PathString.Root) as ContainerNode).Children;
@@ -174,18 +176,6 @@ namespace Docms.Client.Tests
             Assert.AreEqual("file2.txt", file2.Name);
             Assert.AreEqual(new PathString("dir1/file2.txt"), file2.Path);
             Assert.AreEqual("dir1/file2.txt updated".Length, file2.FileSize);
-        }
-        [TestMethod]
-        public async Task ロックされていないファイルのストリームを開く()
-        {
-            await LocalFileUtils.Create(tempDir, "file1.txt");
-            await sut.Sync();
-            using (var token = await sut.ReadDocument(new PathString("file1.txt")))
-            {
-                var ms = new MemoryStream();
-                await token.Stream.CopyToAsync(ms);
-                Assert.AreEqual("file1.txt", Encoding.UTF8.GetString(ms.ToArray()));
-            }
         }
     }
 }

@@ -101,15 +101,5 @@ namespace Docms.Client.DocumentStores
             localDb.SaveChangesAsync();
             return Task.CompletedTask;
         }
-
-        public override async Task<IDocumentStreamToken> ReadDocument(PathString path)
-        {
-            return new DefaultStreamToken(await api.DownloadAsync(path.ToString()));
-        }
-
-        public override Task WriteDocument(PathString path, Stream stream, DateTime created, DateTime lastModified)
-        {
-            return api.CreateOrUpdateDocumentAsync(path.ToString(), stream, created, lastModified);
-        }
     }
 }

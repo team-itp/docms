@@ -119,7 +119,5 @@ namespace Docms.Client.DocumentStores
         public abstract Task Initialize();
         public abstract Task Sync();
         public abstract Task Save();
-        public abstract Task<IDocumentStreamToken> ReadDocument(PathString path);
-        public abstract Task WriteDocument(PathString path, Stream stream, DateTime created, DateTime lastModified);
     }
 }
