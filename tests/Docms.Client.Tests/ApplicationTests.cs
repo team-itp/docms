@@ -1,4 +1,5 @@
 ﻿using Docms.Client.Operations;
+using Docms.Client.Tests.Utils;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using System.Threading;
 using System.Threading.Tasks;

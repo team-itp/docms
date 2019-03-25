@@ -26,7 +26,7 @@ namespace Docms.Client.Tasks
             await context.App.Invoke(operation).ConfigureAwait(false);
         }
 
-        public async void Start()
+        public async Task ExecuteAsync()
         {
             context.CurrentTask = this;
             await ExecuteOperationAsync(new LocalDocumentStorageSyncOperation(context));

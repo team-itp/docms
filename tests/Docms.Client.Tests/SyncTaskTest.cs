@@ -27,7 +27,7 @@ namespace Docms.Client.Tests
         public void ローカルファイルの同期処理を実行する()
         {
             var operation = default(IOperation);
-            Task.Run(() => sut.Start());
+            Task.Run(() => sut.ExecuteAsync());
             // LocalDocumentStorageSyncOperation
             operation = context.MockApp.GetNextOperation();
             Assert.IsTrue(operation is LocalDocumentStorageSyncOperation);
@@ -58,7 +58,7 @@ namespace Docms.Client.Tests
                 new Document() {Path = "test3.txt", FileSize = 1, Hash = "HASH1", Created = DEFAULT_TIME, LastModified = DEFAULT_TIME, SyncStatus = SyncStatus.UpToDate},
             });
             var operation = default(IOperation);
-            Task.Run(() => sut.Start());
+            Task.Run(() => sut.ExecuteAsync());
             // LocalDocumentStorageSyncOperation
             operation = context.MockApp.GetNextOperation();
             Assert.IsTrue(operation is LocalDocumentStorageSyncOperation);

@@ -14,6 +14,8 @@ namespace Docms.Client
         private ConcurrentQueue<IOperation> _operations;
         private IOperation _currentOperation;
 
+        public bool IsShutdownRequested => _shutdownStarted;
+
         public Application()
         {
             _operations = new ConcurrentQueue<IOperation>();

@@ -50,6 +50,8 @@ namespace Docms.Client.Starter
                 await context.LocalStorage.Initialize().ConfigureAwait(false);
                 await context.RemoteStorage.Initialize().ConfigureAwait(false);
 
+                new ApplicationEngine(app, context).Start();
+                
                 return true;
             }
             catch (Exception ex)

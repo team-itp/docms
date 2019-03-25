@@ -1,8 +1,11 @@
-﻿namespace Docms.Client.Tasks
+﻿using System.Threading.Tasks;
+
+namespace Docms.Client.Tasks
 {
     public interface ITask
     {
         bool IsCompleted { get; }
         void Next(object result);
+        Task ExecuteAsync();
     }
 }

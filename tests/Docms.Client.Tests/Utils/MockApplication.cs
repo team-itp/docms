@@ -10,6 +10,8 @@ namespace Docms.Client.Tests.Utils
         public List<IOperation> StackedOperations { get; set; } = new List<IOperation>();
         private int currentOperationIndex;
         public bool IsRunning { get; private set; }
+        public bool IsShutdownRequested { get; private set; }
+
         private AutoResetEvent stateEvent = new AutoResetEvent(false);
         private AutoResetEvent operationEvent = new AutoResetEvent(false);
 
@@ -28,7 +30,7 @@ namespace Docms.Client.Tests.Utils
 
         public void WaitForNextOperation()
         {
-            if(StackedOperations.Count >= currentOperationIndex)
+            if (StackedOperations.Count >= currentOperationIndex)
             {
                 operationEvent.WaitOne();
                 operationEvent.Reset();
@@ -44,6 +46,7 @@ namespace Docms.Client.Tests.Utils
         public void Shutdown()
         {
             IsRunning = false;
+            IsShutdownRequested = true;
             stateEvent.Set();
         }
 

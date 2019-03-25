@@ -1,4 +1,5 @@
-﻿using Docms.Client.Tasks;
+﻿using System.Threading.Tasks;
+using Docms.Client.Tasks;
 
 namespace Docms.Client.Tests.Utils
 {
@@ -11,6 +12,11 @@ namespace Docms.Client.Tests.Utils
         public void Next(object args)
         {
             LastResult = args;
+        }
+
+        public Task ExecuteAsync()
+        {
+            return Task.CompletedTask;
         }
     }
 }
