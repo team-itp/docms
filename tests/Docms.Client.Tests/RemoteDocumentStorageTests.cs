@@ -147,8 +147,8 @@ namespace Docms.Client.Tests
             Assert.AreEqual("file1.txt", file1.Name);
             Assert.AreEqual(new PathString("file1.txt"), file1.Path);
             Assert.AreEqual("file1.txt updated".Length, file1.FileSize);
-            Assert.AreEqual(LocalFileUtils.DEFAULT_CREATE_TIME, file1.Created);
-            Assert.AreEqual(LocalFileUtils.DEFAULT_CREATE_TIME.AddHours(1), file1.LastModified);
+            Assert.AreEqual(FileSystemUtils.DEFAULT_CREATE_TIME, file1.Created);
+            Assert.AreEqual(FileSystemUtils.DEFAULT_CREATE_TIME.AddHours(1), file1.LastModified);
 
             var dir1 = rootNodes.First() as ContainerNode;
             Assert.AreEqual("dir1", dir1.Name);

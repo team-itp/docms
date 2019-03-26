@@ -2,7 +2,7 @@
 
 namespace Docms.Client.FileSystem
 {
-    public class IDirectoryInfo
+    public interface IDirectoryInfo
     {
         PathString Path { get; }
     }

@@ -48,20 +48,18 @@ namespace Docms.Client.Tests
         }
 
         [TestMethod]
-        public void ローカルファイルに変更がある場合に正しくアップロードされること()
+        public async Task ローカルファイルに変更がある場合に正しくアップロードされること()
         {
-            context.MockLocalStorage.Load(new[]
-            {
-                new Document() {Path = "test1.txt", FileSize = 1, Hash = "HASH1", Created = DEFAULT_TIME, LastModified = DEFAULT_TIME, SyncStatus = SyncStatus.NeedsUpToDate},
-                new Document() {Path = "test2.txt", FileSize = 1, Hash = "HASH1", Created = DEFAULT_TIME, LastModified = DEFAULT_TIME, SyncStatus = SyncStatus.UpToDate},
-            });
-            context.MockRemoteStorage.Load(new[]
-            {
-                new Document() {Path = "test2.txt", FileSize = 2, Hash = "HASH1", Created = DEFAULT_TIME, LastModified = DEFAULT_TIME, SyncStatus = SyncStatus.UpToDate},
-                new Document() {Path = "test3.txt", FileSize = 1, Hash = "HASH1", Created = DEFAULT_TIME, LastModified = DEFAULT_TIME, SyncStatus = SyncStatus.UpToDate},
-            });
+            await FileSystemUtils.Create(context.MockFileSystem, "test1.txt");
+            await FileSystemUtils.Create(context.MockFileSystem, "test2.txt");
+            await DocmsApiUtils.Create(context.Api, "test2.txt");
+            await DocmsApiUtils.Update(context.Api, "test2.txt");
+            await DocmsApiUtils.Create(context.Api, "test3.txt");
+            await context.LocalStorage.Sync();
+            await context.RemoteStorage.Sync();
+
             var operation = default(IOperation);
-            Task.Run(() => sut.ExecuteAsync());
+            var task = Task.Run(() => sut.ExecuteAsync());
             // LocalDocumentStorageSyncOperation
             operation = context.MockApp.GetNextOperation();
             Assert.IsTrue(operation is LocalDocumentStorageSyncOperation);

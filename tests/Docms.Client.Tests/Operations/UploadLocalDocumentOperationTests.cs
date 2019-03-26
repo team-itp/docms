@@ -6,6 +6,7 @@ using Microsoft.VisualStudio.TestTools.UnitTesting;
 using System;
 using System.Linq;
 using System.Threading;
+using System.Threading.Tasks;
 
 namespace Docms.Client.Tests.Operations
 {
@@ -16,15 +17,19 @@ namespace Docms.Client.Tests.Operations
         private MockApplicationContext context;
 
         [TestInitialize]
-        public void Setup()
+        public async Task Setup()
         {
             context = new MockApplicationContext();
+            await FileSystemUtils.Create(context.FileSystem, "test1.txt");
+            await FileSystemUtils.Create(context.FileSystem, "dir1/test2.txt");
+            await context.MockLocalStorage.Sync();
         }
 
         [TestMethod]
-        public void ファイルが存在しない場合アップロードされずに終了する()
+        public async Task ファイルが存在しない場合アップロードされずに終了する()
         {
-            var sut = new UploadLocalDocumentOperation(context, new PathString("test1.txt"), default(CancellationToken));
+            await context.FileSystem.Delete(new PathString("dir1/test2.txt"));
+            var sut = new UploadLocalDocumentOperation(context, new PathString("dir1/test2.txt"), default(CancellationToken));
             sut.Start();
             Assert.AreEqual(0, context.MockApi.histories.Count);
             Assert.IsFalse(context.Db.SyncHistories.Any());
@@ -33,14 +38,11 @@ namespace Docms.Client.Tests.Operations
         [TestMethod]
         public void ファイルが存在する場合アップロードされること()
         {
-            context.MockLocalStorage.Load(new[]
-            {
-                new Document() {Path = "test1.txt", FileSize = 1, Hash = "HASH1", Created = DEFAULT_TIME, LastModified = DEFAULT_TIME, SyncStatus = SyncStatus.UpToDate},
-            });
+            var fileInfo = context.FileSystem.GetFileInfo(new PathString("test1.txt"));
             var sut = new UploadLocalDocumentOperation(context, new PathString("test1.txt"), default(CancellationToken));
             sut.Start();
             Assert.AreEqual(1, context.MockApi.histories.Count);
-            Assert.IsTrue(context.Db.SyncHistories.Any(h => h.Path == "test1.txt" && h.FileSize == 1 && h.Hash == "HASH1"));
+            Assert.IsTrue(context.Db.SyncHistories.Any(h => h.Path == "test1.txt" && h.FileSize == fileInfo.FileSize && h.Hash == fileInfo.CalculateHash()));
         }
     }
 }

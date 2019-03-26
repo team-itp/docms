@@ -1,6 +1,8 @@
 ﻿using Docms.Client.Types;
+using System;
 using System.Collections.Generic;
 using System.IO;
+using System.Threading.Tasks;
 
 namespace Docms.Client.FileSystem
 {
@@ -55,9 +57,58 @@ namespace Docms.Client.FileSystem
             var fullpath = GetFullPath(path);
             if (Directory.Exists(fullpath))
             {
-                return new LocalDirectoryInfo(path, GetFullPath(path));
+                return new LocalDirectoryInfo(path);
             }
             return null;
+        }
+
+        public Task CreateDirectory(PathString path)
+        {
+            var fullpath = GetFullPath(path);
+            if (!Directory.Exists(fullpath))
+            {
+                Directory.CreateDirectory(fullpath);
+            }
+            return Task.CompletedTask;
+        }
+
+        public async Task CreateFile(PathString path, Stream stream, DateTime created, DateTime lastModified)
+        {
+            var fullpath = GetFullPath(path);
+            await CreateDirectory(path.ParentPath);
+            using(var fs = new FileStream(fullpath, FileMode.Create, FileAccess.Write, FileShare.None))
+            {
+                await stream.CopyToAsync(fs);
+            }
+            File.SetCreationTimeUtc(fullpath, created);
+            File.SetLastWriteTimeUtc(fullpath, lastModified);
+        }
+
+        public async Task Move(PathString fromPath, PathString toPath)
+        {
+            var fromFullpath = GetFullPath(fromPath);
+            var toFullpath = GetFullPath(toPath);
+            await CreateDirectory(toPath.ParentPath);
+            var dirInfo = GetDirectoryInfo(toPath);
+            if (dirInfo != null)
+            {
+                await Delete(dirInfo.Path);
+            }
+            File.Move(fromFullpath, toFullpath);
+        }
+
+        public Task Delete(PathString path)
+        {
+            var fullpath = GetFullPath(path);
+            if (Directory.Exists(fullpath))
+            {
+                Directory.Delete(fullpath);
+            }
+            if (File.Exists(fullpath))
+            {
+                File.Delete(fullpath);
+            }
+            return Task.CompletedTask;
         }
     }
 }

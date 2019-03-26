@@ -1,4 +1,5 @@
-﻿using Docms.Client.FileSystem;
+﻿using Docms.Client.Documents;
+using Docms.Client.FileSystem;
 using Docms.Client.Types;
 using System;
 using System.IO;
@@ -43,6 +44,24 @@ namespace Docms.Client.Tests.Utils
         public Stream OpenWrite()
         {
             return new MockStream(this);
+        }
+
+        public void SetCreated(DateTime created)
+        {
+            Created = created;
+        }
+
+        public void SetLastModified(DateTime lastModified)
+        {
+            LastModified = lastModified;
+        }
+
+        public string CalculateHash()
+        {
+            using (var fs = OpenRead())
+            {
+                return Hash.CalculateHash(fs);
+            }
         }
     }
 }

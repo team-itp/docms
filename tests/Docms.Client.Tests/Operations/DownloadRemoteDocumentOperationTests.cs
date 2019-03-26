@@ -5,6 +5,7 @@ using Docms.Client.Types;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using System;
 using System.Threading;
+using System.Threading.Tasks;
 
 namespace Docms.Client.Tests.Operations
 {
@@ -15,19 +16,17 @@ namespace Docms.Client.Tests.Operations
         private MockApplicationContext context;
 
         [TestInitialize]
-        public void Setup()
+        public async Task Setup()
         {
             context = new MockApplicationContext();
-            context.MockRemoteStorage.Load(new[]
-            {
-                new Document() {Path = "test1.txt", FileSize = 1, Hash = "HASH1", Created = DEFAULT_TIME, LastModified = DEFAULT_TIME, SyncStatus = SyncStatus.UpToDate},
-            });
+            await DocmsApiUtils.Create(context.Api, "test1.txt");
+            await context.MockRemoteStorage.Sync();
         }
 
         [TestMethod]
         public void リモートのファイルが存在しない場合ファイルがダウンロードされないこと()
         {
-            var sut = new DownloadRemoteDocumentOperation(context, new PathString("test1.txt"), default(CancellationToken));
+            var sut = new DownloadRemoteDocumentOperation(context, new PathString("test2.txt"), default(CancellationToken));
             sut.Start();
             Assert.AreEqual(1, context.MockApi.histories.Count);
         }

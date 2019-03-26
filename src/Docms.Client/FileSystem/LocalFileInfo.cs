@@ -1,4 +1,5 @@
-﻿using Docms.Client.Types;
+﻿using Docms.Client.Documents;
+using Docms.Client.Types;
 using System;
 using System.IO;
 
@@ -18,6 +19,17 @@ namespace Docms.Client.FileSystem
         public long FileSize => fileInfo.Length;
         public DateTime Created => fileInfo.CreationTimeUtc;
         public DateTime LastModified => fileInfo.LastWriteTimeUtc;
+
+        public void SetCreated(DateTime created)
+        {
+            fileInfo.CreationTimeUtc = created;
+        }
+
+        public void SetLastModified(DateTime lastModified)
+        {
+            fileInfo.LastWriteTimeUtc = lastModified;
+        }
+
         public Stream OpenRead()
         {
             return fileInfo.Open(FileMode.Open, FileAccess.Read, FileShare.Read);
@@ -26,6 +38,14 @@ namespace Docms.Client.FileSystem
         public Stream OpenWrite()
         {
             return fileInfo.Open(FileMode.Open, FileAccess.Write, FileShare.None);
+        }
+
+        public string CalculateHash()
+        {
+            using(var fs = OpenRead())
+            {
+                return Hash.CalculateHash(fs);
+            }
         }
     }
 }

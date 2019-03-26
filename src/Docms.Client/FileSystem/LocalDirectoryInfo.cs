@@ -1,16 +1,14 @@
 ﻿using Docms.Client.Types;
 using System.IO;
+using System.Threading.Tasks;
 
 namespace Docms.Client.FileSystem
 {
     public class LocalDirectoryInfo : IDirectoryInfo
     {
-        private DirectoryInfo directoryInfo;
-
-        public LocalDirectoryInfo(PathString path, string fullpath)
+        public LocalDirectoryInfo(PathString path)
         {
             Path = path;
-            directoryInfo = new DirectoryInfo(fullpath);
         }
 
         public PathString Path { get; }
