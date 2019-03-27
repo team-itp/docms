@@ -14,7 +14,6 @@ namespace Docms.Client.Tests.Utils
         public static async Task Create(IFileSystem fileSystem, string filePath)
         {
             var path = new PathString(filePath);
-            await fileSystem.CreateDirectory(path.ParentPath);
             await fileSystem.CreateFile(path, new MemoryStream(Encoding.UTF8.GetBytes(filePath)), DEFAULT_CREATE_TIME, DEFAULT_CREATE_TIME);
         }
 
@@ -24,13 +23,13 @@ namespace Docms.Client.Tests.Utils
             var fi = fileSystem.GetFileInfo(path);
             var lastWriteTime = fi.LastModified;
             var ms = new MemoryStream();
-            using(var fs = fi.OpenRead())
+            using (var fs = fi.OpenRead())
             {
                 await fs.CopyToAsync(ms);
             }
             var str = Encoding.UTF8.GetString(ms.ToArray()) + " updated";
             ms = new MemoryStream(Encoding.UTF8.GetBytes(str));
-            using(var fs = fi.OpenWrite())
+            using (var fs = fi.OpenWrite())
             {
                 await ms.CopyToAsync(fs);
             }
@@ -41,6 +40,16 @@ namespace Docms.Client.Tests.Utils
         {
             fileSystem.Move(new PathString(fromPath), new PathString(toPath));
             return Task.CompletedTask;
+        }
+
+        public static bool FileExists(IFileSystem fileSystem, string path)
+        {
+            return fileSystem.GetFileInfo(new PathString(path)) != null;
+        }
+
+        public static bool DirectoryExists(IFileSystem fileSystem, string path)
+        {
+            return fileSystem.GetDirectoryInfo(new PathString(path)) != null;
         }
     }
 }

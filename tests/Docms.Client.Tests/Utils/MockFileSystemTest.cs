@@ -8,43 +8,31 @@ using System.IO;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace Docms.Client.Tests
+namespace Docms.Client.Tests.Utils
 {
     [TestClass]
-    public class LocalFileSystemTest
+    public class MockFileSystemTest
     {
-        private string tempDir;
-        private LocalFileSystem sut;
+        private MockFileSystem sut;
 
         [TestInitialize]
         public void Setup()
         {
-            tempDir = Path.Combine(Path.GetTempPath(), Guid.NewGuid().ToString());
-            Directory.CreateDirectory(tempDir);
-            sut = new LocalFileSystem(tempDir);
-        }
-
-        [TestCleanup]
-        public void Teardown()
-        {
-            if (Directory.Exists(tempDir))
-            {
-                Directory.Delete(tempDir, true);
-            }
+            sut = new MockFileSystem();
         }
 
         [TestMethod]
         public async Task ファイルを作成する()
         {
             await FileSystemUtils.Create(sut, "test1.txt");
-            Assert.IsTrue(File.Exists(Path.Combine(tempDir, "test1.txt")));
+            Assert.IsTrue(FileSystemUtils.FileExists(sut, "test1.txt"));
 
             await FileSystemUtils.Create(sut, "dir1/test2.txt");
-            Assert.IsTrue(Directory.Exists(Path.Combine(tempDir, "dir1")));
-            Assert.IsTrue(File.Exists(Path.Combine(tempDir, "dir1/test2.txt")));
+            Assert.IsTrue(FileSystemUtils.DirectoryExists(sut, "dir1"));
+            Assert.IsTrue(FileSystemUtils.FileExists(sut, "dir1/test2.txt"));
 
             await FileSystemUtils.Create(sut, "dir1/test3.txt");
-            Assert.IsTrue(File.Exists(Path.Combine(tempDir, "dir1/test3.txt")));
+            Assert.IsTrue(FileSystemUtils.FileExists(sut, "dir1/test3.txt"));
         }
 
         [TestMethod]
@@ -57,10 +45,10 @@ namespace Docms.Client.Tests
             await sut.Delete(new PathString("test1.txt"));
             await sut.Delete(new PathString("dir1/test2.txt"));
 
-            Assert.IsFalse(File.Exists(Path.Combine(tempDir, "test1.txt")));
-            Assert.IsTrue(Directory.Exists(Path.Combine(tempDir, "dir1")));
-            Assert.IsFalse(File.Exists(Path.Combine(tempDir, "dir1/test2.txt")));
-            Assert.IsTrue(File.Exists(Path.Combine(tempDir, "dir1/test3.txt")));
+            Assert.IsFalse(FileSystemUtils.FileExists(sut, "test1.txt"));
+            Assert.IsTrue(FileSystemUtils.DirectoryExists(sut, "dir1"));
+            Assert.IsFalse(FileSystemUtils.FileExists(sut, "dir1/test2.txt"));
+            Assert.IsTrue(FileSystemUtils.FileExists(sut, "dir1/test3.txt"));
         }
 
         [TestMethod]
@@ -71,8 +59,8 @@ namespace Docms.Client.Tests
 
             await FileSystemUtils.Create(sut, "dir1");
 
-            Assert.IsFalse(Directory.Exists(Path.Combine(tempDir, "dir1")));
-            Assert.IsTrue(File.Exists(Path.Combine(tempDir, "dir1")));
+            Assert.IsFalse(FileSystemUtils.DirectoryExists(sut, "dir1"));
+            Assert.IsTrue(FileSystemUtils.FileExists(sut, "dir1"));
         }
 
         [TestMethod]
@@ -130,24 +118,24 @@ namespace Docms.Client.Tests
 
             await sut.Move(new PathString("test1.txt"), new PathString("test2.txt"));
 
-            Assert.IsTrue(File.Exists(Path.Combine(tempDir, "test2.txt")));
-            Assert.IsFalse(File.Exists(Path.Combine(tempDir, "test1.txt")));
+            Assert.IsTrue(FileSystemUtils.FileExists(sut, "test2.txt"));
+            Assert.IsFalse(FileSystemUtils.FileExists(sut, "test1.txt"));
 
             await sut.Move(new PathString("test2.txt"), new PathString("dir1/test3.txt"));
-            Assert.IsTrue(File.Exists(Path.Combine(tempDir, "dir1/test3.txt")));
-            Assert.IsFalse(File.Exists(Path.Combine(tempDir, "test2.txt")));
+            Assert.IsTrue(FileSystemUtils.FileExists(sut, "dir1/test3.txt"));
+            Assert.IsFalse(FileSystemUtils.FileExists(sut, "test2.txt"));
 
             await sut.Move(new PathString("dir1/test3.txt"), new PathString("dir1/test4.txt"));
-            Assert.IsTrue(File.Exists(Path.Combine(tempDir, "dir1/test4.txt")));
-            Assert.IsFalse(File.Exists(Path.Combine(tempDir, "dir1/test3.txt")));
+            Assert.IsTrue(FileSystemUtils.FileExists(sut, "dir1/test4.txt"));
+            Assert.IsFalse(FileSystemUtils.FileExists(sut, "dir1/test3.txt"));
 
             await sut.Move(new PathString("dir1/test4.txt"), new PathString("test5.txt"));
-            Assert.IsTrue(File.Exists(Path.Combine(tempDir, "test5.txt")));
-            Assert.IsFalse(File.Exists(Path.Combine(tempDir, "dir1/test4.txt")));
+            Assert.IsTrue(FileSystemUtils.FileExists(sut, "test5.txt"));
+            Assert.IsFalse(FileSystemUtils.FileExists(sut, "dir1/test4.txt"));
 
             Assert.AreEqual(hash1, sut.GetFileInfo(new PathString("test5.txt")).CalculateHash());
-            Assert.IsFalse(File.Exists(Path.Combine(tempDir, "dir1")));
-            Assert.IsTrue(Directory.Exists(Path.Combine(tempDir, "dir1")));
+            Assert.IsFalse(FileSystemUtils.FileExists(sut, "dir1"));
+            Assert.IsTrue(FileSystemUtils.DirectoryExists(sut, "dir1"));
         }
     }
 }

@@ -19,16 +19,16 @@ namespace Docms.Client.Tests.Utils
 
         public IEnumerable<PathString> GetDirectories(PathString path)
         {
-            return (GetDirectoryInfo(path) as MockDirectoryInfo)
+            return (GetDirectoryInfo(path) as MockDirectoryInfo)?
                 .Directories
-                .Select(d => d.Path);
+                .Select(d => d.Path) ?? Enumerable.Empty<PathString>();
         }
 
         public IEnumerable<PathString> GetFiles(PathString path)
         {
-            return (GetDirectoryInfo(path) as MockDirectoryInfo)
+            return (GetDirectoryInfo(path) as MockDirectoryInfo)?
                 .Files
-                .Select(d => d.Path);
+                .Select(d => d.Path) ?? Enumerable.Empty<PathString>();
         }
 
         public IDirectoryInfo GetDirectoryInfo(PathString dirpath)
@@ -75,10 +75,19 @@ namespace Docms.Client.Tests.Utils
         public async Task CreateFile(PathString path, Stream stream, DateTime created, DateTime lastModified)
         {
             await CreateDirectory(path.ParentPath);
-            var dir = GetDirectoryInfo(path.ParentPath) as MockDirectoryInfo;
+            var parentDir = GetDirectoryInfo(path.ParentPath) as MockDirectoryInfo;
+            var dir = parentDir.Directories.FirstOrDefault(d => d.Path.Equals(path)) as MockDirectoryInfo;
+            if (dir != null)
+            {
+                if ((dir.Directories.Any() || dir.Directories.Any()))
+                {
+                    throw new InvalidOperationException();
+                }
+                parentDir.Directories.Remove(dir);
+            }
             var ms = new MemoryStream();
             await stream.CopyToAsync(ms);
-            dir.Files.Add(new MockFileInfo(path, ms.ToArray(), created, lastModified));
+            parentDir.Files.Add(new MockFileInfo(path, ms.ToArray(), created, lastModified));
         }
 
         public async Task Move(PathString fromPath, PathString toPath)

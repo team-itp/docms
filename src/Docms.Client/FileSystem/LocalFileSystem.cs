@@ -23,9 +23,13 @@ namespace Docms.Client.FileSystem
 
         public IEnumerable<PathString> GetDirectories(PathString path)
         {
-            var fullContainerPath = path == PathString.Root ? pathToLocalRoot : Path.Combine(pathToLocalRoot, path.ToLocalPath());
-            var dirs = Directory.GetDirectories(fullContainerPath);
-            var startIndex = fullContainerPath.Length;
+            var fullpath = GetFullPath(path);
+            if (!Directory.Exists(fullpath))
+            {
+                yield break;
+            }
+            var dirs = Directory.GetDirectories(fullpath);
+            var startIndex = fullpath.Length;
             foreach (var dirpath in dirs)
             {
                 yield return path.Combine(dirpath.Substring(startIndex + 1));
@@ -34,9 +38,14 @@ namespace Docms.Client.FileSystem
 
         public IEnumerable<PathString> GetFiles(PathString path)
         {
-            var fullContainerPath = path == PathString.Root ? pathToLocalRoot : Path.Combine(pathToLocalRoot, path.ToLocalPath());
-            var files = Directory.GetFiles(fullContainerPath);
-            var startIndex = fullContainerPath.Length;
+
+            var fullpath = GetFullPath(path);
+            if (!Directory.Exists(fullpath))
+            {
+                yield break;
+            }
+            var files = Directory.GetFiles(fullpath);
+            var startIndex = fullpath.Length;
             foreach (var filepath in files)
             {
                 yield return path.Combine(filepath.Substring(startIndex + 1));
