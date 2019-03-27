@@ -2,6 +2,7 @@
 using System;
 using System.Collections.Generic;
 using System.IO;
+using System.Linq;
 using System.Threading.Tasks;
 
 namespace Docms.Client.FileSystem
@@ -76,7 +77,13 @@ namespace Docms.Client.FileSystem
         {
             var fullpath = GetFullPath(path);
             await CreateDirectory(path.ParentPath);
-            using(var fs = new FileStream(fullpath, FileMode.Create, FileAccess.Write, FileShare.None))
+            if (Directory.Exists(fullpath)
+                && !Directory.GetFiles(fullpath).Any()
+                && !Directory.GetDirectories(fullpath).Any())
+            {
+                Directory.Delete(fullpath);
+            }
+            using (var fs = new FileStream(fullpath, FileMode.Create, FileAccess.Write, FileShare.None))
             {
                 await stream.CopyToAsync(fs);
             }
