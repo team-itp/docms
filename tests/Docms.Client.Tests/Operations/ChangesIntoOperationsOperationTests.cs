@@ -49,7 +49,7 @@ namespace Docms.Client.Tests.Operations
         }
 
         [TestMethod]
-        public void リモートファイルが存在しローカルファイルが存在しない場合にローカルファイルのアップロード履歴が存在しない場合は削除される()
+        public void リモートファイルが存在しローカルファイルが存在しない場合にローカルファイルのアップロード履歴が存在しない場合はダウンロードされる()
         {
             var prevResult = new DetermineDiffOperationResult();
             prevResult.Add(
@@ -59,11 +59,11 @@ namespace Docms.Client.Tests.Operations
             sut.Start();
             var result = context.MockCurrentTask.LastResult as ChangesIntoOperationsOperationResult;
             Assert.AreEqual(1, result.Operations.Count);
-            Assert.IsTrue(result.Operations[0] is DeleteRemoteDocumentOperation);
+            Assert.IsTrue(result.Operations[0] is DownloadRemoteDocumentOperation);
         }
 
         [TestMethod]
-        public void リモートファイルが存在しローカルファイルが存在しない場合にローカルファイルのアップロード履歴が存在する場合はダウンロードされる()
+        public void リモートファイルが存在しローカルファイルが存在しない場合にローカルファイルのアップロード履歴が存在する場合は削除される()
         {
             context.Db.SyncHistories.Add(new SyncHistory()
             {
@@ -83,7 +83,7 @@ namespace Docms.Client.Tests.Operations
             sut.Start();
             var result = context.MockCurrentTask.LastResult as ChangesIntoOperationsOperationResult;
             Assert.AreEqual(1, result.Operations.Count);
-            Assert.IsTrue(result.Operations[0] is DownloadRemoteDocumentOperation);
+            Assert.IsTrue(result.Operations[0] is DeleteRemoteDocumentOperation);
         }
 
         [TestMethod]

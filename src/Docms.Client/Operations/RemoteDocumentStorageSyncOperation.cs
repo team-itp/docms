@@ -14,8 +14,7 @@ namespace Docms.Client.Operations
 
         protected override Task ExecuteAsync(CancellationToken token)
         {
-            var storage = context.RemoteStorage;
-            return storage.Sync();
+            return context.RemoteStorage.Sync();
         }
     }
 }

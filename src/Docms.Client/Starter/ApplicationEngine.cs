@@ -14,7 +14,7 @@ namespace Docms.Client.Starter
     public class ApplicationEngine
     {
         private IApplication app;
-        private ApplicationContext context;
+        private readonly ApplicationContext context;
 
         public ApplicationEngine(IApplication app, ApplicationContext context)
         {

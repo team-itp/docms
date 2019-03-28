@@ -76,8 +76,7 @@ namespace Docms.Client.Tests.Utils
         {
             await CreateDirectory(path.ParentPath);
             var parentDir = GetDirectoryInfo(path.ParentPath) as MockDirectoryInfo;
-            var dir = parentDir.Directories.FirstOrDefault(d => d.Path.Equals(path)) as MockDirectoryInfo;
-            if (dir != null)
+            if (parentDir.Directories.FirstOrDefault(d => d.Path.Equals(path)) is MockDirectoryInfo dir)
             {
                 if ((dir.Directories.Any() || dir.Directories.Any()))
                 {

@@ -97,7 +97,7 @@ namespace Docms.Client.Tests
             Assert.AreEqual(TaskStatus.RanToCompletion, operation.Task.Status);
             // DownloadRemoteDocumentOperation
             operation = context.MockApp.GetNextOperation();
-            Assert.IsTrue(operation is DeleteRemoteDocumentOperation);
+            Assert.IsTrue(operation is DownloadRemoteDocumentOperation);
             operation.Start();
             Assert.AreEqual(TaskStatus.RanToCompletion, operation.Task.Status);
 

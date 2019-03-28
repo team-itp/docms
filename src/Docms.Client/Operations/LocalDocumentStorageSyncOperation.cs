@@ -14,8 +14,7 @@ namespace Docms.Client.Operations
 
         protected override Task ExecuteAsync(CancellationToken token)
         {
-            var localStorage = context.LocalStorage;
-            return localStorage.Sync();
+            return context.LocalStorage.Sync();
         }
     }
 }

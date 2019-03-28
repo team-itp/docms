@@ -44,11 +44,11 @@ namespace Docms.Client.Operations
                         && h.FileSize == remote.FileSize
                         && h.Hash == remote.Hash))
                     {
-                        result.Add(new DeleteRemoteDocumentOperation(context, remote.Path, result.CancellationToken));
+                        result.Add(new DownloadRemoteDocumentOperation(context, remote.Path, result.CancellationToken));
                     }
                     else
                     {
-                        result.Add(new DownloadRemoteDocumentOperation(context, remote.Path, result.CancellationToken));
+                        result.Add(new DeleteRemoteDocumentOperation(context, remote.Path, result.CancellationToken));
                     }
                 }
                 else
