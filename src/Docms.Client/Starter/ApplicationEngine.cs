@@ -30,6 +30,7 @@ namespace Docms.Client.Starter
                     var initTask = new InsertAllTrackingFilesToSyncHistoryTask(context);
                     initializationCompleted = await ExecuteTaskSafely(initTask);
                 }
+                await Task.Delay(100);
                 logger.Trace("InsertAllTrackingFilesToSyncHistoryTask ended");
             }
 
@@ -39,7 +40,9 @@ namespace Docms.Client.Starter
                 logger.Trace("SyncTask started");
                 var initTask = new SyncTask(context);
                 await ExecuteTaskSafely(initTask);
+                await Task.Delay(100);
                 logger.Trace("SyncTask ended");
+                await Task.Delay(TimeSpan.FromSeconds(10));
             }
         }
 
