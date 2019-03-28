@@ -29,7 +29,6 @@ namespace Docms.Client.Tasks
         public async Task ExecuteAsync()
         {
             context.CurrentTask = this;
-            await ExecuteOperationAsync(new LocalDocumentStorageSyncOperation(context));
             await ExecuteOperationAsync(new RemoteDocumentStorageSyncOperation(context));
             await ExecuteOperationAsync(new InsertAllTrackingFilesToSyncHistoryOperation(context));
             IsCompleted = true;
