@@ -1,4 +1,5 @@
 ﻿using Docms.Client.Data;
+using Docms.Client.Operations;
 using Docms.Client.Tests.Utils;
 using Docms.Client.Types;
 using Microsoft.VisualStudio.TestTools.UnitTesting;

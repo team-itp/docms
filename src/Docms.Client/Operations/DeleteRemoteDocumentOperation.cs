@@ -6,18 +6,18 @@ using System.Threading.Tasks;
 
 namespace Docms.Client.Operations
 {
-    public class DeleteRemoteDocumentOperation : AsyncOperationBase
+    public class DeleteRemoteDocumentOperation : DocmsApiOperationBase
     {
         private readonly ApplicationContext context;
         private readonly PathString path;
 
-        public DeleteRemoteDocumentOperation(ApplicationContext context, PathString path, CancellationToken cancellationToken) : base(cancellationToken)
+        public DeleteRemoteDocumentOperation(ApplicationContext context, PathString path, CancellationToken cancellationToken) : base(context.Api, cancellationToken)
         {
             this.context = context;
             this.path = path;
         }
 
-        protected override async Task ExecuteAsync(CancellationToken token)
+        protected override async Task ExecuteApiOperationAsync(CancellationToken token)
         {
             var document = context.RemoteStorage.GetDocument(path);
             var fi = context.FileSystem.GetFileInfo(path);

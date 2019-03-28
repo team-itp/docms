@@ -3,7 +3,7 @@ using Docms.Client.Operations;
 using System.Collections.Generic;
 using System.Threading;
 
-namespace Docms.Client
+namespace Docms.Client.Operations
 {
     public class DetermineDiffOperationResult
     {

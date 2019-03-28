@@ -1,12 +1,10 @@
 ﻿using Docms.Client.Data;
-using Docms.Client.Documents;
-using Docms.Client.Operations;
 using Docms.Client.Types;
 using System;
 using System.Threading;
 using System.Threading.Tasks;
 
-namespace Docms.Client.Tasks
+namespace Docms.Client.Operations
 {
     internal class InsertAllTrackingFilesToSyncHistoryOperation : AsyncOperationBase
     {

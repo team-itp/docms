@@ -6,18 +6,18 @@ using System.Threading.Tasks;
 
 namespace Docms.Client.Operations
 {
-    public class UploadLocalDocumentOperation : AsyncOperationBase
+    public class UploadLocalDocumentOperation : DocmsApiOperationBase
     {
         private readonly ApplicationContext context;
         private readonly PathString path;
 
-        public UploadLocalDocumentOperation(ApplicationContext context, PathString path, CancellationToken cancellationToken) : base(cancellationToken)
+        public UploadLocalDocumentOperation(ApplicationContext context, PathString path, CancellationToken cancellationToken) : base(context.Api, cancellationToken)
         {
             this.context = context;
             this.path = path;
         }
 
-        protected override async Task ExecuteAsync(CancellationToken token)
+        protected override async Task ExecuteApiOperationAsync(CancellationToken token)
         {
             token.ThrowIfCancellationRequested();
             var document = context.LocalStorage.GetDocument(path);

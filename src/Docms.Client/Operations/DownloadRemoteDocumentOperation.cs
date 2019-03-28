@@ -6,18 +6,18 @@ using System.Threading.Tasks;
 
 namespace Docms.Client.Operations
 {
-    public class DownloadRemoteDocumentOperation : AsyncOperationBase
+    public class DownloadRemoteDocumentOperation : DocmsApiOperationBase
     {
         private readonly ApplicationContext context;
         private readonly PathString path;
 
-        public DownloadRemoteDocumentOperation(ApplicationContext context, PathString path, CancellationToken cancellationToken) : base(cancellationToken)
+        public DownloadRemoteDocumentOperation(ApplicationContext context, PathString path, CancellationToken cancellationToken) : base(context.Api, cancellationToken)
         {
             this.context = context;
             this.path = path;
         }
 
-        protected override async Task ExecuteAsync(CancellationToken token)
+        protected override async Task ExecuteApiOperationAsync(CancellationToken token)
         {
             token.ThrowIfCancellationRequested();
             var document = context.RemoteStorage.GetDocument(path);

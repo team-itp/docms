@@ -3,16 +3,16 @@ using System.Threading.Tasks;
 
 namespace Docms.Client.Operations
 {
-    public class RemoteDocumentStorageSyncOperation : AsyncOperationBase
+    public class RemoteDocumentStorageSyncOperation : DocmsApiOperationBase
     {
         private ApplicationContext context;
 
-        public RemoteDocumentStorageSyncOperation(ApplicationContext context)
+        public RemoteDocumentStorageSyncOperation(ApplicationContext context) : base(context.Api)
         {
             this.context = context;
         }
 
-        protected override Task ExecuteAsync(CancellationToken token)
+        protected override Task ExecuteApiOperationAsync(CancellationToken token)
         {
             return context.RemoteStorage.Sync();
         }
