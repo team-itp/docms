@@ -1,6 +1,5 @@
 ﻿using Docms.Client.Operations;
 using NLog;
-using System;
 using System.Collections.Concurrent;
 using System.Diagnostics;
 using System.Threading.Tasks;
@@ -10,11 +9,10 @@ namespace Docms.Client
     public class Application : IApplication
     {
         private static readonly Logger _logger = LogManager.GetCurrentClassLogger();
-        private bool _shutdownStarted;
         private ConcurrentQueue<IOperation> _operations;
         private IOperation _currentOperation;
 
-        public bool IsShutdownRequested => _shutdownStarted;
+        public bool IsShutdownRequested { get; private set; }
 
         public Application()
         {
@@ -24,7 +22,7 @@ namespace Docms.Client
         public void Run()
         {
             _logger.Debug("Application started.");
-            while (!_shutdownStarted)
+            while (!IsShutdownRequested)
             {
                 if (_operations.TryDequeue(out var operation))
                 {
@@ -64,7 +62,7 @@ namespace Docms.Client
             _logger.Debug("Application is shutting down.");
             lock (this)
             {
-                _shutdownStarted = true;
+                IsShutdownRequested = true;
                 if (_currentOperation != null)
                 {
                     _currentOperation.Abort();
