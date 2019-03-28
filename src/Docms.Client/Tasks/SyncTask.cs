@@ -1,4 +1,5 @@
 ﻿using Docms.Client.Operations;
+using System.Collections.Generic;
 using System.Threading.Tasks;
 
 namespace Docms.Client.Tasks
@@ -43,7 +44,20 @@ namespace Docms.Client.Tasks
                 IsCompleted = true;
                 return;
             }
+            var errorOperations = new List<IOperation>();
             foreach (var op in operationsResult.Operations)
+            {
+                try
+                {
+                    await ExecuteOperationAsync(op);
+                }
+                catch
+                {
+                    errorOperations.Add(op);
+                }
+            }
+            // エラーになった処理をもう一回回す
+            foreach (var op in errorOperations)
             {
                 await ExecuteOperationAsync(op);
             }

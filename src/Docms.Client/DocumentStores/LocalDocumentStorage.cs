@@ -76,9 +76,15 @@ namespace Docms.Client.DocumentStores
                     }
                     else
                     {
-                        var hash = CalculateHash(fi);
-                        fileNode = new DocumentNode(filepath.Name, fi.FileSize, hash, fi.Created, fi.LastModified);
-                        node.AddChild(fileNode);
+                        try
+                        {
+                            var hash = CalculateHash(fi);
+                            fileNode = new DocumentNode(filepath.Name, fi.FileSize, hash, fi.Created, fi.LastModified);
+                            node.AddChild(fileNode);
+                        }
+                        catch
+                        {
+                        }
                     }
                 }
                 else if (fileNode != null)

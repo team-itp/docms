@@ -53,7 +53,7 @@ namespace Docms.Client.Starter
                 await task.ExecuteAsync();
                 return true;
             }
-            catch (ServerException ex) when (ex.StatusCode == 502)
+            catch (ServerException ex) when (ex.StatusCode >= 500)
             {
                 if (!app.IsShutdownRequested)
                     await Task.Delay(TimeSpan.FromMinutes(1));
