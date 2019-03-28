@@ -110,8 +110,8 @@ namespace Docms.Client.DocumentStores
             }
             else
             {
-                doc = Persist(document);
-                localDb.RemoteDocuments.Update(doc);
+                localDb.Entry(doc).State = EntityState.Detached;
+                localDb.RemoteDocuments.Update(Persist(document));
             }
             await localDb.SaveChangesAsync();
         }

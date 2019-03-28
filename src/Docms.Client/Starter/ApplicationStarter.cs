@@ -83,9 +83,11 @@ namespace Docms.Client.Starter
                 configDirInfo.Attributes = FileAttributes.Hidden;
             }
 
-            return new LocalDbContext(new DbContextOptionsBuilder<LocalDbContext>()
+            var db = new LocalDbContext(new DbContextOptionsBuilder<LocalDbContext>()
                 .UseSqlite(string.Format("Data Source={0}", Path.Combine(configDir, "data.db")))
                 .Options);
+            db.Database.EnsureCreated();
+            return db;
         }
 
         private IFileSystem ResolveFileSystem(string watchPath)

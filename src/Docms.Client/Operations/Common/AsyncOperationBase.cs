@@ -61,10 +61,10 @@ namespace Docms.Client.Operations
 
             try
             {
-                var task = Task.Run(() => ExecuteAsync(cts.Token))
-                    .ContinueWith(t => tcs.SetResult(null), TaskContinuationOptions.OnlyOnRanToCompletion)
-                    .ContinueWith(t => tcs.SetCanceled(), TaskContinuationOptions.OnlyOnCanceled)
-                    .ContinueWith(t => tcs.SetException(t.Exception.InnerException), TaskContinuationOptions.OnlyOnFaulted);
+                var task = Task.Run(() => ExecuteAsync(cts.Token));
+                task.ContinueWith(t => tcs.SetResult(null), TaskContinuationOptions.OnlyOnRanToCompletion);
+                task.ContinueWith(t => tcs.SetException(t.Exception.InnerException), TaskContinuationOptions.OnlyOnFaulted);
+                task.ContinueWith(t => tcs.SetCanceled(), TaskContinuationOptions.OnlyOnCanceled);
                 tcs.Task.Wait();
             }
             catch

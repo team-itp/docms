@@ -7,7 +7,6 @@ using Microsoft.VisualStudio.TestTools.UnitTesting;
 using System;
 using System.IO;
 using System.Linq;
-using System.Text;
 using System.Threading.Tasks;
 
 namespace Docms.Client.Tests
@@ -176,6 +175,17 @@ namespace Docms.Client.Tests
             Assert.AreEqual("file2.txt", file2.Name);
             Assert.AreEqual(new PathString("dir1/file2.txt"), file2.Path);
             Assert.AreEqual("dir1/file2.txt updated".Length, file2.FileSize);
+        }
+
+        [TestMethod]
+        public async Task データベースとの更新を何度してもエラーにならないこと()
+        {
+            await FileSystemUtils.Create(localFileSystem, "file1.txt");
+            await FileSystemUtils.Create(localFileSystem, "dir1/file2.txt");
+            await FileSystemUtils.Update(localFileSystem, "file1.txt");
+            await FileSystemUtils.Update(localFileSystem, "dir1/file2.txt");
+            await sut.Sync();
+            await sut.Sync();
         }
     }
 }

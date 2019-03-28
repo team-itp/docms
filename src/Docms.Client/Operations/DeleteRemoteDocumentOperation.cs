@@ -34,6 +34,8 @@ namespace Docms.Client.Operations
                     Type = SyncHistoryType.Delete
                 });
                 await context.Db.SaveChangesAsync();
+                document.Updated();
+                await context.RemoteStorage.Save(document);
             }
         }
     }

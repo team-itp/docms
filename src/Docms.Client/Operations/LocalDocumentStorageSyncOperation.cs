@@ -1,8 +1,9 @@
 ﻿using System.Threading;
+using System.Threading.Tasks;
 
 namespace Docms.Client.Operations
 {
-    public class LocalDocumentStorageSyncOperation : SyncOperationBase
+    public class LocalDocumentStorageSyncOperation : AsyncOperationBase
     {
         private ApplicationContext context;
 
@@ -11,10 +12,10 @@ namespace Docms.Client.Operations
             this.context = context;
         }
 
-        protected override void Execute(CancellationToken token)
+        protected override Task ExecuteAsync(CancellationToken token)
         {
             var localStorage = context.LocalStorage;
-            localStorage.Sync();
+            return localStorage.Sync();
         }
     }
 }

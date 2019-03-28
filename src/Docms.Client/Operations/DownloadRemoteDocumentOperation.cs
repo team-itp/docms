@@ -60,7 +60,8 @@ namespace Docms.Client.Operations
                     Type = SyncHistoryType.Download
                 });
                 await context.Db.SaveChangesAsync();
-
+                remoteDocument.Updated();
+                await context.RemoteStorage.Save(remoteDocument);
             }
         }
     }

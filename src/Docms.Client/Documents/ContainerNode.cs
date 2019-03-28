@@ -31,7 +31,8 @@ namespace Docms.Client.Documents
         {
             if (children.ContainsKey(node.Name))
             {
-                throw new InvalidOperationException();
+                children.Remove(node.Name);
+                // throw new InvalidOperationException();
             }
             children[node.Name] = node;
             node.SetParent(this);

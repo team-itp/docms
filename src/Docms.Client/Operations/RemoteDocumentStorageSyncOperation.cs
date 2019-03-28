@@ -1,8 +1,9 @@
 ﻿using System.Threading;
+using System.Threading.Tasks;
 
 namespace Docms.Client.Operations
 {
-    public class RemoteDocumentStorageSyncOperation : SyncOperationBase
+    public class RemoteDocumentStorageSyncOperation : AsyncOperationBase
     {
         private ApplicationContext context;
 
@@ -11,10 +12,10 @@ namespace Docms.Client.Operations
             this.context = context;
         }
 
-        protected override void Execute(CancellationToken token)
+        protected override Task ExecuteAsync(CancellationToken token)
         {
             var storage = context.RemoteStorage;
-            storage.Sync();
+            return storage.Sync();
         }
     }
 }
