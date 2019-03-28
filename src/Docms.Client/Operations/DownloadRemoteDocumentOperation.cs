@@ -20,7 +20,43 @@ namespace Docms.Client.Operations
         protected override async Task ExecuteAsync(CancellationToken token)
         {
             token.ThrowIfCancellationRequested();
-            var remoteDocument = context.RemoteStorage.GetDocument(path);
+            var document = context.RemoteStorage.GetDocument(path);
+            if (!CanDownload(path))
+            {
+                return;
+            }
+            using (var stream = await context.Api.DownloadAsync(path.ToString()))
+            {
+                if (!CanDownload(path))
+                {
+                    return;
+                }
+                var file = context.FileSystem.GetFileInfo(path);
+                if (file != null)
+                {
+                    await context.FileSystem.UpdateFile(path, stream, document.Created, document.LastModified);
+                }
+                else
+                {
+                    await context.FileSystem.CreateFile(path, stream, document.Created, document.LastModified);
+                }
+                context.Db.SyncHistories.Add(new SyncHistory()
+                {
+                    Id = Guid.NewGuid(),
+                    Timestamp = DateTime.Now,
+                    Path = path.ToString(),
+                    FileSize = document.FileSize,
+                    Hash = document.Hash,
+                    Type = SyncHistoryType.Download
+                });
+                await context.Db.SaveChangesAsync();
+                document.Updated();
+                await context.RemoteStorage.Save(document);
+            }
+        }
+
+        private bool CanDownload(PathString path)
+        {
             var localDocument = context.LocalStorage.GetDocument(path);
             var file = context.FileSystem.GetFileInfo(path);
             if (file != null)
@@ -28,41 +64,17 @@ namespace Docms.Client.Operations
                 if (localDocument == null)
                 {
                     // 判断したときと状況が変わったためキャンセル
-                    return;
+                    return false;
                 }
                 if (localDocument.FileSize != file.FileSize
                     || localDocument.LastModified != file.LastModified)
                 {
                     // 判断したときと状況が変わったためキャンセル
-                    return;
+                    return false;
                 }
             }
-            using (var stream = await context.Api.DownloadAsync(path.ToString()))
-            {
-                var fi = context.FileSystem.GetFileInfo(path);
-                if (fi.FileSize != file.FileSize
-                    || fi.LastModified != file.LastModified)
-                {
-                    // ダウンロード中に変更されていないことをもう一度確認
-                    return;
-                }
-                using (var fs = fi.OpenWrite())
-                {
-                    await stream.CopyToAsync(fs);
-                }
-                context.Db.SyncHistories.Add(new SyncHistory()
-                {
-                    Id = Guid.NewGuid(),
-                    Timestamp = DateTime.Now,
-                    Path = path.ToString(),
-                    FileSize = remoteDocument.FileSize,
-                    Hash = remoteDocument.Hash,
-                    Type = SyncHistoryType.Download
-                });
-                await context.Db.SaveChangesAsync();
-                remoteDocument.Updated();
-                await context.RemoteStorage.Save(remoteDocument);
-            }
+            // ローカルにファイルが存在しない場合は躊躇不要
+            return true;
         }
     }
 }

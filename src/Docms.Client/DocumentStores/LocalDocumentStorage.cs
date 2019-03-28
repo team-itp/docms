@@ -1,7 +1,9 @@
 ﻿using Docms.Client.Data;
 using Docms.Client.Documents;
 using Docms.Client.FileSystem;
+using Docms.Client.Types;
 using Microsoft.EntityFrameworkCore;
+using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Threading.Tasks;
@@ -28,8 +30,12 @@ namespace Docms.Client.DocumentStores
         private void SyncInternal(ContainerNode node)
         {
             var nodePath = node.Path;
-            var files = fileSystem.GetFiles(node.Path).ToList();
-            var dirs = fileSystem.GetDirectories(node.Path).ToList();
+            var files = new List<PathString>();
+            files.AddRange(node.Children.OfType<DocumentNode>().Select(n => n.Path));
+            files.AddRange(fileSystem.GetFiles(node.Path));
+            var dirs = new List<PathString>();
+            dirs.AddRange(node.Children.OfType<ContainerNode>().Select(n => n.Path));
+            dirs.AddRange(fileSystem.GetDirectories(node.Path));
 
             foreach (var dirpath in dirs)
             {

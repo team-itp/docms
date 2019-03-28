@@ -21,7 +21,8 @@ namespace Docms.Client.Tests.Utils
         {
             var path = new PathString(filepath);
             var fi = fileSystem.GetFileInfo(path);
-            var lastWriteTime = fi.LastModified;
+            var created = fi.Created;
+            var lastModified = fi.LastModified;
             var ms = new MemoryStream();
             using (var fs = fi.OpenRead())
             {
@@ -29,11 +30,7 @@ namespace Docms.Client.Tests.Utils
             }
             var str = Encoding.UTF8.GetString(ms.ToArray()) + " updated";
             ms = new MemoryStream(Encoding.UTF8.GetBytes(str));
-            using (var fs = fi.OpenWrite())
-            {
-                await ms.CopyToAsync(fs);
-            }
-            fi.SetLastModified(lastWriteTime.AddHours(1));
+            await fileSystem.UpdateFile(path, ms, created, lastModified);
         }
 
         public static Task Move(IFileSystem fileSystem, string fromPath, string toPath)
@@ -50,6 +47,23 @@ namespace Docms.Client.Tests.Utils
         public static bool DirectoryExists(IFileSystem fileSystem, string path)
         {
             return fileSystem.GetDirectoryInfo(new PathString(path)) != null;
+        }
+
+        public static async Task Delete(IFileSystem fileSystem, string path)
+        {
+            var p = new PathString(path);
+            if (DirectoryExists(fileSystem, path))
+            {
+                foreach (var dp in fileSystem.GetDirectories(p))
+                {
+                    await Delete(fileSystem, dp.ToString());
+                }
+                foreach (var fp in fileSystem.GetFiles(p))
+                {
+                    await fileSystem.Delete(fp);
+                }
+            }
+            await fileSystem.Delete(p);
         }
     }
 }

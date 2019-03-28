@@ -14,6 +14,7 @@ namespace Docms.Client.FileSystem
         IDirectoryInfo GetDirectoryInfo(PathString dirpath);
         Task CreateDirectory(PathString path);
         Task CreateFile(PathString path, Stream stream, DateTime created, DateTime lastModified);
+        Task UpdateFile(PathString path, Stream stream, DateTime created, DateTime lastModified);
         Task Move(PathString fromPath, PathString toPath);
         Task Delete(PathString path);
     }

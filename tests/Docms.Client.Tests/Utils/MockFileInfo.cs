@@ -6,28 +6,14 @@ using System.IO;
 
 namespace Docms.Client.Tests.Utils
 {
-    class MockStream : MemoryStream
-    {
-        private MockFileInfo fileInfo;
-        public MockStream(MockFileInfo fileInfo)
-        {
-            this.fileInfo = fileInfo;
-            Write(fileInfo.Data);
-            Seek(0, SeekOrigin.Begin);
-        }
-
-        protected override void Dispose(bool disposing)
-        {
-            fileInfo.Data = ToArray();
-            base.Dispose(disposing);
-        }
-    }
-
     class MockFileInfo : IFileInfo
     {
         public MockFileInfo(PathString path, byte[] data, DateTime created, DateTime lastModified)
         {
             Path = path;
+            Data = data;
+            Created = created;
+            LastModified = lastModified;
         }
 
         public PathString Path { get; set; }
@@ -38,12 +24,15 @@ namespace Docms.Client.Tests.Utils
 
         public Stream OpenRead()
         {
-            return new MockStream(this);
+            return new MemoryStream(Data);
         }
 
-        public Stream OpenWrite()
+        public string CalculateHash()
         {
-            return new MockStream(this);
+            using (var fs = OpenRead())
+            {
+                return Hash.CalculateHash(fs);
+            }
         }
 
         public void SetCreated(DateTime created)
@@ -56,12 +45,9 @@ namespace Docms.Client.Tests.Utils
             LastModified = lastModified;
         }
 
-        public string CalculateHash()
+        public void SetData(byte[] data)
         {
-            using (var fs = OpenRead())
-            {
-                return Hash.CalculateHash(fs);
-            }
+            Data = data;
         }
     }
 }

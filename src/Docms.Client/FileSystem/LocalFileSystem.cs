@@ -23,6 +23,10 @@ namespace Docms.Client.FileSystem
 
         public IEnumerable<PathString> GetDirectories(PathString path)
         {
+            if (IgnoreFilePatterns.Default.IsMatch(path))
+            {
+                yield break;
+            }
             var fullpath = GetFullPath(path);
             if (!Directory.Exists(fullpath))
             {
@@ -30,15 +34,22 @@ namespace Docms.Client.FileSystem
             }
             var dirs = Directory.GetDirectories(fullpath);
             var startIndex = fullpath.Length;
-            foreach (var dirpath in dirs)
+            foreach (var dirfullpath in dirs)
             {
-                yield return path.Combine(dirpath.Substring(startIndex + 1));
+                var dirpath = path.Combine(dirfullpath.Substring(startIndex + 1));
+                if (!IgnoreFilePatterns.Default.IsMatch(dirpath))
+                {
+                    yield return dirpath;
+                }
             }
         }
 
         public IEnumerable<PathString> GetFiles(PathString path)
         {
-
+            if (IgnoreFilePatterns.Default.IsMatch(path))
+            {
+                yield break;
+            }
             var fullpath = GetFullPath(path);
             if (!Directory.Exists(fullpath))
             {
@@ -54,6 +65,10 @@ namespace Docms.Client.FileSystem
 
         public IFileInfo GetFileInfo(PathString path)
         {
+            if (IgnoreFilePatterns.Default.IsMatch(path))
+            {
+                return null;
+            }
             var fullpath = GetFullPath(path);
             if (File.Exists(fullpath))
             {
@@ -64,6 +79,10 @@ namespace Docms.Client.FileSystem
 
         public IDirectoryInfo GetDirectoryInfo(PathString path)
         {
+            if (IgnoreFilePatterns.Default.IsMatch(path))
+            {
+                return null;
+            }
             var fullpath = GetFullPath(path);
             if (Directory.Exists(fullpath))
             {
@@ -94,6 +113,18 @@ namespace Docms.Client.FileSystem
             }
             using (var fs = new FileStream(fullpath, FileMode.Create, FileAccess.Write, FileShare.None))
             {
+                await stream.CopyToAsync(fs);
+            }
+            File.SetCreationTimeUtc(fullpath, created);
+            File.SetLastWriteTimeUtc(fullpath, lastModified);
+        }
+
+        public async Task UpdateFile(PathString path, Stream stream, DateTime created, DateTime lastModified)
+        {
+            var fullpath = GetFullPath(path);
+            using (var fs = new FileStream(fullpath, FileMode.Open, FileAccess.Write, FileShare.None))
+            {
+                fs.SetLength(0);
                 await stream.CopyToAsync(fs);
             }
             File.SetCreationTimeUtc(fullpath, created);

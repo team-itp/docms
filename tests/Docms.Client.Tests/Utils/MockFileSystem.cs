@@ -90,6 +90,16 @@ namespace Docms.Client.Tests.Utils
             parentDir.Files.Add(new MockFileInfo(path, ms.ToArray(), created, lastModified));
         }
 
+        public async Task UpdateFile(PathString path, Stream stream, DateTime created, DateTime lastModified)
+        {
+            var fileInfo = GetFileInfo(path) as MockFileInfo;
+            var ms = new MemoryStream();
+            await stream.CopyToAsync(ms);
+            fileInfo.SetData(ms.ToArray());
+            fileInfo.SetCreated(created);
+            fileInfo.SetLastModified(lastModified);
+        }
+
         public async Task Move(PathString fromPath, PathString toPath)
         {
             var fileInfo = GetFileInfo(fromPath);

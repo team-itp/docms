@@ -9,11 +9,8 @@ namespace Docms.Client.FileSystem
         PathString Path { get; }
         long FileSize { get; }
         DateTime Created { get; }
-        void SetCreated(DateTime created);
         DateTime LastModified { get; }
-        void SetLastModified(DateTime lastModified);
         Stream OpenRead();
-        Stream OpenWrite();
         string CalculateHash();
     }
 }
