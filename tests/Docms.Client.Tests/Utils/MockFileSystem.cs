@@ -46,7 +46,7 @@ namespace Docms.Client.Tests.Utils
         public IFileInfo GetFileInfo(PathString path)
         {
             var dir = GetDirectoryInfo(path.ParentPath) as MockDirectoryInfo;
-            return dir.Files.FirstOrDefault(f => f.Path.Equals(path));
+            return dir?.Files.FirstOrDefault(f => f.Path.Equals(path));
         }
 
         public async Task CreateDirectory(PathString path)

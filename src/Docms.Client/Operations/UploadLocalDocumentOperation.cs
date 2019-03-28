@@ -1,8 +1,6 @@
 ﻿using Docms.Client.Data;
-using Docms.Client.DocumentStores;
 using Docms.Client.Types;
 using System;
-using System.Diagnostics;
 using System.IO;
 using System.Threading;
 using System.Threading.Tasks;
@@ -46,15 +44,12 @@ namespace Docms.Client.Operations
                     Hash = document.Hash,
                     Type = SyncHistoryType.Upload
                 });
+                document.Updated();
+                await context.LocalStorage.Save(document);
                 await context.Db.SaveChangesAsync();
             }
             catch (FileNotFoundException)
             {
-                return;
-            }
-            catch (LocalDocumentChangedException e)
-            {
-                Trace.Write(e);
                 return;
             }
         }

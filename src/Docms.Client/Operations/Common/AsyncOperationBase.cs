@@ -64,8 +64,8 @@ namespace Docms.Client.Operations
                 var task = Task.Run(() => ExecuteAsync(cts.Token))
                     .ContinueWith(t => tcs.SetResult(null), TaskContinuationOptions.OnlyOnRanToCompletion)
                     .ContinueWith(t => tcs.SetCanceled(), TaskContinuationOptions.OnlyOnCanceled)
-                    .ContinueWith(t => tcs.SetException(t.Exception.InnerException));
-                task.Wait();
+                    .ContinueWith(t => tcs.SetException(t.Exception.InnerException), TaskContinuationOptions.OnlyOnFaulted);
+                tcs.Task.Wait();
             }
             catch
             {

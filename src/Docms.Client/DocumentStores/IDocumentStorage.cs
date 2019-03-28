@@ -13,6 +13,7 @@ namespace Docms.Client.DocumentStores
         Node GetNode(PathString path);
         Task Initialize();
         Task Save();
+        Task Save(DocumentNode documnet);
         Task Sync();
     }
 }

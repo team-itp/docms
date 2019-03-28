@@ -1,6 +1,7 @@
 ﻿using Docms.Client.Data;
 using Docms.Client.Documents;
 using Docms.Client.FileSystem;
+using Microsoft.EntityFrameworkCore;
 using System.IO;
 using System.Linq;
 using System.Threading.Tasks;
@@ -109,8 +110,23 @@ namespace Docms.Client.DocumentStores
         {
             localDb.LocalDocuments.RemoveRange(localDb.LocalDocuments);
             localDb.LocalDocuments.AddRange(Persist());
-            localDb.SaveChangesAsync();
-            return Task.CompletedTask;
+            return localDb.SaveChangesAsync();
+        }
+
+        public override async Task Save(DocumentNode document)
+        {
+            var doc = await localDb.LocalDocuments.FindAsync(document.Path.ToString()).ConfigureAwait(false);
+            if (doc == null)
+            {
+                doc = Persist(document);
+                await localDb.LocalDocuments.AddAsync(doc);
+            }
+            else
+            {
+                localDb.Entry(doc).State = EntityState.Detached;
+                localDb.LocalDocuments.Update(Persist(document));
+            }
+            await localDb.SaveChangesAsync();
         }
     }
 }

@@ -105,19 +105,25 @@ namespace Docms.Client.DocumentStores
         public IEnumerable<Document> Persist()
         {
             return Root.ListAllDocuments()
-                .Select(d => new Document()
-                {
-                    Path = d.Path.ToString(),
-                    FileSize = d.FileSize,
-                    Hash = d.Hash,
-                    Created = d.Created,
-                    LastModified = d.LastModified,
-                    SyncStatus = d.SyncStatus
-                });
+                .Select(Persist);
+        }
+
+        public Document Persist(DocumentNode document)
+        {
+            return new Document()
+            {
+                Path = document.Path.ToString(),
+                FileSize = document.FileSize,
+                Hash = document.Hash,
+                Created = document.Created,
+                LastModified = document.LastModified,
+                SyncStatus = document.SyncStatus
+            };
         }
 
         public abstract Task Initialize();
         public abstract Task Sync();
         public abstract Task Save();
+        public abstract Task Save(DocumentNode documnet);
     }
 }

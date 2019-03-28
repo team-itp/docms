@@ -1,4 +1,5 @@
-﻿using Docms.Client.Types;
+﻿using Docms.Client.Data;
+using Docms.Client.Types;
 using System;
 using System.Threading;
 using System.Threading.Tasks;
@@ -16,9 +17,24 @@ namespace Docms.Client.Operations
             this.path = path;
         }
 
-        protected override Task ExecuteAsync(CancellationToken token)
+        protected override async Task ExecuteAsync(CancellationToken token)
         {
-            throw new NotImplementedException();
+            var document = context.RemoteStorage.GetDocument(path);
+            var fi = context.FileSystem.GetFileInfo(path);
+            if (fi == null)
+            {
+                await context.Api.DeleteDocumentAsync(path.ToString());
+                context.Db.SyncHistories.Add(new SyncHistory()
+                {
+                    Id = Guid.NewGuid(),
+                    Timestamp = DateTime.Now,
+                    Path = path.ToString(),
+                    FileSize = document.FileSize,
+                    Hash = document.Hash,
+                    Type = SyncHistoryType.Delete
+                });
+                await context.Db.SaveChangesAsync();
+            }
         }
     }
 }

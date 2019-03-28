@@ -1,5 +1,4 @@
-﻿using Docms.Client.Data;
-using Docms.Client.Operations;
+﻿using Docms.Client.Operations;
 using Docms.Client.Tasks;
 using Docms.Client.Tests.Utils;
 using Docms.Client.Types;
@@ -57,6 +56,12 @@ namespace Docms.Client.Tests
             await DocmsApiUtils.Create(context.Api, "test3.txt");
             await context.LocalStorage.Sync();
             await context.RemoteStorage.Sync();
+            var document1 = context.LocalStorage.GetDocument(new PathString("test1.txt"));
+            document1.Updated();
+            await context.LocalStorage.Save(document1);
+            var document2 = context.LocalStorage.GetDocument(new PathString("test2.txt"));
+            document2.Updated();
+            await context.LocalStorage.Save(document2);
 
             var operation = default(IOperation);
             var task = Task.Run(() => sut.ExecuteAsync());

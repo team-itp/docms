@@ -33,5 +33,10 @@ namespace Docms.Client.Documents
             LastModified = lastModified;
             SyncStatus = SyncStatus.NeedsUpToDate;
         }
+
+        public void Updated()
+        {
+            SyncStatus = SyncStatus.UpToDate;
+        }
     }
 }
