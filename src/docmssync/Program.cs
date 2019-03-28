@@ -15,11 +15,11 @@ namespace docmssync
         /// </summary>
         static void Main()
         {
-            _logger.Debug("Program started.");
+            _logger.Info("Program started.");
             var app = new Application();
             Console.CancelKeyPress += (s, e) =>
             {
-                _logger.Debug("Program canceled.");
+                _logger.Info("Program canceled.");
                 app.Shutdown();
                 Environment.Exit(0);
             };

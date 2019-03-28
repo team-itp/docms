@@ -21,7 +21,7 @@ namespace Docms.Client
 
         public void Run()
         {
-            _logger.Debug("Application started.");
+            _logger.Info("Application started.");
             while (!IsShutdownRequested)
             {
                 if (_operations.TryDequeue(out var operation))
@@ -33,11 +33,13 @@ namespace Docms.Client
                     if (!operation.IsAborted)
                     {
                         var stopwatch = new Stopwatch();
-                        _logger.Trace(ReadableOperationLog("operation started", _currentOperation));
+                        _logger.Info("Executing " + operation.GetType().Name);
+                        _logger.Trace(operation.GetType() + " started");
                         stopwatch.Start();
                         operation.Start();
                         stopwatch.Stop();
-                        _logger.Trace(ReadableOperationLog("operation ended in " + stopwatch.Elapsed, _currentOperation));
+                        _logger.Debug(ReadableOperationLog("operation ended in " + stopwatch.Elapsed, _currentOperation));
+                        _logger.Trace(operation.GetType() + " ended");
                     }
                     else
                     {
@@ -45,7 +47,7 @@ namespace Docms.Client
                     }
                 }
             }
-            _logger.Debug("Application shutdown.");
+            _logger.Info("Application shutdown.");
         }
 
         public Task Invoke(IOperation operation)
@@ -59,7 +61,7 @@ namespace Docms.Client
 
         public void Shutdown()
         {
-            _logger.Debug("Application is shutting down.");
+            _logger.Info("Application is shutting down.");
             lock (this)
             {
                 IsShutdownRequested = true;

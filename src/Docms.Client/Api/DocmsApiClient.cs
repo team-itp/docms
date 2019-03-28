@@ -161,7 +161,7 @@ namespace Docms.Client.Api
 
         public async Task<IEnumerable<Entry>> GetEntriesAsync(string path)
         {
-            _logger.Info("requesting get entries for path: " + path);
+            _logger.Debug("requesting get entries for path: " + path);
             var request = new RestRequest(_defaultPath + "files", Method.GET);
             if (!string.IsNullOrEmpty(path))
             {
@@ -178,7 +178,7 @@ namespace Docms.Client.Api
 
         public async Task<Document> GetDocumentAsync(string path)
         {
-            _logger.Info("requesting get document for path: " + path);
+            _logger.Debug("Requesting get document for path: " + path);
             var request = new RestRequest(_defaultPath + "files", Method.GET);
             request.AddQueryParameter("path", path ?? throw new ArgumentNullException(nameof(path)));
             var result = await ExecuteAsync(request).ConfigureAwait(false);
@@ -196,7 +196,7 @@ namespace Docms.Client.Api
 
         public async Task<Stream> DownloadAsync(string path)
         {
-            _logger.Info("requesting downloading for path: " + path);
+            _logger.Debug("requesting downloading for path: " + path);
             var request = new RestRequest(_defaultPath + "files", Method.GET);
             if (!string.IsNullOrEmpty(path))
             {
@@ -245,7 +245,7 @@ namespace Docms.Client.Api
 
         public async Task CreateOrUpdateDocumentAsync(string path, Stream stream, long contentLength, DateTime? created = null, DateTime? lastModified = null)
         {
-            _logger.Info("requesting uploading for path: " + path);
+            _logger.Debug("requesting uploading for path: " + path);
             var request = new RestRequest(_defaultPath + "files", Method.POST);
             request.AddParameter("path", path ?? throw new ArgumentNullException(nameof(path)));
             request.AddFile("file", sr => stream.CopyTo(sr), path.Substring(path.LastIndexOf('/') > -1 ? path.LastIndexOf('/') : 0), contentLength);
@@ -263,7 +263,7 @@ namespace Docms.Client.Api
 
         public async Task MoveDocumentAsync(string originalPath, string destinationPath)
         {
-            _logger.Info("requesting move for original path: " + originalPath + " to destination path: " + destinationPath);
+            _logger.Debug("requesting move for original path: " + originalPath + " to destination path: " + destinationPath);
             var request = new RestRequest(_defaultPath + "files/move", Method.POST);
             request.AddParameter("destinationPath", destinationPath);
             request.AddParameter("originalPath", originalPath);
@@ -273,7 +273,7 @@ namespace Docms.Client.Api
 
         public async Task DeleteDocumentAsync(string path)
         {
-            _logger.Info("requesting deletion for path: " + path);
+            _logger.Debug("requesting deletion for path: " + path);
             try
             {
                 var request = new RestRequest(_defaultPath + "files", Method.DELETE);
@@ -293,7 +293,7 @@ namespace Docms.Client.Api
 
         public async Task<IEnumerable<History>> GetHistoriesAsync(string path, Guid? lastHistoryId = null)
         {
-            _logger.Info("requesting histories for path: " + path + " lastHistoryId: " + lastHistoryId?.ToString() ?? "");
+            _logger.Debug("requesting histories for path: " + path + " lastHistoryId: " + lastHistoryId?.ToString() ?? "");
             var request = new RestRequest(_defaultPath + "histories", Method.GET);
             if (!string.IsNullOrEmpty(path))
             {
