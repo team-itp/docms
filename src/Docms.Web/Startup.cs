@@ -49,6 +49,7 @@ namespace Docms.Web
                 {
                     options.SerializerSettings.TypeNameHandling = TypeNameHandling.Objects;
                     options.SerializerSettings.SerializationBinder = new DocmsJsonTypeBinder();
+                    options.SerializerSettings.Converters.Add(new DocumentHistoryConverter());
                     options.SerializerSettings.NullValueHandling = NullValueHandling.Ignore;
                     options.SerializerSettings.DateTimeZoneHandling = DateTimeZoneHandling.Utc;
                 });

@@ -47,65 +47,53 @@ namespace Docms.Infrastructure.Tests
         private void Created(DocmsContext ctx, string path, int contentId)
         {
             var now = DateTime.UtcNow;
-            ctx.DocumentCreated.Add(new DocumentCreated()
-            {
-                Id = Guid.NewGuid(),
-                Timestamp = DateTime.UtcNow,
-                Path = path,
-                ContentType = "text/plain",
-                FileSize = 5 + contentId.ToString().Length,
-                Hash = Hash.CalculateHash(Encoding.UTF8.GetBytes("Hello" + contentId)),
-                Created = now,
-                LastModified = now
-            });
+            ctx.DocumentHistories.Add(DocumentHistory.DocumentCreated(
+                DateTime.UtcNow,
+                path,
+                "stragekey",
+                "text/plain",
+                5 + contentId.ToString().Length,
+                Hash.CalculateHash(Encoding.UTF8.GetBytes("Hello" + contentId)),
+                now,
+                now));
         }
 
         private void Moved(DocmsContext ctx, string from, string to, int contentId)
         {
             var now = DateTime.UtcNow;
-            ctx.DocumentCreated.Add(new DocumentCreated()
-            {
-                Id = Guid.NewGuid(),
-                Timestamp = DateTime.UtcNow,
-                Path = to,
-                ContentType = "text/plain",
-                FileSize = 5 + contentId.ToString().Length,
-                Hash = Hash.CalculateHash(Encoding.UTF8.GetBytes("Hello" + contentId)),
-                Created = now,
-                LastModified = now
-            });
-            ctx.DocumentDeleted.Add(new DocumentDeleted()
-            {
-                Id = Guid.NewGuid(),
-                Timestamp = DateTime.UtcNow,
-                Path = from
-            });
+            ctx.DocumentHistories.Add(DocumentHistory.DocumentUpdated(
+                DateTime.UtcNow,
+                to,
+                "stragekey",
+                "text/plain",
+                5 + contentId.ToString().Length,
+                Hash.CalculateHash(Encoding.UTF8.GetBytes("Hello" + contentId)),
+                now,
+                now));
+            ctx.DocumentHistories.Add(DocumentHistory.DocumentDeleted(
+                DateTime.UtcNow,
+                from));
         }
 
         private void Updated(DocmsContext ctx, string path, int contentId)
         {
             var now = DateTime.UtcNow;
-            ctx.DocumentUpdated.Add(new DocumentUpdated()
-            {
-                Id = Guid.NewGuid(),
-                Timestamp = DateTime.UtcNow,
-                Path = path,
-                ContentType = "text/plain",
-                FileSize = 5 + contentId.ToString().Length,
-                Hash = Hash.CalculateHash(Encoding.UTF8.GetBytes("Hello" + contentId)),
-                Created = now,
-                LastModified = now
-            });
+            ctx.DocumentHistories.Add(DocumentHistory.DocumentUpdated(
+                DateTime.UtcNow,
+                path,
+                "stragekey",
+                "text/plain",
+                5 + contentId.ToString().Length,
+                Hash.CalculateHash(Encoding.UTF8.GetBytes("Hello" + contentId)),
+                now,
+                now));
         }
 
         private void Deleted(DocmsContext ctx, string path)
         {
-            ctx.DocumentDeleted.Add(new DocumentDeleted()
-            {
-                Id = Guid.NewGuid(),
-                Timestamp = DateTime.UtcNow,
-                Path = path
-            });
+            ctx.DocumentHistories.Add(DocumentHistory.DocumentDeleted(
+                DateTime.UtcNow,
+                path));
         }
 
         [TestMethod]

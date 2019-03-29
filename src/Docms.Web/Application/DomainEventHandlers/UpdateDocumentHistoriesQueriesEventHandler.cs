@@ -25,73 +25,59 @@ namespace Docms.Web.Application.DomainEventHandlers
         public async Task Handle(DomainEventNotification<DocumentCreatedEvent> notification, CancellationToken cancellationToken = default(CancellationToken))
         {
             var ev = notification.Event;
-            _db.DocumentCreated.Add(new DocumentCreated()
-            {
-                Id = ev.Id,
-                Timestamp = ev.Timestamp,
-                Path = ev.Path.ToString(),
-                StorageKey = ev.StorageKey,
-                ContentType = ev.ContentType,
-                FileSize = ev.Data.Length,
-                Hash = ev.Data.Hash,
-                Created = ev.Created,
-                LastModified = ev.LastModified,
-            });
+            _db.DocumentHistories
+                .Add(DocumentHistory.DocumentCreated(
+                    ev.Timestamp,
+                    ev.Path.ToString(),
+                    ev.StorageKey,
+                    ev.ContentType,
+                    ev.Data.Length,
+                    ev.Data.Hash,
+                    ev.Created,
+                    ev.LastModified));
             await _db.SaveChangesAsync();
         }
 
         public async Task Handle(DomainEventNotification<DocumentUpdatedEvent> notification, CancellationToken cancellationToken = default(CancellationToken))
         {
             var ev = notification.Event;
-            _db.DocumentUpdated.Add(new DocumentUpdated()
-            {
-                Id = ev.Id,
-                Timestamp = ev.Timestamp,
-                Path = ev.Path.ToString(),
-                StorageKey = ev.StorageKey,
-                ContentType = ev.ContentType,
-                FileSize = ev.Data.Length,
-                Hash = ev.Data.Hash,
-                Created = ev.Created,
-                LastModified = ev.LastModified,
-            });
+            _db.DocumentHistories
+                .Add(DocumentHistory.DocumentUpdated(
+                    ev.Timestamp,
+                    ev.Path.ToString(),
+                    ev.StorageKey,
+                    ev.ContentType,
+                    ev.Data.Length,
+                    ev.Data.Hash,
+                    ev.Created,
+                    ev.LastModified));
             await _db.SaveChangesAsync();
         }
 
         public async Task Handle(DomainEventNotification<DocumentMovedEvent> notification, CancellationToken cancellationToken = default(CancellationToken))
         {
             var ev = notification.Event;
-            _db.DocumentCreated.Add(new DocumentCreated()
-            {
-                Id = ev.Id,
-                Timestamp = ev.Timestamp,
-                Path = ev.NewPath.ToString(),
-                StorageKey = ev.Entity.StorageKey,
-                ContentType = ev.Entity.ContentType,
-                FileSize = ev.Entity.FileSize,
-                Hash = ev.Entity.Hash,
-                Created = ev.Entity.Created,
-                LastModified = ev.Entity.LastModified,
-            });
+            _db.DocumentHistories
+                .Add(DocumentHistory.DocumentCreated(
+                    ev.Timestamp, 
+                    ev.NewPath.ToString(),
+                    ev.Entity.StorageKey,
+                    ev.Entity.ContentType,
+                    ev.Entity.FileSize,
+                    ev.Entity.Hash,
+                    ev.Entity.Created,
+                    ev.Entity.LastModified));
 
-            _db.DocumentDeleted.Add(new DocumentDeleted()
-            {
-                Id = Guid.NewGuid(),
-                Timestamp = ev.Timestamp,
-                Path = ev.NewPath.ToString()
-            });
+            _db.DocumentHistories
+                .Add(DocumentHistory.DocumentDeleted(ev.Timestamp, ev.Path.ToString()));
             await _db.SaveChangesAsync();
         }
 
         public async Task Handle(DomainEventNotification<DocumentDeletedEvent> notification, CancellationToken cancellationToken = default(CancellationToken))
         {
             var ev = notification.Event;
-            _db.DocumentDeleted.Add(new DocumentDeleted()
-            {
-                Id = ev.Id,
-                Timestamp = ev.Timestamp,
-                Path = ev.Path.ToString(),
-            });
+            _db.DocumentHistories
+                .Add(DocumentHistory.DocumentDeleted(ev.Timestamp, ev.Path.ToString()));
             await _db.SaveChangesAsync();
         }
     }

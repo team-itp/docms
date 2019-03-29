@@ -45,7 +45,7 @@ namespace Docms.Web.Tests
             var document = DocumentUtils.Create("path1/content1.txt", "testdata");
             var ev = document.DomainEvents.First();
             await sut.Handle(new DomainEventNotification<DocumentCreatedEvent>(ev as DocumentCreatedEvent));
-            Assert.AreEqual(1, await ctx.DocumentHistories.Where(f => f.Path == "path1/content1.txt" && f is DocumentCreated).CountAsync());
+            Assert.AreEqual(1, await ctx.DocumentHistories.Where(f => f.Path == "path1/content1.txt" && f.Discriminator == DocumentHistoryDiscriminator.DocumentCreated).CountAsync());
         }
 
         [TestMethod]
@@ -58,8 +58,8 @@ namespace Docms.Web.Tests
             document1.Delete();
             var ev2 = document1.DomainEvents.First();
             await sut.Handle(new DomainEventNotification<DocumentDeletedEvent>(ev2 as DocumentDeletedEvent));
-            Assert.AreEqual(1, await ctx.DocumentHistories.Where(f => f.Path == "path1/subpath1/document1.txt" && f is DocumentCreated).CountAsync());
-            Assert.AreEqual(1, await ctx.DocumentHistories.Where(f => f.Path == "path1/subpath1/document1.txt" && f is DocumentDeleted).CountAsync());
+            Assert.AreEqual(1, await ctx.DocumentHistories.Where(f => f.Path == "path1/subpath1/document1.txt" && f.Discriminator == DocumentHistoryDiscriminator.DocumentCreated).CountAsync());
+            Assert.AreEqual(1, await ctx.DocumentHistories.Where(f => f.Path == "path1/subpath1/document1.txt" && f.Discriminator == DocumentHistoryDiscriminator.DocumentDeleted).CountAsync());
         }
 
         [TestMethod]
@@ -74,9 +74,9 @@ namespace Docms.Web.Tests
             var ev2 = document1.DomainEvents.First();
 
             await sut.Handle(new DomainEventNotification<DocumentMovedEvent>(ev2 as DocumentMovedEvent));
-            Assert.AreEqual(1, await ctx.DocumentHistories.Where(f => f.Path == "path1/subpath1/content1.txt" && f is DocumentCreated).CountAsync());
-            Assert.AreEqual(1, await ctx.DocumentHistories.Where(f => f.Path == "path1/subpath1/content1.txt" && f is DocumentCreated).CountAsync());
-            Assert.AreEqual(1, await ctx.DocumentHistories.Where(f => f.Path == "path2/subpath1/document1.txt" && f is DocumentDeleted).CountAsync());
+            Assert.AreEqual(1, await ctx.DocumentHistories.Where(f => f.Path == "path1/subpath1/content1.txt" && f.Discriminator == DocumentHistoryDiscriminator.DocumentCreated).CountAsync());
+            Assert.AreEqual(1, await ctx.DocumentHistories.Where(f => f.Path == "path1/subpath1/content1.txt" && f.Discriminator == DocumentHistoryDiscriminator.DocumentDeleted).CountAsync());
+            Assert.AreEqual(1, await ctx.DocumentHistories.Where(f => f.Path == "path2/subpath1/document1.txt" && f.Discriminator == DocumentHistoryDiscriminator.DocumentCreated).CountAsync());
         }
 
         [TestMethod]
@@ -90,8 +90,8 @@ namespace Docms.Web.Tests
             document1.Update("storagekey2", "application/json", InMemoryData.Create(Encoding.UTF8.GetBytes("Hello, New World")));
             var ev2 = document1.DomainEvents.First();
             await sut.Handle(new DomainEventNotification<DocumentUpdatedEvent>(ev2 as DocumentUpdatedEvent));
-            Assert.AreEqual(1, await ctx.DocumentHistories.Where(f => f.Path == "path1/subpath1/content1.txt" && f is DocumentCreated).CountAsync());
-            Assert.AreEqual(1, await ctx.DocumentHistories.Where(f => f.Path == "path1/subpath1/content1.txt" && f is DocumentUpdated).CountAsync());
+            Assert.AreEqual(1, await ctx.DocumentHistories.Where(f => f.Path == "path1/subpath1/content1.txt" && f.Discriminator == DocumentHistoryDiscriminator.DocumentCreated).CountAsync());
+            Assert.AreEqual(1, await ctx.DocumentHistories.Where(f => f.Path == "path1/subpath1/content1.txt" && f.Discriminator == DocumentHistoryDiscriminator.DocumentUpdated).CountAsync());
         }
     }
 }

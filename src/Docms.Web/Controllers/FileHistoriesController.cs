@@ -24,7 +24,8 @@ namespace Docms.Web.Controllers
             [FromQuery] int? per_page = null)
         {
             var histories = _queries.GetHistories(path ?? "", since)
-                .Where(h => h is DocumentCreated || h is DocumentDeleted)
+                .Where(h => h.Discriminator == DocumentHistoryDiscriminator.DocumentCreated
+                    || h.Discriminator == DocumentHistoryDiscriminator.DocumentDeleted)
                 .OrderByDescending(h => h.Timestamp);
             var cnt = await histories.CountAsync();
             int p = page ?? 1;

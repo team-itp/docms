@@ -36,9 +36,6 @@ namespace Docms.Infrastructure
 
         #region "Document Histories Queries"
         public DbSet<DocumentHistory> DocumentHistories { get; set; }
-        public DbSet<DocumentCreated> DocumentCreated { get; set; }
-        public DbSet<DocumentUpdated> DocumentUpdated { get; set; }
-        public DbSet<DocumentDeleted> DocumentDeleted { get; set; }
         #endregion
 
         #region "Device Authorization Queries"
@@ -79,6 +76,11 @@ namespace Docms.Infrastructure
                         ? DateTime.SpecifyKind(value, DateTimeKind.Utc)
                         : value);
             modelBuilder.Entity<DocumentHistory>()
+                .Property(d => d.Discriminator)
+                .HasConversion(
+                    value => Enum.GetName(typeof(DocumentHistoryDiscriminator), value),
+                    value => (DocumentHistoryDiscriminator)Enum.Parse(typeof(DocumentHistoryDiscriminator), value));
+            modelBuilder.Entity<DocumentHistory>()
                 .Property(d => d.Timestamp)
                 .HasConversion(
                     value => value,
@@ -87,33 +89,19 @@ namespace Docms.Infrastructure
                         : value);
             modelBuilder.Entity<DocumentHistory>()
                 .HasIndex("Path", "Timestamp");
-            modelBuilder.Entity<DocumentCreated>()
+            modelBuilder.Entity<DocumentHistory>()
                 .Property(d => d.Created)
                 .HasConversion(
                     value => value,
-                    value => value.Kind == DateTimeKind.Unspecified
-                        ? DateTime.SpecifyKind(value, DateTimeKind.Utc)
+                    value => value.HasValue && value.Value.Kind == DateTimeKind.Unspecified
+                        ? DateTime.SpecifyKind(value.Value, DateTimeKind.Utc)
                         : value);
-            modelBuilder.Entity<DocumentCreated>()
+            modelBuilder.Entity<DocumentHistory>()
                 .Property(d => d.LastModified)
                 .HasConversion(
                     value => value,
-                    value => value.Kind == DateTimeKind.Unspecified
-                        ? DateTime.SpecifyKind(value, DateTimeKind.Utc)
-                        : value);
-            modelBuilder.Entity<DocumentUpdated>()
-                .Property(d => d.Created)
-                .HasConversion(
-                    value => value,
-                    value => value.Kind == DateTimeKind.Unspecified
-                        ? DateTime.SpecifyKind(value, DateTimeKind.Utc)
-                        : value);
-            modelBuilder.Entity<DocumentUpdated>()
-                .Property(d => d.LastModified)
-                .HasConversion(
-                    value => value,
-                    value => value.Kind == DateTimeKind.Unspecified
-                        ? DateTime.SpecifyKind(value, DateTimeKind.Utc)
+                    value => value.HasValue && value.Value.Kind == DateTimeKind.Unspecified
+                        ? DateTime.SpecifyKind(value.Value, DateTimeKind.Utc)
                         : value);
             modelBuilder.Entity<BlobEntry>()
                 .HasIndex(d => d.ParentPath);

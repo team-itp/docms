@@ -1,5 +1,4 @@
 ﻿using Docms.Queries.Blobs;
-using Docms.Queries.DocumentHistories;
 using Newtonsoft.Json.Serialization;
 using System;
 using System.Collections.Generic;
@@ -10,9 +9,6 @@ namespace Docms.Web.Api.Serialization
     {
         Dictionary<Type, string> matches = new Dictionary<Type, string>()
         {
-            {typeof(DocumentCreated), "document_created" },
-            {typeof(DocumentUpdated), "document_updated" },
-            {typeof(DocumentDeleted), "document_deleted" },
             {typeof(BlobContainer), "container" },
             {typeof(Blob), "document" },
         };

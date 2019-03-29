@@ -34,7 +34,7 @@
             <div class="d-flex w-100 justify-content-between">
                 <h5 class="mb-1">
                     @history.Path.Split("/").Last()
-                    @if (history is DocumentDeleted)
+                    @if (history.Discriminator == DocumentHistoryDiscriminator.DocumentDeleted)
                     {
                         <text> が削除されました。</text>
                     }
