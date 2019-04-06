@@ -12,9 +12,10 @@ namespace Docms.Client.Operations
             this.context = context;
         }
 
-        protected override Task ExecuteApiOperationAsync(CancellationToken token)
+        protected override async Task ExecuteApiOperationAsync(CancellationToken token)
         {
-            return context.RemoteStorage.Sync();
+            await context.RemoteStorage.Sync();
+            await context.RemoteStorage.Save();
         }
     }
 }

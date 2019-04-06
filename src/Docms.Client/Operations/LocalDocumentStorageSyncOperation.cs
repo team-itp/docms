@@ -12,9 +12,10 @@ namespace Docms.Client.Operations
             this.context = context;
         }
 
-        protected override Task ExecuteAsync(CancellationToken token)
+        protected override async Task ExecuteAsync(CancellationToken token)
         {
-            return context.LocalStorage.Sync();
+            await context.LocalStorage.Sync();
+            await context.LocalStorage.Save();
         }
     }
 }
