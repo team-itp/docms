@@ -97,6 +97,8 @@ namespace Docms.Client.Data
                     value => DateTime.SpecifyKind(value, DateTimeKind.Utc)
                 );
             modelBuilder.Entity<SyncHistory>()
+                .HasIndex(h => new { h.Path, h.Timestamp });
+            modelBuilder.Entity<SyncHistory>()
                 .Property(e => e.Timestamp)
                 .HasConversion(
                     value => value,

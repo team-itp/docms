@@ -38,11 +38,14 @@ namespace Docms.Client.Operations
                 }
                 else if (local == null)
                 {
-                    if (!context.Db.SyncHistories
-                        .Any(h => h.Type == SyncHistoryType.Upload
-                        && h.Path == remote.Path.ToString()
-                        && h.FileSize == remote.FileSize
-                        && h.Hash == remote.Hash))
+                    var latestSyncHistory = context.Db.SyncHistories
+                        .OrderByDescending(h => h.Timestamp)
+                        .FirstOrDefault(h => h.Path == remote.Path.ToString());
+                    
+                    if (latestSyncHistory == null
+                        || (latestSyncHistory.Type == SyncHistoryType.Delete
+                            && latestSyncHistory.FileSize == remote.FileSize
+                            && latestSyncHistory.Hash == remote.Hash))
                     {
                         result.Add(new DownloadRemoteDocumentOperation(context, remote.Path, result.CancellationToken));
                     }

@@ -63,6 +63,30 @@ namespace Docms.Client.Tests.Operations
         }
 
         [TestMethod]
+        public void リモートファイルが存在しローカルファイルが存在しない場合にローカルファイルのアップロード履歴の最新がDeleteの場合はダウンロードされる()
+        {
+            context.Db.SyncHistories.Add(new SyncHistory()
+            {
+                Id = Guid.NewGuid(),
+                Timestamp = DEFAULT_TIME,
+                Path = "test1.txt",
+                FileSize = 1,
+                Hash = "HASH",
+                Type = SyncHistoryType.Delete
+            });
+            context.Db.SaveChanges();
+            var prevResult = new DetermineDiffOperationResult();
+            prevResult.Add(
+                null,
+                context.RemoteStorage.GetDocument(new PathString("test1.txt")));
+            var sut = new ChangesIntoOperationsOperation(context, prevResult);
+            sut.Start();
+            var result = context.MockCurrentTask.LastResult as ChangesIntoOperationsOperationResult;
+            Assert.AreEqual(1, result.Operations.Count);
+            Assert.IsTrue(result.Operations[0] is DownloadRemoteDocumentOperation);
+        }
+
+        [TestMethod]
         public void リモートファイルが存在しローカルファイルが存在しない場合にローカルファイルのアップロード履歴が存在する場合は削除される()
         {
             context.Db.SyncHistories.Add(new SyncHistory()
