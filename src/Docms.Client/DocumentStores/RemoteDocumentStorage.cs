@@ -3,6 +3,7 @@ using Docms.Client.Data;
 using Docms.Client.Documents;
 using Docms.Client.Types;
 using Microsoft.EntityFrameworkCore;
+using NLog;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -12,38 +13,46 @@ namespace Docms.Client.DocumentStores
 {
     public class RemoteDocumentStorage : DocumentStorageBase<RemoteDocument>
     {
+        private static readonly ILogger logger = LogManager.GetCurrentClassLogger();
+
         private LocalDbContext localDb;
         private IDocmsApiClient api;
         private HashSet<Guid> appliedHistoryIds;
+        private List<History> historiesToAdd;
 
         public RemoteDocumentStorage(IDocmsApiClient api, LocalDbContext localDb) : base(localDb, localDb.RemoteDocuments)
         {
             this.api = api;
             this.localDb = localDb;
             appliedHistoryIds = new HashSet<Guid>();
+            historiesToAdd = new List<History>();
+        }
+
+        public override async Task Initialize()
+        {
+            await base.Initialize().ConfigureAwait(false);
+            var historyIds = await localDb.Histories.Select(h => h.Id).ToListAsync();
+            foreach (var historyId in historyIds)
+            {
+                appliedHistoryIds.Add(historyId);
+            }
         }
 
         public override async Task Sync()
         {
+            logger.Trace($"remote document syncing");
             var latestHistory = localDb.Histories.OrderByDescending(h => h.Timestamp).FirstOrDefault();
-            var allHistories = await localDb.Histories.ToListAsync().ConfigureAwait(false);
-            var historyIds = new HashSet<Guid>(allHistories.Select(h => h.Id));
+            if (latestHistory != null)
+            {
+                logger.Trace($"latest history: {latestHistory.Path} ({latestHistory.Id}, {latestHistory.Timestamp})");
+            }
             var histories = await api.GetHistoriesAsync("", latestHistory?.Id).ConfigureAwait(false);
             foreach (var history in histories)
-            {
-                if (historyIds.Add(history.Id))
-                {
-                    localDb.Histories.Add(history);
-                    allHistories.Add(history);
-                }
-            }
-            await localDb.SaveChangesAsync().ConfigureAwait(false);
-
-            foreach (var history in allHistories)
             {
                 if (!appliedHistoryIds.Contains(history.Id))
                 {
                     Apply(history);
+                    historiesToAdd.Add(history);
                     appliedHistoryIds.Add(history.Id);
                 }
             }
@@ -53,14 +62,17 @@ namespace Docms.Client.DocumentStores
         {
             if (history is DocumentCreatedHistory created)
             {
+                logger.Trace($"document created: {history.Path} ({history.Id}, {history.Timestamp})");
                 Apply(created);
             }
             else if (history is DocumentUpdatedHistory updated)
             {
+                logger.Trace($"document updated: {history.Path} ({history.Id}, {history.Timestamp})");
                 Apply(updated);
             }
             else if (history is DocumentDeletedHistory deleted)
             {
+                logger.Trace($"document deleted: {history.Path} ({history.Id}, {history.Timestamp})");
                 Apply(deleted);
             }
         }
@@ -101,6 +113,13 @@ namespace Docms.Client.DocumentStores
                 LastModified = document.LastModified,
                 SyncStatus = document.SyncStatus
             };
+        }
+
+        public override async Task Save()
+        {
+            Db.Histories.AddRange(historiesToAdd);
+            await base.Save().ConfigureAwait(false);
+            historiesToAdd.Clear();
         }
     }
 }

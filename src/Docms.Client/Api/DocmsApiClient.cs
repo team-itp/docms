@@ -145,7 +145,7 @@ namespace Docms.Client.Api
             return result;
         }
 
-        private void ThrowIfNotSuccessfulStatus(IRestResponse result)
+        private void ThrowIfNotSuccessfulStatus(IRestRequest request, IRestResponse result)
         {
             if (!result.IsSuccessful)
             {
@@ -155,7 +155,7 @@ namespace Docms.Client.Api
                 }
                 else
                 {
-                    throw new ServerException((int)result.StatusCode, result.Content);
+                    throw new ServerException(request.Resource, request.Method.ToString(), request.ToString(), (int)result.StatusCode, result.Content);
                 }
             }
         }
@@ -169,7 +169,7 @@ namespace Docms.Client.Api
                 request.AddQueryParameter("path", path);
             }
             var result = await ExecuteAsync(request).ConfigureAwait(false);
-            ThrowIfNotSuccessfulStatus(result);
+            ThrowIfNotSuccessfulStatus(request, result);
             var container = JsonConvert.DeserializeObject<ContainerResponse>(result.Content, DefaultJsonSerializerSettings);
             return container.Entries
                 .Select(e => e is ContainerResponse
@@ -189,7 +189,7 @@ namespace Docms.Client.Api
             }
             else
             {
-                ThrowIfNotSuccessfulStatus(result);
+                ThrowIfNotSuccessfulStatus(request, result);
                 var document = JsonConvert.DeserializeObject<DocumentResponse>(result.Content, DefaultJsonSerializerSettings);
                 return new Document(document, this);
             }
@@ -205,7 +205,7 @@ namespace Docms.Client.Api
                 request.AddQueryParameter("download", true.ToString());
             }
             var result = await ExecuteAsync(request).ConfigureAwait(false);
-            ThrowIfNotSuccessfulStatus(result);
+            ThrowIfNotSuccessfulStatus(request, result);
             return new MemoryStream(result.RawBytes);
         }
 
@@ -259,7 +259,7 @@ namespace Docms.Client.Api
                 request.AddParameter("lastModified", XmlConvert.ToString(lastModified.Value, XmlDateTimeSerializationMode.Utc));
             }
             var result = await ExecuteAsync(request).ConfigureAwait(false);
-            ThrowIfNotSuccessfulStatus(result);
+            ThrowIfNotSuccessfulStatus(request, result);
         }
 
         public async Task MoveDocumentAsync(string originalPath, string destinationPath)
@@ -269,7 +269,7 @@ namespace Docms.Client.Api
             request.AddParameter("destinationPath", destinationPath);
             request.AddParameter("originalPath", originalPath);
             var result = await ExecuteAsync(request).ConfigureAwait(false);
-            ThrowIfNotSuccessfulStatus(result);
+            ThrowIfNotSuccessfulStatus(request, result);
         }
 
         public async Task DeleteDocumentAsync(string path)
@@ -280,7 +280,7 @@ namespace Docms.Client.Api
                 var request = new RestRequest(_defaultPath + "files", Method.DELETE);
                 request.AddQueryParameter("path", path);
                 var result = await ExecuteAsync(request).ConfigureAwait(false);
-                ThrowIfNotSuccessfulStatus(result);
+                ThrowIfNotSuccessfulStatus(request, result);
             }
             catch (ServerException ex)
             {
@@ -306,7 +306,7 @@ namespace Docms.Client.Api
             }
             request.AddQueryParameter("per_page", "100");
             var result = await ExecuteAsync(request).ConfigureAwait(false);
-            ThrowIfNotSuccessfulStatus(result);
+            ThrowIfNotSuccessfulStatus(request, result);
 
             var resultList = JsonConvert.DeserializeObject<List<History>>(result.Content, DefaultJsonSerializerSettings);
             var pagination = PaginationHeader.Parse(result.Headers.FirstOrDefault(h => h.Name == "Link")?.Value?.ToString());

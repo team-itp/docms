@@ -114,14 +114,14 @@ namespace Docms.Client.DocumentStores
         }
 
 
-        public Task Initialize()
+        public virtual Task Initialize()
         {
             Load(Documents);
             Db.DetachAllEntities();
             return Task.CompletedTask;
         }
 
-        public async Task Save()
+        public virtual async Task Save()
         {
             Documents.RemoveRange(Documents);
             Documents.AddRange(Persist());

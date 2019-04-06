@@ -17,9 +17,9 @@ namespace Docms.Client.Api
         }
     }
 
-    public class NotFoundException : DocmsApiClientException
+    public class ServerConnectionException : DocmsApiClientException
     {
-        public NotFoundException(string uri) : base($"指定のURI({uri})にデータがありません。(HTTPステータスコード: 404)")
+        public ServerConnectionException() : base($"サーバーに接続できません。")
         {
         }
     }
@@ -31,20 +31,19 @@ namespace Docms.Client.Api
         }
     }
 
-    public class TokenVerificationException : DocmsApiClientException
-    {
-        public TokenVerificationException() : base("トークンの認証に失敗しました。一度ログアウトして再度ログインしてください。")
-        {
-        }
-    }
-
     public class ServerException : DocmsApiClientException
     {
+        public string RequestUri { get; }
+        public string RequestMethod { get; }
+        public string RequestContent { get; }
         public int StatusCode { get; }
         public string Content { get; }
 
-        public ServerException(int httpStatusCode, string content) : base("サーバーとの接続に問題があるようです。しばらくたってからやり直してください。ステータスコード:" + httpStatusCode.ToString())
+        public ServerException(string requestUri, string requestMethod, string requestContent, int httpStatusCode, string content) : base($"サーバーとの接続に問題があるようです。しばらくたってからやり直してください。\n\tリソース:{requestUri}\n\tメソッド:{requestMethod}\n\tリクエスト:{requestContent}\n\tステータスコード:{httpStatusCode}")
         {
+            RequestUri = requestUri;
+            RequestMethod = requestMethod;
+            RequestContent = requestContent;
             StatusCode = httpStatusCode;
             Content = content;
         }
