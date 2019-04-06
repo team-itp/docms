@@ -42,8 +42,9 @@ namespace Docms.Client.Api
             _client = new RestClient(_serverUri)
             {
                 FollowRedirects = false,
-                Timeout = 30 * 60 * 1000
+                Timeout = 30 * 60 * 1000,
             };
+            _client.ConfigureWebRequest(x => x.AllowWriteStreamBuffering = false);
             DefaultJsonSerializerSettings = new JsonSerializerSettings()
             {
                 TypeNameHandling = TypeNameHandling.Objects,

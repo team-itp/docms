@@ -1,21 +1,25 @@
 ﻿using Docms.Client.Data;
 using Docms.Client.Documents;
 using Docms.Client.Types;
+using Microsoft.EntityFrameworkCore;
 using System;
 using System.Collections.Generic;
-using System.IO;
 using System.Linq;
 using System.Threading.Tasks;
 
 namespace Docms.Client.DocumentStores
 {
-    public abstract class DocumentStorageBase : IDocumentStorage
+    public abstract class DocumentStorageBase<TDocument> : IDocumentStorage where TDocument : class, IDocument
     {
         public ContainerNode Root { get; }
+        public LocalDbContext Db { get; }
+        public DbSet<TDocument> Documents { get; }
 
-        public DocumentStorageBase()
+        public DocumentStorageBase(LocalDbContext db, DbSet<TDocument> documents)
         {
             Root = ContainerNode.CreateRootContainer();
+            Db = db;
+            Documents = documents;
         }
 
         public Node GetNode(PathString path)
@@ -91,9 +95,9 @@ namespace Docms.Client.DocumentStores
             return dir;
         }
 
-        public void Load(IEnumerable<Document> documents)
+        public void Load(IEnumerable<TDocument> documents)
         {
-            foreach(var doc in documents)
+            foreach (var doc in documents)
             {
                 var path = new PathString(doc.Path);
                 var parent = GetOrCreateContainer(path.ParentPath);
@@ -102,28 +106,47 @@ namespace Docms.Client.DocumentStores
             }
         }
 
-        public IEnumerable<Document> Persist()
+        public IEnumerable<TDocument> Persist()
         {
-            return Root.ListAllDocuments()
+            return Root
+                .ListAllDocuments()
                 .Select(Persist);
         }
 
-        public Document Persist(DocumentNode document)
+
+        public Task Initialize()
         {
-            return new Document()
-            {
-                Path = document.Path.ToString(),
-                FileSize = document.FileSize,
-                Hash = document.Hash,
-                Created = document.Created,
-                LastModified = document.LastModified,
-                SyncStatus = document.SyncStatus
-            };
+            Load(Documents);
+            Db.DetachAllEntities();
+            return Task.CompletedTask;
         }
 
-        public abstract Task Initialize();
+        public async Task Save()
+        {
+            Documents.RemoveRange(Documents);
+            Documents.AddRange(Persist());
+            await Db.SaveChangesAsync();
+            Db.DetachAllEntities();
+        }
+
+        public async Task Save(DocumentNode document)
+        {
+            var doc = await Documents.FindAsync(document.Path.ToString()).ConfigureAwait(false);
+            if (doc == null)
+            {
+                doc = Persist(document);
+                await Documents.AddAsync(doc);
+            }
+            else
+            {
+                Db.Entry(doc).State = EntityState.Detached;
+                Documents.Update(Persist(document));
+            }
+            await Db.SaveChangesAsync();
+            Db.DetachAllEntities();
+        }
+
         public abstract Task Sync();
-        public abstract Task Save();
-        public abstract Task Save(DocumentNode documnet);
+        protected abstract TDocument Persist(DocumentNode document);
     }
 }

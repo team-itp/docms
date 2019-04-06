@@ -10,13 +10,13 @@ using System.Threading.Tasks;
 
 namespace Docms.Client.DocumentStores
 {
-    public class RemoteDocumentStorage : DocumentStorageBase
+    public class RemoteDocumentStorage : DocumentStorageBase<RemoteDocument>
     {
         private LocalDbContext localDb;
         private IDocmsApiClient api;
         private HashSet<Guid> appliedHistoryIds;
 
-        public RemoteDocumentStorage(IDocmsApiClient api, LocalDbContext localDb)
+        public RemoteDocumentStorage(IDocmsApiClient api, LocalDbContext localDb) : base(localDb, localDb.RemoteDocuments)
         {
             this.api = api;
             this.localDb = localDb;
@@ -84,36 +84,23 @@ namespace Docms.Client.DocumentStores
             var path = new PathString(history.Path);
             var container = GetContainer(path.ParentPath);
             var document = GetDocument(path);
-            container.RemoveChild(document);
-        }
-
-        public override Task Initialize()
-        {
-            Load(localDb.RemoteDocuments);
-            return Task.CompletedTask;
-        }
-
-        public override Task Save()
-        {
-            localDb.RemoteDocuments.RemoveRange(localDb.LocalDocuments);
-            localDb.RemoteDocuments.AddRange(Persist());
-            return localDb.SaveChangesAsync();
-        }
-
-        public override async Task Save(DocumentNode document)
-        {
-            var doc = await localDb.RemoteDocuments.FindAsync(document.Path.ToString()).ConfigureAwait(false);
-            if (doc == null)
+            if (document != null)
             {
-                doc = Persist(document);
-                await localDb.RemoteDocuments.AddAsync(doc);
+                container.RemoveChild(document);
             }
-            else
+        }
+
+        protected override RemoteDocument Persist(DocumentNode document)
+        {
+            return new RemoteDocument()
             {
-                localDb.Entry(doc).State = EntityState.Detached;
-                localDb.RemoteDocuments.Update(Persist(document));
-            }
-            await localDb.SaveChangesAsync();
+                Path = document.Path.ToString(),
+                FileSize = document.FileSize,
+                Hash = document.Hash,
+                Created = document.Created,
+                LastModified = document.LastModified,
+                SyncStatus = document.SyncStatus
+            };
         }
     }
 }

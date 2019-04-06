@@ -26,13 +26,13 @@ namespace Docms.Client.Tests.Operations
         {
             context.MockLocalStorage.Load(new[]
             {
-                new Document() {Path = "test1.txt", FileSize = 1, Hash = "HASH1", Created = DEFAULT_TIME, LastModified = DEFAULT_TIME, SyncStatus = SyncStatus.UpToDate},
-                new Document() {Path = "test2.txt", FileSize = 1, Hash = "HASH1", Created = DEFAULT_TIME, LastModified = DEFAULT_TIME, SyncStatus = SyncStatus.UpToDate},
-                new Document() {Path = "test3.txt", FileSize = 1, Hash = "HASH1", Created = DEFAULT_TIME, LastModified = DEFAULT_TIME, SyncStatus = SyncStatus.UpToDate},
+                new LocalDocument() {Path = "test1.txt", FileSize = 1, Hash = "HASH1", Created = DEFAULT_TIME, LastModified = DEFAULT_TIME, SyncStatus = SyncStatus.UpToDate},
+                new LocalDocument() {Path = "test2.txt", FileSize = 1, Hash = "HASH1", Created = DEFAULT_TIME, LastModified = DEFAULT_TIME, SyncStatus = SyncStatus.UpToDate},
+                new LocalDocument() {Path = "test3.txt", FileSize = 1, Hash = "HASH1", Created = DEFAULT_TIME, LastModified = DEFAULT_TIME, SyncStatus = SyncStatus.UpToDate},
             });
             context.MockRemoteStorage.Load(new[]
             {
-                new Document() {Path = "test2.txt", FileSize = 1, Hash = "HASH1", Created = DEFAULT_TIME, LastModified = DEFAULT_TIME, SyncStatus = SyncStatus.UpToDate},
+                new RemoteDocument() {Path = "test2.txt", FileSize = 1, Hash = "HASH1", Created = DEFAULT_TIME, LastModified = DEFAULT_TIME, SyncStatus = SyncStatus.UpToDate},
             });
             sut.Start();
             var result = context.MockCurrentTask.LastResult as DetermineDiffOperationResult;
@@ -48,13 +48,13 @@ namespace Docms.Client.Tests.Operations
         {
             context.MockLocalStorage.Load(new[]
             {
-                new Document() {Path = "test2.txt", FileSize = 1, Hash = "HASH1", Created = DEFAULT_TIME, LastModified = DEFAULT_TIME, SyncStatus = SyncStatus.UpToDate},
+                new LocalDocument() {Path = "test2.txt", FileSize = 1, Hash = "HASH1", Created = DEFAULT_TIME, LastModified = DEFAULT_TIME, SyncStatus = SyncStatus.UpToDate},
             });
             context.MockRemoteStorage.Load(new[]
             {
-                new Document() {Path = "test1.txt", FileSize = 1, Hash = "HASH1", Created = DEFAULT_TIME, LastModified = DEFAULT_TIME, SyncStatus = SyncStatus.UpToDate},
-                new Document() {Path = "test2.txt", FileSize = 1, Hash = "HASH1", Created = DEFAULT_TIME, LastModified = DEFAULT_TIME, SyncStatus = SyncStatus.UpToDate},
-                new Document() {Path = "test3.txt", FileSize = 1, Hash = "HASH1", Created = DEFAULT_TIME, LastModified = DEFAULT_TIME, SyncStatus = SyncStatus.UpToDate},
+                new RemoteDocument() {Path = "test1.txt", FileSize = 1, Hash = "HASH1", Created = DEFAULT_TIME, LastModified = DEFAULT_TIME, SyncStatus = SyncStatus.UpToDate},
+                new RemoteDocument() {Path = "test2.txt", FileSize = 1, Hash = "HASH1", Created = DEFAULT_TIME, LastModified = DEFAULT_TIME, SyncStatus = SyncStatus.UpToDate},
+                new RemoteDocument() {Path = "test3.txt", FileSize = 1, Hash = "HASH1", Created = DEFAULT_TIME, LastModified = DEFAULT_TIME, SyncStatus = SyncStatus.UpToDate},
             });
             sut.Start();
             var result = context.MockCurrentTask.LastResult as DetermineDiffOperationResult;
@@ -70,17 +70,17 @@ namespace Docms.Client.Tests.Operations
         {
             context.MockLocalStorage.Load(new[]
             {
-                new Document() {Path = "test1.txt", FileSize = 1, Hash = "HASH1", Created = DEFAULT_TIME, LastModified = DEFAULT_TIME, SyncStatus = SyncStatus.UpToDate},
-                new Document() {Path = "test2.txt", FileSize = 1, Hash = "HASH1", Created = DEFAULT_TIME, LastModified = DEFAULT_TIME, SyncStatus = SyncStatus.UpToDate},
-                new Document() {Path = "dir1/test3.txt", FileSize = 1, Hash = "HASH1", Created = DEFAULT_TIME, LastModified = DEFAULT_TIME, SyncStatus = SyncStatus.UpToDate},
-                new Document() {Path = "dir1/subDir2/test4.txt", FileSize = 1, Hash = "HASH1", Created = DEFAULT_TIME, LastModified = DEFAULT_TIME, SyncStatus = SyncStatus.UpToDate},
+                new LocalDocument() {Path = "test1.txt", FileSize = 1, Hash = "HASH1", Created = DEFAULT_TIME, LastModified = DEFAULT_TIME, SyncStatus = SyncStatus.UpToDate},
+                new LocalDocument() {Path = "test2.txt", FileSize = 1, Hash = "HASH1", Created = DEFAULT_TIME, LastModified = DEFAULT_TIME, SyncStatus = SyncStatus.UpToDate},
+                new LocalDocument() {Path = "dir1/test3.txt", FileSize = 1, Hash = "HASH1", Created = DEFAULT_TIME, LastModified = DEFAULT_TIME, SyncStatus = SyncStatus.UpToDate},
+                new LocalDocument() {Path = "dir1/subDir2/test4.txt", FileSize = 1, Hash = "HASH1", Created = DEFAULT_TIME, LastModified = DEFAULT_TIME, SyncStatus = SyncStatus.UpToDate},
             });
             context.MockRemoteStorage.Load(new[]
             {
-                new Document() {Path = "test1.txt", FileSize = 1, Hash = "HASH1", Created = DEFAULT_TIME, LastModified = DEFAULT_TIME, SyncStatus = SyncStatus.UpToDate},
-                new Document() {Path = "test2.txt", FileSize = 1, Hash = "HASH1", Created = DEFAULT_TIME, LastModified = DEFAULT_TIME, SyncStatus = SyncStatus.UpToDate},
-                new Document() {Path = "dir1/test3.txt", FileSize = 1, Hash = "HASH1", Created = DEFAULT_TIME, LastModified = DEFAULT_TIME, SyncStatus = SyncStatus.UpToDate},
-                new Document() {Path = "dir1/subDir2/test4.txt", FileSize = 1, Hash = "HASH1", Created = DEFAULT_TIME, LastModified = DEFAULT_TIME, SyncStatus = SyncStatus.UpToDate},
+                new RemoteDocument() {Path = "test1.txt", FileSize = 1, Hash = "HASH1", Created = DEFAULT_TIME, LastModified = DEFAULT_TIME, SyncStatus = SyncStatus.UpToDate},
+                new RemoteDocument() {Path = "test2.txt", FileSize = 1, Hash = "HASH1", Created = DEFAULT_TIME, LastModified = DEFAULT_TIME, SyncStatus = SyncStatus.UpToDate},
+                new RemoteDocument() {Path = "dir1/test3.txt", FileSize = 1, Hash = "HASH1", Created = DEFAULT_TIME, LastModified = DEFAULT_TIME, SyncStatus = SyncStatus.UpToDate},
+                new RemoteDocument() {Path = "dir1/subDir2/test4.txt", FileSize = 1, Hash = "HASH1", Created = DEFAULT_TIME, LastModified = DEFAULT_TIME, SyncStatus = SyncStatus.UpToDate},
             });
             sut.Start();
             var result = context.MockCurrentTask.LastResult as DetermineDiffOperationResult;
@@ -92,17 +92,17 @@ namespace Docms.Client.Tests.Operations
         {
             context.MockLocalStorage.Load(new[]
             {
-                new Document() {Path = "test1_.txt", FileSize = 1, Hash = "HASH1", Created = DEFAULT_TIME, LastModified = DEFAULT_TIME, SyncStatus = SyncStatus.UpToDate},
-                new Document() {Path = "test2.txt", FileSize = 1, Hash = "HASH1", Created = DEFAULT_TIME, LastModified = DEFAULT_TIME, SyncStatus = SyncStatus.UpToDate},
-                new Document() {Path = "dir1/test3_.txt", FileSize = 1, Hash = "HASH1", Created = DEFAULT_TIME, LastModified = DEFAULT_TIME, SyncStatus = SyncStatus.UpToDate},
-                new Document() {Path = "dir1/subDir2/test4.txt", FileSize = 1, Hash = "HASH1", Created = DEFAULT_TIME, LastModified = DEFAULT_TIME, SyncStatus = SyncStatus.UpToDate},
+                new LocalDocument() {Path = "test1_.txt", FileSize = 1, Hash = "HASH1", Created = DEFAULT_TIME, LastModified = DEFAULT_TIME, SyncStatus = SyncStatus.UpToDate},
+                new LocalDocument() {Path = "test2.txt", FileSize = 1, Hash = "HASH1", Created = DEFAULT_TIME, LastModified = DEFAULT_TIME, SyncStatus = SyncStatus.UpToDate},
+                new LocalDocument() {Path = "dir1/test3_.txt", FileSize = 1, Hash = "HASH1", Created = DEFAULT_TIME, LastModified = DEFAULT_TIME, SyncStatus = SyncStatus.UpToDate},
+                new LocalDocument() {Path = "dir1/subDir2/test4.txt", FileSize = 1, Hash = "HASH1", Created = DEFAULT_TIME, LastModified = DEFAULT_TIME, SyncStatus = SyncStatus.UpToDate},
             });
             context.MockRemoteStorage.Load(new[]
             {
-                new Document() {Path = "test1_.txt", FileSize = 1, Hash = "HASH1_", Created = DEFAULT_TIME, LastModified = DEFAULT_TIME, SyncStatus = SyncStatus.UpToDate},
-                new Document() {Path = "test2.txt", FileSize = 1, Hash = "HASH1", Created = DEFAULT_TIME.AddHours(1), LastModified = DEFAULT_TIME, SyncStatus = SyncStatus.UpToDate},
-                new Document() {Path = "dir1/test3_.txt", FileSize = 2, Hash = "HASH1", Created = DEFAULT_TIME, LastModified = DEFAULT_TIME, SyncStatus = SyncStatus.UpToDate},
-                new Document() {Path = "dir1/subDir2/test4.txt", FileSize = 1, Hash = "HASH1", Created = DEFAULT_TIME, LastModified = DEFAULT_TIME.AddHours(1), SyncStatus = SyncStatus.UpToDate},
+                new RemoteDocument() {Path = "test1_.txt", FileSize = 1, Hash = "HASH1_", Created = DEFAULT_TIME, LastModified = DEFAULT_TIME, SyncStatus = SyncStatus.UpToDate},
+                new RemoteDocument() {Path = "test2.txt", FileSize = 1, Hash = "HASH1", Created = DEFAULT_TIME.AddHours(1), LastModified = DEFAULT_TIME, SyncStatus = SyncStatus.UpToDate},
+                new RemoteDocument() {Path = "dir1/test3_.txt", FileSize = 2, Hash = "HASH1", Created = DEFAULT_TIME, LastModified = DEFAULT_TIME, SyncStatus = SyncStatus.UpToDate},
+                new RemoteDocument() {Path = "dir1/subDir2/test4.txt", FileSize = 1, Hash = "HASH1", Created = DEFAULT_TIME, LastModified = DEFAULT_TIME.AddHours(1), SyncStatus = SyncStatus.UpToDate},
             });
             sut.Start();
             var result = context.MockCurrentTask.LastResult as DetermineDiffOperationResult;

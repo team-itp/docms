@@ -1,4 +1,6 @@
 ﻿using Docms.Client.Operations;
+using NLog;
+using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
 
@@ -6,6 +8,7 @@ namespace Docms.Client.Tasks
 {
     public class SyncTask : ITask
     {
+        private static readonly ILogger logger = LogManager.GetCurrentClassLogger();
         private ApplicationContext context;
         private object prevResult;
 
@@ -51,15 +54,10 @@ namespace Docms.Client.Tasks
                 {
                     await ExecuteOperationAsync(op);
                 }
-                catch
+                catch (Exception ex)
                 {
-                    errorOperations.Add(op);
+                    logger.Error(ex);
                 }
-            }
-            // エラーになった処理をもう一回回す
-            foreach (var op in errorOperations)
-            {
-                await ExecuteOperationAsync(op);
             }
             IsCompleted = true;
         }

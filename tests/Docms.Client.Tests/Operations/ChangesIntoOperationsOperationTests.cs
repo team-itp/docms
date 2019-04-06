@@ -20,17 +20,17 @@ namespace Docms.Client.Tests.Operations
             context = new MockApplicationContext();
             context.MockLocalStorage.Load(new[]
             {
-                new Document() {Path = "test1.txt", FileSize = 1, Hash = "HASH", Created = DEFAULT_TIME, LastModified = DEFAULT_TIME, SyncStatus = SyncStatus.UpToDate},
-                new Document() {Path = "test2.txt", FileSize = 1, Hash = "HASH", Created = DEFAULT_TIME, LastModified = DEFAULT_TIME, SyncStatus = SyncStatus.UpToDate},
-                new Document() {Path = "dir1/test3.txt", FileSize = 1, Hash = "HASH", Created = DEFAULT_TIME, LastModified = DEFAULT_TIME, SyncStatus = SyncStatus.NeedsUpToDate},
-                new Document() {Path = "dir1/subDir2/test4.txt", FileSize = 1, Hash = "HASH", Created = DEFAULT_TIME, LastModified = DEFAULT_TIME, SyncStatus = SyncStatus.UpToDate},
+                new LocalDocument() {Path = "test1.txt", FileSize = 1, Hash = "HASH", Created = DEFAULT_TIME, LastModified = DEFAULT_TIME, SyncStatus = SyncStatus.UpToDate},
+                new LocalDocument() {Path = "test2.txt", FileSize = 1, Hash = "HASH", Created = DEFAULT_TIME, LastModified = DEFAULT_TIME, SyncStatus = SyncStatus.UpToDate},
+                new LocalDocument() {Path = "dir1/test3.txt", FileSize = 1, Hash = "HASH", Created = DEFAULT_TIME, LastModified = DEFAULT_TIME, SyncStatus = SyncStatus.NeedsUpToDate},
+                new LocalDocument() {Path = "dir1/subDir2/test4.txt", FileSize = 1, Hash = "HASH", Created = DEFAULT_TIME, LastModified = DEFAULT_TIME, SyncStatus = SyncStatus.UpToDate},
             });
             context.MockRemoteStorage.Load(new[]
             {
-                new Document() {Path = "test1.txt", FileSize = 1, Hash = "HASH", Created = DEFAULT_TIME, LastModified = DEFAULT_TIME, SyncStatus = SyncStatus.UpToDate},
-                new Document() {Path = "test2.txt", FileSize = 1, Hash = "HASH", Created = DEFAULT_TIME, LastModified = DEFAULT_TIME, SyncStatus = SyncStatus.UpToDate},
-                new Document() {Path = "dir1/test3.txt", FileSize = 1, Hash = "HASH1", Created = DEFAULT_TIME, LastModified = DEFAULT_TIME, SyncStatus = SyncStatus.UpToDate},
-                new Document() {Path = "dir1/subDir2/test4.txt", FileSize = 2, Hash = "HASH", Created = DEFAULT_TIME, LastModified = DEFAULT_TIME, SyncStatus = SyncStatus.UpToDate},
+                new RemoteDocument() {Path = "test1.txt", FileSize = 1, Hash = "HASH", Created = DEFAULT_TIME, LastModified = DEFAULT_TIME, SyncStatus = SyncStatus.UpToDate},
+                new RemoteDocument() {Path = "test2.txt", FileSize = 1, Hash = "HASH", Created = DEFAULT_TIME, LastModified = DEFAULT_TIME, SyncStatus = SyncStatus.UpToDate},
+                new RemoteDocument() {Path = "dir1/test3.txt", FileSize = 1, Hash = "HASH1", Created = DEFAULT_TIME, LastModified = DEFAULT_TIME, SyncStatus = SyncStatus.UpToDate},
+                new RemoteDocument() {Path = "dir1/subDir2/test4.txt", FileSize = 2, Hash = "HASH", Created = DEFAULT_TIME, LastModified = DEFAULT_TIME, SyncStatus = SyncStatus.UpToDate},
             });
         }
 

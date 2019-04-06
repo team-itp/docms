@@ -2,7 +2,7 @@
 using Docms.Client.Documents;
 using Docms.Client.FileSystem;
 using Docms.Client.Types;
-using Microsoft.EntityFrameworkCore;
+using NLog;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
@@ -10,12 +10,13 @@ using System.Threading.Tasks;
 
 namespace Docms.Client.DocumentStores
 {
-    public class LocalDocumentStorage : DocumentStorageBase
+    public class LocalDocumentStorage : DocumentStorageBase<LocalDocument>
     {
         private readonly LocalDbContext localDb;
         private readonly IFileSystem fileSystem;
+        private static readonly ILogger logger = LogManager.GetCurrentClassLogger();
 
-        public LocalDocumentStorage(IFileSystem fileSystem, LocalDbContext localDb)
+        public LocalDocumentStorage(IFileSystem fileSystem, LocalDbContext localDb) : base(localDb, localDb.LocalDocuments)
         {
             this.localDb = localDb;
             this.fileSystem = fileSystem;
@@ -70,12 +71,21 @@ namespace Docms.Client.DocumentStores
                         if (fi.FileSize != fileNode.FileSize
                             || fi.Created != fileNode.Created)
                         {
-                            var hash = CalculateHash(fi);
-                            fileNode.Update(fi.FileSize, hash, fi.Created, fi.LastModified);
+                            logger.Trace("modified file found: " + filepath);
+                            try
+                            {
+                                var hash = CalculateHash(fi);
+                                fileNode.Update(fi.FileSize, hash, fi.Created, fi.LastModified);
+                            }
+                            catch
+                            {
+                                logger.Trace("failed to update file: " + filepath);
+                            }
                         }
                     }
                     else
                     {
+                        logger.Trace("new file found: " + filepath);
                         try
                         {
                             var hash = CalculateHash(fi);
@@ -84,6 +94,7 @@ namespace Docms.Client.DocumentStores
                         }
                         catch
                         {
+                            logger.Trace("failed to add file: " + filepath);
                         }
                     }
                 }
@@ -112,33 +123,17 @@ namespace Docms.Client.DocumentStores
             return hash;
         }
 
-        public override Task Initialize()
+        protected override LocalDocument Persist(DocumentNode document)
         {
-            Load(localDb.LocalDocuments);
-            return Task.CompletedTask;
-        }
-
-        public override Task Save()
-        {
-            localDb.LocalDocuments.RemoveRange(localDb.LocalDocuments);
-            localDb.LocalDocuments.AddRange(Persist());
-            return localDb.SaveChangesAsync();
-        }
-
-        public override async Task Save(DocumentNode document)
-        {
-            var doc = await localDb.LocalDocuments.FindAsync(document.Path.ToString()).ConfigureAwait(false);
-            if (doc == null)
+            return new LocalDocument()
             {
-                doc = Persist(document);
-                await localDb.LocalDocuments.AddAsync(doc);
-            }
-            else
-            {
-                localDb.Entry(doc).State = EntityState.Detached;
-                localDb.LocalDocuments.Update(Persist(document));
-            }
-            await localDb.SaveChangesAsync();
+                Path = document.Path.ToString(),
+                FileSize = document.FileSize,
+                Hash = document.Hash,
+                Created = document.Created,
+                LastModified = document.LastModified,
+                SyncStatus = document.SyncStatus
+            };
         }
     }
 }
