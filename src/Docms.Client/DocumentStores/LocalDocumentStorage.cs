@@ -3,6 +3,7 @@ using Docms.Client.Documents;
 using Docms.Client.FileSystem;
 using Docms.Client.Types;
 using NLog;
+using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
@@ -38,7 +39,7 @@ namespace Docms.Client.DocumentStores
             dirs.AddRange(node.Children.OfType<ContainerNode>().Select(n => n.Path));
             dirs.AddRange(fileSystem.GetDirectories(node.Path));
 
-            foreach (var dirpath in dirs)
+            foreach (var dirpath in dirs.Distinct())
             {
                 var dirNode = node.GetChild(dirpath.Name) as ContainerNode;
                 var dir = fileSystem.GetDirectoryInfo(dirpath);
@@ -60,7 +61,7 @@ namespace Docms.Client.DocumentStores
                     node.RemoveChild(dirNode);
                 }
             }
-            foreach (var filepath in files)
+            foreach (var filepath in files.Distinct())
             {
                 var fileNode = node.GetChild(filepath.Name) as DocumentNode;
                 var fi = fileSystem.GetFileInfo(filepath);

@@ -1,11 +1,6 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading;
-using System.Threading.Tasks;
-using Docms.Client.Api;
+﻿using Docms.Client.Api;
 using Microsoft.EntityFrameworkCore;
-using Microsoft.Extensions.Logging;
+using System;
 
 namespace Docms.Client.Data
 {
@@ -23,16 +18,10 @@ namespace Docms.Client.Data
         public DbSet<RemoteDocument> RemoteDocuments { get; set; }
         public DbSet<SyncHistory> SyncHistories { get; set; }
 
-        public void DetachAllEntities()
+        protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
         {
-            var changedEntriesCopy = ChangeTracker.Entries()
-                .Where(e => e.State == EntityState.Added ||
-                            e.State == EntityState.Modified ||
-                            e.State == EntityState.Deleted)
-                .ToList();
-
-            foreach (var entry in changedEntriesCopy)
-                entry.State = EntityState.Detached;
+            optionsBuilder.UseQueryTrackingBehavior(QueryTrackingBehavior.NoTracking);
+            base.OnConfiguring(optionsBuilder);
         }
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)

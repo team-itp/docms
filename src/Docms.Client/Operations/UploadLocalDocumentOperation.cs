@@ -45,7 +45,6 @@ namespace Docms.Client.Operations
                 Hash = document.Hash,
                 Type = SyncHistoryType.Upload
             });
-            await context.Db.SaveChangesAsync();
             document.Updated();
             await context.LocalStorage.Save(document);
         }

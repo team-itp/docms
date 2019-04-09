@@ -117,33 +117,35 @@ namespace Docms.Client.DocumentStores
         public virtual Task Initialize()
         {
             Load(Documents);
-            Db.DetachAllEntities();
             return Task.CompletedTask;
         }
 
         public virtual async Task Save()
         {
+            Db.ChangeTracker.Entries().ToList().ForEach(e => e.State = EntityState.Detached);
             Documents.RemoveRange(Documents);
             Documents.AddRange(Persist());
             await Db.SaveChangesAsync();
-            Db.DetachAllEntities();
         }
 
         public async Task Save(DocumentNode document)
         {
-            var doc = await Documents.FindAsync(document.Path.ToString()).ConfigureAwait(false);
+            await Save(Persist(document));
+            await Db.SaveChangesAsync();
+        }
+
+        private async Task Save(TDocument document)
+        {
+            var doc = await Documents.FindAsync(document.Path).ConfigureAwait(false);
             if (doc == null)
             {
-                doc = Persist(document);
-                await Documents.AddAsync(doc);
+                await Documents.AddAsync(document);
             }
             else
             {
                 Db.Entry(doc).State = EntityState.Detached;
-                Documents.Update(Persist(document));
+                Documents.Update(document);
             }
-            await Db.SaveChangesAsync();
-            Db.DetachAllEntities();
         }
 
         public abstract Task Sync();
