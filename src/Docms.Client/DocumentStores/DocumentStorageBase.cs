@@ -130,22 +130,21 @@ namespace Docms.Client.DocumentStores
 
         public async Task Save(DocumentNode document)
         {
-            await Save(Persist(document));
-            await Db.SaveChangesAsync();
-        }
-
-        private async Task Save(TDocument document)
-        {
-            var doc = await Documents.FindAsync(document.Path).ConfigureAwait(false);
+            var doc = await Documents.FindAsync(document.Path.ToString()).ConfigureAwait(false);
             if (doc == null)
             {
-                await Documents.AddAsync(document);
+                await Documents.AddAsync(Persist(document));
             }
             else
             {
-                Db.Entry(doc).State = EntityState.Detached;
-                Documents.Update(document);
+                doc.FileSize = document.FileSize;
+                doc.Hash = document.Hash;
+                doc.Created = document.Created;
+                doc.LastModified = document.LastModified;
+                doc.SyncStatus = document.SyncStatus;
+                Documents.Update(doc);
             }
+            await Db.SaveChangesAsync();
         }
 
         public abstract Task Sync();
