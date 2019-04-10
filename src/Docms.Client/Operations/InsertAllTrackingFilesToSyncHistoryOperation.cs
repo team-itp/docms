@@ -33,12 +33,12 @@ namespace Docms.Client.Operations
                 });
                 if (i % 1000 == 0)
                 {
-                    await context.Db.SaveChangesAsync();
+                    await context.Db.SaveChangesAsync().ConfigureAwait(false);
                 }
             }
             if (i % 1000 != 0)
             {
-                await context.Db.SaveChangesAsync();
+                await context.Db.SaveChangesAsync().ConfigureAwait(false);
             }
         }
     }

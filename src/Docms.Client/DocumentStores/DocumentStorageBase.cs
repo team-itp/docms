@@ -125,7 +125,7 @@ namespace Docms.Client.DocumentStores
             Db.ChangeTracker.Entries().ToList().ForEach(e => e.State = EntityState.Detached);
             Documents.RemoveRange(Documents);
             Documents.AddRange(Persist());
-            await Db.SaveChangesAsync();
+            await Db.SaveChangesAsync().ConfigureAwait(false);
         }
 
         public async Task Save(DocumentNode document)
@@ -133,7 +133,7 @@ namespace Docms.Client.DocumentStores
             var doc = await Documents.FindAsync(document.Path.ToString()).ConfigureAwait(false);
             if (doc == null)
             {
-                await Documents.AddAsync(Persist(document));
+                Documents.Add(Persist(document));
             }
             else
             {
@@ -144,7 +144,7 @@ namespace Docms.Client.DocumentStores
                 doc.SyncStatus = document.SyncStatus;
                 Documents.Update(doc);
             }
-            await Db.SaveChangesAsync();
+            await Db.SaveChangesAsync().ConfigureAwait(false);
         }
 
         public abstract Task Sync();

@@ -18,12 +18,12 @@ namespace Docms.Client.Operations
         {
             try
             {
-                await ExecuteApiOperationAsync(token);
+                await ExecuteApiOperationAsync(token).ConfigureAwait(false);
             }
             catch(ServerException ex) when(ex.StatusCode == (int)HttpStatusCode.Unauthorized)
             {
-                await api.VerifyTokenAsync();
-                await ExecuteApiOperationAsync(token);
+                await api.VerifyTokenAsync().ConfigureAwait(false);
+                await ExecuteApiOperationAsync(token).ConfigureAwait(false);
             }
         }
 

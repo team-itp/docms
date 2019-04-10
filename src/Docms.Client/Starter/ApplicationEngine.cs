@@ -21,14 +21,14 @@ namespace Docms.Client.Starter
 
         public async void Start()
         {
-            if (!await context.Db.SyncHistories.AnyAsync())
+            if (!await context.Db.SyncHistories.AnyAsync().ConfigureAwait(false))
             {
                 var initializationCompleted = false;
                 logger.Trace("InsertAllTrackingFilesToSyncHistoryTask started");
                 while (!app.IsShutdownRequested && !initializationCompleted)
                 {
                     var initTask = new InsertAllTrackingFilesToSyncHistoryTask(context);
-                    initializationCompleted = await ExecuteTaskSafely(initTask);
+                    initializationCompleted = await ExecuteTaskSafely(initTask).ConfigureAwait(false);
                 }
                 await Task.Delay(100);
                 logger.Trace("InsertAllTrackingFilesToSyncHistoryTask ended");
@@ -39,10 +39,10 @@ namespace Docms.Client.Starter
             {
                 logger.Trace("SyncTask started");
                 var initTask = new SyncTask(context);
-                await ExecuteTaskSafely(initTask);
-                await Task.Delay(100);
+                await ExecuteTaskSafely(initTask).ConfigureAwait(false);
+                await Task.Delay(100).ConfigureAwait(false);
                 logger.Trace("SyncTask ended");
-                await Task.Delay(TimeSpan.FromSeconds(10));
+                await Task.Delay(TimeSpan.FromSeconds(10)).ConfigureAwait(false);
             }
         }
 
@@ -50,13 +50,13 @@ namespace Docms.Client.Starter
         {
             try
             {
-                await task.ExecuteAsync();
+                await task.ExecuteAsync().ConfigureAwait(false);
                 return true;
             }
             catch (ServerException ex) when (ex.StatusCode >= 500)
             {
                 if (!app.IsShutdownRequested)
-                    await Task.Delay(TimeSpan.FromMinutes(1));
+                    await Task.Delay(TimeSpan.FromMinutes(1)).ConfigureAwait(false);
                 return false;
             }
             catch (Exception ex)

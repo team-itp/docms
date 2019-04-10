@@ -14,8 +14,8 @@ namespace Docms.Client.Operations
 
         protected override async Task ExecuteAsync(CancellationToken token)
         {
-            await context.LocalStorage.Sync();
-            await context.LocalStorage.Save();
+            await context.LocalStorage.Sync().ConfigureAwait(false);
+            await context.LocalStorage.Save().ConfigureAwait(false);
         }
     }
 }

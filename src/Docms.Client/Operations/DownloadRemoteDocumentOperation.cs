@@ -25,7 +25,7 @@ namespace Docms.Client.Operations
             {
                 return;
             }
-            using (var stream = await context.Api.DownloadAsync(path.ToString()))
+            using (var stream = await context.Api.DownloadAsync(path.ToString()).ConfigureAwait(false))
             {
                 if (!CanDownload(path))
                 {
@@ -34,11 +34,11 @@ namespace Docms.Client.Operations
                 var file = context.FileSystem.GetFileInfo(path);
                 if (file != null)
                 {
-                    await context.FileSystem.UpdateFile(path, stream, document.Created, document.LastModified);
+                    await context.FileSystem.UpdateFile(path, stream, document.Created, document.LastModified).ConfigureAwait(false);
                 }
                 else
                 {
-                    await context.FileSystem.CreateFile(path, stream, document.Created, document.LastModified);
+                    await context.FileSystem.CreateFile(path, stream, document.Created, document.LastModified).ConfigureAwait(false);
                 }
                 context.Db.SyncHistories.Add(new SyncHistory()
                 {
@@ -49,9 +49,9 @@ namespace Docms.Client.Operations
                     Hash = document.Hash,
                     Type = SyncHistoryType.Download
                 });
-                await context.Db.SaveChangesAsync();
+                await context.Db.SaveChangesAsync().ConfigureAwait(false);
                 document.Updated();
-                await context.RemoteStorage.Save(document);
+                await context.RemoteStorage.Save(document).ConfigureAwait(false);
             }
         }
 

@@ -60,7 +60,7 @@ namespace Docms.Client.Tests
             await sut.VerifyTokenAsync().ConfigureAwait(false);
             var entries = await sut.GetEntriesAsync("test1").ConfigureAwait(false);
             Assert.IsTrue(entries.Any(e => e.Path == "test1/test1.txt"));
-            var histories = await sut.GetHistoriesAsync("test1/test1.txt");
+            var histories = await sut.GetHistoriesAsync("test1/test1.txt").ConfigureAwait(false);
             var history = histories.LastOrDefault(e => e.Path == "test1/test1.txt") as DocumentCreatedHistory;
             Assert.AreEqual(new DateTime(2018, 10, 1, 0, 0, 0, DateTimeKind.Utc), history.Created);
             Assert.AreEqual(new DateTime(2018, 10, 2, 0, 0, 0, DateTimeKind.Utc), history.LastModified);
@@ -127,13 +127,13 @@ namespace Docms.Client.Tests
         {
             if (noConnection) Assert.Fail("接続不良のため失敗");
             await sut.VerifyTokenAsync().ConfigureAwait(false);
-            var histories = await sut.GetHistoriesAsync("");
+            var histories = await sut.GetHistoriesAsync("").ConfigureAwait(false);
             var first = histories.First();
             var second = histories.Skip(1).First();
             var third = histories.Skip(2).First();
-            var historiesExcludeFirst = await sut.GetHistoriesAsync("", first.Id);
+            var historiesExcludeFirst = await sut.GetHistoriesAsync("", first.Id).ConfigureAwait(false);
             Assert.AreEqual(second.Id, historiesExcludeFirst.First().Id);
-            var historiesExcludeFirstAndSecond = await sut.GetHistoriesAsync("", second.Id);
+            var historiesExcludeFirstAndSecond = await sut.GetHistoriesAsync("", second.Id).ConfigureAwait(false);
             Assert.AreEqual(third.Id, historiesExcludeFirstAndSecond.First().Id);
         }
     }

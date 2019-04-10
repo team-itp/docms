@@ -14,8 +14,8 @@ namespace Docms.Client.Operations
 
         protected override async Task ExecuteApiOperationAsync(CancellationToken token)
         {
-            await context.RemoteStorage.Sync();
-            await context.RemoteStorage.Save();
+            await context.RemoteStorage.Sync().ConfigureAwait(false);
+            await context.RemoteStorage.Save().ConfigureAwait(false);
         }
     }
 }

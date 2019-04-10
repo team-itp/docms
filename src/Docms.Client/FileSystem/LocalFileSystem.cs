@@ -104,7 +104,7 @@ namespace Docms.Client.FileSystem
         public async Task CreateFile(PathString path, Stream stream, DateTime created, DateTime lastModified)
         {
             var fullpath = GetFullPath(path);
-            await CreateDirectory(path.ParentPath);
+            await CreateDirectory(path.ParentPath).ConfigureAwait(false);
             if (Directory.Exists(fullpath)
                 && !Directory.GetFiles(fullpath).Any()
                 && !Directory.GetDirectories(fullpath).Any())
@@ -113,7 +113,7 @@ namespace Docms.Client.FileSystem
             }
             using (var fs = new FileStream(fullpath, FileMode.Create, FileAccess.Write, FileShare.None))
             {
-                await stream.CopyToAsync(fs);
+                await stream.CopyToAsync(fs).ConfigureAwait(false);
             }
             File.SetCreationTimeUtc(fullpath, created);
             File.SetLastWriteTimeUtc(fullpath, lastModified);
@@ -125,7 +125,7 @@ namespace Docms.Client.FileSystem
             using (var fs = new FileStream(fullpath, FileMode.Open, FileAccess.Write, FileShare.None))
             {
                 fs.SetLength(0);
-                await stream.CopyToAsync(fs);
+                await stream.CopyToAsync(fs).ConfigureAwait(false);
             }
             File.SetCreationTimeUtc(fullpath, created);
             File.SetLastWriteTimeUtc(fullpath, lastModified);
@@ -135,11 +135,11 @@ namespace Docms.Client.FileSystem
         {
             var fromFullpath = GetFullPath(fromPath);
             var toFullpath = GetFullPath(toPath);
-            await CreateDirectory(toPath.ParentPath);
+            await CreateDirectory(toPath.ParentPath).ConfigureAwait(false);
             var dirInfo = GetDirectoryInfo(toPath);
             if (dirInfo != null)
             {
-                await Delete(dirInfo.Path);
+                await Delete(dirInfo.Path).ConfigureAwait(false);
             }
             File.Move(fromFullpath, toFullpath);
         }

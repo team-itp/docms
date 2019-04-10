@@ -16,12 +16,12 @@ namespace Docms.Client.Tests.Utils
 
         public static async Task Update(IDocmsApiClient apiClient, string path)
         {
-            var file = await apiClient.GetDocumentAsync(path);
-            var stream = await apiClient.DownloadAsync(path);
+            var file = await apiClient.GetDocumentAsync(path).ConfigureAwait(false);
+            var stream = await apiClient.DownloadAsync(path).ConfigureAwait(false);
             var ms = new MemoryStream();
-            await stream.CopyToAsync(ms);
+            await stream.CopyToAsync(ms).ConfigureAwait(false);
             var str = Encoding.UTF8.GetString(ms.ToArray()) + " updated";
-            await apiClient.CreateOrUpdateDocumentAsync(path, new MemoryStream(Encoding.UTF8.GetBytes(str)), file.Created, file.LastModified.AddHours(1));
+            await apiClient.CreateOrUpdateDocumentAsync(path, new MemoryStream(Encoding.UTF8.GetBytes(str)), file.Created, file.LastModified.AddHours(1)).ConfigureAwait(false);
         }
 
         public static Task Move(IDocmsApiClient apiClient, string fromPath, string toPath)

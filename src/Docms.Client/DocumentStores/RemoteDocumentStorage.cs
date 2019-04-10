@@ -31,7 +31,7 @@ namespace Docms.Client.DocumentStores
         public override async Task Initialize()
         {
             await base.Initialize().ConfigureAwait(false);
-            var historyIds = await localDb.Histories.Select(h => h.Id).ToListAsync();
+            var historyIds = await localDb.Histories.Select(h => h.Id).ToListAsync().ConfigureAwait(false);
             foreach (var historyId in historyIds)
             {
                 appliedHistoryIds.Add(historyId);

@@ -20,11 +20,11 @@ namespace Docms.Client.Tests.Operations
         public async Task Setup()
         {
             context = new MockApplicationContext();
-            await FileSystemUtils.Create(context.FileSystem, "test1.txt");
-            await context.LocalStorage.Sync();
-            await DocmsApiUtils.Create(context.Api, "test1.txt");
-            await DocmsApiUtils.Create(context.Api, "dir1/test2.txt");
-            await context.RemoteStorage.Sync();
+            await FileSystemUtils.Create(context.FileSystem, "test1.txt").ConfigureAwait(false);
+            await context.LocalStorage.Sync().ConfigureAwait(false);
+            await DocmsApiUtils.Create(context.Api, "test1.txt").ConfigureAwait(false);
+            await DocmsApiUtils.Create(context.Api, "dir1/test2.txt").ConfigureAwait(false);
+            await context.RemoteStorage.Sync().ConfigureAwait(false);
         }
 
         [TestMethod]
@@ -32,7 +32,7 @@ namespace Docms.Client.Tests.Operations
         {
             var sut = new DeleteRemoteDocumentOperation(context, new PathString("dir1/test2.txt"), default(CancellationToken));
             sut.Start();
-            Assert.IsNull(await context.MockApi.GetDocumentAsync("dir1/test2.txt"));
+            Assert.IsNull(await context.MockApi.GetDocumentAsync("dir1/test2.txt").ConfigureAwait(false));
             Assert.IsTrue(context.Db.SyncHistories.Any());
         }
 

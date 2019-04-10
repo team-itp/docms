@@ -14,7 +14,7 @@ namespace Docms.Client.Tests.Utils
         public static async Task Create(IFileSystem fileSystem, string filePath)
         {
             var path = new PathString(filePath);
-            await fileSystem.CreateFile(path, new MemoryStream(Encoding.UTF8.GetBytes(filePath)), DEFAULT_CREATE_TIME, DEFAULT_CREATE_TIME);
+            await fileSystem.CreateFile(path, new MemoryStream(Encoding.UTF8.GetBytes(filePath)), DEFAULT_CREATE_TIME, DEFAULT_CREATE_TIME).ConfigureAwait(false);
         }
 
         public static async Task Update(IFileSystem fileSystem, string filepath)
@@ -26,11 +26,11 @@ namespace Docms.Client.Tests.Utils
             var ms = new MemoryStream();
             using (var fs = fi.OpenRead())
             {
-                await fs.CopyToAsync(ms);
+                await fs.CopyToAsync(ms).ConfigureAwait(false);
             }
             var str = Encoding.UTF8.GetString(ms.ToArray()) + " updated";
             ms = new MemoryStream(Encoding.UTF8.GetBytes(str));
-            await fileSystem.UpdateFile(path, ms, created, lastModified);
+            await fileSystem.UpdateFile(path, ms, created, lastModified).ConfigureAwait(false);
         }
 
         public static Task Move(IFileSystem fileSystem, string fromPath, string toPath)
@@ -56,14 +56,14 @@ namespace Docms.Client.Tests.Utils
             {
                 foreach (var dp in fileSystem.GetDirectories(p))
                 {
-                    await Delete(fileSystem, dp.ToString());
+                    await Delete(fileSystem, dp.ToString()).ConfigureAwait(false);
                 }
                 foreach (var fp in fileSystem.GetFiles(p))
                 {
-                    await fileSystem.Delete(fp);
+                    await fileSystem.Delete(fp).ConfigureAwait(false);
                 }
             }
-            await fileSystem.Delete(p);
+            await fileSystem.Delete(p).ConfigureAwait(false);
         }
     }
 }

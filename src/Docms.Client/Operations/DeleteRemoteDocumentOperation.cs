@@ -23,7 +23,7 @@ namespace Docms.Client.Operations
             var fi = context.FileSystem.GetFileInfo(path);
             if (fi == null)
             {
-                await context.Api.DeleteDocumentAsync(path.ToString());
+                await context.Api.DeleteDocumentAsync(path.ToString()).ConfigureAwait(false);
                 context.Db.SyncHistories.Add(new SyncHistory()
                 {
                     Id = Guid.NewGuid(),
@@ -33,9 +33,9 @@ namespace Docms.Client.Operations
                     Hash = document.Hash,
                     Type = SyncHistoryType.Delete
                 });
-                await context.Db.SaveChangesAsync();
+                await context.Db.SaveChangesAsync().ConfigureAwait(false);
                 document.Updated();
-                await context.RemoteStorage.Save(document);
+                await context.RemoteStorage.Save(document).ConfigureAwait(false);
             }
         }
     }

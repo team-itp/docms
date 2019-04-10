@@ -46,7 +46,7 @@ namespace Docms.Client.Operations
                 Type = SyncHistoryType.Upload
             });
             document.Updated();
-            await context.LocalStorage.Save(document);
+            await context.LocalStorage.Save(document).ConfigureAwait(false);
         }
     }
 }

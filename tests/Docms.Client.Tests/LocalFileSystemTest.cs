@@ -36,26 +36,26 @@ namespace Docms.Client.Tests
         [TestMethod]
         public async Task ファイルを作成する()
         {
-            await FileSystemUtils.Create(sut, "test1.txt");
+            await FileSystemUtils.Create(sut, "test1.txt").ConfigureAwait(false);
             Assert.IsTrue(File.Exists(Path.Combine(tempDir, "test1.txt")));
 
-            await FileSystemUtils.Create(sut, "dir1/test2.txt");
+            await FileSystemUtils.Create(sut, "dir1/test2.txt").ConfigureAwait(false);
             Assert.IsTrue(Directory.Exists(Path.Combine(tempDir, "dir1")));
             Assert.IsTrue(File.Exists(Path.Combine(tempDir, "dir1/test2.txt")));
 
-            await FileSystemUtils.Create(sut, "dir1/test3.txt");
+            await FileSystemUtils.Create(sut, "dir1/test3.txt").ConfigureAwait(false);
             Assert.IsTrue(File.Exists(Path.Combine(tempDir, "dir1/test3.txt")));
         }
 
         [TestMethod]
         public async Task ファイルを削除する()
         {
-            await FileSystemUtils.Create(sut, "test1.txt");
-            await FileSystemUtils.Create(sut, "dir1/test2.txt");
-            await FileSystemUtils.Create(sut, "dir1/test3.txt");
+            await FileSystemUtils.Create(sut, "test1.txt").ConfigureAwait(false);
+            await FileSystemUtils.Create(sut, "dir1/test2.txt").ConfigureAwait(false);
+            await FileSystemUtils.Create(sut, "dir1/test3.txt").ConfigureAwait(false);
 
-            await sut.Delete(new PathString("test1.txt"));
-            await sut.Delete(new PathString("dir1/test2.txt"));
+            await sut.Delete(new PathString("test1.txt")).ConfigureAwait(false);
+            await sut.Delete(new PathString("dir1/test2.txt")).ConfigureAwait(false);
 
             Assert.IsFalse(File.Exists(Path.Combine(tempDir, "test1.txt")));
             Assert.IsTrue(Directory.Exists(Path.Combine(tempDir, "dir1")));
@@ -66,10 +66,10 @@ namespace Docms.Client.Tests
         [TestMethod]
         public async Task 空のフォルダにファイルを作成する()
         {
-            await FileSystemUtils.Create(sut, "dir1/test2.txt");
-            await sut.Delete(new PathString("dir1/test2.txt"));
+            await FileSystemUtils.Create(sut, "dir1/test2.txt").ConfigureAwait(false);
+            await sut.Delete(new PathString("dir1/test2.txt")).ConfigureAwait(false);
 
-            await FileSystemUtils.Create(sut, "dir1");
+            await FileSystemUtils.Create(sut, "dir1").ConfigureAwait(false);
 
             Assert.IsFalse(Directory.Exists(Path.Combine(tempDir, "dir1")));
             Assert.IsTrue(File.Exists(Path.Combine(tempDir, "dir1")));
@@ -78,11 +78,11 @@ namespace Docms.Client.Tests
         [TestMethod]
         public async Task ファイルとディレクトリの一覧を取得する()
         {
-            await FileSystemUtils.Create(sut, "test1.txt");
-            await FileSystemUtils.Create(sut, "test2.txt");
-            await FileSystemUtils.Create(sut, "dir1/test3.txt");
-            await FileSystemUtils.Create(sut, "dir1/test4.txt");
-            await FileSystemUtils.Create(sut, "dir1/subDir2/test5.txt");
+            await FileSystemUtils.Create(sut, "test1.txt").ConfigureAwait(false);
+            await FileSystemUtils.Create(sut, "test2.txt").ConfigureAwait(false);
+            await FileSystemUtils.Create(sut, "dir1/test3.txt").ConfigureAwait(false);
+            await FileSystemUtils.Create(sut, "dir1/test4.txt").ConfigureAwait(false);
+            await FileSystemUtils.Create(sut, "dir1/subDir2/test5.txt").ConfigureAwait(false);
             using (var files = sut.GetFiles(PathString.Root).GetEnumerator())
             {
                 Assert.IsTrue(files.MoveNext());
@@ -125,23 +125,23 @@ namespace Docms.Client.Tests
         [TestMethod]
         public async Task ファイルを移動する()
         {
-            await FileSystemUtils.Create(sut, "test1.txt");
+            await FileSystemUtils.Create(sut, "test1.txt").ConfigureAwait(false);
             var hash1 = sut.GetFileInfo(new PathString("test1.txt")).CalculateHash();
 
-            await sut.Move(new PathString("test1.txt"), new PathString("test2.txt"));
+            await sut.Move(new PathString("test1.txt"), new PathString("test2.txt")).ConfigureAwait(false);
 
             Assert.IsTrue(File.Exists(Path.Combine(tempDir, "test2.txt")));
             Assert.IsFalse(File.Exists(Path.Combine(tempDir, "test1.txt")));
 
-            await sut.Move(new PathString("test2.txt"), new PathString("dir1/test3.txt"));
+            await sut.Move(new PathString("test2.txt"), new PathString("dir1/test3.txt")).ConfigureAwait(false);
             Assert.IsTrue(File.Exists(Path.Combine(tempDir, "dir1/test3.txt")));
             Assert.IsFalse(File.Exists(Path.Combine(tempDir, "test2.txt")));
 
-            await sut.Move(new PathString("dir1/test3.txt"), new PathString("dir1/test4.txt"));
+            await sut.Move(new PathString("dir1/test3.txt"), new PathString("dir1/test4.txt")).ConfigureAwait(false);
             Assert.IsTrue(File.Exists(Path.Combine(tempDir, "dir1/test4.txt")));
             Assert.IsFalse(File.Exists(Path.Combine(tempDir, "dir1/test3.txt")));
 
-            await sut.Move(new PathString("dir1/test4.txt"), new PathString("test5.txt"));
+            await sut.Move(new PathString("dir1/test4.txt"), new PathString("test5.txt")).ConfigureAwait(false);
             Assert.IsTrue(File.Exists(Path.Combine(tempDir, "test5.txt")));
             Assert.IsFalse(File.Exists(Path.Combine(tempDir, "dir1/test4.txt")));
 

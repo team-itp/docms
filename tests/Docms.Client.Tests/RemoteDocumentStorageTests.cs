@@ -27,8 +27,8 @@ namespace Docms.Client.Tests
         [TestMethod]
         public async Task サーバーから履歴を読み込んでディレクトリ構造を構築する_ファイルがRootに一件の場合()
         {
-            await DocmsApiUtils.Create(apiClient, "file1.txt");
-            await sut.Sync();
+            await DocmsApiUtils.Create(apiClient, "file1.txt").ConfigureAwait(false);
+            await sut.Sync().ConfigureAwait(false);
             var nodes = (sut.GetNode(PathString.Root) as ContainerNode).Children;
             Assert.AreEqual(1, nodes.Count());
             Assert.AreEqual(new PathString("file1.txt"), nodes.First().Path);
@@ -37,9 +37,9 @@ namespace Docms.Client.Tests
         [TestMethod]
         public async Task サーバーから履歴を読み込んでディレクトリ構造を構築する_ファイルがRootに二件の場合()
         {
-            await DocmsApiUtils.Create(apiClient, "file1.txt");
-            await DocmsApiUtils.Create(apiClient, "file2.txt");
-            await sut.Sync();
+            await DocmsApiUtils.Create(apiClient, "file1.txt").ConfigureAwait(false);
+            await DocmsApiUtils.Create(apiClient, "file2.txt").ConfigureAwait(false);
+            await sut.Sync().ConfigureAwait(false);
             var nodes = (sut.GetNode(PathString.Root) as ContainerNode).Children;
             Assert.AreEqual(2, nodes.Count());
             Assert.AreEqual(new PathString("file1.txt"), nodes.First().Path);
@@ -49,10 +49,10 @@ namespace Docms.Client.Tests
         [TestMethod]
         public async Task サーバーから履歴を読み込んでディレクトリ構造を構築する_ファイルがルートに1件とサブフォルダに2件の場合()
         {
-            await DocmsApiUtils.Create(apiClient, "file1.txt");
-            await DocmsApiUtils.Create(apiClient, "dir/file1.txt");
-            await DocmsApiUtils.Create(apiClient, "dir/file2.txt");
-            await sut.Sync();
+            await DocmsApiUtils.Create(apiClient, "file1.txt").ConfigureAwait(false);
+            await DocmsApiUtils.Create(apiClient, "dir/file1.txt").ConfigureAwait(false);
+            await DocmsApiUtils.Create(apiClient, "dir/file2.txt").ConfigureAwait(false);
+            await sut.Sync().ConfigureAwait(false);
             var nodes = (sut.GetNode(PathString.Root) as ContainerNode).Children;
             Assert.AreEqual(2, nodes.Count());
             var dir = nodes.First() as ContainerNode;
@@ -65,11 +65,11 @@ namespace Docms.Client.Tests
         [TestMethod]
         public async Task サーバーから履歴を読み込んでディレクトリ構造を構築する_更新()
         {
-            await DocmsApiUtils.Create(apiClient, "file1.txt");
-            await DocmsApiUtils.Create(apiClient, "dir1/file2.txt");
-            await DocmsApiUtils.Update(apiClient, "file1.txt");
-            await DocmsApiUtils.Update(apiClient, "dir1/file2.txt");
-            await sut.Sync();
+            await DocmsApiUtils.Create(apiClient, "file1.txt").ConfigureAwait(false);
+            await DocmsApiUtils.Create(apiClient, "dir1/file2.txt").ConfigureAwait(false);
+            await DocmsApiUtils.Update(apiClient, "file1.txt").ConfigureAwait(false);
+            await DocmsApiUtils.Update(apiClient, "dir1/file2.txt").ConfigureAwait(false);
+            await sut.Sync().ConfigureAwait(false);
             var rootNodes = (sut.GetNode(PathString.Root) as ContainerNode).Children;
             Assert.AreEqual(2, rootNodes.Count());
 
@@ -94,16 +94,16 @@ namespace Docms.Client.Tests
         [TestMethod]
         public async Task サーバーから履歴を読み込んでディレクトリ構造を構築する_移動()
         {
-            await DocmsApiUtils.Create(apiClient, "file1.txt");
-            await DocmsApiUtils.Create(apiClient, "dir1/file2.txt");
-            await DocmsApiUtils.Create(apiClient, "file3.txt");
-            await DocmsApiUtils.Update(apiClient, "file1.txt");
-            await DocmsApiUtils.Update(apiClient, "dir1/file2.txt");
-            await DocmsApiUtils.Move(apiClient, "file1.txt", "file1_moved.txt");
-            await DocmsApiUtils.Move(apiClient, "dir1/file2.txt", "file2_moved.txt");
-            await DocmsApiUtils.Move(apiClient, "file3.txt", "dir1/file3.txt");
-            await DocmsApiUtils.Move(apiClient, "dir1/file3.txt", "file3_moved.txt");
-            await sut.Sync();
+            await DocmsApiUtils.Create(apiClient, "file1.txt").ConfigureAwait(false);
+            await DocmsApiUtils.Create(apiClient, "dir1/file2.txt").ConfigureAwait(false);
+            await DocmsApiUtils.Create(apiClient, "file3.txt").ConfigureAwait(false);
+            await DocmsApiUtils.Update(apiClient, "file1.txt").ConfigureAwait(false);
+            await DocmsApiUtils.Update(apiClient, "dir1/file2.txt").ConfigureAwait(false);
+            await DocmsApiUtils.Move(apiClient, "file1.txt", "file1_moved.txt").ConfigureAwait(false);
+            await DocmsApiUtils.Move(apiClient, "dir1/file2.txt", "file2_moved.txt").ConfigureAwait(false);
+            await DocmsApiUtils.Move(apiClient, "file3.txt", "dir1/file3.txt").ConfigureAwait(false);
+            await DocmsApiUtils.Move(apiClient, "dir1/file3.txt", "file3_moved.txt").ConfigureAwait(false);
+            await sut.Sync().ConfigureAwait(false);
             var rootNodes = (sut.GetNode(PathString.Root) as ContainerNode).Children;
             Assert.AreEqual(3, rootNodes.Count());
 
@@ -126,19 +126,19 @@ namespace Docms.Client.Tests
         [TestMethod]
         public async Task データベースにデータを保存し再構築する()
         {
-            await DocmsApiUtils.Create(apiClient, "file1.txt");
-            await DocmsApiUtils.Create(apiClient, "dir1/file2.txt");
-            await DocmsApiUtils.Update(apiClient, "file1.txt");
-            await DocmsApiUtils.Update(apiClient, "dir1/file2.txt");
-            await sut.Sync();
-            await sut.Save();
+            await DocmsApiUtils.Create(apiClient, "file1.txt").ConfigureAwait(false);
+            await DocmsApiUtils.Create(apiClient, "dir1/file2.txt").ConfigureAwait(false);
+            await DocmsApiUtils.Update(apiClient, "file1.txt").ConfigureAwait(false);
+            await DocmsApiUtils.Update(apiClient, "dir1/file2.txt").ConfigureAwait(false);
+            await sut.Sync().ConfigureAwait(false);
+            await sut.Save().ConfigureAwait(false);
 
             sut = new RemoteDocumentStorage(apiClient, localDb);
-            await sut.Initialize();
-            await sut.Save();
+            await sut.Initialize().ConfigureAwait(false);
+            await sut.Save().ConfigureAwait(false);
 
             sut = new RemoteDocumentStorage(apiClient, localDb);
-            await sut.Initialize();
+            await sut.Initialize().ConfigureAwait(false);
 
             var rootNodes = (sut.GetNode(PathString.Root) as ContainerNode).Children;
             Assert.AreEqual(2, rootNodes.Count());

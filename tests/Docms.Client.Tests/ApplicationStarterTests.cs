@@ -44,7 +44,7 @@ namespace Docms.Client.Tests
         {
             Directory.Delete(watchPath, true);
             sut = new ApplicationStarter(watchPath, SERVER_URL, CLIENT_ID, USER_NAME, PASSWORD);
-            Assert.IsFalse(await sut.StartAsync(app));
+            Assert.IsFalse(await sut.StartAsync(app).ConfigureAwait(false));
         }
 
 
@@ -55,7 +55,7 @@ namespace Docms.Client.Tests
             using (var stream = File.Open(Path.Combine(watchPath, ".docms", "data.db"), FileMode.CreateNew, FileAccess.Write, FileShare.None))
             {
                 sut = new ApplicationStarter(watchPath, SERVER_URL, CLIENT_ID, USER_NAME, PASSWORD);
-                Assert.IsFalse(await sut.StartAsync(app));
+                Assert.IsFalse(await sut.StartAsync(app).ConfigureAwait(false));
             }
         }
 
@@ -63,14 +63,14 @@ namespace Docms.Client.Tests
         public async Task 初期化処理でログインに失敗した場合戻り値がFalseになる()
         {
             sut = new ApplicationStarter(watchPath, SERVER_URL, CLIENT_ID, USER_NAME, "invalid_password");
-            Assert.IsFalse(await sut.StartAsync(app));
+            Assert.IsFalse(await sut.StartAsync(app).ConfigureAwait(false));
         }
 
         [TestMethod]
         public async Task 初期化処理が完了した場合戻り値がTrueになる()
         {
             sut = new ApplicationStarter(watchPath, SERVER_URL, CLIENT_ID, USER_NAME, PASSWORD);
-            Assert.IsTrue(await sut.StartAsync(app));
+            Assert.IsTrue(await sut.StartAsync(app).ConfigureAwait(false));
         }
     }
 }

@@ -139,7 +139,7 @@ namespace Docms.Client.Api
             var result = await _client.ExecuteTaskAsync(request).ConfigureAwait(false);
             if (result.StatusCode == HttpStatusCode.Unauthorized)
             {
-                await LoginAsync(_username, _password);
+                await LoginAsync(_username, _password).ConfigureAwait(false);
                 result = await _client.ExecuteTaskAsync(request).ConfigureAwait(false);
             }
             return result;
@@ -228,7 +228,7 @@ namespace Docms.Client.Api
             {
                 using (var tempFs = new FileStream(tempFile, FileMode.Create, FileAccess.ReadWrite, FileShare.ReadWrite))
                 {
-                    await stream.CopyToAsync(tempFs);
+                    await stream.CopyToAsync(tempFs).ConfigureAwait(false);
                     tempFs.Seek(0, SeekOrigin.Begin);
                     await CreateOrUpdateDocumentAsync(path, tempFs, tempFs.Length, created, lastModified).ConfigureAwait(false);
                     return;

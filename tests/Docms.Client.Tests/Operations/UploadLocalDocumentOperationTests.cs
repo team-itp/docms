@@ -20,15 +20,15 @@ namespace Docms.Client.Tests.Operations
         public async Task Setup()
         {
             context = new MockApplicationContext();
-            await FileSystemUtils.Create(context.FileSystem, "test1.txt");
-            await FileSystemUtils.Create(context.FileSystem, "dir1/test2.txt");
-            await context.MockLocalStorage.Sync();
+            await FileSystemUtils.Create(context.FileSystem, "test1.txt").ConfigureAwait(false);
+            await FileSystemUtils.Create(context.FileSystem, "dir1/test2.txt").ConfigureAwait(false);
+            await context.MockLocalStorage.Sync().ConfigureAwait(false);
         }
 
         [TestMethod]
         public async Task ファイルが存在しない場合アップロードされずに終了する()
         {
-            await context.FileSystem.Delete(new PathString("dir1/test2.txt"));
+            await context.FileSystem.Delete(new PathString("dir1/test2.txt")).ConfigureAwait(false);
             var sut = new UploadLocalDocumentOperation(context, new PathString("dir1/test2.txt"), default(CancellationToken));
             sut.Start();
             Assert.AreEqual(0, context.MockApi.histories.Count);

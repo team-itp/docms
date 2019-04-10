@@ -65,7 +65,8 @@ namespace Docms.Client.Operations
                 task.ContinueWith(t => tcs.SetResult(null), TaskContinuationOptions.OnlyOnRanToCompletion);
                 task.ContinueWith(t => tcs.SetException(t.Exception.InnerException), TaskContinuationOptions.OnlyOnFaulted);
                 task.ContinueWith(t => tcs.SetCanceled(), TaskContinuationOptions.OnlyOnCanceled);
-                tcs.Task.Wait();
+                Task.WaitAny(tcs.Task, task);
+                tcs.Task.Wait(10);
             }
             catch
             {

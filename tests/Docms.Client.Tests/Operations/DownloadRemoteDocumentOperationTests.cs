@@ -19,8 +19,8 @@ namespace Docms.Client.Tests.Operations
         public async Task Setup()
         {
             context = new MockApplicationContext();
-            await DocmsApiUtils.Create(context.Api, "test1.txt");
-            await context.MockRemoteStorage.Sync();
+            await DocmsApiUtils.Create(context.Api, "test1.txt").ConfigureAwait(false);
+            await context.MockRemoteStorage.Sync().ConfigureAwait(false);
         }
 
         [TestMethod]

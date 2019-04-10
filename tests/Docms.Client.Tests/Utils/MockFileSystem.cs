@@ -60,7 +60,7 @@ namespace Docms.Client.Tests.Utils
                 var parentDirInfo = GetDirectoryInfo(path.ParentPath) as MockDirectoryInfo;
                 if (parentDirInfo == null)
                 {
-                    await CreateDirectory(path.ParentPath);
+                    await CreateDirectory(path.ParentPath).ConfigureAwait(false);
                     parentDirInfo = GetDirectoryInfo(path.ParentPath) as MockDirectoryInfo;
                 }
                 var dir = parentDirInfo.Directories.FirstOrDefault(d => d.Path.Equals(path));
@@ -74,7 +74,7 @@ namespace Docms.Client.Tests.Utils
 
         public async Task CreateFile(PathString path, Stream stream, DateTime created, DateTime lastModified)
         {
-            await CreateDirectory(path.ParentPath);
+            await CreateDirectory(path.ParentPath).ConfigureAwait(false);
             var parentDir = GetDirectoryInfo(path.ParentPath) as MockDirectoryInfo;
             if (parentDir.Directories.FirstOrDefault(d => d.Path.Equals(path)) is MockDirectoryInfo dir)
             {
@@ -85,7 +85,7 @@ namespace Docms.Client.Tests.Utils
                 parentDir.Directories.Remove(dir);
             }
             var ms = new MemoryStream();
-            await stream.CopyToAsync(ms);
+            await stream.CopyToAsync(ms).ConfigureAwait(false);
             parentDir.Files.Add(new MockFileInfo(path, ms.ToArray(), created, lastModified));
         }
 
@@ -93,7 +93,7 @@ namespace Docms.Client.Tests.Utils
         {
             var fileInfo = GetFileInfo(path) as MockFileInfo;
             var ms = new MemoryStream();
-            await stream.CopyToAsync(ms);
+            await stream.CopyToAsync(ms).ConfigureAwait(false);
             fileInfo.SetData(ms.ToArray());
             fileInfo.SetCreated(created);
             fileInfo.SetLastModified(lastModified);
@@ -102,8 +102,8 @@ namespace Docms.Client.Tests.Utils
         public async Task Move(PathString fromPath, PathString toPath)
         {
             var fileInfo = GetFileInfo(fromPath);
-            await CreateFile(toPath, fileInfo.OpenRead(), fileInfo.Created, fileInfo.LastModified);
-            await Delete(fromPath);
+            await CreateFile(toPath, fileInfo.OpenRead(), fileInfo.Created, fileInfo.LastModified).ConfigureAwait(false);
+            await Delete(fromPath).ConfigureAwait(false);
         }
 
         public Task Delete(PathString path)

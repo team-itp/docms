@@ -33,15 +33,15 @@ namespace Docms.Client.Tasks
         public async Task ExecuteAsync()
         {
             context.CurrentTask = this;
-            await ExecuteOperationAsync(new LocalDocumentStorageSyncOperation(context));
-            await ExecuteOperationAsync(new RemoteDocumentStorageSyncOperation(context));
-            await ExecuteOperationAsync(new DetermineDiffOperation(context));
+            await ExecuteOperationAsync(new LocalDocumentStorageSyncOperation(context)).ConfigureAwait(false);
+            await ExecuteOperationAsync(new RemoteDocumentStorageSyncOperation(context)).ConfigureAwait(false);
+            await ExecuteOperationAsync(new DetermineDiffOperation(context)).ConfigureAwait(false);
             if (prevResult == null || !(prevResult is DetermineDiffOperationResult diffOpResult) || diffOpResult.Diffs.Count == 0)
             {
                 IsCompleted = true;
                 return;
             }
-            await ExecuteOperationAsync(new ChangesIntoOperationsOperation(context, diffOpResult));
+            await ExecuteOperationAsync(new ChangesIntoOperationsOperation(context, diffOpResult)).ConfigureAwait(false);
             if (prevResult == null || !(prevResult is ChangesIntoOperationsOperationResult operationsResult) || operationsResult.Operations.Count == 0)
             {
                 IsCompleted = true;
@@ -52,7 +52,7 @@ namespace Docms.Client.Tasks
             {
                 try
                 {
-                    await ExecuteOperationAsync(op);
+                    await ExecuteOperationAsync(op).ConfigureAwait(false);
                 }
                 catch (Exception ex)
                 {
