@@ -13,8 +13,8 @@ namespace Docms.Client.DocumentStores
         DocumentNode GetDocument(PathString path);
         Node GetNode(PathString path);
         Task Initialize();
-        Task Save();
-        Task Save(DocumentNode documnet);
+        Task Save(CancellationToken token = default(CancellationToken));
+        Task Save(DocumentNode documnet, CancellationToken token = default(CancellationToken));
         Task Sync(CancellationToken token = default(CancellationToken));
     }
 }

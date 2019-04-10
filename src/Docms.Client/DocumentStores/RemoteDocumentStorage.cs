@@ -116,10 +116,10 @@ namespace Docms.Client.DocumentStores
             };
         }
 
-        public override async Task Save()
+        public override async Task Save(CancellationToken cancellationToken = default(CancellationToken))
         {
             Db.Histories.AddRange(historiesToAdd);
-            await base.Save().ConfigureAwait(false);
+            await base.Save(cancellationToken).ConfigureAwait(false);
             historiesToAdd.Clear();
         }
     }

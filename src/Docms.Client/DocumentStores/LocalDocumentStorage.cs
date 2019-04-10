@@ -31,6 +31,7 @@ namespace Docms.Client.DocumentStores
 
         private void SyncInternal(ContainerNode node, CancellationToken cancellationToken)
         {
+            cancellationToken.ThrowIfCancellationRequested();
             var nodePath = node.Path;
             var files = new List<PathString>();
             files.AddRange(node.Children.OfType<DocumentNode>().Select(n => n.Path));

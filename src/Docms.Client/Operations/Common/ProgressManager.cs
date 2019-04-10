@@ -82,19 +82,22 @@ namespace Docms.Client.Operations
         {
             return t =>
             {
-                if (t.IsCanceled)
+                if (_progresses.TryGetValue(operation, out var value))
                 {
-                    _progresses[operation].Canceled();
+                    if (t.IsCanceled)
+                    {
+                        value.Canceled();
+                    }
+                    else if (t.IsFaulted)
+                    {
+                        value.Faulted(t.Exception.Flatten().InnerException);
+                    }
+                    else
+                    {
+                        value.Progress(100);
+                    }
+                    Unregister(operation);
                 }
-                else if (t.IsFaulted)
-                {
-                    _progresses[operation].Faulted(t.Exception.Flatten().InnerException);
-                }
-                else
-                {
-                    _progresses[operation].Progress(100);
-                }
-                Unregister(operation);
             };
         }
 
@@ -102,7 +105,8 @@ namespace Docms.Client.Operations
         {
             return new EventHandler<int>((o, e) =>
             {
-                _progresses[operation].Progress(e);
+                _progresses.TryGetValue(operation, out var value);
+                value?.Progress(e);
             });
         }
     }

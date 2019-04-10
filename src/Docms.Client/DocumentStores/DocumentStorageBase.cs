@@ -121,16 +121,18 @@ namespace Docms.Client.DocumentStores
             return Task.CompletedTask;
         }
 
-        public virtual async Task Save()
+        public virtual async Task Save(CancellationToken cancellationToken = default(CancellationToken))
         {
+            cancellationToken.ThrowIfCancellationRequested();
             Db.ChangeTracker.Entries().ToList().ForEach(e => e.State = EntityState.Detached);
             Documents.RemoveRange(Documents);
             Documents.AddRange(Persist());
-            await Db.SaveChangesAsync().ConfigureAwait(false);
+            await Db.SaveChangesAsync(cancellationToken).ConfigureAwait(false);
         }
 
-        public async Task Save(DocumentNode document)
+        public async Task Save(DocumentNode document, CancellationToken cancellationToken = default(CancellationToken))
         {
+            cancellationToken.ThrowIfCancellationRequested();
             var doc = await Documents.FindAsync(document.Path.ToString()).ConfigureAwait(false);
             if (doc == null)
             {
