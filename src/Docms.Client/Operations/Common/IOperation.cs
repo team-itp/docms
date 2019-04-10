@@ -1,4 +1,5 @@
-﻿using System.Threading.Tasks;
+﻿using System;
+using System.Threading.Tasks;
 
 namespace Docms.Client.Operations
 {
@@ -6,6 +7,7 @@ namespace Docms.Client.Operations
     {
         bool IsAborted { get; }
         Task Task { get; }
+        Progress<int> Progress { get; }
 
         void Abort();
         void Start();

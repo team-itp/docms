@@ -4,16 +4,17 @@ using System.Threading.Tasks;
 
 namespace Docms.Client.Operations
 {
-    public abstract class SyncOperationBase : IOperation
+    public abstract class OperationBase : IOperation
     {
         private TaskCompletionSource<object> tcs;
         private CancellationTokenSource cts;
         private bool isStarted;
         private bool isFinished;
 
-        public SyncOperationBase(CancellationToken cancellationToken = default(CancellationToken))
+        public OperationBase(CancellationToken cancellationToken = default(CancellationToken))
         {
             IsAborted = cancellationToken.IsCancellationRequested;
+            Progress = new Progress<int>();
             if (IsAborted)
             {
                 Task = Task.FromCanceled(cancellationToken);
@@ -28,8 +29,9 @@ namespace Docms.Client.Operations
             cancellationToken.Register(() => Abort());
         }
 
-        public Task Task { get; private set; }
+        public Task Task { get; }
         public bool IsAborted { get; private set; }
+        public Progress<int> Progress { get; }
 
         public void Abort()
         {
@@ -64,6 +66,18 @@ namespace Docms.Client.Operations
                 Execute(cts.Token);
                 tcs.SetResult(null);
             }
+            catch (AggregateException ex)
+            {
+                var innerException = ex.Flatten().InnerException;
+                if (innerException is OperationCanceledException)
+                {
+                    tcs.SetCanceled();
+                }
+                else
+                {
+                    tcs.SetException(innerException);
+                }
+            }
             catch (OperationCanceledException)
             {
                 tcs.SetCanceled();
@@ -75,10 +89,15 @@ namespace Docms.Client.Operations
             finally
             {
                 isFinished = true;
+                ReportProgress(100);
             }
-
         }
 
-        protected abstract void Execute(CancellationToken token);
+        protected void ReportProgress(int progress)
+        {
+            (Progress as IProgress<int>).Report(progress);
+        }
+
+        protected abstract void Execute(CancellationToken cancellationToken);
     }
 }

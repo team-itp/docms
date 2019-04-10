@@ -212,30 +212,46 @@ namespace Docms.Client.Tests
         }
 
         [TestMethod]
-        public void 処理中に例外が発生した場合にタスクがエラーになる_同期の場合()
+        public async Task 処理中に例外が発生した場合にタスクがエラーになる_同期の場合()
         {
             var sut = new GenericAsyncOperation(token =>
             {
-                throw new Exception();
+                throw new Exception("message");
             });
             sut.Start();
 
             Assert.IsFalse(sut.IsAborted);
             Assert.AreEqual(TaskStatus.Faulted, sut.Task.Status);
+            try
+            {
+                await sut.Task;
+            }
+            catch (Exception ex)
+            {
+                Assert.AreEqual("message", ex.Message);
+            }
         }
 
         [TestMethod]
-        public void 処理中に例外が発生した場合にタスクがエラーになる_非同期の場合()
+        public async Task 処理中に例外が発生した場合にタスクがエラーになる_非同期の場合()
         {
             var sut = new GenericAsyncOperation(async token =>
             {
                 await Task.Yield();
-                throw new Exception();
+                throw new Exception("message");
             });
             sut.Start();
 
             Assert.IsFalse(sut.IsAborted);
             Assert.AreEqual(TaskStatus.Faulted, sut.Task.Status);
+            try
+            {
+                await sut.Task;
+            }
+            catch (Exception ex)
+            {
+                Assert.AreEqual("message", ex.Message);
+            }
         }
     }
 }

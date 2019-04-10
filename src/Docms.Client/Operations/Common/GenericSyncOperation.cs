@@ -3,7 +3,7 @@ using System.Threading;
 
 namespace Docms.Client.Operations
 {
-    public class GenericSyncOperation : SyncOperationBase
+    public class GenericSyncOperation : OperationBase
     {
         private Action<CancellationToken> action;
 

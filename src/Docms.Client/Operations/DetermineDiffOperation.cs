@@ -14,7 +14,7 @@ namespace Docms.Client.Operations
         }
     }
 
-    public class DetermineDiffOperation : SyncOperationBase
+    public class DetermineDiffOperation : OperationBase
     {
         private ApplicationContext context;
 

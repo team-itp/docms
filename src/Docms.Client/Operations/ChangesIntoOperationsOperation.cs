@@ -16,7 +16,7 @@ namespace Docms.Client.Operations
         }
     }
 
-    public class ChangesIntoOperationsOperation : SyncOperationBase
+    public class ChangesIntoOperationsOperation : OperationBase
     {
         private ApplicationContext context;
         private DetermineDiffOperationResult prevResult;
