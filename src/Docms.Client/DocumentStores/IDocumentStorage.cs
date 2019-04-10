@@ -1,5 +1,6 @@
 ﻿using Docms.Client.Documents;
 using Docms.Client.Types;
+using System.Threading;
 using System.Threading.Tasks;
 
 namespace Docms.Client.DocumentStores
@@ -14,6 +15,6 @@ namespace Docms.Client.DocumentStores
         Task Initialize();
         Task Save();
         Task Save(DocumentNode documnet);
-        Task Sync();
+        Task Sync(CancellationToken token = default(CancellationToken));
     }
 }

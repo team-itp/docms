@@ -82,6 +82,7 @@ namespace Docms.Client.Tests
             var task = Task.Run(() => sut.Run());
             sut.Invoke(new GenericSyncOperation(token =>
             {
+                token.Register(() => are2.Set());
                 executed1 = true;
                 are1.Set();
                 are2.WaitOne();
@@ -95,9 +96,8 @@ namespace Docms.Client.Tests
             Assert.IsTrue(executed1);
             Assert.IsFalse(executed2);
 
-            sut.Shutdown();
-            are2.Set();
-            task.Wait();
+            var shutdownTask = Task.Run(() => sut.Shutdown());
+            Task.WaitAll(new[] { task, shutdownTask }, 100);
             Assert.IsFalse(executed2);
         }
 

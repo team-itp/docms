@@ -3,10 +3,10 @@ using Docms.Client.Documents;
 using Docms.Client.FileSystem;
 using Docms.Client.Types;
 using NLog;
-using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using System.Threading;
 using System.Threading.Tasks;
 
 namespace Docms.Client.DocumentStores
@@ -23,13 +23,13 @@ namespace Docms.Client.DocumentStores
             this.fileSystem = fileSystem;
         }
 
-        public override Task Sync()
+        public override Task Sync(CancellationToken cancellationToken = default(CancellationToken))
         {
-            SyncInternal(Root);
+            SyncInternal(Root, cancellationToken);
             return Task.CompletedTask;
         }
 
-        private void SyncInternal(ContainerNode node)
+        private void SyncInternal(ContainerNode node, CancellationToken cancellationToken)
         {
             var nodePath = node.Path;
             var files = new List<PathString>();
@@ -47,13 +47,13 @@ namespace Docms.Client.DocumentStores
                 {
                     if (dirNode != null)
                     {
-                        SyncInternal(dirNode as ContainerNode);
+                        SyncInternal(dirNode as ContainerNode, cancellationToken);
                     }
                     else
                     {
                         dirNode = new ContainerNode(dirpath.Name);
                         node.AddChild(dirNode);
-                        SyncInternal(dirNode);
+                        SyncInternal(dirNode, cancellationToken);
                     }
                 }
                 else if (dirNode != null)

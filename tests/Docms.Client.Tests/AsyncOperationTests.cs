@@ -49,7 +49,10 @@ namespace Docms.Client.Tests
         {
             var executed = false;
             var cts = new CancellationTokenSource();
-            var sut = new GenericAsyncOperation(token => { executed = true; return Task.CompletedTask; }, cts.Token);
+            var sut = new GenericAsyncOperation(token => {
+                executed = true;
+                return Task.CompletedTask;
+            }, cts.Token);
             cts.Cancel();
             Assert.IsTrue(sut.IsAborted);
             Assert.AreEqual(TaskStatus.Canceled, sut.Task.Status);

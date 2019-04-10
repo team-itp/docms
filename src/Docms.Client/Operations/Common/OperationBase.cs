@@ -26,7 +26,7 @@ namespace Docms.Client.Operations
                 cts = new CancellationTokenSource();
                 Task = tcs.Task;
             }
-            cancellationToken.Register(() => Abort());
+            cancellationToken.Register(() => AbortInternal(false));
         }
 
         public Task Task { get; }
@@ -34,6 +34,11 @@ namespace Docms.Client.Operations
         public Progress<int> Progress { get; }
 
         public void Abort()
+        {
+            AbortInternal(true);
+        }
+
+        private void AbortInternal(bool wait)
         {
             if (!IsAborted && !isFinished)
             {
@@ -44,7 +49,16 @@ namespace Docms.Client.Operations
                     IsAborted = true;
                     tcs.SetCanceled();
                 }
-                isFinished = true;
+                if (wait)
+                {
+                    try
+                    {
+                        Task.Wait();
+                    }
+                    catch
+                    {
+                    }
+                }
             }
         }
 
@@ -60,6 +74,7 @@ namespace Docms.Client.Operations
                 throw new InvalidOperationException();
             }
             isStarted = true;
+            ReportProgress(0);
 
             try
             {

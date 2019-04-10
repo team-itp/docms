@@ -7,6 +7,7 @@ using NLog;
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Threading;
 using System.Threading.Tasks;
 
 namespace Docms.Client.DocumentStores
@@ -38,7 +39,7 @@ namespace Docms.Client.DocumentStores
             }
         }
 
-        public override async Task Sync()
+        public override async Task Sync(CancellationToken cancellationToken = default(CancellationToken))
         {
             logger.Trace($"remote document syncing");
             var latestHistory = localDb.Histories.OrderByDescending(h => h.Timestamp).FirstOrDefault();

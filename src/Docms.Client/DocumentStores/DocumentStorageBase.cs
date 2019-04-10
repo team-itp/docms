@@ -5,6 +5,7 @@ using Microsoft.EntityFrameworkCore;
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Threading;
 using System.Threading.Tasks;
 
 namespace Docms.Client.DocumentStores
@@ -147,7 +148,7 @@ namespace Docms.Client.DocumentStores
             await Db.SaveChangesAsync().ConfigureAwait(false);
         }
 
-        public abstract Task Sync();
+        public abstract Task Sync(CancellationToken cancellationToken);
         protected abstract TDocument Persist(DocumentNode document);
     }
 }
