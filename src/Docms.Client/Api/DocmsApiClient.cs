@@ -199,14 +199,24 @@ namespace Docms.Client.Api
         {
             _logger.Debug("requesting downloading for path: " + path);
             var request = new RestRequest(_defaultPath + "files", Method.GET);
+            var downloadResponse = new DownloadResponse();
+            request.ResponseWriter = stream => downloadResponse.WriteResponse(stream);
             if (!string.IsNullOrEmpty(path))
             {
                 request.AddQueryParameter("path", path);
                 request.AddQueryParameter("download", true.ToString());
             }
             var result = await ExecuteAsync(request).ConfigureAwait(false);
-            ThrowIfNotSuccessfulStatus(request, result);
-            return new MemoryStream(result.RawBytes);
+            try
+            {
+                ThrowIfNotSuccessfulStatus(request, result);
+            }
+            catch
+            {
+                downloadResponse.Dispose();
+                throw;
+            }
+            return downloadResponse;
         }
 
         public async Task CreateOrUpdateDocumentAsync(string path, Stream stream, DateTime? created = null, DateTime? lastModified = null)
@@ -304,7 +314,7 @@ namespace Docms.Client.Api
             {
                 request.AddQueryParameter("last_history_id", lastHistoryId.Value.ToString());
             }
-            request.AddQueryParameter("per_page", "100");
+            request.AddQueryParameter("per_page", "1000");
             var result = await ExecuteAsync(request).ConfigureAwait(false);
             ThrowIfNotSuccessfulStatus(request, result);
 

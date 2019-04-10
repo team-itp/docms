@@ -60,6 +60,12 @@ namespace Docms.Client.Tests
             await sut.VerifyTokenAsync().ConfigureAwait(false);
             var entries = await sut.GetEntriesAsync("test1").ConfigureAwait(false);
             Assert.IsTrue(entries.Any(e => e.Path == "test1/test1.txt"));
+            using(var sr = await sut.DownloadAsync("test1/test1.txt"))
+            {
+                var ms = new MemoryStream();
+                await sr.CopyToAsync(ms);
+                Assert.AreEqual("test1", Encoding.UTF8.GetString(ms.ToArray()));
+            }
             var histories = await sut.GetHistoriesAsync("test1/test1.txt").ConfigureAwait(false);
             var history = histories.LastOrDefault(e => e.Path == "test1/test1.txt") as DocumentCreatedHistory;
             Assert.AreEqual(new DateTime(2018, 10, 1, 0, 0, 0, DateTimeKind.Utc), history.Created);

@@ -62,9 +62,9 @@ namespace Docms.Client.Operations
             try
             {
                 var task = Task.Run(() => ExecuteAsync(cts.Token));
-                task.ContinueWith(t => tcs.SetResult(null), TaskContinuationOptions.OnlyOnRanToCompletion);
-                task.ContinueWith(t => tcs.SetException(t.Exception.InnerException), TaskContinuationOptions.OnlyOnFaulted);
-                task.ContinueWith(t => tcs.SetCanceled(), TaskContinuationOptions.OnlyOnCanceled);
+                task.ContinueWith(t => tcs.TrySetResult(null), TaskContinuationOptions.OnlyOnRanToCompletion);
+                task.ContinueWith(t => tcs.TrySetException(t.Exception.InnerException), TaskContinuationOptions.OnlyOnFaulted);
+                task.ContinueWith(t => tcs.TrySetCanceled(), TaskContinuationOptions.OnlyOnCanceled);
                 Task.WaitAny(tcs.Task, task);
                 tcs.Task.Wait(10);
             }
@@ -73,6 +73,10 @@ namespace Docms.Client.Operations
             }
             finally
             {
+                if (!tcs.Task.IsCompleted)
+                {
+                    tcs.TrySetResult(null);
+                }
                 isFinished = true;
             }
 

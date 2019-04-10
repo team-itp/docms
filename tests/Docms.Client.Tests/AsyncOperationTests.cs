@@ -1,5 +1,6 @@
 ﻿using Docms.Client.Operations;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
+using System;
 using System.Threading;
 using System.Threading.Tasks;
 
@@ -208,6 +209,33 @@ namespace Docms.Client.Tests
 
             Assert.IsFalse(sut.IsAborted);
             Assert.AreEqual(TaskStatus.Canceled, sut.Task.Status);
+        }
+
+        [TestMethod]
+        public void 処理中に例外が発生した場合にタスクがエラーになる_同期の場合()
+        {
+            var sut = new GenericAsyncOperation(token =>
+            {
+                throw new Exception();
+            });
+            sut.Start();
+
+            Assert.IsFalse(sut.IsAborted);
+            Assert.AreEqual(TaskStatus.Faulted, sut.Task.Status);
+        }
+
+        [TestMethod]
+        public void 処理中に例外が発生した場合にタスクがエラーになる_非同期の場合()
+        {
+            var sut = new GenericAsyncOperation(async token =>
+            {
+                await Task.Yield();
+                throw new Exception();
+            });
+            sut.Start();
+
+            Assert.IsFalse(sut.IsAborted);
+            Assert.AreEqual(TaskStatus.Faulted, sut.Task.Status);
         }
     }
 }
