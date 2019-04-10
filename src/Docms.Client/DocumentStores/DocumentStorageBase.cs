@@ -150,7 +150,7 @@ namespace Docms.Client.DocumentStores
             await Db.SaveChangesAsync().ConfigureAwait(false);
         }
 
-        public abstract Task Sync(CancellationToken cancellationToken);
+        public abstract Task Sync(IProgress<int> progress = default(IProgress<int>), CancellationToken cancellationToken = default(CancellationToken));
         protected abstract TDocument Persist(DocumentNode document);
     }
 }

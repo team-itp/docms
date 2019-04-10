@@ -39,7 +39,7 @@ namespace Docms.Client.DocumentStores
             }
         }
 
-        public override async Task Sync(CancellationToken cancellationToken = default(CancellationToken))
+        public override async Task Sync(IProgress<int> progress = default(IProgress<int>), CancellationToken cancellationToken = default(CancellationToken))
         {
             logger.Trace($"remote document syncing");
             var latestHistory = localDb.Histories.OrderByDescending(h => h.Timestamp).FirstOrDefault();

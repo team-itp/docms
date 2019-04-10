@@ -9,6 +9,7 @@ namespace Docms.Client.Operations
     {
         private bool isCompleted = false;
         private int? cursorTop = null;
+        private int currentProgress = -1;
 
         public OperationProgressWriter(string nameOfOperation)
         {
@@ -32,6 +33,11 @@ namespace Docms.Client.Operations
 
         public void Progress(int percentage)
         {
+            if (percentage == currentProgress)
+            {
+                return;
+            }
+            currentProgress = percentage;
             if (isCompleted)
             {
                 return;
