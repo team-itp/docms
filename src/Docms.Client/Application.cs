@@ -9,7 +9,6 @@ namespace Docms.Client
     public class Application : IApplication
     {
         private static readonly Logger _logger = LogManager.GetCurrentClassLogger();
-        private ProgressManager _progressManager = new ProgressManager();
         private ConcurrentQueue<IOperation> _operations;
         private IOperation _currentOperation;
 
@@ -37,7 +36,6 @@ namespace Docms.Client
                         _logger.Info("Executing " + operation.GetType().Name);
                         _logger.Trace(operation.GetType() + " started");
                         stopwatch.Start();
-                        _progressManager.Register(operation);
                         operation.Start();
                         stopwatch.Stop();
                         _logger.Debug(ReadableOperationLog("operation ended in " + stopwatch.Elapsed, _currentOperation));
