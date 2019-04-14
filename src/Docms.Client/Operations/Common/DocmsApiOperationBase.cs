@@ -21,7 +21,7 @@ namespace Docms.Client.Operations
             {
                 await ExecuteApiOperationAsync(token).ConfigureAwait(false);
             }
-            catch (ServerException ex) when (ex.StatusCode == (int)HttpStatusCode.Unauthorized)
+            catch (ServerException ex) when (ex.StatusCode == (int)HttpStatusCode.Unauthorized || ex.StatusCode == (int)HttpStatusCode.NotFound)
             {
                 await api.VerifyTokenAsync().ConfigureAwait(false);
                 await ExecuteApiOperationAsync(token).ConfigureAwait(false);

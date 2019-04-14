@@ -114,35 +114,33 @@ namespace Docms.Client.Api
         /// <returns></returns>
         public async Task VerifyTokenAsync()
         {
-            var client = new IntrospectionClient(
-                _introspectionEndpoint,
-                "docmsapi",
-                "docmsapi-secret");
-
-            var response = await client.SendAsync(
-                new IntrospectionRequest
-                {
-                    Token = _accessToken,
-                    ClientId = "docms-client",
-                    ClientSecret = "docms-client-secret",
-                }).ConfigureAwait(false);
-            _logger.Debug("token verified.");
-
-            if (!response.IsActive)
+            try
             {
-                await LoginAsync(_username, _password).ConfigureAwait(false);
+                var client = new IntrospectionClient(
+                    _introspectionEndpoint,
+                    "docmsapi",
+                    "docmsapi-secret");
+
+                var response = await client.SendAsync(
+                    new IntrospectionRequest
+                    {
+                        Token = _accessToken,
+                        ClientId = "docms-client",
+                        ClientSecret = "docms-client-secret",
+                    }).ConfigureAwait(false);
+                _logger.Debug("token verified.");
+                if (response.IsActive)
+                {
+                    return;
+                }
             }
+            catch { }
+            await LoginAsync(_username, _password).ConfigureAwait(false);
         }
 
-        private async Task<IRestResponse> ExecuteAsync(RestRequest request)
+        private Task<IRestResponse> ExecuteAsync(RestRequest request)
         {
-            var result = await _client.ExecuteTaskAsync(request).ConfigureAwait(false);
-            if (result.StatusCode == HttpStatusCode.Unauthorized)
-            {
-                await LoginAsync(_username, _password).ConfigureAwait(false);
-                result = await _client.ExecuteTaskAsync(request).ConfigureAwait(false);
-            }
-            return result;
+            return _client.ExecuteTaskAsync(request);
         }
 
         private void ThrowIfNotSuccessfulStatus(IRestRequest request, IRestResponse result)

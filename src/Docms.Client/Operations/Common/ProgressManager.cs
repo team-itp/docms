@@ -33,7 +33,7 @@ namespace Docms.Client.Operations
 
         public void Progress(int percentage)
         {
-            if (percentage == currentProgress)
+            if (percentage <= currentProgress)
             {
                 return;
             }
@@ -42,6 +42,7 @@ namespace Docms.Client.Operations
             {
                 return;
             }
+
             if (!cursorTop.HasValue)
             {
                 cursorTop = Console.CursorTop;

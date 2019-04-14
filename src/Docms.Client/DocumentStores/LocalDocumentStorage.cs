@@ -28,6 +28,7 @@ namespace Docms.Client.DocumentStores
         {
             List<(ContainerNode, PathString)> files = new List<(ContainerNode, PathString)>();
             SyncContainerNode(Root, files, cancellationToken);
+            progress?.Report(10);
             SyncDocumentNodes(files, progress, cancellationToken);
             return Task.CompletedTask;
         }
@@ -79,7 +80,7 @@ namespace Docms.Client.DocumentStores
                 {
                     node.RemoveChild(fileNode);
                 }
-                progress?.Report((++count * 100 / total));
+                progress?.Report(10 + (++count * 80 / total));
             }
         }
 
