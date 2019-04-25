@@ -90,9 +90,9 @@ namespace Docms.Client.Tests
             Assert.IsTrue(operation is UploadLocalDocumentOperation);
             operation.Start();
             Assert.AreEqual(TaskStatus.RanToCompletion, operation.Task.Status);
-            // DownloadRemoteDocumentOperation
+            // UploadLocalDocumentOperation
             operation = context.MockApp.GetNextOperation();
-            Assert.IsTrue(operation is DownloadRemoteDocumentOperation);
+            Assert.IsTrue(operation is UploadLocalDocumentOperation);
             operation.Start();
             Assert.AreEqual(TaskStatus.RanToCompletion, operation.Task.Status);
             // DownloadRemoteDocumentOperation
