@@ -111,7 +111,7 @@ namespace Docms.Client.Tests.Operations
         }
 
         [TestMethod]
-        public void リモートローカルの両方にファイルが存在しローカルのステータスが最新ではない場合アップロードされる()
+        public void リモートローカルの両方にファイルが存在する場合アップロードされる()
         {
             var prevResult = new DetermineDiffOperationResult();
             prevResult.Add(
@@ -122,20 +122,6 @@ namespace Docms.Client.Tests.Operations
             var result = context.MockCurrentTask.LastResult as ChangesIntoOperationsOperationResult;
             Assert.AreEqual(1, result.Operations.Count);
             Assert.IsTrue(result.Operations[0] is UploadLocalDocumentOperation);
-        }
-
-        [TestMethod]
-        public void リモートローカルの両方にファイルが存在しローカルのステータスが最新の場合ダウンロードされる()
-        {
-            var prevResult = new DetermineDiffOperationResult();
-            prevResult.Add(
-                context.LocalStorage.GetDocument(new PathString("dir1/subDir2/test4.txt")),
-                context.RemoteStorage.GetDocument(new PathString("dir1/subDir2/test4.txt")));
-            var sut = new ChangesIntoOperationsOperation(context, prevResult);
-            sut.Start();
-            var result = context.MockCurrentTask.LastResult as ChangesIntoOperationsOperationResult;
-            Assert.AreEqual(1, result.Operations.Count);
-            Assert.IsTrue(result.Operations[0] is DownloadRemoteDocumentOperation);
         }
     }
 }
