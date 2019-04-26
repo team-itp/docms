@@ -56,7 +56,21 @@ namespace Docms.Client.Operations
                 }
                 else
                 {
-                    result.Add(new UploadLocalDocumentOperation(context, local.Path, result.CancellationToken));
+                    var latestSyncHistory = context.Db.SyncHistories
+                        .OrderByDescending(h => h.Timestamp)
+                        .FirstOrDefault(h => h.Path == remote.Path.ToString());
+
+                    if (latestSyncHistory != null
+                        && latestSyncHistory.Type == SyncHistoryType.Upload
+                        && latestSyncHistory.FileSize == remote.FileSize
+                        && latestSyncHistory.Hash == remote.Hash)
+                    {
+                        result.Add(new DownloadRemoteDocumentOperation(context, remote.Path, result.CancellationToken));
+                    }
+                    else
+                    {
+                        result.Add(new UploadLocalDocumentOperation(context, local.Path, result.CancellationToken));
+                    }
                 }
             }
             context.CurrentTask.Next(result);
