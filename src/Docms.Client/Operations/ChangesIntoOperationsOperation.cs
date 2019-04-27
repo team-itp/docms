@@ -61,9 +61,9 @@ namespace Docms.Client.Operations
                         .FirstOrDefault(h => h.Path == remote.Path.ToString());
 
                     if (latestSyncHistory != null
-                        && latestSyncHistory.Type == SyncHistoryType.Upload
-                        && latestSyncHistory.FileSize == remote.FileSize
-                        && latestSyncHistory.Hash == remote.Hash)
+                        && (latestSyncHistory.Type == SyncHistoryType.Upload || latestSyncHistory.Type == SyncHistoryType.Download)
+                        && latestSyncHistory.FileSize == local.FileSize
+                        && latestSyncHistory.Hash == local.Hash)
                     {
                         result.Add(new DownloadRemoteDocumentOperation(context, remote.Path, result.CancellationToken));
                     }
