@@ -1,4 +1,6 @@
-﻿using Docms.Client.DocumentStores;
+﻿using Docms.Client.Data;
+using Docms.Client.DocumentStores;
+using Docms.Client.Operations;
 
 namespace Docms.Client.Tests.Utils
 {
@@ -7,7 +9,9 @@ namespace Docms.Client.Tests.Utils
         public MockApplication MockApp { get; set; }
         public MockDocmsApiClient MockApi { get; set; }
         public MockFileSystem MockFileSystem { get; set; }
-        public MockLocalDbContext MockDb { get; set; }
+        public MockDocumentDbContext MockDocumentDb { get; set; }
+        public MockSyncHistoryDbContext MockSyncHistoryDb { get; set; }
+        public ResourceOperationDispatcher<SyncHistoryDbContext> MockSyncHistoryDbDispatcher { get; set; }
         public LocalDocumentStorage MockLocalStorage { get; set; }
         public RemoteDocumentStorage MockRemoteStorage { get; set; }
         public MockTask MockCurrentTask { get; set; }
@@ -17,14 +21,17 @@ namespace Docms.Client.Tests.Utils
             MockApp = new MockApplication();
             MockApi = new MockDocmsApiClient();
             MockFileSystem = new MockFileSystem();
-            MockDb = new MockLocalDbContext();
-            MockLocalStorage = new LocalDocumentStorage(MockFileSystem, MockDb);
-            MockRemoteStorage = new RemoteDocumentStorage(MockApi, MockDb);
+            MockDocumentDb = new MockDocumentDbContext();
+            MockSyncHistoryDb = new MockSyncHistoryDbContext();
+            MockSyncHistoryDbDispatcher = new ResourceOperationDispatcher<SyncHistoryDbContext>(MockSyncHistoryDb);
+            MockLocalStorage = new LocalDocumentStorage(MockFileSystem, MockDocumentDb);
+            MockRemoteStorage = new RemoteDocumentStorage(MockApi, MockDocumentDb);
             MockCurrentTask = new MockTask();
             App = MockApp;
             Api = MockApi;
             FileSystem = MockFileSystem;
-            Db = MockDb;
+            DocumentDb = MockDocumentDb;
+            SyncHistoryDbDispatcher = MockSyncHistoryDbDispatcher;
             LocalStorage = MockLocalStorage;
             RemoteStorage = MockRemoteStorage;
             CurrentTask = MockCurrentTask;

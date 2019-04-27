@@ -40,16 +40,19 @@ namespace Docms.Client.Operations
                 {
                     await context.FileSystem.CreateFile(path, stream, document.Created, document.LastModified).ConfigureAwait(false);
                 }
-                context.Db.SyncHistories.Add(new SyncHistory()
+                var task = context.SyncHistoryDbDispatcher.Execute(db =>
                 {
-                    Id = Guid.NewGuid(),
-                    Timestamp = DateTime.Now,
-                    Path = path.ToString(),
-                    FileSize = document.FileSize,
-                    Hash = document.Hash,
-                    Type = SyncHistoryType.Download
-                });
-                await context.Db.SaveChangesAsync().ConfigureAwait(false);
+                    db.SyncHistories.Add(new SyncHistory()
+                    {
+                        Id = Guid.NewGuid(),
+                        Timestamp = DateTime.Now,
+                        Path = path.ToString(),
+                        FileSize = document.FileSize,
+                        Hash = document.Hash,
+                        Type = SyncHistoryType.Download
+                    });
+                    return db.SaveChangesAsync();
+                }).ConfigureAwait(false);
                 document.Updated();
                 await context.RemoteStorage.Save(document).ConfigureAwait(false);
             }

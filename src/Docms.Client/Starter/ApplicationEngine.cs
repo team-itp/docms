@@ -21,7 +21,8 @@ namespace Docms.Client.Starter
 
         public async void Start()
         {
-            if (!await context.Db.SyncHistories.AnyAsync().ConfigureAwait(false))
+            if (!await context.SyncHistoryDbDispatcher
+                .Execute(async db => await db.SyncHistories.AnyAsync().ConfigureAwait(false)))
             {
                 var initializationCompleted = false;
                 logger.Trace("InsertAllTrackingFilesToSyncHistoryTask started");

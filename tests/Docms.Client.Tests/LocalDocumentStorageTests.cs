@@ -1,4 +1,5 @@
-﻿using Docms.Client.Documents;
+﻿using Docms.Client.Data;
+using Docms.Client.Documents;
 using Docms.Client.DocumentStores;
 using Docms.Client.FileSystem;
 using Docms.Client.Tests.Utils;
@@ -16,7 +17,7 @@ namespace Docms.Client.Tests
     {
         private string tempDir;
         private LocalFileSystem localFileSystem;
-        private MockLocalDbContext localDb;
+        private MockDocumentDbContext localDb;
         private LocalDocumentStorage sut;
 
         [TestInitialize]
@@ -25,7 +26,7 @@ namespace Docms.Client.Tests
             tempDir = Path.Combine(Path.GetTempPath(), Guid.NewGuid().ToString());
             Directory.CreateDirectory(tempDir);
             localFileSystem = new LocalFileSystem(tempDir);
-            localDb = new MockLocalDbContext();
+            localDb = new MockDocumentDbContext();
             sut = new LocalDocumentStorage(localFileSystem, localDb);
         }
 

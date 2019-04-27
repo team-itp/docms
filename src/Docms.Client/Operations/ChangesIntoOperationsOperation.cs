@@ -1,7 +1,9 @@
 ﻿using Docms.Client.Types;
+using Microsoft.EntityFrameworkCore;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
+using System.Threading.Tasks;
 
 namespace Docms.Client.Operations
 {
@@ -16,7 +18,7 @@ namespace Docms.Client.Operations
         }
     }
 
-    public class ChangesIntoOperationsOperation : OperationBase
+    public class ChangesIntoOperationsOperation : AsyncOperationBase
     {
         private ApplicationContext context;
         private DetermineDiffOperationResult prevResult;
@@ -27,7 +29,7 @@ namespace Docms.Client.Operations
             this.prevResult = prevResult;
         }
 
-        protected override void Execute(CancellationToken token)
+        protected override async Task ExecuteAsync(CancellationToken token)
         {
             var result = new ChangesIntoOperationsOperationResult();
             foreach (var (local, remote) in prevResult.Diffs)
@@ -38,9 +40,13 @@ namespace Docms.Client.Operations
                 }
                 else if (local == null)
                 {
-                    var latestSyncHistory = context.Db.SyncHistories
-                        .OrderByDescending(h => h.Timestamp)
-                        .FirstOrDefault(h => h.Path == remote.Path.ToString());
+                    var latestSyncHistory = await context.SyncHistoryDbDispatcher.Execute(async db =>
+                    {
+                        return await db.SyncHistories
+                           .OrderByDescending(h => h.Timestamp)
+                           .FirstOrDefaultAsync(h => h.Path == remote.Path.ToString())
+                           .ConfigureAwait(false);
+                    });
 
                     if (latestSyncHistory == null
                         || (latestSyncHistory.Type == SyncHistoryType.Delete
@@ -56,9 +62,13 @@ namespace Docms.Client.Operations
                 }
                 else
                 {
-                    var latestSyncHistory = context.Db.SyncHistories
-                        .OrderByDescending(h => h.Timestamp)
-                        .FirstOrDefault(h => h.Path == remote.Path.ToString());
+                    var latestSyncHistory = await context.SyncHistoryDbDispatcher.Execute(async db =>
+                    {
+                        return await db.SyncHistories
+                           .OrderByDescending(h => h.Timestamp)
+                           .FirstOrDefaultAsync(h => h.Path == remote.Path.ToString())
+                           .ConfigureAwait(false);
+                    });
 
                     if (latestSyncHistory != null
                         && (latestSyncHistory.Type == SyncHistoryType.Upload || latestSyncHistory.Type == SyncHistoryType.Download)

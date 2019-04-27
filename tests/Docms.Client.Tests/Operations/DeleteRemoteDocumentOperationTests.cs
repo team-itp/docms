@@ -27,13 +27,19 @@ namespace Docms.Client.Tests.Operations
             await context.RemoteStorage.Sync().ConfigureAwait(false);
         }
 
+        [TestCleanup]
+        public void Teardown()
+        {
+            context.Dispose();
+        }
+
         [TestMethod]
         public async Task ローカルにファイルが存在しない場合リモートが削除される()
         {
             var sut = new DeleteRemoteDocumentOperation(context, new PathString("dir1/test2.txt"), default(CancellationToken));
             sut.Start();
             Assert.IsNull(await context.MockApi.GetDocumentAsync("dir1/test2.txt").ConfigureAwait(false));
-            Assert.IsTrue(context.Db.SyncHistories.Any());
+            Assert.IsTrue(context.MockSyncHistoryDb.SyncHistories.Any());
         }
 
         [TestMethod]
@@ -42,7 +48,7 @@ namespace Docms.Client.Tests.Operations
             var sut = new DeleteRemoteDocumentOperation(context, new PathString("test1.txt"), default(CancellationToken));
             sut.Start();
             Assert.AreEqual(2, context.MockApi.histories.Count);
-            Assert.IsFalse(context.Db.SyncHistories.Any());
+            Assert.IsFalse(context.MockSyncHistoryDb.SyncHistories.Any());
         }
     }
 }

@@ -23,6 +23,12 @@ namespace Docms.Client.Tests.Operations
             await context.MockRemoteStorage.Sync().ConfigureAwait(false);
         }
 
+        [TestCleanup]
+        public void Teardown()
+        {
+            context.Dispose();
+        }
+
         [TestMethod]
         public void リモートのファイルが存在しない場合ファイルがダウンロードされないこと()
         {

@@ -4,9 +4,9 @@ using System;
 
 namespace Docms.Client.Data
 {
-    public class LocalDbContext : DbContext
+    public class DocumentDbContext : DbContext
     {
-        public LocalDbContext(DbContextOptions<LocalDbContext> options) : base(options)
+        public DocumentDbContext(DbContextOptions<DocumentDbContext> options) : base(options)
         {
         }
 
@@ -16,7 +16,6 @@ namespace Docms.Client.Data
         public DbSet<DocumentDeletedHistory> DocumentDeletedHistories { get; set; }
         public DbSet<LocalDocument> LocalDocuments { get; set; }
         public DbSet<RemoteDocument> RemoteDocuments { get; set; }
-        public DbSet<SyncHistory> SyncHistories { get; set; }
 
         protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
         {
@@ -84,14 +83,6 @@ namespace Docms.Client.Data
                 .HasConversion(
                     value => value,
                     value => DateTime.SpecifyKind(value, DateTimeKind.Utc)
-                );
-            modelBuilder.Entity<SyncHistory>()
-                .HasIndex(h => new { h.Path, h.Timestamp });
-            modelBuilder.Entity<SyncHistory>()
-                .Property(e => e.Timestamp)
-                .HasConversion(
-                    value => value,
-                    value => DateTime.SpecifyKind(value, DateTimeKind.Local)
                 );
         }
     }

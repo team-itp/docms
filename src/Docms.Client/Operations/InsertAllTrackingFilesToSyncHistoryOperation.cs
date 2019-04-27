@@ -19,27 +19,30 @@ namespace Docms.Client.Operations
         {
             var remoteDocuments = context.RemoteStorage.Root.ListAllDocuments();
             var i = 0;
-            foreach (var remoteDocument in remoteDocuments)
+            await context.SyncHistoryDbDispatcher.Execute(async db =>
             {
-                i++;
-                context.Db.SyncHistories.Add(new SyncHistory()
+                foreach (var remoteDocument in remoteDocuments)
                 {
-                    Id = Guid.NewGuid(),
-                    Timestamp = DateTime.Now,
-                    Path = remoteDocument.Path.ToString(),
-                    FileSize = remoteDocument.FileSize,
-                    Hash = remoteDocument.Hash,
-                    Type = SyncHistoryType.Upload
-                });
-                if (i % 1000 == 0)
-                {
-                    await context.Db.SaveChangesAsync().ConfigureAwait(false);
+                    i++;
+                    db.SyncHistories.Add(new SyncHistory()
+                    {
+                        Id = Guid.NewGuid(),
+                        Timestamp = DateTime.Now,
+                        Path = remoteDocument.Path.ToString(),
+                        FileSize = remoteDocument.FileSize,
+                        Hash = remoteDocument.Hash,
+                        Type = SyncHistoryType.Upload
+                    });
+                    if (i % 1000 == 0)
+                    {
+                        await db.SaveChangesAsync().ConfigureAwait(false);
+                    }
                 }
-            }
-            if (i % 1000 != 0)
-            {
-                await context.Db.SaveChangesAsync().ConfigureAwait(false);
-            }
+                if (i % 1000 != 0)
+                {
+                    await db.SaveChangesAsync().ConfigureAwait(false);
+                }
+            }).ConfigureAwait(false);
         }
     }
 }

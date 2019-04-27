@@ -1,7 +1,5 @@
 ﻿using Docms.Client.Operations;
 using NLog;
-using System.Collections.Concurrent;
-using System.Diagnostics;
 using System.Threading.Tasks;
 
 namespace Docms.Client
@@ -9,53 +7,28 @@ namespace Docms.Client
     public class Application : IApplication
     {
         private static readonly Logger _logger = LogManager.GetCurrentClassLogger();
-        private ConcurrentQueue<IOperation> _operations;
-        private IOperation _currentOperation;
+        private readonly OperationDispatcher _dispatcher;
 
         public bool IsShutdownRequested { get; private set; }
 
         public Application()
         {
-            _operations = new ConcurrentQueue<IOperation>();
+            _dispatcher = new OperationDispatcher();
         }
 
         public void Run()
         {
             _logger.Info("Application started.");
-            while (!IsShutdownRequested)
+            try
             {
-                if (_operations.TryDequeue(out var operation))
-                {
-                    lock (this)
-                    {
-                        _currentOperation = operation;
-                    }
-                    if (!operation.IsAborted)
-                    {
-                        var stopwatch = new Stopwatch();
-                        _logger.Info("Executing " + operation.GetType().Name);
-                        _logger.Trace(operation.GetType() + " started");
-                        stopwatch.Start();
-                        operation.Start();
-                        stopwatch.Stop();
-                        _logger.Debug(ReadableOperationLog("operation ended in " + stopwatch.Elapsed, _currentOperation));
-                        _logger.Trace(operation.GetType() + " ended");
-                    }
-                    else
-                    {
-                        _logger.Trace(ReadableOperationLog("operation canceled", _currentOperation));
-                    }
-                }
+                _dispatcher.Task.Wait();
             }
-            _logger.Info("Application shutdown.");
+            catch { }
         }
 
         public Task Invoke(IOperation operation)
         {
-            if (!operation.IsAborted)
-            {
-                _operations.Enqueue(operation);
-            }
+            _dispatcher.Invoke(operation);
             return operation.Task;
         }
 
@@ -65,13 +38,9 @@ namespace Docms.Client
             lock (this)
             {
                 IsShutdownRequested = true;
-                _currentOperation?.Abort();
+                _dispatcher.Dispose();
             }
-        }
-
-        private string ReadableOperationLog(string message, IOperation op)
-        {
-            return message + " <current operation: " + op.GetType() + ">";
+            _logger.Info("Application shutdown.");
         }
     }
 }

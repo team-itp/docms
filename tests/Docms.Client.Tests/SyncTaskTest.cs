@@ -23,6 +23,12 @@ namespace Docms.Client.Tests
             sut = new SyncTask(context);
         }
 
+        [TestCleanup]
+        public void Teardown()
+        {
+            context.Dispose();
+        }
+
         [TestMethod]
         public void ローカルファイルの同期処理を実行する()
         {

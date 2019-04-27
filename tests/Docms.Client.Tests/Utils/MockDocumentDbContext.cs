@@ -4,10 +4,10 @@ using System;
 
 namespace Docms.Client.Tests.Utils
 {
-    class MockLocalDbContext : LocalDbContext
+    class MockSyncHistoryDbContext : SyncHistoryDbContext
     {
-        public MockLocalDbContext()
-            : base(new DbContextOptionsBuilder<LocalDbContext>()
+        public MockSyncHistoryDbContext()
+            : base(new DbContextOptionsBuilder<SyncHistoryDbContext>()
                   .UseInMemoryDatabase(Guid.NewGuid().ToString())
                   .Options)
         {

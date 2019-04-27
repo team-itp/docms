@@ -1,5 +1,6 @@
 ﻿using Docms.Client.Data;
 using Docms.Client.Documents;
+using Docms.Client.Operations;
 using Docms.Client.Types;
 using Microsoft.EntityFrameworkCore;
 using System;
@@ -13,14 +14,14 @@ namespace Docms.Client.DocumentStores
     public abstract class DocumentStorageBase<TDocument> : IDocumentStorage where TDocument : class, IDocument
     {
         public ContainerNode Root { get; }
-        public LocalDbContext Db { get; }
-        public DbSet<TDocument> Documents { get; }
+        public DocumentDbContext Db { get; }
+        public Func<DocumentDbContext, DbSet<TDocument>> PropertyToDocument { get; }
 
-        public DocumentStorageBase(LocalDbContext db, DbSet<TDocument> documents)
+        public DocumentStorageBase(DocumentDbContext db, Func<DocumentDbContext, DbSet<TDocument>> propertyToDocument)
         {
             Root = ContainerNode.CreateRootContainer();
             Db = db;
-            Documents = documents;
+            PropertyToDocument = propertyToDocument;
         }
 
         public Node GetNode(PathString path)
@@ -115,37 +116,39 @@ namespace Docms.Client.DocumentStores
         }
 
 
-        public virtual Task Initialize()
+        public virtual async Task Initialize()
         {
-            Load(Documents);
-            return Task.CompletedTask;
+            Load(await PropertyToDocument(Db).ToListAsync().ConfigureAwait(false));
         }
 
         public virtual async Task Save(CancellationToken cancellationToken = default(CancellationToken))
         {
             cancellationToken.ThrowIfCancellationRequested();
+            var documents = PropertyToDocument(Db);
             Db.ChangeTracker.Entries().ToList().ForEach(e => e.State = EntityState.Detached);
-            Documents.RemoveRange(Documents);
-            Documents.AddRange(Persist());
+            documents.RemoveRange(documents);
+            documents.AddRange(Persist());
             await Db.SaveChangesAsync(cancellationToken).ConfigureAwait(false);
         }
 
         public async Task Save(DocumentNode document, CancellationToken cancellationToken = default(CancellationToken))
         {
             cancellationToken.ThrowIfCancellationRequested();
-            var doc = await Documents.FindAsync(document.Path.ToString()).ConfigureAwait(false);
+            var persistedDocument = Persist(document);
+            var documents = PropertyToDocument(Db);
+            var doc = await documents.FindAsync(document.Path.ToString()).ConfigureAwait(false);
             if (doc == null)
             {
-                Documents.Add(Persist(document));
+                documents.Add(persistedDocument);
             }
             else
             {
-                doc.FileSize = document.FileSize;
-                doc.Hash = document.Hash;
-                doc.Created = document.Created;
-                doc.LastModified = document.LastModified;
-                doc.SyncStatus = document.SyncStatus;
-                Documents.Update(doc);
+                doc.FileSize = persistedDocument.FileSize;
+                doc.Hash = persistedDocument.Hash;
+                doc.Created = persistedDocument.Created;
+                doc.LastModified = persistedDocument.LastModified;
+                doc.SyncStatus = persistedDocument.SyncStatus;
+                documents.Update(doc);
             }
             await Db.SaveChangesAsync().ConfigureAwait(false);
         }

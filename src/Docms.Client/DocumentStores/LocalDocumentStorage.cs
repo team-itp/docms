@@ -14,13 +14,11 @@ namespace Docms.Client.DocumentStores
 {
     public class LocalDocumentStorage : DocumentStorageBase<LocalDocument>
     {
-        private readonly LocalDbContext localDb;
         private readonly IFileSystem fileSystem;
         private static readonly ILogger logger = LogManager.GetCurrentClassLogger();
 
-        public LocalDocumentStorage(IFileSystem fileSystem, LocalDbContext localDb) : base(localDb, localDb.LocalDocuments)
+        public LocalDocumentStorage(IFileSystem fileSystem, DocumentDbContext db) : base(db, docDb => docDb.LocalDocuments)
         {
-            this.localDb = localDb;
             this.fileSystem = fileSystem;
         }
 

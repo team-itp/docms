@@ -14,13 +14,13 @@ namespace Docms.Client.Tests
     {
         private MockDocmsApiClient apiClient;
         private RemoteDocumentStorage sut;
-        private MockLocalDbContext localDb;
+        private MockDocumentDbContext localDb;
 
         [TestInitialize]
         public void Setup()
         {
             apiClient = new MockDocmsApiClient();
-            localDb = new MockLocalDbContext();
+            localDb = new MockDocumentDbContext();
             sut = new RemoteDocumentStorage(apiClient, localDb);
         }
 

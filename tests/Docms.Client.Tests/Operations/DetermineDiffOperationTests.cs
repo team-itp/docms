@@ -21,6 +21,12 @@ namespace Docms.Client.Tests.Operations
             sut = new DetermineDiffOperation(context);
         }
 
+        [TestCleanup]
+        public void Teardown()
+        {
+            context.Dispose();
+        }
+
         [TestMethod]
         public void ローカルのみファイルが存在する場合リストが1件になる()
         {

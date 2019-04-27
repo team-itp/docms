@@ -34,6 +34,12 @@ namespace Docms.Client.Tests.Operations
             });
         }
 
+        [TestCleanup]
+        public void Teardown()
+        {
+            context.Dispose();
+        }
+
         [TestMethod]
         public void ローカルファイルが存在しリモートファイルが存在しない場合アップロードされる()
         {
@@ -65,16 +71,19 @@ namespace Docms.Client.Tests.Operations
         [TestMethod]
         public void リモートファイルが存在しローカルファイルが存在しない場合にローカルファイルのアップロード履歴の最新がDeleteの場合はダウンロードされる()
         {
-            context.Db.SyncHistories.Add(new SyncHistory()
+            context.SyncHistoryDbDispatcher.Execute(async db =>
             {
-                Id = Guid.NewGuid(),
-                Timestamp = DEFAULT_TIME,
-                Path = "test1.txt",
-                FileSize = 1,
-                Hash = "HASH",
-                Type = SyncHistoryType.Delete
+                db.SyncHistories.Add(new SyncHistory()
+                {
+                    Id = Guid.NewGuid(),
+                    Timestamp = DEFAULT_TIME,
+                    Path = "test1.txt",
+                    FileSize = 1,
+                    Hash = "HASH",
+                    Type = SyncHistoryType.Delete
+                });
+                await db.SaveChangesAsync().ConfigureAwait(false);
             });
-            context.Db.SaveChanges();
             var prevResult = new DetermineDiffOperationResult();
             prevResult.Add(
                 null,
@@ -89,16 +98,19 @@ namespace Docms.Client.Tests.Operations
         [TestMethod]
         public void リモートファイルが存在しローカルファイルが存在しない場合にローカルファイルのアップロード履歴が存在する場合は削除される()
         {
-            context.Db.SyncHistories.Add(new SyncHistory()
+            context.SyncHistoryDbDispatcher.Execute(async db =>
             {
-                Id = Guid.NewGuid(),
-                Timestamp = DEFAULT_TIME,
-                Path = "test1.txt",
-                FileSize = 1,
-                Hash = "HASH",
-                Type = SyncHistoryType.Upload
+                db.SyncHistories.Add(new SyncHistory()
+                {
+                    Id = Guid.NewGuid(),
+                    Timestamp = DEFAULT_TIME,
+                    Path = "test1.txt",
+                    FileSize = 1,
+                    Hash = "HASH",
+                    Type = SyncHistoryType.Upload
+                });
+                await db.SaveChangesAsync().ConfigureAwait(false);
             });
-            context.Db.SaveChanges();
             var prevResult = new DetermineDiffOperationResult();
             prevResult.Add(
                 null,
