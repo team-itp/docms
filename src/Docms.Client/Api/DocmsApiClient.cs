@@ -39,12 +39,6 @@ namespace Docms.Client.Api
             }
             _serverUri = uri.EndsWith("/") ? uri : uri + "/";
             _defaultPath = (defaultPath ?? "").EndsWith("/") ? defaultPath : defaultPath + "/";
-            _client = new RestClient(_serverUri)
-            {
-                FollowRedirects = false,
-                Timeout = 30 * 60 * 1000,
-            };
-            _client.ConfigureWebRequest(x => x.AllowWriteStreamBuffering = false);
             DefaultJsonSerializerSettings = new JsonSerializerSettings()
             {
                 TypeNameHandling = TypeNameHandling.Objects,
@@ -89,6 +83,12 @@ namespace Docms.Client.Api
             _username = username;
             _password = password;
             _accessToken = response.AccessToken;
+            _client = new RestClient(_serverUri)
+            {
+                FollowRedirects = false,
+                Timeout = 30 * 60 * 1000,
+            };
+            _client.ConfigureWebRequest(x => x.AllowWriteStreamBuffering = false);
             _client.Authenticator = new JwtAuthenticator(_accessToken);
         }
 
