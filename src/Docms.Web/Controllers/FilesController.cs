@@ -61,7 +61,6 @@ namespace Docms.Web.Controllers
             ViewData["DirPath"] = entry is BlobContainer ? entry.Path : entry.ParentPath;
 
             var histories = _histories.GetHistories(path ?? "")
-                .Where(h => h.Discriminator == DocumentHistoryDiscriminator.DocumentCreated || h.Discriminator == DocumentHistoryDiscriminator.DocumentDeleted)
                 .OrderByDescending(h => h.Timestamp);
             var cnt = await histories.CountAsync();
             int p = page ?? 1;
