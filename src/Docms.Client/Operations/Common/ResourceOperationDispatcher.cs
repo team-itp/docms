@@ -34,10 +34,20 @@ namespace Docms.Client.Operations
 
         public Task Execute(Func<T, Task> func)
         {
-            return _dispatcher.Invoke(new ResourceOperation(async token =>
+            var tcs = new TaskCompletionSource<object>();
+            _dispatcher.Invoke(new ResourceOperation(async token =>
             {
-                await func.Invoke(_resource).ConfigureAwait(false);
+                try
+                {
+                    await func.Invoke(_resource).ConfigureAwait(false);
+                    tcs.SetResult(null);
+                }
+                catch (Exception ex)
+                {
+                    tcs.SetException(ex);
+                }
             }));
+            return tcs.Task;
         }
 
         public void Dispose()

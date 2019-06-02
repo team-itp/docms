@@ -12,7 +12,6 @@ namespace Docms.Client.Data
         string Hash { get; set; }
         DateTime Created { get; set; }
         DateTime LastModified { get; set; }
-        SyncStatus SyncStatus { get; set; }
     }
 
     [Table("LocalDocuments")]
@@ -24,7 +23,6 @@ namespace Docms.Client.Data
         public string Hash { get; set; }
         public DateTime Created { get; set; }
         public DateTime LastModified { get; set; }
-        public SyncStatus SyncStatus { get; set; }
     }
 
     [Table("RemoteDocuments")]
@@ -36,6 +34,5 @@ namespace Docms.Client.Data
         public string Hash { get; set; }
         public DateTime Created { get; set; }
         public DateTime LastModified { get; set; }
-        public SyncStatus SyncStatus { get; set; }
     }
 }

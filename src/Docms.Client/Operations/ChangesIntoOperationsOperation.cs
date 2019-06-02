@@ -21,66 +21,66 @@ namespace Docms.Client.Operations
     public class ChangesIntoOperationsOperation : AsyncOperationBase
     {
         private ApplicationContext context;
-        private DetermineDiffOperationResult prevResult;
 
-        public ChangesIntoOperationsOperation(ApplicationContext context, DetermineDiffOperationResult prevResult)
+        public ChangesIntoOperationsOperation(ApplicationContext context)
         {
             this.context = context;
-            this.prevResult = prevResult;
         }
 
         protected override async Task ExecuteAsync(CancellationToken token)
         {
             var result = new ChangesIntoOperationsOperationResult();
-            foreach (var (local, remote) in prevResult.Diffs)
+            foreach (var diff in context.LocalStorage.GetDifference(context.RemoteStorage))
             {
-                if (remote == null)
+                if (diff.Storage2Document == null)
                 {
-                    result.Add(new UploadLocalDocumentOperation(context, local.Path, result.CancellationToken));
+                    result.Add(new UploadLocalDocumentOperation(context, diff.Path, result.CancellationToken));
                 }
-                else if (local == null)
+                else if (diff.Storage1Document == null)
                 {
                     var latestSyncHistory = await context.SyncHistoryDbDispatcher.Execute(async db =>
                     {
                         return await db.SyncHistories
                            .OrderByDescending(h => h.Timestamp)
-                           .FirstOrDefaultAsync(h => h.Path == remote.Path.ToString())
+                           .FirstOrDefaultAsync(h => h.Path == diff.Path.ToString())
                            .ConfigureAwait(false);
                     });
 
                     if (latestSyncHistory == null
                         || (latestSyncHistory.Type == SyncHistoryType.Delete
-                            && latestSyncHistory.FileSize == remote.FileSize
-                            && latestSyncHistory.Hash == remote.Hash))
+                            && latestSyncHistory.FileSize == diff.Storage2Document.FileSize
+                            && latestSyncHistory.Hash == diff.Storage2Document.Hash))
                     {
-                        result.Add(new DownloadRemoteDocumentOperation(context, remote.Path, result.CancellationToken));
+                        result.Add(new DownloadRemoteDocumentOperation(context, diff.Path, result.CancellationToken));
                     }
                     else
                     {
-                        result.Add(new DeleteRemoteDocumentOperation(context, remote.Path, result.CancellationToken));
+                        result.Add(new DeleteRemoteDocumentOperation(context, diff.Path, result.CancellationToken));
                     }
                 }
                 else
                 {
-                    var latestSyncHistory = await context.SyncHistoryDbDispatcher.Execute(async db =>
-                    {
-                        return await db.SyncHistories
-                           .OrderByDescending(h => h.Timestamp)
-                           .FirstOrDefaultAsync(h => h.Path == remote.Path.ToString())
-                           .ConfigureAwait(false);
-                    });
+                    //var latestSyncHistory = await context.SyncHistoryDbDispatcher.Execute(async db =>
+                    //{
+                    //    return await db.SyncHistories
+                    //       .OrderByDescending(h => h.Timestamp)
+                    //       .FirstOrDefaultAsync(h => h.Path == diff.Storage2Document.Path.ToString())
+                    //       .ConfigureAwait(false);
+                    //});
 
-                    if (latestSyncHistory != null
-                        && (latestSyncHistory.Type == SyncHistoryType.Upload || latestSyncHistory.Type == SyncHistoryType.Download)
-                        && latestSyncHistory.FileSize == local.FileSize
-                        && latestSyncHistory.Hash == local.Hash)
-                    {
-                        result.Add(new DownloadRemoteDocumentOperation(context, remote.Path, result.CancellationToken));
-                    }
-                    else
-                    {
-                        result.Add(new UploadLocalDocumentOperation(context, local.Path, result.CancellationToken));
-                    }
+                    //if (latestSyncHistory != null
+                    //    && (latestSyncHistory.Type == SyncHistoryType.Upload || latestSyncHistory.Type == SyncHistoryType.Download)
+                    //    && latestSyncHistory.FileSize == diff.Storage1Document.FileSize
+                    //    && latestSyncHistory.Hash == diff.Storage1Document.Hash)
+                    //{
+                    //    result.Add(new DownloadRemoteDocumentOperation(context, diff.Path, result.CancellationToken));
+                    //}
+                    //else
+                    //{
+                    //    result.Add(new UploadLocalDocumentOperation(context, diff.Path, result.CancellationToken));
+                    //}
+                    // ファイルの競合が発生した場合は常にアップロードを優先
+                    result.Add(new UploadLocalDocumentOperation(context, diff.Path, result.CancellationToken));
                 }
             }
             context.CurrentTask.Next(result);
