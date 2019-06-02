@@ -4,6 +4,7 @@ using Docms.Client.Tests.Utils;
 using Docms.Client.Types;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using System;
+using System.Threading.Tasks;
 
 namespace Docms.Client.Tests.Operations
 {
@@ -15,23 +16,22 @@ namespace Docms.Client.Tests.Operations
         private MockApplicationContext context;
 
         [TestInitialize]
-        public void Setup()
+        public async Task Setup()
         {
             context = new MockApplicationContext();
-            context.MockLocalStorage.Load(new[]
-            {
-                new LocalDocument() {Path = "test1.txt", FileSize = 1, Hash = "HASH", Created = DEFAULT_TIME, LastModified = DEFAULT_TIME, SyncStatus = SyncStatus.UpToDate},
-                new LocalDocument() {Path = "test2.txt", FileSize = 1, Hash = "HASH", Created = DEFAULT_TIME, LastModified = DEFAULT_TIME, SyncStatus = SyncStatus.UpToDate},
-                new LocalDocument() {Path = "dir1/test3.txt", FileSize = 1, Hash = "HASH", Created = DEFAULT_TIME, LastModified = DEFAULT_TIME, SyncStatus = SyncStatus.NeedsUpToDate},
-                new LocalDocument() {Path = "dir1/subDir2/test4.txt", FileSize = 1, Hash = "HASH", Created = DEFAULT_TIME, LastModified = DEFAULT_TIME, SyncStatus = SyncStatus.UpToDate},
-            });
-            context.MockRemoteStorage.Load(new[]
-            {
-                new RemoteDocument() {Path = "test1.txt", FileSize = 1, Hash = "HASH", Created = DEFAULT_TIME, LastModified = DEFAULT_TIME, SyncStatus = SyncStatus.UpToDate},
-                new RemoteDocument() {Path = "test2.txt", FileSize = 1, Hash = "HASH", Created = DEFAULT_TIME, LastModified = DEFAULT_TIME, SyncStatus = SyncStatus.UpToDate},
-                new RemoteDocument() {Path = "dir1/test3.txt", FileSize = 1, Hash = "HASH1", Created = DEFAULT_TIME, LastModified = DEFAULT_TIME, SyncStatus = SyncStatus.UpToDate},
-                new RemoteDocument() {Path = "dir1/subDir2/test4.txt", FileSize = 2, Hash = "HASH", Created = DEFAULT_TIME, LastModified = DEFAULT_TIME, SyncStatus = SyncStatus.UpToDate},
-            });
+
+            await FileSystemUtils.Create(context.FileSystem, "test1.txt");
+            await FileSystemUtils.Create(context.FileSystem, "test2.txt");
+            await FileSystemUtils.Create(context.FileSystem, "dir1/test3.txt");
+            await FileSystemUtils.Create(context.FileSystem, "dir1/subDir2/test4.txt");
+
+            await DocmsApiUtils.Create(context.Api, "test1.txt");
+            await DocmsApiUtils.Create(context.Api, "test2.txt");
+            await DocmsApiUtils.Create(context.Api, "dir1/test3.txt");
+            await DocmsApiUtils.Create(context.Api, "dir1/subDir2/test4.txt");
+
+            await context.LocalStorage.Sync();
+            await context.RemoteStorage.Sync();
         }
 
         [TestCleanup]
@@ -41,13 +41,12 @@ namespace Docms.Client.Tests.Operations
         }
 
         [TestMethod]
-        public void ローカルファイルが存在しリモートファイルが存在しない場合アップロードされる()
+        public async Task ローカルファイルが存在しリモートファイルが存在しない場合アップロードされる()
         {
-            var prevResult = new DetermineDiffOperationResult();
-            prevResult.Add(
-                context.LocalStorage.GetDocument(new PathString("test1.txt")),
-                null);
-            var sut = new ChangesIntoOperationsOperation(context, prevResult);
+            await FileSystemUtils.Create(context.FileSystem, "test3.txt");
+            await context.LocalStorage.Sync();
+
+            var sut = new ChangesIntoOperationsOperation(context);
             sut.Start();
             var result = context.MockCurrentTask.LastResult as ChangesIntoOperationsOperationResult;
             Assert.AreEqual(1, result.Operations.Count);
@@ -55,13 +54,12 @@ namespace Docms.Client.Tests.Operations
         }
 
         [TestMethod]
-        public void リモートファイルが存在しローカルファイルが存在しない場合にローカルファイルのアップロード履歴が存在しない場合はダウンロードされる()
+        public async Task リモートファイルが存在しローカルファイルが存在しない場合にローカルファイルのアップロード履歴が存在しない場合はダウンロードされる()
         {
-            var prevResult = new DetermineDiffOperationResult();
-            prevResult.Add(
-                null,
-                context.RemoteStorage.GetDocument(new PathString("test1.txt")));
-            var sut = new ChangesIntoOperationsOperation(context, prevResult);
+            await FileSystemUtils.Delete(context.FileSystem, "test1.txt");
+            await context.LocalStorage.Sync();
+
+            var sut = new ChangesIntoOperationsOperation(context);
             sut.Start();
             var result = context.MockCurrentTask.LastResult as ChangesIntoOperationsOperationResult;
             Assert.AreEqual(1, result.Operations.Count);
@@ -69,26 +67,27 @@ namespace Docms.Client.Tests.Operations
         }
 
         [TestMethod]
-        public void リモートファイルが存在しローカルファイルが存在しない場合にローカルファイルのアップロード履歴の最新がDeleteの場合はダウンロードされる()
+        public async Task リモートファイルが存在しローカルファイルが存在しない場合にローカルファイルのアップロード履歴の最新がDeleteの場合はダウンロードされる()
         {
             context.SyncHistoryDbDispatcher.Execute(async db =>
             {
+                var file = context.FileSystem.GetFileInfo(new PathString("test1.txt"));
                 db.SyncHistories.Add(new SyncHistory()
                 {
                     Id = Guid.NewGuid(),
                     Timestamp = DEFAULT_TIME,
-                    Path = "test1.txt",
-                    FileSize = 1,
-                    Hash = "HASH",
+                    Path = file.Path.ToString(),
+                    FileSize = file.FileSize,
+                    Hash = file.CalculateHash(),
                     Type = SyncHistoryType.Delete
                 });
-                await db.SaveChangesAsync().ConfigureAwait(false);
-            });
-            var prevResult = new DetermineDiffOperationResult();
-            prevResult.Add(
-                null,
-                context.RemoteStorage.GetDocument(new PathString("test1.txt")));
-            var sut = new ChangesIntoOperationsOperation(context, prevResult);
+                await db.SaveChangesAsync();
+            }).Wait();
+
+            await FileSystemUtils.Delete(context.FileSystem, "test1.txt");
+            await context.LocalStorage.Sync();
+
+            var sut = new ChangesIntoOperationsOperation(context);
             sut.Start();
             var result = context.MockCurrentTask.LastResult as ChangesIntoOperationsOperationResult;
             Assert.AreEqual(1, result.Operations.Count);
@@ -96,26 +95,26 @@ namespace Docms.Client.Tests.Operations
         }
 
         [TestMethod]
-        public void リモートファイルが存在しローカルファイルが存在しない場合にローカルファイルのアップロード履歴が存在する場合は削除される()
+        public async Task リモートファイルが存在しローカルファイルが存在しない場合にローカルファイルのアップロード履歴が存在する場合は削除される()
         {
             context.SyncHistoryDbDispatcher.Execute(async db =>
             {
+                var file = context.FileSystem.GetFileInfo(new PathString("test1.txt"));
                 db.SyncHistories.Add(new SyncHistory()
                 {
                     Id = Guid.NewGuid(),
                     Timestamp = DEFAULT_TIME,
-                    Path = "test1.txt",
-                    FileSize = 1,
-                    Hash = "HASH",
+                    Path = file.Path.ToString(),
+                    FileSize = file.FileSize,
+                    Hash = file.CalculateHash(),
                     Type = SyncHistoryType.Upload
                 });
                 await db.SaveChangesAsync().ConfigureAwait(false);
-            });
-            var prevResult = new DetermineDiffOperationResult();
-            prevResult.Add(
-                null,
-                context.RemoteStorage.GetDocument(new PathString("test1.txt")));
-            var sut = new ChangesIntoOperationsOperation(context, prevResult);
+            }).Wait();
+            await FileSystemUtils.Delete(context.FileSystem, "test1.txt");
+            await context.LocalStorage.Sync();
+
+            var sut = new ChangesIntoOperationsOperation(context);
             sut.Start();
             var result = context.MockCurrentTask.LastResult as ChangesIntoOperationsOperationResult;
             Assert.AreEqual(1, result.Operations.Count);
@@ -123,13 +122,12 @@ namespace Docms.Client.Tests.Operations
         }
 
         [TestMethod]
-        public void リモートローカルの両方にファイルが存在する場合アップロードされる()
+        public async Task リモートローカルの両方にファイルが存在する場合アップロードされる()
         {
-            var prevResult = new DetermineDiffOperationResult();
-            prevResult.Add(
-                context.LocalStorage.GetDocument(new PathString("dir1/test3.txt")),
-                context.RemoteStorage.GetDocument(new PathString("dir1/test3.txt")));
-            var sut = new ChangesIntoOperationsOperation(context, prevResult);
+            await DocmsApiUtils.Update(context.Api, "test1.txt");
+            await context.RemoteStorage.Sync();
+
+            var sut = new ChangesIntoOperationsOperation(context);
             sut.Start();
             var result = context.MockCurrentTask.LastResult as ChangesIntoOperationsOperationResult;
             Assert.AreEqual(1, result.Operations.Count);

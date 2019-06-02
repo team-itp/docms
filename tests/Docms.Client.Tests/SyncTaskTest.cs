@@ -44,9 +44,9 @@ namespace Docms.Client.Tests
             Assert.IsTrue(operation is RemoteDocumentStorageSyncOperation);
             operation.Start();
             Assert.AreEqual(TaskStatus.RanToCompletion, operation.Task.Status);
-            // DetermineDiffOperation
+            // ChangesIntoOperationsOperation
             operation = context.MockApp.GetNextOperation();
-            Assert.IsTrue(operation is DetermineDiffOperation);
+            Assert.IsTrue(operation is ChangesIntoOperationsOperation);
             operation.Start();
             Assert.AreEqual(TaskStatus.RanToCompletion, operation.Task.Status);
             Assert.IsTrue(sut.IsCompleted);
@@ -79,11 +79,6 @@ namespace Docms.Client.Tests
             // RemoteDocumentStorageSyncOperation
             operation = context.MockApp.GetNextOperation();
             Assert.IsTrue(operation is RemoteDocumentStorageSyncOperation);
-            operation.Start();
-            Assert.AreEqual(TaskStatus.RanToCompletion, operation.Task.Status);
-            // DetermineDiffOperation
-            operation = context.MockApp.GetNextOperation();
-            Assert.IsTrue(operation is DetermineDiffOperation);
             operation.Start();
             Assert.AreEqual(TaskStatus.RanToCompletion, operation.Task.Status);
             // ChangesIntoOperationsOperation

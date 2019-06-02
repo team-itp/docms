@@ -110,14 +110,16 @@ namespace Docms.Client.DocumentStores
                 Hash = document.Hash,
                 Created = document.Created,
                 LastModified = document.LastModified,
-                SyncStatus = document.SyncStatus
             };
         }
 
         public override async Task Save(CancellationToken cancellationToken = default(CancellationToken))
         {
-            Db.Histories.AddRange(historiesToAdd);
             await base.Save(cancellationToken).ConfigureAwait(false);
+
+            Db.Histories.AddRange(historiesToAdd);
+            await Db.SaveChangesAsync();
+
             historiesToAdd.Clear();
         }
     }

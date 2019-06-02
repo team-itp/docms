@@ -45,7 +45,8 @@ namespace Docms.Client.DocumentStores
                     if (fileNode != null)
                     {
                         if (fi.FileSize != fileNode.FileSize
-                            || fi.Created != fileNode.Created)
+                            || fi.Created != fileNode.Created
+                            || fi.LastModified != fileNode.LastModified)
                         {
                             logger.Trace("modified file found: " + filepath);
                             try
@@ -223,7 +224,6 @@ namespace Docms.Client.DocumentStores
                 Hash = document.Hash,
                 Created = document.Created,
                 LastModified = document.LastModified,
-                SyncStatus = document.SyncStatus
             };
         }
     }

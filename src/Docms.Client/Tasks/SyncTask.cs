@@ -35,13 +35,7 @@ namespace Docms.Client.Tasks
             context.CurrentTask = this;
             await ExecuteOperationAsync(new LocalDocumentStorageSyncOperation(context)).ConfigureAwait(false);
             await ExecuteOperationAsync(new RemoteDocumentStorageSyncOperation(context)).ConfigureAwait(false);
-            await ExecuteOperationAsync(new DetermineDiffOperation(context)).ConfigureAwait(false);
-            if (prevResult == null || !(prevResult is DetermineDiffOperationResult diffOpResult) || diffOpResult.Diffs.Count == 0)
-            {
-                IsCompleted = true;
-                return;
-            }
-            await ExecuteOperationAsync(new ChangesIntoOperationsOperation(context, diffOpResult)).ConfigureAwait(false);
+            await ExecuteOperationAsync(new ChangesIntoOperationsOperation(context)).ConfigureAwait(false);
             if (prevResult == null || !(prevResult is ChangesIntoOperationsOperationResult operationsResult) || operationsResult.Operations.Count == 0)
             {
                 IsCompleted = true;

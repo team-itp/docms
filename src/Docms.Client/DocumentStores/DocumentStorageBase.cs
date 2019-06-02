@@ -1,6 +1,5 @@
 ﻿using Docms.Client.Data;
 using Docms.Client.Documents;
-using Docms.Client.Operations;
 using Docms.Client.Types;
 using Microsoft.EntityFrameworkCore;
 using System;
@@ -103,7 +102,7 @@ namespace Docms.Client.DocumentStores
             {
                 var path = new PathString(doc.Path);
                 var parent = GetOrCreateContainer(path.ParentPath);
-                var docNode = new DocumentNode(path.Name, doc.FileSize, doc.Hash, doc.Created, doc.LastModified, doc.SyncStatus);
+                var docNode = new DocumentNode(path.Name, doc.FileSize, doc.Hash, doc.Created, doc.LastModified);
                 parent.AddChild(docNode);
             }
         }
@@ -147,7 +146,6 @@ namespace Docms.Client.DocumentStores
                 doc.Hash = persistedDocument.Hash;
                 doc.Created = persistedDocument.Created;
                 doc.LastModified = persistedDocument.LastModified;
-                doc.SyncStatus = persistedDocument.SyncStatus;
                 documents.Update(doc);
             }
             await Db.SaveChangesAsync().ConfigureAwait(false);
@@ -155,5 +153,86 @@ namespace Docms.Client.DocumentStores
 
         public abstract Task Sync(IProgress<int> progress = default(IProgress<int>), CancellationToken cancellationToken = default(CancellationToken));
         protected abstract TDocument Persist(DocumentNode document);
+
+        public List<StorageDifference> GetDifference(IDocumentStorage otherStorage)
+        {
+            var localDocuments = Root.ListAllDocuments();
+            var remoteDocuments = otherStorage.Root.ListAllDocuments();
+            var result = new List<StorageDifference>();
+            using (var le = localDocuments.GetEnumerator())
+            using (var re = remoteDocuments.GetEnumerator())
+            {
+                var ln = le.MoveNext();
+                var rn = re.MoveNext();
+                while (ln && rn)
+                {
+                    var lv = le.Current;
+                    var rv = re.Current;
+
+                    var comp = rv.Path.ToString().CompareTo(lv.Path.ToString());
+                    while (comp != 0)
+                    {
+                        if (comp > 0)
+                        {
+                            result.Add(new StorageDifference(lv.Path, lv, null));
+                            ln = le.MoveNext();
+                            if (!ln)
+                            {
+                                break;
+                            }
+                            lv = le.Current;
+                            comp = rv.Path.ToString().CompareTo(lv.Path.ToString());
+                        }
+                        else if (comp < 0)
+                        {
+                            result.Add(new StorageDifference(rv.Path, null, rv));
+                            rn = re.MoveNext();
+                            if (!rn)
+                            {
+                                break;
+                            }
+                            rv = re.Current;
+                            comp = rv.Path.ToString().CompareTo(lv.Path.ToString());
+                        }
+                    }
+                    if (HasDirefference(lv, rv))
+                    {
+                        result.Add(new StorageDifference(lv.Path, lv, rv));
+                    }
+
+                    comp = lv.Path.ToString().CompareTo(rv.Path.ToString());
+
+                    ln = le.MoveNext();
+                    rn = re.MoveNext();
+                }
+                if (ln)
+                {
+                    result.Add(new StorageDifference(le.Current.Path, le.Current, null));
+                    while (le.MoveNext())
+                    {
+                        result.Add(new StorageDifference(le.Current.Path, le.Current, null));
+                    }
+                }
+                if (rn)
+                {
+                    result.Add(new StorageDifference(re.Current.Path, null, re.Current));
+                    while (re.MoveNext())
+                    {
+                        result.Add(new StorageDifference(re.Current.Path, null, re.Current));
+                    }
+                }
+            }
+            return result;
+        }
+
+        private bool HasDirefference(DocumentNode local, DocumentNode remote)
+        {
+            if (local.FileSize == remote.FileSize
+                && local.Hash == remote.Hash)
+            {
+                return false;
+            }
+            return true;
+        }
     }
 }
