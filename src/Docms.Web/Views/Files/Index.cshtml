@@ -31,11 +31,14 @@
                 }
             }
         </ul>
-        <div class="pr-3">
-            <a href="@Url.FileHistory(dirPath)">
-                <span class="fa fa-history"></span>
-            </a>
-        </div>
+        @if (User.IsInRole("Administrator"))
+        {
+            <div class="pr-3">
+                <a href="@Url.FileHistory(dirPath)">
+                    <span class="fa fa-history"></span>
+                </a>
+            </div>
+        }
     </div>
 </nav>
 

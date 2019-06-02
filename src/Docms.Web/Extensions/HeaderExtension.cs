@@ -28,7 +28,7 @@ namespace Docms.Web.Extensions
         {
             List<string> links = new List<string>();
             var lastPage = (totalCount / perPage) + 1;
-            if (page != lastPage)
+            if (page < lastPage)
             {
                 var next = new Link() { Rel = "next", Url = url, Page = page == lastPage ? lastPage : page + 1, PerPage = perPage };
                 links.Add(next.Create());
