@@ -15,6 +15,7 @@ namespace Docms.Client
         private readonly ConcurrentQueue<IOperation> _operations;
         private IOperation _currentOperation;
         private bool _disposing;
+        private AutoResetEvent _waitHandle = new AutoResetEvent(false);
 
         public Task Task { get; }
 
@@ -54,6 +55,10 @@ namespace Docms.Client
                         _logger.Trace(ReadableOperationLog("operation canceled", _currentOperation));
                     }
                 }
+                else
+                {
+                    WaitHandle.WaitAny(new[] { _waitHandle, _cancellationTokenSource.Token.WaitHandle });
+                }
             }
             _logger.Info("Dispatcher stopped.");
         }
@@ -71,6 +76,7 @@ namespace Docms.Client
             if (!operation.IsAborted)
             {
                 _operations.Enqueue(operation);
+                _waitHandle.Set();
             }
             return operation.Task;
         }
