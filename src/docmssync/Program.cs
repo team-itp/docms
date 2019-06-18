@@ -9,18 +9,20 @@ namespace docmssync
     static class Program
     {
         private static readonly Logger _logger = LogManager.GetCurrentClassLogger();
+        private static Application app;
 
         /// <summary>
         /// アプリケーションのメイン エントリ ポイントです。
         /// </summary>
         static void Main()
         {
+            AppDomain.CurrentDomain.UnhandledException += OnUnandledException;
             _logger.Info("Program started.");
-            var app = new Application();
+            app = new Application();
             Console.CancelKeyPress += (s, e) =>
             {
                 _logger.Info("Program canceled.");
-                app.Shutdown();
+                app?.Shutdown();
                 Environment.Exit(0);
             };
 
@@ -43,6 +45,12 @@ namespace docmssync
                 _logger.Error(ex);
                 Environment.Exit(1);
             }
+        }
+
+        private static void OnUnandledException(object sender, UnhandledExceptionEventArgs e)
+        {
+            _logger.Error(e.ExceptionObject);
+            app?.Shutdown();
         }
     }
 }
