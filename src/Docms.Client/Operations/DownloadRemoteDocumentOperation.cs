@@ -57,8 +57,6 @@ namespace Docms.Client.Operations
                         });
                         return db.SaveChangesAsync();
                     }).ConfigureAwait(false);
-                    document.Updated();
-                    await context.RemoteStorage.Save(document).ConfigureAwait(false);
                 }
 
             }

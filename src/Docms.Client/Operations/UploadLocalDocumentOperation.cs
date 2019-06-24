@@ -54,7 +54,6 @@ namespace Docms.Client.Operations
                     });
                     await db.SaveChangesAsync().ConfigureAwait(false);
                 });
-                document.Updated();
             }
             catch (Exception ex)
             {

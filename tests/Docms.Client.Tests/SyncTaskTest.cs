@@ -62,12 +62,6 @@ namespace Docms.Client.Tests
             await DocmsApiUtils.Create(context.Api, "test3.txt").ConfigureAwait(false);
             await context.LocalStorage.Sync().ConfigureAwait(false);
             await context.RemoteStorage.Sync().ConfigureAwait(false);
-            var document1 = context.LocalStorage.GetDocument(new PathString("test1.txt"));
-            document1.Updated();
-            await context.LocalStorage.Save(document1).ConfigureAwait(false);
-            var document2 = context.LocalStorage.GetDocument(new PathString("test2.txt"));
-            document2.Updated();
-            await context.LocalStorage.Save(document2).ConfigureAwait(false);
 
             var operation = default(IOperation);
             var task = Task.Run(() => sut.ExecuteAsync());

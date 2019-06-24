@@ -41,9 +41,6 @@ namespace Docms.Client.Operations
                         });
                         await db.SaveChangesAsync().ConfigureAwait(false);
                     });
-
-                    document.Updated();
-                    await context.RemoteStorage.Save(document).ConfigureAwait(false);
                 }
             }
             catch (Exception ex)

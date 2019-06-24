@@ -24,7 +24,7 @@ namespace Docms.Client.Tasks
             prevResult = result;
         }
 
-        public async Task ExecuteOperationAsync(IOperation operation)
+        private async Task ExecuteOperationAsync(IOperation operation)
         {
             prevResult = null;
             await context.App.Invoke(operation).ConfigureAwait(false);
