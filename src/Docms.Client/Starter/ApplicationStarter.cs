@@ -76,6 +76,7 @@ namespace Docms.Client.Starter
 
             var db = new DocumentDbContext(new DbContextOptionsBuilder<DocumentDbContext>()
                 .UseSqlite(string.Format("Data Source={0}", Path.Combine(configDir, "data.db")))
+                .EnableSensitiveDataLogging()
                 .Options);
             db.Database.EnsureCreated();
             return db;

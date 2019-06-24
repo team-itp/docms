@@ -17,7 +17,8 @@ namespace Docms.Client.DocumentStores
         private readonly IFileSystem fileSystem;
         private static readonly ILogger logger = LogManager.GetCurrentClassLogger();
 
-        public LocalDocumentStorage(IFileSystem fileSystem, DocumentDbContext db) : base(db, docDb => docDb.LocalDocuments)
+        public LocalDocumentStorage(IFileSystem fileSystem, DocumentDbContext db)
+            : base(new DocumentRepository<LocalDocument>(db, db.LocalDocuments))
         {
             this.fileSystem = fileSystem;
         }

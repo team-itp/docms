@@ -9,6 +9,7 @@ namespace Docms.Client.Tests.Utils
         public MockDocumentDbContext()
             : base(new DbContextOptionsBuilder<DocumentDbContext>()
                   .UseInMemoryDatabase(Guid.NewGuid().ToString())
+                  .EnableSensitiveDataLogging()
                   .Options)
         {
         }

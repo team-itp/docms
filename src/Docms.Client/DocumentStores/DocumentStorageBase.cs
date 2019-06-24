@@ -13,14 +13,12 @@ namespace Docms.Client.DocumentStores
     public abstract class DocumentStorageBase<TDocument> : IDocumentStorage where TDocument : class, IDocument
     {
         public ContainerNode Root { get; }
-        public DocumentDbContext Db { get; }
-        public Func<DocumentDbContext, DbSet<TDocument>> PropertyToDocument { get; }
+        public DocumentRepository<TDocument> Repo { get; }
 
-        public DocumentStorageBase(DocumentDbContext db, Func<DocumentDbContext, DbSet<TDocument>> propertyToDocument)
+        public DocumentStorageBase(DocumentRepository<TDocument> repo)
         {
             Root = ContainerNode.CreateRootContainer();
-            Db = db;
-            PropertyToDocument = propertyToDocument;
+            Repo = repo;
         }
 
         public Node GetNode(PathString path)
@@ -115,40 +113,22 @@ namespace Docms.Client.DocumentStores
         }
 
 
-        public virtual async Task Initialize()
+        public virtual Task Initialize()
         {
-            Load(await PropertyToDocument(Db).ToListAsync().ConfigureAwait(false));
+            Load(Repo.Documents);
+            return Task.CompletedTask;
         }
 
         public virtual async Task Save(CancellationToken cancellationToken = default(CancellationToken))
         {
             cancellationToken.ThrowIfCancellationRequested();
-            var documents = PropertyToDocument(Db);
-            Db.ChangeTracker.Entries().ToList().ForEach(e => e.State = EntityState.Detached);
-            documents.RemoveRange(documents);
-            documents.AddRange(Persist());
-            await Db.SaveChangesAsync(cancellationToken).ConfigureAwait(false);
+            await Repo.MergeAsync(Persist()).ConfigureAwait(false);
         }
 
         public async Task Save(DocumentNode document, CancellationToken cancellationToken = default(CancellationToken))
         {
             cancellationToken.ThrowIfCancellationRequested();
-            var persistedDocument = Persist(document);
-            var documents = PropertyToDocument(Db);
-            var doc = await documents.FindAsync(document.Path.ToString()).ConfigureAwait(false);
-            if (doc == null)
-            {
-                documents.Add(persistedDocument);
-            }
-            else
-            {
-                doc.FileSize = persistedDocument.FileSize;
-                doc.Hash = persistedDocument.Hash;
-                doc.Created = persistedDocument.Created;
-                doc.LastModified = persistedDocument.LastModified;
-                documents.Update(doc);
-            }
-            await Db.SaveChangesAsync().ConfigureAwait(false);
+            await Repo.UpdateAsync(Persist(document)).ConfigureAwait(false);
         }
 
         public abstract Task Sync(IProgress<int> progress = default(IProgress<int>), CancellationToken cancellationToken = default(CancellationToken));

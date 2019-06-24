@@ -96,7 +96,14 @@ namespace Docms.Client
             lock (this)
             {
                 _cancellationTokenSource.Cancel();
-                Task.Wait();
+                try
+                {
+                    Task.Wait();
+                }
+                catch (Exception ex)
+                {
+                    _logger.Error(ex);
+                }
             }
         }
 

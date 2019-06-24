@@ -20,9 +20,13 @@ namespace Docms.Client.DocumentStores
         private HashSet<Guid> appliedHistoryIds;
         private List<History> historiesToAdd;
 
-        public RemoteDocumentStorage(IDocmsApiClient api, DocumentDbContext db) : base(db, docDb => docDb.RemoteDocuments)
+        private DocumentDbContext db;
+
+        public RemoteDocumentStorage(IDocmsApiClient api, DocumentDbContext db)
+            : base(new DocumentRepository<RemoteDocument>(db, db.RemoteDocuments))
         {
             this.api = api;
+            this.db = db;
             appliedHistoryIds = new HashSet<Guid>();
             historiesToAdd = new List<History>();
         }
@@ -30,7 +34,7 @@ namespace Docms.Client.DocumentStores
         public override async Task Initialize()
         {
             await base.Initialize().ConfigureAwait(false);
-            var historyIds = await Db.Histories.Select(h => h.Id).ToListAsync().ConfigureAwait(false);
+            var historyIds = await db.Histories.Select(h => h.Id).ToListAsync().ConfigureAwait(false);
             foreach (var historyId in historyIds)
             {
                 appliedHistoryIds.Add(historyId);
@@ -40,7 +44,7 @@ namespace Docms.Client.DocumentStores
         public override async Task Sync(IProgress<int> progress = default(IProgress<int>), CancellationToken cancellationToken = default(CancellationToken))
         {
             logger.Trace($"remote document syncing");
-            var latestHistory = await Db.Histories.OrderByDescending(h => h.Timestamp).FirstOrDefaultAsync().ConfigureAwait(false);
+            var latestHistory = await db.Histories.OrderByDescending(h => h.Timestamp).FirstOrDefaultAsync().ConfigureAwait(false);
             if (latestHistory != null)
             {
                 logger.Trace($"latest history: {latestHistory.Path} ({latestHistory.Id}, {latestHistory.Timestamp})");
@@ -117,8 +121,8 @@ namespace Docms.Client.DocumentStores
         {
             await base.Save(cancellationToken).ConfigureAwait(false);
 
-            Db.Histories.AddRange(historiesToAdd);
-            await Db.SaveChangesAsync();
+            db.Histories.AddRange(historiesToAdd);
+            await db.SaveChangesAsync();
 
             historiesToAdd.Clear();
         }
