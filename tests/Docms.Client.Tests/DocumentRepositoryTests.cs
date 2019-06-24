@@ -147,32 +147,5 @@ namespace Docms.Client.Tests
             Assert.IsFalse(db.LocalDocuments.Any(d => d.Path == "test1.txt"));
             Assert.IsTrue(db.LocalDocuments.Any(d => d.Path == "test2.txt"));
         }
-
-        [TestMethod]
-        public async Task ファイルを単体で追加更新できる()
-        {
-            await sut.UpdateAsync(
-                new LocalDocument()
-                {
-                    Path = "test1.txt",
-                    Created = new DateTime(2019, 10, 1),
-                    LastModified = new DateTime(2019, 10, 2),
-                    FileSize = 10,
-                    Hash = "HASH1"
-                });
-
-            await sut.UpdateAsync(
-                new LocalDocument()
-                {
-                    Path = "test0.txt",
-                    Created = new DateTime(2019, 10, 1),
-                    LastModified = new DateTime(2019, 10, 2),
-                    FileSize = 10,
-                    Hash = "HASH1"
-                });
-
-            Assert.IsTrue(db.LocalDocuments.Any(d => d.Path == "test0.txt" && d.LastModified == new DateTime(2019, 10, 2)));
-            Assert.IsTrue(db.LocalDocuments.Any(d => d.Path == "test1.txt" && d.LastModified == new DateTime(2019, 10, 2)));
-        }
     }
 }

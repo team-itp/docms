@@ -42,7 +42,9 @@ namespace Docms.Client.DocumentStores
 
         public async Task MergeAsync(IEnumerable<TDocument> documents)
         {
-            HashSet<string> paths = new HashSet<string>(documentsCache.Keys);
+            var paths = new HashSet<string>(documentsCache.Keys);
+            var dbChanges = false;
+
             foreach (var document in documents)
             {
                 if (paths.Contains(document.Path))
@@ -61,12 +63,14 @@ namespace Docms.Client.DocumentStores
                         dbDoc.FileSize = document.FileSize;
                         dbDoc.Hash = document.Hash;
                         this.documents.Update(dbDoc);
+                        dbChanges = true;
                     }
                 }
                 else
                 {
                     this.documents.Add(document);
                     documentsCache.Add(document.Path, document);
+                    dbChanges = true;
                 }
             }
             foreach (var path in paths)
@@ -75,27 +79,13 @@ namespace Docms.Client.DocumentStores
                 {
                     documentsCache.Remove(path);
                     this.documents.Remove(dbDoc);
+                    dbChanges = true;
                 }
             }
-            await this.db.SaveChangesAsync();
-        }
-
-        public async Task UpdateAsync(TDocument document)
-        {
-            if (documentsCache.TryGetValue(document.Path, out var dbDoc))
+            if (dbChanges)
             {
-                dbDoc.FileSize = document.FileSize;
-                dbDoc.Hash = document.Hash;
-                dbDoc.Created = document.Created;
-                dbDoc.LastModified = document.LastModified;
-                documents.Update(dbDoc);
+                await this.db.SaveChangesAsync();
             }
-            else
-            {
-                documentsCache.Add(document.Path, document);
-                documents.Add(document);
-            }
-            await db.SaveChangesAsync().ConfigureAwait(false);
         }
     }
 }

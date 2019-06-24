@@ -1,7 +1,6 @@
 ﻿using Docms.Client.Data;
 using Docms.Client.Documents;
 using Docms.Client.Types;
-using Microsoft.EntityFrameworkCore;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -123,12 +122,6 @@ namespace Docms.Client.DocumentStores
         {
             cancellationToken.ThrowIfCancellationRequested();
             await Repo.MergeAsync(Persist()).ConfigureAwait(false);
-        }
-
-        public async Task Save(DocumentNode document, CancellationToken cancellationToken = default(CancellationToken))
-        {
-            cancellationToken.ThrowIfCancellationRequested();
-            await Repo.UpdateAsync(Persist(document)).ConfigureAwait(false);
         }
 
         public abstract Task Sync(IProgress<int> progress = default(IProgress<int>), CancellationToken cancellationToken = default(CancellationToken));
