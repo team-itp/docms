@@ -128,6 +128,7 @@ namespace Docms.Client.Api
                         ClientId = "docms-client",
                         ClientSecret = "docms-client-secret",
                     }).ConfigureAwait(false);
+
                 _logger.Debug("token verified.");
                 if (response.IsActive)
                 {
