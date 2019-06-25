@@ -28,18 +28,14 @@ namespace Docms.Client.Operations
                 if (fi == null)
                 {
                     await context.Api.DeleteDocumentAsync(path.ToString()).ConfigureAwait(false);
-                    var task = context.SyncHistoryDbDispatcher.Execute(async db =>
+                    context.SyncManager.AddHistory(new SyncHistory()
                     {
-                        db.SyncHistories.Add(new SyncHistory()
-                        {
-                            Id = Guid.NewGuid(),
-                            Timestamp = DateTime.Now,
-                            Path = path.ToString(),
-                            FileSize = document.FileSize,
-                            Hash = document.Hash,
-                            Type = SyncHistoryType.Delete
-                        });
-                        await db.SaveChangesAsync().ConfigureAwait(false);
+                        Id = Guid.NewGuid(),
+                        Timestamp = DateTime.Now,
+                        Path = path.ToString(),
+                        FileSize = document.FileSize,
+                        Hash = document.Hash,
+                        Type = SyncHistoryType.Delete
                     });
                 }
             }

@@ -3,6 +3,7 @@ using Docms.Client.Data;
 using Docms.Client.DocumentStores;
 using Docms.Client.FileSystem;
 using Docms.Client.Operations;
+using Docms.Client.Syncing;
 using Microsoft.EntityFrameworkCore;
 using NLog;
 using System;
@@ -48,6 +49,7 @@ namespace Docms.Client.Starter
                 context.LocalStorage = ResolveLocalStorage(context.FileSystem, context.DocumentDb);
                 context.RemoteStorage = ResolveRemoteStorage(context.Api, context.DocumentDb);
                 context.SyncHistoryDbDispatcher = ResolveSyncHistoryDbContextDispatcher();
+                context.SyncManager = new SyncManager(context.SyncHistoryDbDispatcher);
 
                 await context.Api.LoginAsync(uploadUserName, uploadUserPassword).ConfigureAwait(false);
                 await context.LocalStorage.Initialize().ConfigureAwait(false);

@@ -1,9 +1,6 @@
 ﻿using Docms.Client.Types;
-using Microsoft.EntityFrameworkCore;
 using System.Collections.Generic;
-using System.Linq;
 using System.Threading;
-using System.Threading.Tasks;
 
 namespace Docms.Client.Operations
 {
@@ -18,7 +15,7 @@ namespace Docms.Client.Operations
         }
     }
 
-    public class ChangesIntoOperationsOperation : AsyncOperationBase
+    public class ChangesIntoOperationsOperation : OperationBase
     {
         private ApplicationContext context;
 
@@ -27,7 +24,7 @@ namespace Docms.Client.Operations
             this.context = context;
         }
 
-        protected override async Task ExecuteAsync(CancellationToken token)
+        protected override void Execute(CancellationToken token)
         {
             var result = new ChangesIntoOperationsOperationResult();
             foreach (var diff in context.LocalStorage.GetDifference(context.RemoteStorage))
@@ -38,14 +35,7 @@ namespace Docms.Client.Operations
                 }
                 else if (diff.Storage1Document == null)
                 {
-                    var latestSyncHistory = await context.SyncHistoryDbDispatcher.Execute(async db =>
-                    {
-                        return await db.SyncHistories
-                           .OrderByDescending(h => h.Timestamp)
-                           .FirstOrDefaultAsync(h => h.Path == diff.Path.ToString())
-                           .ConfigureAwait(false);
-                    });
-
+                    var latestSyncHistory = context.SyncManager.FindLatestHistory(diff.Path);
                     if (latestSyncHistory == null
                         || (latestSyncHistory.Type == SyncHistoryType.Delete
                             && latestSyncHistory.FileSize == diff.Storage2Document.FileSize

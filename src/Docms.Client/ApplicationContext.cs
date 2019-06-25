@@ -3,6 +3,7 @@ using Docms.Client.Data;
 using Docms.Client.DocumentStores;
 using Docms.Client.FileSystem;
 using Docms.Client.Operations;
+using Docms.Client.Syncing;
 using Docms.Client.Tasks;
 using System;
 
@@ -18,6 +19,7 @@ namespace Docms.Client
         public IDocumentStorage RemoteStorage { get; set; }
         public ITask CurrentTask { get; set; }
         public IResourceOperationDispatcher<SyncHistoryDbContext> SyncHistoryDbDispatcher { get; set; }
+        public SyncManager SyncManager { get; set; }
 
         public void Dispose()
         {
