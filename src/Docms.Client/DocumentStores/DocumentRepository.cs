@@ -25,18 +25,14 @@ namespace Docms.Client.DocumentStores
             this.db = db;
             this.documents = documents;
             this.documentsCache = new Dictionary<string, TDocument>();
-            Load(this.documents.AsNoTracking());
+            Load(this.documents.AsNoTracking().ToList());
         }
 
         private void Load(IEnumerable<TDocument> documents)
         {
             foreach (var dbDoc in documents)
             {
-                db.Entry(dbDoc).State = EntityState.Detached;
-                if (!documentsCache.TryGetValue(dbDoc.Path, out var document))
-                {
-                    documentsCache.Add(dbDoc.Path, dbDoc);
-                }
+                documentsCache[dbDoc.Path] = dbDoc;
             }
         }
 
