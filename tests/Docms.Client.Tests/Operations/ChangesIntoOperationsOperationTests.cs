@@ -69,20 +69,16 @@ namespace Docms.Client.Tests.Operations
         [TestMethod]
         public async Task リモートファイルが存在しローカルファイルが存在しない場合にローカルファイルのアップロード履歴の最新がDeleteの場合はダウンロードされる()
         {
-            context.SyncHistoryDbDispatcher.Execute(async db =>
+            var file = context.FileSystem.GetFileInfo(new PathString("test1.txt"));
+            context.SyncManager.AddHistory(new SyncHistory()
             {
-                var file = context.FileSystem.GetFileInfo(new PathString("test1.txt"));
-                db.SyncHistories.Add(new SyncHistory()
-                {
-                    Id = Guid.NewGuid(),
-                    Timestamp = DEFAULT_TIME,
-                    Path = file.Path.ToString(),
-                    FileSize = file.FileSize,
-                    Hash = file.CalculateHash(),
-                    Type = SyncHistoryType.Delete
-                });
-                await db.SaveChangesAsync();
-            }).Wait();
+                Id = Guid.NewGuid(),
+                Timestamp = DEFAULT_TIME,
+                Path = file.Path.ToString(),
+                FileSize = file.FileSize,
+                Hash = file.CalculateHash(),
+                Type = SyncHistoryType.Delete
+            });
 
             await FileSystemUtils.Delete(context.FileSystem, "test1.txt");
             await context.LocalStorage.Sync();
@@ -97,20 +93,16 @@ namespace Docms.Client.Tests.Operations
         [TestMethod]
         public async Task リモートファイルが存在しローカルファイルが存在しない場合にローカルファイルのアップロード履歴が存在する場合は削除される()
         {
-            context.SyncHistoryDbDispatcher.Execute(async db =>
+            var file = context.FileSystem.GetFileInfo(new PathString("test1.txt"));
+            context.SyncManager.AddHistory(new SyncHistory()
             {
-                var file = context.FileSystem.GetFileInfo(new PathString("test1.txt"));
-                db.SyncHistories.Add(new SyncHistory()
-                {
-                    Id = Guid.NewGuid(),
-                    Timestamp = DEFAULT_TIME,
-                    Path = file.Path.ToString(),
-                    FileSize = file.FileSize,
-                    Hash = file.CalculateHash(),
-                    Type = SyncHistoryType.Upload
-                });
-                await db.SaveChangesAsync().ConfigureAwait(false);
-            }).Wait();
+                Id = Guid.NewGuid(),
+                Timestamp = DEFAULT_TIME,
+                Path = file.Path.ToString(),
+                FileSize = file.FileSize,
+                Hash = file.CalculateHash(),
+                Type = SyncHistoryType.Upload
+            });
             await FileSystemUtils.Delete(context.FileSystem, "test1.txt");
             await context.LocalStorage.Sync();
 

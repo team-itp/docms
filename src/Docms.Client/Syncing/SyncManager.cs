@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Threading.Tasks;
 using Docms.Client.Data;
 using Docms.Client.Operations;
 using Docms.Client.Types;
@@ -23,7 +24,11 @@ namespace Docms.Client.Syncing
         {
             dispatcher.Execute(async db =>
             {
-                foreach (var history in await db.SyncHistories.AsNoTracking().ToListAsync())
+                foreach (var history in await db
+                    .SyncHistories
+                    .AsNoTracking()
+                    .ToListAsync()
+                    .ConfigureAwait(false))
                 {
                     if (this.histories.TryGetValue(history.Path, out var latestHistory))
                     {
@@ -37,6 +42,29 @@ namespace Docms.Client.Syncing
                         this.histories.Add(history.Path, history);
                     }
                 }
+            });
+        }
+
+        public void AddHistories(IEnumerable<SyncHistory> histories)
+        {
+            foreach (var history in histories)
+            {
+                if (this.histories.TryGetValue(history.Path, out var latestHistory))
+                {
+                    if (latestHistory.Timestamp < history.Timestamp)
+                    {
+                        this.histories[history.Path] = history;
+                    }
+                }
+                else
+                {
+                    this.histories.Add(history.Path, history);
+                }
+            }
+            dispatcher.Execute(db =>
+            {
+                db.SyncHistories.AddRange(histories);
+                return db.SaveChangesAsync();
             });
         }
 

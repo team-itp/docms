@@ -1,12 +1,12 @@
 ﻿using Docms.Client.Data;
 using Docms.Client.Types;
 using System;
+using System.Linq;
 using System.Threading;
-using System.Threading.Tasks;
 
 namespace Docms.Client.Operations
 {
-    internal class InsertAllTrackingFilesToSyncHistoryOperation : AsyncOperationBase
+    internal class InsertAllTrackingFilesToSyncHistoryOperation : OperationBase
     {
         private ApplicationContext context;
 
@@ -15,34 +15,18 @@ namespace Docms.Client.Operations
             this.context = context;
         }
 
-        protected override async Task ExecuteAsync(CancellationToken token)
+        protected override void Execute(CancellationToken token)
         {
             var remoteDocuments = context.RemoteStorage.Root.ListAllDocuments();
-            var i = 0;
-            await context.SyncHistoryDbDispatcher.Execute(async db =>
+            context.SyncManager.AddHistories(remoteDocuments.Select(remoteDocument => new SyncHistory()
             {
-                foreach (var remoteDocument in remoteDocuments)
-                {
-                    i++;
-                    db.SyncHistories.Add(new SyncHistory()
-                    {
-                        Id = Guid.NewGuid(),
-                        Timestamp = DateTime.Now,
-                        Path = remoteDocument.Path.ToString(),
-                        FileSize = remoteDocument.FileSize,
-                        Hash = remoteDocument.Hash,
-                        Type = SyncHistoryType.Upload
-                    });
-                    if (i % 1000 == 0)
-                    {
-                        await db.SaveChangesAsync().ConfigureAwait(false);
-                    }
-                }
-                if (i % 1000 != 0)
-                {
-                    await db.SaveChangesAsync().ConfigureAwait(false);
-                }
-            }).ConfigureAwait(false);
+                Id = Guid.NewGuid(),
+                Timestamp = DateTime.Now,
+                Path = remoteDocument.Path.ToString(),
+                FileSize = remoteDocument.FileSize,
+                Hash = remoteDocument.Hash,
+                Type = SyncHistoryType.Upload
+            }));
         }
     }
 }

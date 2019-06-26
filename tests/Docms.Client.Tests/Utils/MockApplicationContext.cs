@@ -1,6 +1,7 @@
 ﻿using Docms.Client.Data;
 using Docms.Client.DocumentStores;
 using Docms.Client.Operations;
+using Docms.Client.Syncing;
 
 namespace Docms.Client.Tests.Utils
 {
@@ -12,6 +13,7 @@ namespace Docms.Client.Tests.Utils
         public MockDocumentDbContext MockDocumentDb { get; set; }
         public MockSyncHistoryDbContext MockSyncHistoryDb { get; set; }
         public ResourceOperationDispatcher<SyncHistoryDbContext> MockSyncHistoryDbDispatcher { get; set; }
+        public SyncManager MockSyncManager { get; set; }
         public LocalDocumentStorage MockLocalStorage { get; set; }
         public RemoteDocumentStorage MockRemoteStorage { get; set; }
         public MockTask MockCurrentTask { get; set; }
@@ -24,6 +26,7 @@ namespace Docms.Client.Tests.Utils
             MockDocumentDb = new MockDocumentDbContext();
             MockSyncHistoryDb = new MockSyncHistoryDbContext();
             MockSyncHistoryDbDispatcher = new ResourceOperationDispatcher<SyncHistoryDbContext>(MockSyncHistoryDb);
+            MockSyncManager = new SyncManager(MockSyncHistoryDbDispatcher);
             MockLocalStorage = new LocalDocumentStorage(MockFileSystem, MockDocumentDb);
             MockRemoteStorage = new RemoteDocumentStorage(MockApi, MockDocumentDb);
             MockCurrentTask = new MockTask();
@@ -32,6 +35,7 @@ namespace Docms.Client.Tests.Utils
             FileSystem = MockFileSystem;
             DocumentDb = MockDocumentDb;
             SyncHistoryDbDispatcher = MockSyncHistoryDbDispatcher;
+            SyncManager = MockSyncManager;
             LocalStorage = MockLocalStorage;
             RemoteStorage = MockRemoteStorage;
             CurrentTask = MockCurrentTask;
