@@ -57,9 +57,13 @@ namespace Docms.Client.FileSystem
             }
             var files = Directory.GetFiles(fullpath);
             var startIndex = fullpath.Length;
-            foreach (var filepath in files)
+            foreach (var filefullpath in files)
             {
-                yield return path.Combine(filepath.Substring(startIndex + 1));
+                var filepath = path.Combine(filefullpath.Substring(startIndex + 1));
+                if (!IgnoreFilePatterns.Default.IsMatch(filepath))
+                {
+                    yield return filepath;
+                }
             }
         }
 

@@ -41,18 +41,14 @@ namespace Docms.Client.Operations
                 {
                     await context.Api.CreateOrUpdateDocumentAsync(path.ToString(), stream, document.Created, document.LastModified).ConfigureAwait(false);
                 }
-                var task = context.SyncHistoryDbDispatcher.Execute(async db =>
+                context.SyncManager.AddHistory(new SyncHistory()
                 {
-                    db.SyncHistories.Add(new SyncHistory()
-                    {
-                        Id = Guid.NewGuid(),
-                        Timestamp = DateTime.Now,
-                        Path = path.ToString(),
-                        FileSize = document.FileSize,
-                        Hash = document.Hash,
-                        Type = SyncHistoryType.Upload
-                    });
-                    await db.SaveChangesAsync().ConfigureAwait(false);
+                    Id = Guid.NewGuid(),
+                    Timestamp = DateTime.Now,
+                    Path = path.ToString(),
+                    FileSize = document.FileSize,
+                    Hash = document.Hash,
+                    Type = SyncHistoryType.Upload
                 });
             }
             catch (Exception ex)
