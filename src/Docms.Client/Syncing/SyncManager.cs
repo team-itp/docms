@@ -1,11 +1,8 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
-using Docms.Client.Data;
+﻿using Docms.Client.Data;
 using Docms.Client.Operations;
 using Docms.Client.Types;
 using Microsoft.EntityFrameworkCore;
+using System.Collections.Generic;
 
 namespace Docms.Client.Syncing
 {
@@ -42,7 +39,7 @@ namespace Docms.Client.Syncing
                         this.histories.Add(history.Path, history);
                     }
                 }
-            });
+            }).GetAwaiter().GetResult();
         }
 
         public void AddHistories(IEnumerable<SyncHistory> histories)

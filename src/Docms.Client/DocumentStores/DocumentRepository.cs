@@ -80,7 +80,7 @@ namespace Docms.Client.DocumentStores
             }
             if (dbChanges)
             {
-                await this.db.SaveChangesAsync();
+                await this.db.SaveChangesAsync().ConfigureAwait(false);
             }
         }
     }

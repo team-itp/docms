@@ -122,7 +122,7 @@ namespace Docms.Client.DocumentStores
             await base.Save(cancellationToken).ConfigureAwait(false);
 
             db.Histories.AddRange(historiesToAdd);
-            await db.SaveChangesAsync();
+            await db.SaveChangesAsync().ConfigureAwait(false);
 
             historiesToAdd.Clear();
         }
