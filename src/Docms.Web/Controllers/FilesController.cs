@@ -42,7 +42,7 @@ namespace Docms.Web.Controllers
             var entry = await _blobs.GetEntryAsync(path);
             if (entry == null)
             {
-                return Redirect(Url.ViewFile(path.Split("/").Last()));
+                return Redirect(Url.ViewFile(new DocumentPath(path).Parent?.Value));
             }
             ViewData["DirPath"] = entry is BlobContainer ? entry.Path : entry.ParentPath;
             return View(entry);
