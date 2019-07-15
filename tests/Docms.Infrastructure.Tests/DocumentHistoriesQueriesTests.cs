@@ -32,7 +32,7 @@ namespace Docms.Infrastructure.Tests
             Created(ctx, "path1/subpath1document2.txt", 5);
             Moved(ctx, "path1/subpath1/document2.txt", "path2/subpath1/document1.txt", 4);
             Updated(ctx, "path1/subpath1/document1.txt", 6);
-            Deleted(ctx, "path1/subpath1/document1.txt");
+            Deleted(ctx, "path1/subpath1/document1.txt", 6);
             Created(ctx, "path2/document1.txt", 7);
             await ctx.SaveChangesAsync();
         }
@@ -49,6 +49,7 @@ namespace Docms.Infrastructure.Tests
             var now = DateTime.UtcNow;
             ctx.DocumentHistories.Add(DocumentHistory.DocumentCreated(
                 DateTime.UtcNow,
+                contentId,
                 path,
                 "stragekey",
                 "text/plain",
@@ -63,6 +64,7 @@ namespace Docms.Infrastructure.Tests
             var now = DateTime.UtcNow;
             ctx.DocumentHistories.Add(DocumentHistory.DocumentUpdated(
                 DateTime.UtcNow,
+                contentId,
                 to,
                 "stragekey",
                 "text/plain",
@@ -72,6 +74,7 @@ namespace Docms.Infrastructure.Tests
                 now));
             ctx.DocumentHistories.Add(DocumentHistory.DocumentDeleted(
                 DateTime.UtcNow,
+                contentId,
                 from));
         }
 
@@ -80,6 +83,7 @@ namespace Docms.Infrastructure.Tests
             var now = DateTime.UtcNow;
             ctx.DocumentHistories.Add(DocumentHistory.DocumentUpdated(
                 DateTime.UtcNow,
+                contentId,
                 path,
                 "stragekey",
                 "text/plain",
@@ -89,10 +93,11 @@ namespace Docms.Infrastructure.Tests
                 now));
         }
 
-        private void Deleted(DocmsContext ctx, string path)
+        private void Deleted(DocmsContext ctx, string path, int contentId)
         {
             ctx.DocumentHistories.Add(DocumentHistory.DocumentDeleted(
                 DateTime.UtcNow,
+                contentId,
                 path));
         }
 

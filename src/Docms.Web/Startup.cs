@@ -116,7 +116,7 @@ namespace Docms.Web
                             new Secret("docms-client-secret".Sha256())
                         },
                         AllowedScopes = { "docmsapi" },
-                        AllowedGrantTypes = GrantTypes.ResourceOwnerPassword,
+                        AllowedGrantTypes = GrantTypes.ResourceOwnerPasswordAndClientCredentials,
                         AllowAccessTokensViaBrowser = true,
                     }
                 })

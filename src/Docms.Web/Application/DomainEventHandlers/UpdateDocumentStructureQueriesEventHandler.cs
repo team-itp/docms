@@ -74,6 +74,7 @@ namespace Docms.Web.Application.DomainEventHandlers
                 Path = ev.Path.Value,
                 Name = ev.Path.Name,
                 ParentPath = ev.Path.Parent?.Value,
+                DocumentId = ev.Entity.Id,
                 StorageKey = ev.StorageKey,
                 ContentType = ev.ContentType,
                 FileSize = ev.Data.Length,
@@ -117,6 +118,7 @@ namespace Docms.Web.Application.DomainEventHandlers
                 Path = ev.NewPath.Value,
                 Name = ev.NewPath.Name,
                 ParentPath = ev.NewPath.Parent?.Value,
+                DocumentId = ev.Entity.Id,
                 StorageKey = oldBlob.StorageKey,
                 ContentType = oldBlob.ContentType,
                 FileSize = oldBlob.FileSize,
@@ -136,6 +138,7 @@ namespace Docms.Web.Application.DomainEventHandlers
             var ev = notification.Event;
 
             var blob = await _db.Blobs.FirstOrDefaultAsync(e => e.Path == ev.Path.Value);
+            blob.DocumentId = ev.Entity.Id;
             blob.StorageKey = ev.StorageKey;
             blob.ContentType = ev.ContentType;
             blob.FileSize = ev.Data.Length;

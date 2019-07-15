@@ -21,6 +21,8 @@ namespace Docms.Queries.DocumentHistories
         public DateTime Timestamp { get; set; }
         [Column("Discriminator")]
         public DocumentHistoryDiscriminator Discriminator { get; set; }
+        [Column("DocumentId")]
+        public int DocumentId { get; set; }
         [Column("Path")]
         [Required]
         [MaxLength(4000)]
@@ -39,7 +41,8 @@ namespace Docms.Queries.DocumentHistories
         public DateTime? LastModified { get; set; }
 
         public static DocumentHistory DocumentCreated(
-            DateTime timestamp, 
+            DateTime timestamp,
+            int documentId,
             string path, 
             string storageKey, 
             string contentType,
@@ -53,6 +56,7 @@ namespace Docms.Queries.DocumentHistories
                 Id = Guid.NewGuid(),
                 Discriminator = DocumentHistoryDiscriminator.DocumentCreated,
                 Timestamp = timestamp,
+                DocumentId = documentId,
                 Path = path,
                 StorageKey = storageKey,
                 ContentType = contentType,
@@ -65,6 +69,7 @@ namespace Docms.Queries.DocumentHistories
 
         public static DocumentHistory DocumentUpdated(
             DateTime timestamp,
+            int documentId,
             string path,
             string storageKey,
             string contentType,
@@ -78,6 +83,7 @@ namespace Docms.Queries.DocumentHistories
                 Id = Guid.NewGuid(),
                 Discriminator = DocumentHistoryDiscriminator.DocumentUpdated,
                 Timestamp = timestamp,
+                DocumentId = documentId,
                 Path = path,
                 StorageKey = storageKey,
                 ContentType = contentType,
@@ -89,6 +95,7 @@ namespace Docms.Queries.DocumentHistories
         }
         public static DocumentHistory DocumentDeleted(
             DateTime timestamp,
+            int documentId,
             string path)
         {
             return new DocumentHistory()
@@ -96,6 +103,7 @@ namespace Docms.Queries.DocumentHistories
                 Id = Guid.NewGuid(),
                 Discriminator = DocumentHistoryDiscriminator.DocumentDeleted,
                 Timestamp = timestamp,
+                DocumentId = documentId,
                 Path = path
             };
         }

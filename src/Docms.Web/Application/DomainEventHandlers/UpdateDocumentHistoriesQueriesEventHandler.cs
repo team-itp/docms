@@ -28,6 +28,7 @@ namespace Docms.Web.Application.DomainEventHandlers
             _db.DocumentHistories
                 .Add(DocumentHistory.DocumentCreated(
                     ev.Timestamp,
+                    ev.Entity.Id,
                     ev.Path.ToString(),
                     ev.StorageKey,
                     ev.ContentType,
@@ -44,6 +45,7 @@ namespace Docms.Web.Application.DomainEventHandlers
             _db.DocumentHistories
                 .Add(DocumentHistory.DocumentUpdated(
                     ev.Timestamp,
+                    ev.Entity.Id,
                     ev.Path.ToString(),
                     ev.StorageKey,
                     ev.ContentType,
@@ -59,7 +61,8 @@ namespace Docms.Web.Application.DomainEventHandlers
             var ev = notification.Event;
             _db.DocumentHistories
                 .Add(DocumentHistory.DocumentCreated(
-                    ev.Timestamp, 
+                    ev.Timestamp,
+                    ev.Entity.Id,
                     ev.NewPath.ToString(),
                     ev.Entity.StorageKey,
                     ev.Entity.ContentType,
@@ -69,7 +72,10 @@ namespace Docms.Web.Application.DomainEventHandlers
                     ev.Entity.LastModified));
 
             _db.DocumentHistories
-                .Add(DocumentHistory.DocumentDeleted(ev.Timestamp, ev.Path.ToString()));
+                .Add(DocumentHistory.DocumentDeleted(
+                    ev.Timestamp,
+                    ev.Entity.Id,
+                    ev.Path.ToString()));
             await _db.SaveChangesAsync();
         }
 
@@ -77,7 +83,10 @@ namespace Docms.Web.Application.DomainEventHandlers
         {
             var ev = notification.Event;
             _db.DocumentHistories
-                .Add(DocumentHistory.DocumentDeleted(ev.Timestamp, ev.Path.ToString()));
+                .Add(DocumentHistory.DocumentDeleted(
+                    ev.Timestamp,
+                    ev.Entity.Id,
+                    ev.Path.ToString()));
             await _db.SaveChangesAsync();
         }
     }
