@@ -16,4 +16,8 @@
     <PackageReference Include="Selenium.WebDriver.MicrosoftDriver" Version="17.17134.0" />
   </ItemGroup>
 
+  <ItemGroup>
+    <ProjectReference Include="..\..\src\Docms.Client.Api\Docms.Client.Api.csproj" />
+  </ItemGroup>
+
 </Project>
