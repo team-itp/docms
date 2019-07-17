@@ -69,6 +69,11 @@ namespace Docms.Client.Api
             _introspectionEndpoint = doc.IntrospectionEndpoint;
             _revocationEndpoint = doc.RevocationEndpoint;
 
+            if (_tokenEndpoint == null)
+            {
+                throw new InvalidLoginException();
+            }
+
             var client = new TokenClient(
                 _tokenEndpoint,
                 "docms-client",
@@ -139,9 +144,23 @@ namespace Docms.Client.Api
             await LoginAsync(_username, _password).ConfigureAwait(false);
         }
 
-        private Task<IRestResponse> ExecuteAsync(RestRequest request)
+        private async Task<IRestResponse> ExecuteAsync(RestRequest request)
         {
-            return _client.ExecuteTaskAsync(request);
+            if (_client == null)
+            {
+                throw new InvalidLoginException();
+            }
+            var response = await _client.ExecuteTaskAsync(request).ConfigureAwait(false);
+            if (response.StatusCode == HttpStatusCode.Unauthorized)
+            {
+                try
+                {
+                    await VerifyTokenAsync().ConfigureAwait(false);
+                    response = await _client.ExecuteTaskAsync(request).ConfigureAwait(false);
+                }
+                catch { }
+            }
+            return response;
         }
 
         private void ThrowIfNotSuccessfulStatus(IRestRequest request, IRestResponse result)
