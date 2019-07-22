@@ -21,7 +21,7 @@ namespace Docms.Client
             _logger.Info("Application started.");
             try
             {
-                _dispatcher.Task.Wait();
+                _dispatcher.Task.GetAwaiter().GetResult();
             }
             catch { }
         }

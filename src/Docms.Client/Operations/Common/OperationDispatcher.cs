@@ -98,7 +98,7 @@ namespace Docms.Client
                 _cancellationTokenSource.Cancel();
                 try
                 {
-                    Task.Wait();
+                    Task.GetAwaiter().GetResult();
                 }
                 catch (Exception ex)
                 {

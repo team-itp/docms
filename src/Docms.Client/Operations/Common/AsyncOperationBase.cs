@@ -11,8 +11,7 @@ namespace Docms.Client.Operations
 
         protected override void Execute(CancellationToken cancellationToken)
         {
-            var task = Task.Run(() => ExecuteAsync(cancellationToken));
-            task.Wait();
+            ExecuteAsync(cancellationToken).GetAwaiter().GetResult();
         }
 
         protected abstract Task ExecuteAsync(CancellationToken token);

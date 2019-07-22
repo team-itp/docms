@@ -53,7 +53,7 @@ namespace Docms.Client.Operations
                 {
                     try
                     {
-                        Task.Wait();
+                        Task.GetAwaiter().GetResult();
                     }
                     catch
                     {

@@ -74,7 +74,7 @@ namespace Docms.Client.Tests
             Assert.AreEqual(TaskStatus.WaitingForActivation, sut.Task.Status);
 
             are2.Set();
-            task.Wait();
+            task.GetAwaiter().GetResult();
 
             Assert.IsFalse(sut.IsAborted);
             Assert.AreEqual(TaskStatus.RanToCompletion, sut.Task.Status);
@@ -99,7 +99,7 @@ namespace Docms.Client.Tests
             Assert.AreEqual(TaskStatus.WaitingForActivation, sut.Task.Status);
 
             are2.Set();
-            task.Wait();
+            task.GetAwaiter().GetResult();
 
             Assert.IsFalse(sut.IsAborted);
             Assert.AreEqual(TaskStatus.Canceled, sut.Task.Status);
