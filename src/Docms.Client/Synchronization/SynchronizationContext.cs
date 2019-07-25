@@ -14,9 +14,31 @@ namespace Docms.Client.Synchronization
             _States = new Dictionary<PathString, SynchronizationState>();
         }
 
-        public void AddLocalFile(PathString path, string hash, long length)
+        public void LocalFileAdded(PathString path, string hash, long length)
         {
-            _States.Add(path, new RequestForUploadState(path, hash, length));
+            if (_States.TryGetValue(path, out var value))
+            {
+                if (value is DownloadingState)
+                {
+                    _States.Remove(path);
+                }
+                else if (value is RequestForUploadState)
+                {
+                    _States[path] = new RequestForUploadState(path, hash, length);
+                }
+            }
+            else
+            {
+                _States.Add(path, new RequestForUploadState(path, hash, length));
+            }
+        }
+
+        public void LocalFileRemoved(PathString path)
+        {
+            if (_States.TryGetValue(path, out var value))
+            {
+                _States.Remove(path);
+            }
         }
 
         public void LocalFileUploaded(PathString path)
@@ -27,7 +49,7 @@ namespace Docms.Client.Synchronization
             }
         }
 
-        public void AddRemoteFile(PathString path, string hash, long length)
+        public void RemoteFileAdded(PathString path, string hash, long length)
         {
             if (_States.TryGetValue(path, out var value))
             {
