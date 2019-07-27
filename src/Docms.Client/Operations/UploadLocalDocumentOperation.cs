@@ -1,5 +1,4 @@
-﻿using Docms.Client.Data;
-using Docms.Client.Types;
+﻿using Docms.Client.Types;
 using NLog;
 using System;
 using System.Threading;
@@ -12,11 +11,15 @@ namespace Docms.Client.Operations
         private static readonly ILogger _logger = LogManager.GetCurrentClassLogger();
         private readonly ApplicationContext context;
         private readonly PathString path;
+        private readonly string hash;
+        private long length;
 
-        public UploadLocalDocumentOperation(ApplicationContext context, PathString path, CancellationToken cancellationToken) : base(context.Api, cancellationToken)
+        public UploadLocalDocumentOperation(ApplicationContext context, PathString path, string hash, long length, CancellationToken cancellationToken) : base(context.Api, cancellationToken)
         {
             this.context = context;
             this.path = path;
+            this.hash = hash;
+            this.length = length;
         }
 
         protected override async Task ExecuteApiOperationAsync(CancellationToken token)
@@ -26,13 +29,14 @@ namespace Docms.Client.Operations
                 token.ThrowIfCancellationRequested();
                 var document = context.LocalStorage.GetDocument(path);
                 var file = context.FileSystem.GetFileInfo(path);
-                if (file == null)
+                if (document == null || file == null)
                 {
                     return;
                 }
-                if (document.FileSize != file.FileSize
-                    || document.Created != file.Created
-                    || document.LastModified != file.LastModified)
+                if (document.Hash != hash ||
+                    document.FileSize != length ||
+                    file.FileSize != length ||
+                    file.LastModified != document.LastModified)
                 {
                     return;
                 }
@@ -41,15 +45,7 @@ namespace Docms.Client.Operations
                 {
                     await context.Api.CreateOrUpdateDocumentAsync(path.ToString(), stream, document.Created, document.LastModified).ConfigureAwait(false);
                 }
-                context.SyncManager.AddHistory(new SyncHistory()
-                {
-                    Id = Guid.NewGuid(),
-                    Timestamp = DateTime.Now,
-                    Path = path.ToString(),
-                    FileSize = document.FileSize,
-                    Hash = document.Hash,
-                    Type = SyncHistoryType.Upload
-                });
+                context.SynchronizationContext.UploadRequested(path);
             }
             catch (Exception ex)
             {

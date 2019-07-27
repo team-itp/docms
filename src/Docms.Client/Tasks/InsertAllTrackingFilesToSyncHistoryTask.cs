@@ -6,7 +6,6 @@ namespace Docms.Client.Tasks
     class InsertAllTrackingFilesToSyncHistoryTask : ITask
     {
         private ApplicationContext context;
-        private object prevResult;
 
         public bool IsCompleted { get; private set; }
 
@@ -15,20 +14,13 @@ namespace Docms.Client.Tasks
             this.context = context;
         }
 
-        public void Next(object result)
-        {
-            prevResult = result;
-        }
-
         public async Task ExecuteOperationAsync(IOperation operation)
         {
-            prevResult = null;
             await context.App.Invoke(operation).ConfigureAwait(false);
         }
 
         public async Task ExecuteAsync()
         {
-            context.CurrentTask = this;
             await ExecuteOperationAsync(new RemoteDocumentStorageSyncOperation(context)).ConfigureAwait(false);
             await ExecuteOperationAsync(new InsertAllTrackingFilesToSyncHistoryOperation(context)).ConfigureAwait(false);
             IsCompleted = true;

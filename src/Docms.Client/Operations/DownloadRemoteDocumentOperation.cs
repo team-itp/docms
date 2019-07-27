@@ -44,15 +44,7 @@ namespace Docms.Client.Operations
                     {
                         await context.FileSystem.CreateFile(path, stream, document.Created, document.LastModified).ConfigureAwait(false);
                     }
-                    context.SyncManager.AddHistory(new SyncHistory()
-                    {
-                        Id = Guid.NewGuid(),
-                        Timestamp = DateTime.Now,
-                        Path = path.ToString(),
-                        FileSize = document.FileSize,
-                        Hash = document.Hash,
-                        Type = SyncHistoryType.Download
-                    });
+                    context.SynchronizationContext.DownloadRequested(path);
                 }
             }
             catch (Exception ex)

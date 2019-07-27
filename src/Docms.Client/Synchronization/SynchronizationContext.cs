@@ -67,7 +67,7 @@ namespace Docms.Client.Synchronization
             }
         }
 
-        public void RemoteFileDeleted(PathString path, string hash, int length)
+        public void RemoteFileDeleted(PathString path, string hash, long length)
         {
             if (_States.TryGetValue(path, out var value))
             {

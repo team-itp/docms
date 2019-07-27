@@ -9,8 +9,10 @@ namespace Docms.Client.Tests.Utils
     {
         public List<IOperation> StackedOperations { get; set; } = new List<IOperation>();
         private int currentOperationIndex;
+        private CancellationTokenSource cancellationTokenSource = new CancellationTokenSource();
         public bool IsRunning { get; private set; }
         public bool IsShutdownRequested { get; private set; }
+        public CancellationToken CancellationToken => cancellationTokenSource.Token;
 
         private AutoResetEvent stateEvent = new AutoResetEvent(false);
         private AutoResetEvent operationEvent = new AutoResetEvent(false);
@@ -32,7 +34,7 @@ namespace Docms.Client.Tests.Utils
         {
             if (StackedOperations.Count >= currentOperationIndex)
             {
-                operationEvent.WaitOne();
+                operationEvent.WaitOne(100);
                 operationEvent.Reset();
             }
         }
@@ -47,6 +49,7 @@ namespace Docms.Client.Tests.Utils
         {
             IsRunning = false;
             IsShutdownRequested = true;
+            cancellationTokenSource.Cancel();
             stateEvent.Set();
         }
 

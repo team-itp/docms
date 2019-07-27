@@ -2,8 +2,7 @@
 using Docms.Client.Data;
 using Docms.Client.DocumentStores;
 using Docms.Client.FileSystem;
-using Docms.Client.Operations;
-using Docms.Client.Syncing;
+using Docms.Client.Synchronization;
 using Microsoft.EntityFrameworkCore;
 using NLog;
 using System;
@@ -46,10 +45,9 @@ namespace Docms.Client.Starter
                 context.Api = ResolveApi();
                 context.DocumentDb = ResolveDocumentDbContext();
                 context.FileSystem = ResolveFileSystem(watchPath);
-                context.LocalStorage = ResolveLocalStorage(context.FileSystem, context.DocumentDb);
-                context.RemoteStorage = ResolveRemoteStorage(context.Api, context.DocumentDb);
-                context.SyncHistoryDbDispatcher = ResolveSyncHistoryDbContextDispatcher();
-                context.SyncManager = new SyncManager(context.SyncHistoryDbDispatcher);
+                context.SynchronizationContext = ResolveSynchronizationContext();
+                context.LocalStorage = ResolveLocalStorage(context.FileSystem, context.SynchronizationContext, context.DocumentDb);
+                context.RemoteStorage = ResolveRemoteStorage(context.Api, context.SynchronizationContext, context.DocumentDb);
 
                 await context.Api.LoginAsync(uploadUserName, uploadUserPassword).ConfigureAwait(false);
                 await context.LocalStorage.Initialize().ConfigureAwait(false);
@@ -64,6 +62,16 @@ namespace Docms.Client.Starter
                 _logger.Error(ex);
                 return false;
             }
+        }
+
+        private IDocmsApiClient ResolveApi()
+        {
+            return new DocmsApiClient(serverUrl);
+        }
+
+        private IFileSystem ResolveFileSystem(string watchPath)
+        {
+            return new LocalFileSystem(watchPath);
         }
 
         private DocumentDbContext ResolveDocumentDbContext()
@@ -84,41 +92,19 @@ namespace Docms.Client.Starter
             return db;
         }
 
-        private static RemoteDocumentStorage ResolveRemoteStorage(IDocmsApiClient api, DocumentDbContext dbDispatcher)
+        private SynchronizationContext ResolveSynchronizationContext()
         {
-            return new RemoteDocumentStorage(api, dbDispatcher);
+            return new SynchronizationContext();
         }
 
-        private LocalDocumentStorage ResolveLocalStorage(IFileSystem fileSystem, DocumentDbContext dbDispatcher)
+        private static RemoteDocumentStorage ResolveRemoteStorage(IDocmsApiClient api, SynchronizationContext synchronizationContext, DocumentDbContext dbContext)
         {
-            return new LocalDocumentStorage(fileSystem, dbDispatcher);
+            return new RemoteDocumentStorage(api, synchronizationContext, dbContext);
         }
 
-        private IResourceOperationDispatcher<SyncHistoryDbContext> ResolveSyncHistoryDbContextDispatcher()
+        private LocalDocumentStorage ResolveLocalStorage(IFileSystem fileSystem, SynchronizationContext synchronizationContext, DocumentDbContext dbContext)
         {
-            var configDir = Path.Combine(watchPath, ".docms");
-            var configDirInfo = new DirectoryInfo(configDir);
-            if (!configDirInfo.Exists)
-            {
-                configDirInfo.Create();
-                configDirInfo.Attributes = FileAttributes.Hidden;
-            }
-
-            var db = new SyncHistoryDbContext(new DbContextOptionsBuilder<SyncHistoryDbContext>()
-                .UseSqlite(string.Format("Data Source={0}", Path.Combine(configDir, "sync.db")))
-                .Options);
-            db.Database.EnsureCreated();
-            return new ResourceOperationDispatcher<SyncHistoryDbContext>(db);
-        }
-
-        private IFileSystem ResolveFileSystem(string watchPath)
-        {
-            return new LocalFileSystem(watchPath);
-        }
-
-        private IDocmsApiClient ResolveApi()
-        {
-            return new DocmsApiClient(serverUrl);
+            return new LocalDocumentStorage(fileSystem, synchronizationContext, dbContext);
         }
     }
 }

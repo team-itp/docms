@@ -35,26 +35,20 @@ namespace Docms.Client.Tests.Operations
         [TestMethod]
         public async Task ファイルが存在しない場合アップロードされずに終了する()
         {
+            var file = context.FileSystem.GetFileInfo(new PathString("dir1/test2.txt"));
             await context.FileSystem.Delete(new PathString("dir1/test2.txt")).ConfigureAwait(false);
-            var sut = new UploadLocalDocumentOperation(context, new PathString("dir1/test2.txt"), default(CancellationToken));
+            var sut = new UploadLocalDocumentOperation(context, new PathString("dir1/test2.txt"), file.CalculateHash(), file.FileSize, default(CancellationToken));
             sut.Start();
             Assert.AreEqual(0, context.MockApi.histories.Count);
-            Assert.IsFalse(await context.SyncHistoryDbDispatcher.Execute(db => db.SyncHistories.AnyAsync()));
         }
 
         [TestMethod]
-        public async Task ファイルが存在する場合アップロードされること()
+        public void ファイルが存在する場合アップロードされること()
         {
-            var fileInfo = context.FileSystem.GetFileInfo(new PathString("test1.txt"));
-            var sut = new UploadLocalDocumentOperation(context, new PathString("test1.txt"), default(CancellationToken));
+            var file = context.FileSystem.GetFileInfo(new PathString("test1.txt"));
+            var sut = new UploadLocalDocumentOperation(context, new PathString("test1.txt"), file.CalculateHash(), file.FileSize, default(CancellationToken));
             sut.Start();
             Assert.AreEqual(1, context.MockApi.histories.Count);
-            Assert.IsTrue(await context.SyncHistoryDbDispatcher
-                .Execute(db => 
-                    db.SyncHistories.AnyAsync(h => 
-                        h.Path == "test1.txt" 
-                        && h.FileSize == fileInfo.FileSize 
-                        && h.Hash == fileInfo.CalculateHash())));
         }
     }
 }

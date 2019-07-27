@@ -1,8 +1,4 @@
-﻿using Docms.Client.Data;
-using Docms.Client.Types;
-using System;
-using System.Linq;
-using System.Threading;
+﻿using System.Threading;
 
 namespace Docms.Client.Operations
 {
@@ -18,15 +14,10 @@ namespace Docms.Client.Operations
         protected override void Execute(CancellationToken token)
         {
             var remoteDocuments = context.RemoteStorage.Root.ListAllDocuments();
-            context.SyncManager.AddHistories(remoteDocuments.Select(remoteDocument => new SyncHistory()
+            foreach (var doc in remoteDocuments)
             {
-                Id = Guid.NewGuid(),
-                Timestamp = DateTime.Now,
-                Path = remoteDocument.Path.ToString(),
-                FileSize = remoteDocument.FileSize,
-                Hash = remoteDocument.Hash,
-                Type = SyncHistoryType.Upload
-            }));
+                context.SynchronizationContext.LocalFileDeleted(doc.Path, doc.Hash, doc.FileSize);
+            }
         }
     }
 }

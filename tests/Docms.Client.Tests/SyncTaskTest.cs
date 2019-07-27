@@ -1,7 +1,6 @@
 ﻿using Docms.Client.Operations;
 using Docms.Client.Tasks;
 using Docms.Client.Tests.Utils;
-using Docms.Client.Types;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using System;
 using System.Threading;
@@ -20,7 +19,7 @@ namespace Docms.Client.Tests
         public void Setup()
         {
             context = new MockApplicationContext();
-            sut = new SyncTask(context);
+            sut = new SyncTask(context, default);
         }
 
         [TestCleanup]
@@ -42,11 +41,6 @@ namespace Docms.Client.Tests
             // RemoteDocumentStorageSyncOperation
             operation = context.MockApp.GetNextOperation();
             Assert.IsTrue(operation is RemoteDocumentStorageSyncOperation);
-            operation.Start();
-            Assert.AreEqual(TaskStatus.RanToCompletion, operation.Task.Status);
-            // ChangesIntoOperationsOperation
-            operation = context.MockApp.GetNextOperation();
-            Assert.IsTrue(operation is ChangesIntoOperationsOperation);
             operation.Start();
             Assert.AreEqual(TaskStatus.RanToCompletion, operation.Task.Status);
             Assert.IsTrue(sut.IsCompleted);
@@ -73,11 +67,6 @@ namespace Docms.Client.Tests
             // RemoteDocumentStorageSyncOperation
             operation = context.MockApp.GetNextOperation();
             Assert.IsTrue(operation is RemoteDocumentStorageSyncOperation);
-            operation.Start();
-            Assert.AreEqual(TaskStatus.RanToCompletion, operation.Task.Status);
-            // ChangesIntoOperationsOperation
-            operation = context.MockApp.GetNextOperation();
-            Assert.IsTrue(operation is ChangesIntoOperationsOperation);
             operation.Start();
             Assert.AreEqual(TaskStatus.RanToCompletion, operation.Task.Status);
             // UploadLocalDocumentOperation

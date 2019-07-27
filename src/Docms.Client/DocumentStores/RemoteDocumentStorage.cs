@@ -17,15 +17,18 @@ namespace Docms.Client.DocumentStores
         private static readonly ILogger logger = LogManager.GetCurrentClassLogger();
 
         private IDocmsApiClient api;
+        private Synchronization.SynchronizationContext synchronizationContext;
+
         private HashSet<Guid> appliedHistoryIds;
         private List<History> historiesToAdd;
 
         private DocumentDbContext db;
 
-        public RemoteDocumentStorage(IDocmsApiClient api, DocumentDbContext db)
+        public RemoteDocumentStorage(IDocmsApiClient api, Synchronization.SynchronizationContext synchronizationContext, DocumentDbContext db)
             : base(new DocumentRepository<RemoteDocument>(db, db.RemoteDocuments))
         {
             this.api = api;
+            this.synchronizationContext = synchronizationContext;
             this.db = db;
             appliedHistoryIds = new HashSet<Guid>();
             historiesToAdd = new List<History>();
@@ -84,7 +87,9 @@ namespace Docms.Client.DocumentStores
         {
             var path = new PathString(history.Path);
             var dir = GetOrCreateContainer(path.ParentPath);
-            dir.AddChild(new DocumentNode(path.Name, history.FileSize, history.Hash, history.Created, history.LastModified));
+            var doc = new DocumentNode(path.Name, history.FileSize, history.Hash, history.Created, history.LastModified);
+            dir.AddChild(doc);
+            synchronizationContext.RemoteFileAdded(doc.Path, doc.Hash, doc.FileSize);
         }
 
 
@@ -92,16 +97,18 @@ namespace Docms.Client.DocumentStores
         {
             var doc = GetDocument(new PathString(history.Path));
             doc.Update(history.FileSize, history.Hash, history.Created, history.LastModified);
+            synchronizationContext.RemoteFileAdded(doc.Path, doc.Hash, doc.FileSize);
         }
 
         private void Apply(DocumentDeletedHistory history)
         {
             var path = new PathString(history.Path);
             var container = GetContainer(path.ParentPath);
-            var document = GetDocument(path);
-            if (document != null)
+            var doc = GetDocument(path);
+            if (doc != null)
             {
-                container.RemoveChild(document);
+                synchronizationContext.RemoteFileDeleted(doc.Path, doc.Hash, doc.FileSize);
+                container.RemoveChild(doc);
             }
         }
 

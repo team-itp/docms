@@ -1,5 +1,6 @@
 ﻿using Docms.Client.Operations;
 using NLog;
+using System.Threading;
 using System.Threading.Tasks;
 
 namespace Docms.Client
@@ -8,12 +9,16 @@ namespace Docms.Client
     {
         private static readonly Logger _logger = LogManager.GetCurrentClassLogger();
         private readonly OperationDispatcher _dispatcher;
+        private readonly CancellationTokenSource _cancellationTokenSource;
 
         public bool IsShutdownRequested { get; private set; }
+
+        public CancellationToken CancellationToken => _cancellationTokenSource.Token;
 
         public Application()
         {
             _dispatcher = new OperationDispatcher();
+            _cancellationTokenSource = new CancellationTokenSource();
         }
 
         public void Run()
@@ -38,6 +43,7 @@ namespace Docms.Client
             lock (this)
             {
                 IsShutdownRequested = true;
+                _cancellationTokenSource.Cancel();
                 _dispatcher.Dispose();
             }
             _logger.Info("Application shutdown.");

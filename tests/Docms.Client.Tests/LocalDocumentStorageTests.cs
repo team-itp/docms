@@ -1,6 +1,7 @@
 ﻿using Docms.Client.Documents;
 using Docms.Client.DocumentStores;
 using Docms.Client.FileSystem;
+using Docms.Client.Synchronization;
 using Docms.Client.Tests.Utils;
 using Docms.Client.Types;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
@@ -16,6 +17,7 @@ namespace Docms.Client.Tests
     {
         private string tempDir;
         private LocalFileSystem localFileSystem;
+        private SynchronizationContext synchronizationContext;
         private MockDocumentDbContext localDb;
         private LocalDocumentStorage sut;
 
@@ -25,8 +27,9 @@ namespace Docms.Client.Tests
             tempDir = Path.Combine(Path.GetTempPath(), Guid.NewGuid().ToString());
             Directory.CreateDirectory(tempDir);
             localFileSystem = new LocalFileSystem(tempDir);
+            synchronizationContext = new SynchronizationContext();
             localDb = new MockDocumentDbContext();
-            sut = new LocalDocumentStorage(localFileSystem, localDb);
+            sut = new LocalDocumentStorage(localFileSystem, synchronizationContext, localDb);
         }
 
         [TestCleanup]

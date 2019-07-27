@@ -15,12 +15,14 @@ namespace Docms.Client.DocumentStores
     public class LocalDocumentStorage : DocumentStorageBase<LocalDocument>
     {
         private readonly IFileSystem fileSystem;
+        private readonly Synchronization.SynchronizationContext synchronizationContext;
         private static readonly ILogger logger = LogManager.GetCurrentClassLogger();
 
-        public LocalDocumentStorage(IFileSystem fileSystem, DocumentDbContext db)
+        public LocalDocumentStorage(IFileSystem fileSystem, Synchronization.SynchronizationContext synchronizationContext, DocumentDbContext db)
             : base(new DocumentRepository<LocalDocument>(db, db.LocalDocuments))
         {
             this.fileSystem = fileSystem;
+            this.synchronizationContext = synchronizationContext;
         }
 
         public override Task Sync(IProgress<int> progress = default(IProgress<int>), CancellationToken cancellationToken = default(CancellationToken))
@@ -54,6 +56,7 @@ namespace Docms.Client.DocumentStores
                             {
                                 var hash = CalculateHash(fi);
                                 fileNode.Update(fi.FileSize, hash, fi.Created, fi.LastModified);
+                                synchronizationContext.LocalFileAdded(filepath, hash, fi.FileSize);
                             }
                             catch
                             {
@@ -69,6 +72,7 @@ namespace Docms.Client.DocumentStores
                             var hash = CalculateHash(fi);
                             fileNode = new DocumentNode(filepath.Name, fi.FileSize, hash, fi.Created, fi.LastModified);
                             node.AddChild(fileNode);
+                            synchronizationContext.LocalFileAdded(filepath, hash, fi.FileSize);
                         }
                         catch
                         {
@@ -78,6 +82,7 @@ namespace Docms.Client.DocumentStores
                 }
                 else if (fileNode != null)
                 {
+                    synchronizationContext.LocalFileDeleted(filepath, fileNode.Hash, fileNode.FileSize);
                     node.RemoveChild(fileNode);
                 }
                 progress?.Report(10 + (++count * 80 / total));
@@ -114,10 +119,27 @@ namespace Docms.Client.DocumentStores
                 }
                 else if (dirNode != null)
                 {
+                    DeleteDirNode(dirNode);
                     node.RemoveChild(dirNode);
                 }
             }
             results.AddRange(files.Distinct().Select(fp => (node, fp)));
+        }
+
+        private void DeleteDirNode(ContainerNode dirNode)
+        {
+            foreach (var item in dirNode.Children)
+            {
+                if (item is ContainerNode childDirNode)
+                {
+                    DeleteDirNode(childDirNode);
+                }
+                else
+                {
+                    var document = item as DocumentNode;
+                    synchronizationContext.LocalFileDeleted(document.Path, document.Hash, document.FileSize);
+                }
+            }
         }
 
         private void SyncInternal(ContainerNode node, CancellationToken cancellationToken)
@@ -169,6 +191,7 @@ namespace Docms.Client.DocumentStores
                             {
                                 var hash = CalculateHash(fi);
                                 fileNode.Update(fi.FileSize, hash, fi.Created, fi.LastModified);
+                                synchronizationContext.LocalFileAdded(filepath, hash, fi.FileSize);
                             }
                             catch
                             {
@@ -184,6 +207,7 @@ namespace Docms.Client.DocumentStores
                             var hash = CalculateHash(fi);
                             fileNode = new DocumentNode(filepath.Name, fi.FileSize, hash, fi.Created, fi.LastModified);
                             node.AddChild(fileNode);
+                            synchronizationContext.LocalFileAdded(filepath, hash, fi.FileSize);
                         }
                         catch
                         {
@@ -193,6 +217,7 @@ namespace Docms.Client.DocumentStores
                 }
                 else if (fileNode != null)
                 {
+                    synchronizationContext.LocalFileDeleted(filepath, fileNode.Hash, fileNode.FileSize);
                     node.RemoveChild(fileNode);
                 }
             }

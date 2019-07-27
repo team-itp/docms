@@ -1,6 +1,6 @@
-﻿using Docms.Client.Data;
-using Docms.Client.Documents;
+﻿using Docms.Client.Documents;
 using Docms.Client.DocumentStores;
+using Docms.Client.Synchronization;
 using Docms.Client.Tests.Utils;
 using Docms.Client.Types;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
@@ -13,6 +13,7 @@ namespace Docms.Client.Tests
     public class DocumentNodeStorageTests
     {
         private MockDocmsApiClient apiClient;
+        private SynchronizationContext synchronizationContext;
         private RemoteDocumentStorage sut;
         private MockDocumentDbContext localDb;
 
@@ -20,8 +21,9 @@ namespace Docms.Client.Tests
         public void Setup()
         {
             apiClient = new MockDocmsApiClient();
+            synchronizationContext = new SynchronizationContext();
             localDb = new MockDocumentDbContext();
-            sut = new RemoteDocumentStorage(apiClient, localDb);
+            sut = new RemoteDocumentStorage(apiClient, synchronizationContext, localDb);
         }
 
         [TestMethod]
@@ -133,11 +135,11 @@ namespace Docms.Client.Tests
             await sut.Sync().ConfigureAwait(false);
             await sut.Save().ConfigureAwait(false);
 
-            sut = new RemoteDocumentStorage(apiClient, localDb);
+            sut = new RemoteDocumentStorage(apiClient, synchronizationContext, localDb);
             await sut.Initialize().ConfigureAwait(false);
             await sut.Save().ConfigureAwait(false);
 
-            sut = new RemoteDocumentStorage(apiClient, localDb);
+            sut = new RemoteDocumentStorage(apiClient, synchronizationContext, localDb);
             await sut.Initialize().ConfigureAwait(false);
 
             var rootNodes = (sut.GetNode(PathString.Root) as ContainerNode).Children;

@@ -28,15 +28,7 @@ namespace Docms.Client.Operations
                 if (fi == null)
                 {
                     await context.Api.DeleteDocumentAsync(path.ToString()).ConfigureAwait(false);
-                    context.SyncManager.AddHistory(new SyncHistory()
-                    {
-                        Id = Guid.NewGuid(),
-                        Timestamp = DateTime.Now,
-                        Path = path.ToString(),
-                        FileSize = document.FileSize,
-                        Hash = document.Hash,
-                        Type = SyncHistoryType.Delete
-                    });
+                    context.SynchronizationContext.DeleteRequested(path);
                 }
             }
             catch (Exception ex)

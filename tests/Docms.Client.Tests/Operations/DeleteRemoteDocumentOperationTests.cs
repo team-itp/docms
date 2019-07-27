@@ -1,10 +1,8 @@
 ﻿using Docms.Client.Operations;
 using Docms.Client.Tests.Utils;
 using Docms.Client.Types;
-using Microsoft.EntityFrameworkCore;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using System;
-using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 
@@ -39,8 +37,6 @@ namespace Docms.Client.Tests.Operations
             var sut = new DeleteRemoteDocumentOperation(context, new PathString("dir1/test2.txt"), default(CancellationToken));
             sut.Start();
             Assert.IsNull(await context.MockApi.GetDocumentAsync("dir1/test2.txt").ConfigureAwait(false));
-            await context.SyncHistoryDbDispatcher.Execute(async db =>
-                Assert.IsTrue(await db.SyncHistories.AnyAsync()));
         }
 
         [TestMethod]
@@ -49,7 +45,6 @@ namespace Docms.Client.Tests.Operations
             var sut = new DeleteRemoteDocumentOperation(context, new PathString("test1.txt"), default(CancellationToken));
             sut.Start();
             Assert.AreEqual(2, context.MockApi.histories.Count);
-            Assert.IsFalse(context.MockSyncHistoryDb.SyncHistories.Any());
         }
     }
 }

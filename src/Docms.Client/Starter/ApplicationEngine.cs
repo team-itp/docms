@@ -21,25 +21,21 @@ namespace Docms.Client.Starter
 
         public async void Start()
         {
-            if (!await context.SyncHistoryDbDispatcher
-                .Execute(async db => await db.SyncHistories.AnyAsync().ConfigureAwait(false)))
+            var initializationCompleted = false;
+            logger.Trace("InsertAllTrackingFilesToSyncHistoryTask started");
+            while (!app.IsShutdownRequested && !initializationCompleted)
             {
-                var initializationCompleted = false;
-                logger.Trace("InsertAllTrackingFilesToSyncHistoryTask started");
-                while (!app.IsShutdownRequested && !initializationCompleted)
-                {
-                    var initTask = new InsertAllTrackingFilesToSyncHistoryTask(context);
-                    initializationCompleted = await ExecuteTaskSafely(initTask).ConfigureAwait(false);
-                }
-                await Task.Delay(100).ConfigureAwait(false);
-                logger.Trace("InsertAllTrackingFilesToSyncHistoryTask ended");
+                var initTask = new InsertAllTrackingFilesToSyncHistoryTask(context);
+                initializationCompleted = await ExecuteTaskSafely(initTask).ConfigureAwait(false);
             }
+            await Task.Delay(100).ConfigureAwait(false);
+            logger.Trace("InsertAllTrackingFilesToSyncHistoryTask ended");
 
             logger.Info("Application main loop started.");
             while (!app.IsShutdownRequested)
             {
                 logger.Trace("SyncTask started");
-                var initTask = new SyncTask(context);
+                var initTask = new SyncTask(context, app.CancellationToken);
                 await ExecuteTaskSafely(initTask).ConfigureAwait(false);
                 await Task.Delay(100).ConfigureAwait(false);
                 logger.Trace("SyncTask ended");
