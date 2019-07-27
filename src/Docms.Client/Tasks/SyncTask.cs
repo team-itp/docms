@@ -26,33 +26,43 @@ namespace Docms.Client.Tasks
 
         public async Task ExecuteAsync()
         {
-            await ExecuteOperationAsync(new LocalDocumentStorageSyncOperation(context)).ConfigureAwait(false);
             await ExecuteOperationAsync(new RemoteDocumentStorageSyncOperation(context)).ConfigureAwait(false);
-            foreach (var state in context.SynchronizationContext.States.ToArray())
+            await ExecuteOperationAsync(new LocalDocumentStorageSyncOperation(context)).ConfigureAwait(false);
+            var states = context.SynchronizationContext.States.ToArray();
+            foreach (var state in states.OfType<RequestForDeleteState>())
             {
-                var op = default(IOperation);
-                if (state is RequestForUploadState)
+                var op = new DeleteRemoteDocumentOperation(context, state.Path);
+                try
                 {
-                    op = new UploadLocalDocumentOperation(context, state.Path, state.Hash, state.Length);
+                    await ExecuteOperationAsync(op).ConfigureAwait(false);
                 }
-                else if (state is RequestForDownloadState)
+                catch (Exception ex)
                 {
-                    op = new DownloadRemoteDocumentOperation(context, state.Path);
+                    logger.Error(ex);
                 }
-                else if (state is RequestForDeleteState)
+            }
+            foreach (var state in states.OfType<RequestForUploadState>())
+            {
+                var op = new UploadLocalDocumentOperation(context, state.Path, state.Hash, state.Length);
+                try
                 {
-                    op = new DeleteRemoteDocumentOperation(context, state.Path);
+                    await ExecuteOperationAsync(op).ConfigureAwait(false);
                 }
-                if (op != null)
+                catch (Exception ex)
                 {
-                    try
-                    {
-                        await ExecuteOperationAsync(op).ConfigureAwait(false);
-                    }
-                    catch (Exception ex)
-                    {
-                        logger.Error(ex);
-                    }
+                    logger.Error(ex);
+                }
+            }
+            foreach (var state in states.OfType<RequestForDownloadState>())
+            {
+                var op = new DownloadRemoteDocumentOperation(context, state.Path);
+                try
+                {
+                    await ExecuteOperationAsync(op).ConfigureAwait(false);
+                }
+                catch (Exception ex)
+                {
+                    logger.Error(ex);
                 }
             }
             IsCompleted = true;

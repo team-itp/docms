@@ -22,7 +22,6 @@ namespace Docms.Client.Operations
         {
             try
             {
-                var document = context.RemoteStorage.GetDocument(path);
                 var fi = context.FileSystem.GetFileInfo(path);
                 if (fi == null)
                 {
