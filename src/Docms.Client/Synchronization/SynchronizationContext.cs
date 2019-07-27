@@ -18,7 +18,9 @@ namespace Docms.Client.Synchronization
         {
             if (_States.TryGetValue(path, out var value))
             {
-                if (value is DownloadingState down && down.Hash == hash && down.Length == length)
+                if ((value is DownloadingState || value is RemoteFileDeletedState || value is RequestForDeleteState)
+                    && value.Hash == hash
+                    && value.Length == length)
                 {
                     _States.Remove(path);
                 }
@@ -37,7 +39,14 @@ namespace Docms.Client.Synchronization
         {
             if (_States.TryGetValue(path, out var value))
             {
-                _States.Remove(path);
+                if (value is UploadingState)
+                {
+                    _States[path] = new RequestForDeleteState(path, hash, length);
+                }
+                else
+                {
+                    _States.Remove(path);
+                }
             }
             else
             {
@@ -49,16 +58,14 @@ namespace Docms.Client.Synchronization
         {
             if (_States.TryGetValue(path, out var value))
             {
-                if (value is UploadingState up)
+
+                if (value.Hash == hash && value.Length == length)
                 {
-                    if (up.Hash == hash && up.Length == length)
-                    {
-                        _States.Remove(path);
-                    }
-                    else
-                    {
-                        _States[path] = new RequestForDownloadState(path, hash, length);
-                    }
+                    _States.Remove(path);
+                }
+                else if (value is UploadingState || value is RequestForDownloadState)
+                {
+                    _States[path] = new RequestForDownloadState(path, hash, length);
                 }
             }
             else
@@ -71,7 +78,14 @@ namespace Docms.Client.Synchronization
         {
             if (_States.TryGetValue(path, out var value))
             {
-                _States.Remove(path);
+                if (value is DeletingState || value is RequestForDownloadState)
+                {
+                    _States.Remove(path);
+                }
+            }
+            else
+            {
+                _States.Add(path, new RemoteFileDeletedState(path, hash, length));
             }
         }
 

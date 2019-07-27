@@ -40,6 +40,22 @@ namespace Docms.Client.DocumentStores
                 Apply(history);
                 appliedHistoryIds.Add(history.Id);
             }
+            AddRemoveRequestForAllFiles(Root);
+        }
+
+        private void AddRemoveRequestForAllFiles(ContainerNode dirNode)
+        {
+            foreach (var item in dirNode.Children)
+            {
+                if (item is DocumentNode doc)
+                {
+                    synchronizationContext.LocalFileDeleted(doc.Path, doc.Hash, doc.FileSize);
+                }
+                else
+                {
+                    AddRemoveRequestForAllFiles(item as ContainerNode);
+                }
+            }
         }
 
         public override async Task Sync(IProgress<int> progress = default(IProgress<int>), CancellationToken cancellationToken = default(CancellationToken))

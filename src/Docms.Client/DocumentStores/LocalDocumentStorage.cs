@@ -80,6 +80,7 @@ namespace Docms.Client.DocumentStores
                 }
                 else if (fileNode != null)
                 {
+                    synchronizationContext.LocalFileDeleted(filepath, fileNode.Hash, fileNode.FileSize);
                     node.RemoveChild(fileNode);
                 }
                 progress?.Report(10 + (++count * 80 / total));
