@@ -18,11 +18,11 @@ namespace Docms.Client.Synchronization
         {
             if (_States.TryGetValue(path, out var value))
             {
-                if (value is DownloadingState)
+                if (value is DownloadingState down && down.Hash == hash && down.Length == length)
                 {
                     _States.Remove(path);
                 }
-                else if (value is RequestForUploadState)
+                else
                 {
                     _States[path] = new RequestForUploadState(path, hash, length);
                 }
@@ -33,19 +33,15 @@ namespace Docms.Client.Synchronization
             }
         }
 
-        public void LocalFileRemoved(PathString path)
+        public void LocalFileDeleted(PathString path, string hash, long length)
         {
             if (_States.TryGetValue(path, out var value))
             {
                 _States.Remove(path);
             }
-        }
-
-        public void LocalFileUploaded(PathString path)
-        {
-            if (_States[path] is RequestForUploadState up)
+            else
             {
-                _States[path] = up.Uploaded();
+                _States.Add(path, new RequestForDeleteState(path, hash, length));
             }
         }
 
@@ -53,9 +49,16 @@ namespace Docms.Client.Synchronization
         {
             if (_States.TryGetValue(path, out var value))
             {
-                if (value is UploadingState)
+                if (value is UploadingState up)
                 {
-                    _States.Remove(path);
+                    if (up.Hash == hash && up.Length == length)
+                    {
+                        _States.Remove(path);
+                    }
+                    else
+                    {
+                        _States[path] = new RequestForDownloadState(path, hash, length);
+                    }
                 }
             }
             else
@@ -64,11 +67,47 @@ namespace Docms.Client.Synchronization
             }
         }
 
-        public void RemoteFileDownloaded(PathString path)
+        public void RemoteFileDeleted(PathString path, string hash, int length)
+        {
+            if (_States.TryGetValue(path, out var value))
+            {
+                _States.Remove(path);
+            }
+        }
+
+        public void UploadRequested(PathString path)
+        {
+            if (_States[path] is RequestForUploadState up)
+            {
+                _States[path] = up.Uploaded();
+            }
+            else
+            {
+                throw new InvalidOperationException();
+            }
+        }
+
+        public void DownloadRequested(PathString path)
         {
             if (_States[path] is RequestForDownloadState down)
             {
                 _States[path] = down.Downloaded();
+            }
+            else
+            {
+                throw new InvalidOperationException();
+            }
+        }
+
+        public void DeleteRequested(PathString path)
+        {
+            if (_States[path] is RequestForDeleteState del)
+            {
+                _States[path] = del.Deleted();
+            }
+            else
+            {
+                throw new InvalidOperationException();
             }
         }
     }
