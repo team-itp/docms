@@ -46,7 +46,7 @@ namespace Docms.Client.Starter
                 context.DocumentDb = ResolveDocumentDbContext();
                 context.FileSystem = ResolveFileSystem(watchPath);
                 context.SynchronizationContext = ResolveSynchronizationContext();
-                context.LocalStorage = ResolveLocalStorage(context.FileSystem, context.SynchronizationContext, context.DocumentDb);
+                context.LocalStorage = ResolveLocalStorage(context.FileSystem, context.SynchronizationContext);
                 context.RemoteStorage = ResolveRemoteStorage(context.Api, context.SynchronizationContext, context.DocumentDb);
 
                 await context.Api.LoginAsync(uploadUserName, uploadUserPassword).ConfigureAwait(false);
@@ -102,9 +102,9 @@ namespace Docms.Client.Starter
             return new RemoteDocumentStorage(api, synchronizationContext, dbContext);
         }
 
-        private LocalDocumentStorage ResolveLocalStorage(IFileSystem fileSystem, SynchronizationContext synchronizationContext, DocumentDbContext dbContext)
+        private LocalDocumentStorage ResolveLocalStorage(IFileSystem fileSystem, SynchronizationContext synchronizationContext)
         {
-            return new LocalDocumentStorage(fileSystem, synchronizationContext, dbContext);
+            return new LocalDocumentStorage(fileSystem, synchronizationContext);
         }
     }
 }

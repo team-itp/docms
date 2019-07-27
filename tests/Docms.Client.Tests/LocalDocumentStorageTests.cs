@@ -29,7 +29,7 @@ namespace Docms.Client.Tests
             localFileSystem = new LocalFileSystem(tempDir);
             synchronizationContext = new SynchronizationContext();
             localDb = new MockDocumentDbContext();
-            sut = new LocalDocumentStorage(localFileSystem, synchronizationContext, localDb);
+            sut = new LocalDocumentStorage(localFileSystem, synchronizationContext);
         }
 
         [TestCleanup]

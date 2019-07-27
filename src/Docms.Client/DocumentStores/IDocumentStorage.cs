@@ -14,7 +14,6 @@ namespace Docms.Client.DocumentStores
         DocumentNode GetDocument(PathString path);
         Node GetNode(PathString path);
         Task Initialize();
-        Task Save(CancellationToken token = default(CancellationToken));
         Task Sync(IProgress<int> progress = default(IProgress<int>), CancellationToken token = default(CancellationToken));
     }
 }

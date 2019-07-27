@@ -1,5 +1,4 @@
-﻿using Docms.Client.Data;
-using Docms.Client.Documents;
+﻿using Docms.Client.Documents;
 using Docms.Client.FileSystem;
 using Docms.Client.Types;
 using NLog;
@@ -12,14 +11,13 @@ using System.Threading.Tasks;
 
 namespace Docms.Client.DocumentStores
 {
-    public class LocalDocumentStorage : DocumentStorageBase<LocalDocument>
+    public class LocalDocumentStorage : DocumentStorageBase
     {
         private readonly IFileSystem fileSystem;
         private readonly Synchronization.SynchronizationContext synchronizationContext;
         private static readonly ILogger logger = LogManager.GetCurrentClassLogger();
 
-        public LocalDocumentStorage(IFileSystem fileSystem, Synchronization.SynchronizationContext synchronizationContext, DocumentDbContext db)
-            : base(new DocumentRepository<LocalDocument>(db, db.LocalDocuments))
+        public LocalDocumentStorage(IFileSystem fileSystem, Synchronization.SynchronizationContext synchronizationContext)
         {
             this.fileSystem = fileSystem;
             this.synchronizationContext = synchronizationContext;
@@ -82,7 +80,6 @@ namespace Docms.Client.DocumentStores
                 }
                 else if (fileNode != null)
                 {
-                    synchronizationContext.LocalFileDeleted(filepath, fileNode.Hash, fileNode.FileSize);
                     node.RemoveChild(fileNode);
                 }
                 progress?.Report(10 + (++count * 80 / total));
@@ -239,18 +236,6 @@ namespace Docms.Client.DocumentStores
                 throw ex;
             }
             return hash;
-        }
-
-        protected override LocalDocument Persist(DocumentNode document)
-        {
-            return new LocalDocument()
-            {
-                Path = document.Path.ToString(),
-                FileSize = document.FileSize,
-                Hash = document.Hash,
-                Created = document.Created,
-                LastModified = document.LastModified,
-            };
         }
     }
 }

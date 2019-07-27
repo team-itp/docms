@@ -20,7 +20,7 @@ namespace Docms.Client.Tests.Utils
             MockDocumentDb = new MockDocumentDbContext();
             MockFileSystem = new MockFileSystem();
             MockSynchronizationContext = new SynchronizationContext();
-            MockLocalStorage = new LocalDocumentStorage(MockFileSystem, MockSynchronizationContext, MockDocumentDb);
+            MockLocalStorage = new LocalDocumentStorage(MockFileSystem, MockSynchronizationContext);
             MockRemoteStorage = new RemoteDocumentStorage(MockApi, MockSynchronizationContext, MockDocumentDb);
             App = MockApp;
             Api = MockApi;

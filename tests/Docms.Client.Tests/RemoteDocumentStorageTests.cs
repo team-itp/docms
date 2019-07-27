@@ -133,11 +133,9 @@ namespace Docms.Client.Tests
             await DocmsApiUtils.Update(apiClient, "file1.txt").ConfigureAwait(false);
             await DocmsApiUtils.Update(apiClient, "dir1/file2.txt").ConfigureAwait(false);
             await sut.Sync().ConfigureAwait(false);
-            await sut.Save().ConfigureAwait(false);
 
             sut = new RemoteDocumentStorage(apiClient, synchronizationContext, localDb);
             await sut.Initialize().ConfigureAwait(false);
-            await sut.Save().ConfigureAwait(false);
 
             sut = new RemoteDocumentStorage(apiClient, synchronizationContext, localDb);
             await sut.Initialize().ConfigureAwait(false);
