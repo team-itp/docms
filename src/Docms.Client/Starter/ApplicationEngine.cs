@@ -23,7 +23,7 @@ namespace Docms.Client.Starter
         {
             var initializationCompleted = false;
             logger.Trace("InsertAllTrackingFilesToSyncHistoryTask started");
-            while (!app.IsShutdownRequested && !initializationCompleted)
+            while (!app.ShutdownRequestedToken.IsCancellationRequested && !initializationCompleted)
             {
                 var initTask = new InsertAllTrackingFilesToSyncHistoryTask(context);
                 initializationCompleted = await ExecuteTaskSafely(initTask).ConfigureAwait(false);
@@ -32,10 +32,10 @@ namespace Docms.Client.Starter
             logger.Trace("InsertAllTrackingFilesToSyncHistoryTask ended");
 
             logger.Info("Application main loop started.");
-            while (!app.IsShutdownRequested)
+            while (!app.ShutdownRequestedToken.IsCancellationRequested)
             {
                 logger.Trace("SyncTask started");
-                var initTask = new SyncTask(context, app.CancellationToken);
+                var initTask = new SyncTask(context);
                 await ExecuteTaskSafely(initTask).ConfigureAwait(false);
                 await Task.Delay(100).ConfigureAwait(false);
                 logger.Trace("SyncTask ended");
@@ -52,7 +52,7 @@ namespace Docms.Client.Starter
             }
             catch (ServerException ex) when (ex.StatusCode >= 500)
             {
-                if (!app.IsShutdownRequested)
+                if (!app.ShutdownRequestedToken.IsCancellationRequested)
                     await Task.Delay(TimeSpan.FromMinutes(1)).ConfigureAwait(false);
                 return false;
             }

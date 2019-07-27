@@ -1,12 +1,8 @@
-﻿using Docms.Client.Data;
-using Docms.Client.Operations;
+﻿using Docms.Client.Operations;
 using Docms.Client.Tests.Utils;
 using Docms.Client.Types;
-using Microsoft.EntityFrameworkCore;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using System;
-using System.Linq;
-using System.Threading;
 using System.Threading.Tasks;
 
 namespace Docms.Client.Tests.Operations
@@ -37,7 +33,7 @@ namespace Docms.Client.Tests.Operations
         {
             var file = context.FileSystem.GetFileInfo(new PathString("dir1/test2.txt"));
             await context.FileSystem.Delete(new PathString("dir1/test2.txt")).ConfigureAwait(false);
-            var sut = new UploadLocalDocumentOperation(context, new PathString("dir1/test2.txt"), file.CalculateHash(), file.FileSize, default(CancellationToken));
+            var sut = new UploadLocalDocumentOperation(context, new PathString("dir1/test2.txt"), file.CalculateHash(), file.FileSize);
             sut.Start();
             Assert.AreEqual(0, context.MockApi.histories.Count);
         }
@@ -46,7 +42,7 @@ namespace Docms.Client.Tests.Operations
         public void ファイルが存在する場合アップロードされること()
         {
             var file = context.FileSystem.GetFileInfo(new PathString("test1.txt"));
-            var sut = new UploadLocalDocumentOperation(context, new PathString("test1.txt"), file.CalculateHash(), file.FileSize, default(CancellationToken));
+            var sut = new UploadLocalDocumentOperation(context, new PathString("test1.txt"), file.CalculateHash(), file.FileSize);
             sut.Start();
             Assert.AreEqual(1, context.MockApi.histories.Count);
         }

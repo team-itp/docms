@@ -11,14 +11,12 @@ namespace Docms.Client.Tasks
     {
         private static readonly ILogger logger = LogManager.GetCurrentClassLogger();
         private ApplicationContext context;
-        private System.Threading.CancellationToken cancellationToken;
 
         public bool IsCompleted { get; private set; }
 
-        public SyncTask(ApplicationContext context, System.Threading.CancellationToken cancellationToken)
+        public SyncTask(ApplicationContext context)
         {
             this.context = context;
-            this.cancellationToken = cancellationToken;
         }
 
         private async Task ExecuteOperationAsync(IOperation operation)
@@ -35,15 +33,15 @@ namespace Docms.Client.Tasks
                 var op = default(IOperation);
                 if (state is RequestForUploadState)
                 {
-                    op = new UploadLocalDocumentOperation(context, state.Path, state.Hash, state.Length, cancellationToken);
+                    op = new UploadLocalDocumentOperation(context, state.Path, state.Hash, state.Length);
                 }
                 else if (state is RequestForDownloadState)
                 {
-                    op = new DownloadRemoteDocumentOperation(context, state.Path, cancellationToken);
+                    op = new DownloadRemoteDocumentOperation(context, state.Path);
                 }
                 else if (state is RequestForDeleteState)
                 {
-                    op = new DeleteRemoteDocumentOperation(context, state.Path, cancellationToken);
+                    op = new DeleteRemoteDocumentOperation(context, state.Path);
                 }
                 if (op != null)
                 {

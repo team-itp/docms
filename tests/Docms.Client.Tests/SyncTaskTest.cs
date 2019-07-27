@@ -19,7 +19,7 @@ namespace Docms.Client.Tests
         public void Setup()
         {
             context = new MockApplicationContext();
-            sut = new SyncTask(context, default);
+            sut = new SyncTask(context);
         }
 
         [TestCleanup]

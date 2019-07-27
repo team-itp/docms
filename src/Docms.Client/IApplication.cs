@@ -6,8 +6,7 @@ namespace Docms.Client
 {
     public interface IApplication
     {
-        bool IsShutdownRequested { get; }
-        CancellationToken CancellationToken { get; }
+        CancellationToken ShutdownRequestedToken { get; }
 
         void Run();
         void Shutdown();

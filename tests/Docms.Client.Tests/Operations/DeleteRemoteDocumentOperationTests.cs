@@ -3,7 +3,6 @@ using Docms.Client.Tests.Utils;
 using Docms.Client.Types;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using System;
-using System.Threading;
 using System.Threading.Tasks;
 
 namespace Docms.Client.Tests.Operations
@@ -34,7 +33,7 @@ namespace Docms.Client.Tests.Operations
         [TestMethod]
         public async Task ローカルにファイルが存在しない場合リモートが削除される()
         {
-            var sut = new DeleteRemoteDocumentOperation(context, new PathString("dir1/test2.txt"), default(CancellationToken));
+            var sut = new DeleteRemoteDocumentOperation(context, new PathString("dir1/test2.txt"));
             sut.Start();
             Assert.IsNull(await context.MockApi.GetDocumentAsync("dir1/test2.txt").ConfigureAwait(false));
         }
@@ -42,7 +41,7 @@ namespace Docms.Client.Tests.Operations
         [TestMethod]
         public void ローカルにファイルが存在する場合削除がキャンセルされること()
         {
-            var sut = new DeleteRemoteDocumentOperation(context, new PathString("test1.txt"), default(CancellationToken));
+            var sut = new DeleteRemoteDocumentOperation(context, new PathString("test1.txt"));
             sut.Start();
             Assert.AreEqual(2, context.MockApi.histories.Count);
         }

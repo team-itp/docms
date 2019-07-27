@@ -12,7 +12,7 @@ namespace Docms.Client.Tests.Utils
         private CancellationTokenSource cancellationTokenSource = new CancellationTokenSource();
         public bool IsRunning { get; private set; }
         public bool IsShutdownRequested { get; private set; }
-        public CancellationToken CancellationToken => cancellationTokenSource.Token;
+        public CancellationToken ShutdownRequestedToken => cancellationTokenSource.Token;
 
         private AutoResetEvent stateEvent = new AutoResetEvent(false);
         private AutoResetEvent operationEvent = new AutoResetEvent(false);

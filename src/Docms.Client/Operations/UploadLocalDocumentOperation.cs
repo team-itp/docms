@@ -14,7 +14,7 @@ namespace Docms.Client.Operations
         private readonly string hash;
         private long length;
 
-        public UploadLocalDocumentOperation(ApplicationContext context, PathString path, string hash, long length, CancellationToken cancellationToken) : base(context.Api, cancellationToken)
+        public UploadLocalDocumentOperation(ApplicationContext context, PathString path, string hash, long length) : base(context.Api)
         {
             this.context = context;
             this.path = path;

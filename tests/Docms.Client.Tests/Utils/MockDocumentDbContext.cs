@@ -4,11 +4,12 @@ using System;
 
 namespace Docms.Client.Tests.Utils
 {
-    class MockSyncHistoryDbContext : SyncHistoryDbContext
+    class MockDocumentDbContext : DocumentDbContext
     {
-        public MockSyncHistoryDbContext()
-            : base(new DbContextOptionsBuilder<SyncHistoryDbContext>()
+        public MockDocumentDbContext()
+            : base(new DbContextOptionsBuilder<DocumentDbContext>()
                   .UseInMemoryDatabase(Guid.NewGuid().ToString())
+                  .EnableSensitiveDataLogging()
                   .Options)
         {
         }

@@ -1,5 +1,4 @@
-﻿using Docms.Client.Data;
-using Docms.Client.Types;
+﻿using Docms.Client.Types;
 using NLog;
 using System;
 using System.Threading;
@@ -13,7 +12,7 @@ namespace Docms.Client.Operations
         private readonly ApplicationContext context;
         private readonly PathString path;
 
-        public DeleteRemoteDocumentOperation(ApplicationContext context, PathString path, CancellationToken cancellationToken) : base(context.Api, cancellationToken)
+        public DeleteRemoteDocumentOperation(ApplicationContext context, PathString path) : base(context.Api)
         {
             this.context = context;
             this.path = path;

@@ -11,9 +11,7 @@ namespace Docms.Client
         private readonly OperationDispatcher _dispatcher;
         private readonly CancellationTokenSource _cancellationTokenSource;
 
-        public bool IsShutdownRequested { get; private set; }
-
-        public CancellationToken CancellationToken => _cancellationTokenSource.Token;
+        public CancellationToken ShutdownRequestedToken => _cancellationTokenSource.Token;
 
         public Application()
         {
@@ -42,7 +40,6 @@ namespace Docms.Client
             _logger.Info("Application is shutting down.");
             lock (this)
             {
-                IsShutdownRequested = true;
                 _cancellationTokenSource.Cancel();
                 _dispatcher.Dispose();
             }

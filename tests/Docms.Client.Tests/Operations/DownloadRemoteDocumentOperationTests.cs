@@ -3,7 +3,6 @@ using Docms.Client.Tests.Utils;
 using Docms.Client.Types;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using System;
-using System.Threading;
 using System.Threading.Tasks;
 
 namespace Docms.Client.Tests.Operations
@@ -31,7 +30,7 @@ namespace Docms.Client.Tests.Operations
         [TestMethod]
         public void リモートのファイルが存在しない場合ファイルがダウンロードされないこと()
         {
-            var sut = new DownloadRemoteDocumentOperation(context, new PathString("test2.txt"), default(CancellationToken));
+            var sut = new DownloadRemoteDocumentOperation(context, new PathString("test2.txt"));
             sut.Start();
             Assert.AreEqual(1, context.MockApi.histories.Count);
         }
@@ -39,7 +38,7 @@ namespace Docms.Client.Tests.Operations
         [TestMethod]
         public void リモートのファイルが存在する場合ファイルがダウンロードされること()
         {
-            var sut = new DownloadRemoteDocumentOperation(context, new PathString("test1.txt"), default(CancellationToken));
+            var sut = new DownloadRemoteDocumentOperation(context, new PathString("test1.txt"));
             sut.Start();
             Assert.AreEqual(1, context.MockApi.histories.Count);
         }

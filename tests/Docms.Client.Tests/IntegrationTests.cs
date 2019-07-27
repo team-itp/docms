@@ -23,7 +23,7 @@ namespace Docms.Client.Tests
                 }
             }
 
-            var sut = new SyncTask(context, context.App.CancellationToken);
+            var sut = new SyncTask(context);
             await sut.ExecuteAsync();
 
             for (var i = 0; i < 1000; i++)
@@ -34,7 +34,7 @@ namespace Docms.Client.Tests
                 }
             }
 
-            var sut2 = new SyncTask(context, context.App.CancellationToken);
+            var sut2 = new SyncTask(context);
             await sut2.ExecuteAsync();
         }
     }
