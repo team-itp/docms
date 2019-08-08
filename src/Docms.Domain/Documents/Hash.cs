@@ -1,11 +1,12 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.IO;
 using System.Security.Cryptography;
 using System.Text;
 
 namespace Docms.Domain.Documents
 {
-    public class Hash
+    public class Hash : IEquatable<Hash>
     {
         public string Value { get; }
 
@@ -26,6 +27,11 @@ namespace Docms.Domain.Documents
         public override string ToString()
         {
             return Value;
+        }
+
+        public static Hash CalculateHash(string text)
+        {
+            return CalculateHash(Encoding.UTF8.GetBytes(text));
         }
 
         public static Hash CalculateHash(byte[] data)
@@ -52,6 +58,22 @@ namespace Docms.Domain.Documents
                 sha1.TransformFinalBlock(Array.Empty<byte>(), 0, 0);
                 return new Hash(sha1.Hash);
             }
+        }
+
+        public override bool Equals(object obj)
+        {
+            return Equals(obj as Hash);
+        }
+
+        public bool Equals(Hash other)
+        {
+            return other != null &&
+                   Value == other.Value;
+        }
+
+        public override int GetHashCode()
+        {
+            return -1937169414 + EqualityComparer<string>.Default.GetHashCode(Value);
         }
     }
 }
