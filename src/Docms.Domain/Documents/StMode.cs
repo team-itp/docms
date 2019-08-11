@@ -28,11 +28,11 @@ namespace Docms.Domain.Documents
         /// <summary>
         /// directory
         /// </summary>
-        S_IFDIR = 0b010000000000000,
+        S_IFDIR = 0b100000000000000,
         /// <summary>
         /// character device
         /// </summary>
-        S_IFCHR = 0b001000000000000,
+        S_IFCHR = 0b10000000000000,
         /// <summary>
         /// FIFO
         /// </summary>
@@ -97,5 +97,13 @@ namespace Docms.Domain.Documents
         /// others have execute permission
         /// </summary>
         S_IXOTH = 0b1
+    }
+
+    public static class StModeExtension
+    {
+        public static string ToHexString(this StMode stMode)
+        {
+            return Convert.ToString((int)stMode, 8).PadLeft(6, '0');
+        }
     }
 }
