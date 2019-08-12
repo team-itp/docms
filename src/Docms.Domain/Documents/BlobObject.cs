@@ -1,17 +1,20 @@
 ﻿using System.IO;
+using System.Threading.Tasks;
 
 namespace Docms.Domain.Documents
 {
-    public class BlobObject : ObjectBase
+    public class BlobObject : IObject
     {
-        private IData _data;
+        private IBlobEntry _entry;
 
-        public BlobObject(IData data) : base(Hash.CalculateHash(data.Open()))
+        public BlobObject(Hash hash, IBlobStorage storage)
         {
-            _data = data;
+            Hash = hash;
+            _entry = storage?.FetchBlobEntry(Hash);
         }
 
-        public long Size => _data.Size;
-        public Stream Open() => _data.Open();
+        public Hash Hash { get; }
+        public long Size => _entry.Size;
+        public Task<Stream> OpenAsync() => _entry.OpenAsync();
     }
 }

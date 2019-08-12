@@ -4,14 +4,22 @@ using System.Linq;
 
 namespace Docms.Domain.Documents
 {
-    public class TreeObject : ObjectBase, IEnumerable<TreeEntry>
+    public class TreeObject : IObject, IEnumerable<TreeEntry>
     {
         private TreeEntry[] _entries;
 
-        public TreeObject(IEnumerable<TreeEntry> entries) : base(Hash.CalculateHash(ToTextRepresentation(entries)))
+        public TreeObject(Hash hash, IEnumerable<TreeEntry> entries)
         {
+            Hash = hash;
             _entries = entries.ToArray();
         }
+
+        public TreeObject(IEnumerable<TreeEntry> entries)
+            : this(Hash.CalculateHash(ToTextRepresentation(entries)), entries)
+        {
+        }
+
+        public Hash Hash { get; }
 
         private static string ToTextRepresentation(IEnumerable<TreeEntry> entries)
         {

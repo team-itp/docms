@@ -1,10 +1,11 @@
 ﻿using System.IO;
+using System.Threading.Tasks;
 
 namespace Docms.Domain.Documents
 {
-    public interface IData
+    public interface IBlobEntry
     {
         long Size { get; }
-        Stream Open();
+        Task<Stream> OpenAsync();
     }
 }

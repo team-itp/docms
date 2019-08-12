@@ -41,7 +41,7 @@ namespace Docms.Domain.Documents
 
         public static Hash CalculateHash(Stream stream)
         {
-            using (var sha1 = new SHA1CryptoServiceProvider())
+            using (var sha1 = SHA1.Create())
             {
                 var header = Encoding.ASCII.GetBytes($"blob {stream.Length}\0");
                 sha1.TransformBlock(header, 0, header.Length, null, 0);
