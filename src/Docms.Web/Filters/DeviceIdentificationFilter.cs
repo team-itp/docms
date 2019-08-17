@@ -64,14 +64,15 @@ namespace Docms.Web.Filters
                     deviceId = Guid.NewGuid().ToString();
                 }
 
-                var expires = DateTime.UtcNow.AddYears(1);
+                var now = DateTime.UtcNow;
+                var expires = now.AddYears(1);
                 context.HttpContext.Response.Cookies.Append("docms_device_id", deviceId, new CookieOptions()
                 {
+                    Expires = expires,
+                    MaxAge = expires - now,
+                    Secure = true,
                     HttpOnly = true,
                     IsEssential = true,
-                    SameSite = SameSiteMode.Strict,
-                    MaxAge = expires - DateTime.UtcNow,
-                    Expires = expires,
                 });
 
                 var device = await _queries.FindByDeviceIdAsync(deviceId);
