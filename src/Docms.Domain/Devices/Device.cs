@@ -1,6 +1,5 @@
 ﻿using Docms.Domain.Core;
 using Docms.Domain.SeedWork;
-using Docms.Domain.Users;
 using System;
 
 namespace Docms.Domain.Devices
@@ -10,47 +9,49 @@ namespace Docms.Domain.Devices
         public Device(string name)
         {
             var e = new DeviceAddedEvent(new DeviceId(), name ?? throw new ArgumentNullException(nameof(name)));
-            Apply(e);
             AddDomainEvent(e);
         }
 
         public string Name { get; protected set; }
-        public UserId GrantedBy { get; protected set; }
-        public bool IsGranted => GrantedBy != null;
         public DateTime LastAccessedTime { get; protected set; }
+        public bool IsGranted { get; protected set; }
+        public bool IsRemoved { get; protected set; }
 
-        public void Grant(IUser byUser)
+        public void Grant(UserId byUser)
         {
             if (IsGranted)
             {
                 throw new InvalidOperationException("Device is already granted.");
             }
-            var e = new DeviceGrantedEvent(Id, byUser.Id);
-            Apply(e);
+            var e = new DeviceGrantedEvent(Id, byUser);
             AddDomainEvent(e);
         }
 
-        public void Deny(IUser byUser)
+        public void Deny(UserId byUser)
         {
             if (!IsGranted)
             {
                 throw new InvalidOperationException("Device is not granted.");
             }
-            var e = new DeviceDeniedEvent(Id, byUser.Id);
-            Apply(e);
+            var e = new DeviceDeniedEvent(Id, byUser);
             AddDomainEvent(e);
         }
 
-        public void Accessed()
+        public void Accessed(UserId byUser)
         {
-            var e = new DeviceAccessEvent(Id);
-            Apply(e);
+            var e = new DeviceAccessEvent(Id, byUser);
+            AddDomainEvent(e);
+        }
+
+        public void Remove(UserId byUser)
+        {
+            var e = new DeviceRemovedEvent(Id, byUser);
             AddDomainEvent(e);
         }
 
         protected override void Apply(IDomainEvent eventItem)
         {
-            switch(eventItem)
+            switch (eventItem)
             {
                 case DeviceAddedEvent e:
                     Apply(e);
@@ -75,12 +76,12 @@ namespace Docms.Domain.Devices
 
         private void Apply(DeviceGrantedEvent eventItem)
         {
-            GrantedBy = eventItem.GrantedBy;
+            IsGranted = true;
         }
 
         private void Apply(DeviceDeniedEvent eventItem)
         {
-            GrantedBy = null;
+            IsGranted = false;
         }
 
         private void Apply(DeviceAccessEvent eventItem)

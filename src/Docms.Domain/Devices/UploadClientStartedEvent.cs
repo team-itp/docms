@@ -4,27 +4,22 @@ using System;
 
 namespace Docms.Domain.Devices
 {
-    public class DeviceAccessEvent : IDomainEvent
+    public class UploadClientStartedEvent : IDomainEvent
     {
         public Guid Id { get; }
-
         public DateTime Timestamp { get; }
-
         public DeviceId DeviceId { get; }
 
-        public UserId UsedBy { get; }
-
-        public DeviceAccessEvent(DeviceId deviceId, UserId usedBy)
-            : this(Guid.NewGuid(), DateTime.UtcNow, deviceId, usedBy)
+        public UploadClientStartedEvent(DeviceId deviceId)
+            : this(Guid.NewGuid(), DateTime.UtcNow, deviceId)
         {
         }
 
-        public DeviceAccessEvent(Guid id, DateTime timestamp, DeviceId deviceId, UserId usedBy)
+        public UploadClientStartedEvent(Guid id, DateTime timestamp, DeviceId deviceId)
         {
             Id = id;
             Timestamp = timestamp;
             DeviceId = deviceId;
-            UsedBy = usedBy;
         }
     }
 }

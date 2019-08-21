@@ -5,7 +5,7 @@ namespace Docms.Domain.Devices
 {
     public class UserAgent : Device
     {
-        public UserAgent(IUser usedBy, string uaString) : base("USER_AGENT")
+        public UserAgent(IUser usedBy, string uaString) : base(Constants.USER_AGENT)
         {
             UsedBy = usedBy.Id;
             UserAgentString = uaString;
@@ -14,11 +14,5 @@ namespace Docms.Domain.Devices
 
         public UserId UsedBy { get; protected set; }
         public string UserAgentString { get; protected set; }
-        public UserAgentStatus Status { get; protected set; }
-
-        public void Stop()
-        {
-
-        }
     }
 }

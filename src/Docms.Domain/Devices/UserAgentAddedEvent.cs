@@ -19,6 +19,8 @@ namespace Docms.Domain.Devices
 
         public UserAgentAddedEvent(Guid id, DateTime timestamp, DeviceId deviceId, UserId usedBy, string userAgentString)
         {
+            Id = id;
+            Timestamp = timestamp;
             DeviceId = deviceId;
             UsedBy = usedBy;
             UserAgentString = userAgentString;

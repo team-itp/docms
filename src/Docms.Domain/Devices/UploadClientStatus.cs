@@ -1,10 +1,10 @@
 ﻿namespace Docms.Domain.Devices
 {
-    public enum UserAgentStatus
+    public enum UploadClientStatus
     {
+        Stopped,
         Starting,
         Running,
         Stopping,
-        Stopped,
     }
 }
