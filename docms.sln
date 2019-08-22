@@ -5,9 +5,17 @@ VisualStudioVersion = 16.0.29123.88
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Domain", "Domain", "{A4FC9E22-CFC8-468D-8F18-D3DC567FA934}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Docms.Domain", "src\Docms.Domain\Docms.Domain.csproj", "{E17A6497-EB7D-44DA-B5BA-5547658648A4}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Docms.Domain", "src\Docms.Domain\Docms.Domain.csproj", "{E17A6497-EB7D-44DA-B5BA-5547658648A4}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Docms.Domain.Tests", "tests\Docms.Domain.Tests\Docms.Domain.Tests.csproj", "{33E843D6-0471-4E9B-AE36-BC2FA0110291}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Docms.Domain.Tests", "tests\Docms.Domain.Tests\Docms.Domain.Tests.csproj", "{33E843D6-0471-4E9B-AE36-BC2FA0110291}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Presentation", "Presentation", "{534BF429-CD1E-41F4-994B-8D9BF94BAAAC}"
+EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Docms.Web.Tests", "tests\Docms.Web.Tests\Docms.Web.Tests.csproj", "{27FD5AC7-E55F-401F-97C3-5E9164FFD4A9}"
+EndProject
+Project("{9092AA53-FB77-4645-B42D-1CCCA6BD08BD}") = "docms-web-frontend", "src\docms-web-frontend\docms-web-frontend.njsproj", "{53953091-FFEB-40C1-9317-77E9D962F756}"
+EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Docms.Web", "src\Docms.Web\Docms.Web.csproj", "{119DDCD2-A70F-44C5-BFB9-03CF5E27B64F}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -23,6 +31,18 @@ Global
 		{33E843D6-0471-4E9B-AE36-BC2FA0110291}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{33E843D6-0471-4E9B-AE36-BC2FA0110291}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{33E843D6-0471-4E9B-AE36-BC2FA0110291}.Release|Any CPU.Build.0 = Release|Any CPU
+		{27FD5AC7-E55F-401F-97C3-5E9164FFD4A9}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{27FD5AC7-E55F-401F-97C3-5E9164FFD4A9}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{27FD5AC7-E55F-401F-97C3-5E9164FFD4A9}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{27FD5AC7-E55F-401F-97C3-5E9164FFD4A9}.Release|Any CPU.Build.0 = Release|Any CPU
+		{53953091-FFEB-40C1-9317-77E9D962F756}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{53953091-FFEB-40C1-9317-77E9D962F756}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{53953091-FFEB-40C1-9317-77E9D962F756}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{53953091-FFEB-40C1-9317-77E9D962F756}.Release|Any CPU.Build.0 = Release|Any CPU
+		{119DDCD2-A70F-44C5-BFB9-03CF5E27B64F}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{119DDCD2-A70F-44C5-BFB9-03CF5E27B64F}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{119DDCD2-A70F-44C5-BFB9-03CF5E27B64F}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{119DDCD2-A70F-44C5-BFB9-03CF5E27B64F}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
@@ -30,6 +50,9 @@ Global
 	GlobalSection(NestedProjects) = preSolution
 		{E17A6497-EB7D-44DA-B5BA-5547658648A4} = {A4FC9E22-CFC8-468D-8F18-D3DC567FA934}
 		{33E843D6-0471-4E9B-AE36-BC2FA0110291} = {A4FC9E22-CFC8-468D-8F18-D3DC567FA934}
+		{27FD5AC7-E55F-401F-97C3-5E9164FFD4A9} = {534BF429-CD1E-41F4-994B-8D9BF94BAAAC}
+		{53953091-FFEB-40C1-9317-77E9D962F756} = {534BF429-CD1E-41F4-994B-8D9BF94BAAAC}
+		{119DDCD2-A70F-44C5-BFB9-03CF5E27B64F} = {534BF429-CD1E-41F4-994B-8D9BF94BAAAC}
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
 		SolutionGuid = {35E6F4C9-B170-469D-81DE-A567F8AE4614}

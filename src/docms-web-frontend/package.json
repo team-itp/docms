@@ -1,0 +1,9 @@
+{
+  "name": "docms-web-frontend",
+  "version": "0.0.0",
+  "description": "文書管理システム フロントエンド",
+  "dependencies": {
+    "react": "^16.9.0",
+    "react-dom": "^16.9.0"
+  }
+}
