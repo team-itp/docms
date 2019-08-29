@@ -6,7 +6,12 @@ namespace Docms.Infrastructure.WebDav
     {
         public static IApplicationBuilder UseWebDav(this IApplicationBuilder builder)
         {
-            return builder.UseMiddleware<WebDavMiddleware>();
+            return builder.UseWebDav(new WebDavOptions());
+        }
+
+        public static IApplicationBuilder UseWebDav(this IApplicationBuilder builder, WebDavOptions config)
+        {
+            return builder.UseMiddleware<WebDavMiddleware>(config);
         }
     }
 }
