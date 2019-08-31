@@ -112,9 +112,20 @@ namespace Docms.Client.DocumentStores
 
         private void Apply(DocumentUpdatedHistory history)
         {
-            var doc = GetDocument(new PathString(history.Path));
-            doc.Update(history.FileSize, history.Hash, history.Created, history.LastModified);
-            synchronizationContext.RemoteFileAdded(doc.Path, doc.Hash, doc.FileSize);
+            var path = new PathString(history.Path);
+            var doc = GetDocument(path);
+            if (doc == null)
+            {
+                var dir = GetOrCreateContainer(path.ParentPath);
+                doc = new DocumentNode(path.Name, history.FileSize, history.Hash, history.Created, history.LastModified);
+                dir.AddChild(doc);
+                synchronizationContext.RemoteFileAdded(doc.Path, doc.Hash, doc.FileSize);
+            }
+            else
+            {
+                doc.Update(history.FileSize, history.Hash, history.Created, history.LastModified);
+                synchronizationContext.RemoteFileAdded(doc.Path, doc.Hash, doc.FileSize);
+            }
         }
 
         private void Apply(DocumentDeletedHistory history)
