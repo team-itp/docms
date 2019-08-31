@@ -52,9 +52,13 @@ namespace Docms.Client.DocumentStores
                             logger.Trace("modified file found: " + filepath);
                             try
                             {
+                                var oldHash = fileNode.Hash;
                                 var hash = CalculateHash(fi);
                                 fileNode.Update(fi.FileSize, hash, fi.Created, fi.LastModified);
-                                synchronizationContext.LocalFileAdded(filepath, hash, fi.FileSize);
+                                if (hash != oldHash)
+                                {
+                                    synchronizationContext.LocalFileAdded(filepath, hash, fi.FileSize);
+                                }
                             }
                             catch
                             {
