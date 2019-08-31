@@ -22,6 +22,7 @@ using Newtonsoft.Json;
 using System;
 using System.Collections.Generic;
 using System.IdentityModel.Tokens.Jwt;
+using System.Reflection;
 using VisualizationSystem.Infrastructure;
 
 namespace Docms.Web
@@ -169,7 +170,7 @@ namespace Docms.Web
 
         public static IServiceCollection RegisterMediators(this IServiceCollection services, IConfiguration configuration)
         {
-            services.AddMediatR();
+            services.AddMediatR(typeof(Startup).GetTypeInfo().Assembly);
             return services;
         }
     }
