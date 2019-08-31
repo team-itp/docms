@@ -1,6 +1,5 @@
 ﻿using Docms.Client.Api;
 using Docms.Client.Tasks;
-using Microsoft.EntityFrameworkCore;
 using NLog;
 using System;
 using System.Threading.Tasks;
@@ -22,14 +21,15 @@ namespace Docms.Client.Starter
         public async void Start()
         {
             var initializationCompleted = false;
-            logger.Trace("InsertAllTrackingFilesToSyncHistoryTask started");
-            while (!app.ShutdownRequestedToken.IsCancellationRequested && !initializationCompleted)
+            logger.Trace("InitializeTask started");
+            while (!app.ShutdownRequestedToken.IsCancellationRequested
+                && !initializationCompleted)
             {
-                var initTask = new InsertAllTrackingFilesToSyncHistoryTask(context);
+                var initTask = new InitializeTask(context);
                 initializationCompleted = await ExecuteTaskSafely(initTask).ConfigureAwait(false);
             }
             await Task.Delay(100).ConfigureAwait(false);
-            logger.Trace("InsertAllTrackingFilesToSyncHistoryTask ended");
+            logger.Trace("InitializeTask ended");
 
             logger.Info("Application main loop started.");
             while (!app.ShutdownRequestedToken.IsCancellationRequested)
