@@ -9,7 +9,6 @@ namespace Docms.Client
 {
     public class ApplicationContext : IDisposable
     {
-        public IApplication App { get; set; }
         public IDocmsApiClient Api { get; set; }
         public DocumentDbContext DocumentDb { get; set; }
         public IFileSystem FileSystem { get; set; }

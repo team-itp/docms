@@ -2,8 +2,6 @@
 using Docms.Client.Tasks;
 using Docms.Client.Tests.Utils;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
-using System;
-using System.Threading;
 using System.Threading.Tasks;
 
 namespace Docms.Client.Tests
@@ -11,7 +9,6 @@ namespace Docms.Client.Tests
     [TestClass]
     public class SyncTaskTest
     {
-        private static readonly DateTime DEFAULT_TIME = new DateTime(2019, 3, 21, 10, 11, 12, DateTimeKind.Utc);
         private MockApplicationContext context;
         private SyncTask sut;
 
@@ -29,21 +26,17 @@ namespace Docms.Client.Tests
         }
 
         [TestMethod]
-        public void ローカルファイルの同期処理を実行する()
+        public async Task ローカルファイルの同期処理を実行する()
         {
-            var operation = default(IOperation);
-            Task.Run(() => sut.ExecuteAsync());
+            var operations = sut.GetOperations().GetEnumerator();
             // RemoteDocumentStorageSyncOperation
-            operation = context.MockApp.GetNextOperation();
-            Assert.IsTrue(operation is RemoteDocumentStorageSyncOperation);
-            operation.Start();
-            Assert.AreEqual(TaskStatus.RanToCompletion, operation.Task.Status);
+            Assert.IsTrue(operations.MoveNext());
+            Assert.IsTrue(operations.Current is RemoteDocumentStorageSyncOperation);
+            await operations.Current.ExecuteAsync().ConfigureAwait(false);
             // LocalDocumentStorageSyncOperation
-            operation = context.MockApp.GetNextOperation();
-            Assert.IsTrue(operation is LocalDocumentStorageSyncOperation);
-            operation.Start();
-            Assert.AreEqual(TaskStatus.RanToCompletion, operation.Task.Status);
-            Assert.IsTrue(sut.IsCompleted);
+            Assert.IsTrue(operations.MoveNext());
+            Assert.IsTrue(operations.Current is LocalDocumentStorageSyncOperation);
+            await operations.Current.ExecuteAsync().ConfigureAwait(false);
         }
 
         [TestMethod]
@@ -54,38 +47,30 @@ namespace Docms.Client.Tests
             await DocmsApiUtils.Create(context.Api, "test2.txt").ConfigureAwait(false);
             await DocmsApiUtils.Update(context.Api, "test2.txt").ConfigureAwait(false);
             await DocmsApiUtils.Create(context.Api, "test3.txt").ConfigureAwait(false);
-            await context.RemoteStorage.Sync().ConfigureAwait(false);
-            await context.LocalStorage.Sync().ConfigureAwait(false);
+            await context.RemoteStorage.SyncAsync().ConfigureAwait(false);
+            await context.LocalStorage.SyncAsync().ConfigureAwait(false);
 
-            var operation = default(IOperation);
-            var task = Task.Run(() => sut.ExecuteAsync());
+            var operations = sut.GetOperations().GetEnumerator();
             // RemoteDocumentStorageSyncOperation
-            operation = context.MockApp.GetNextOperation();
-            Assert.IsTrue(operation is RemoteDocumentStorageSyncOperation);
-            operation.Start();
-            Assert.AreEqual(TaskStatus.RanToCompletion, operation.Task.Status);
+            Assert.IsTrue(operations.MoveNext());
+            Assert.IsTrue(operations.Current is RemoteDocumentStorageSyncOperation);
+            await operations.Current.ExecuteAsync().ConfigureAwait(false);
             // LocalDocumentStorageSyncOperation
-            operation = context.MockApp.GetNextOperation();
-            Assert.IsTrue(operation is LocalDocumentStorageSyncOperation);
-            operation.Start();
-            Assert.AreEqual(TaskStatus.RanToCompletion, operation.Task.Status);
+            Assert.IsTrue(operations.MoveNext());
+            Assert.IsTrue(operations.Current is LocalDocumentStorageSyncOperation);
+            await operations.Current.ExecuteAsync().ConfigureAwait(false);
             // UploadLocalDocumentOperation
-            operation = context.MockApp.GetNextOperation();
-            Assert.IsTrue(operation is UploadLocalDocumentOperation);
-            operation.Start();
-            Assert.AreEqual(TaskStatus.RanToCompletion, operation.Task.Status);
+            Assert.IsTrue(operations.MoveNext());
+            Assert.IsTrue(operations.Current is UploadLocalDocumentOperation);
+            await operations.Current.ExecuteAsync().ConfigureAwait(false);
             // UploadLocalDocumentOperation
-            operation = context.MockApp.GetNextOperation();
-            Assert.IsTrue(operation is UploadLocalDocumentOperation);
-            operation.Start();
-            Assert.AreEqual(TaskStatus.RanToCompletion, operation.Task.Status);
+            Assert.IsTrue(operations.MoveNext());
+            Assert.IsTrue(operations.Current is UploadLocalDocumentOperation);
+            await operations.Current.ExecuteAsync().ConfigureAwait(false);
             // DownloadRemoteDocumentOperation
-            operation = context.MockApp.GetNextOperation();
-            Assert.IsTrue(operation is DownloadRemoteDocumentOperation);
-            operation.Start();
-            Assert.AreEqual(TaskStatus.RanToCompletion, operation.Task.Status);
-            Thread.Sleep(10);
-            Assert.IsTrue(sut.IsCompleted);
+            Assert.IsTrue(operations.MoveNext());
+            Assert.IsTrue(operations.Current is DownloadRemoteDocumentOperation);
+            await operations.Current.ExecuteAsync().ConfigureAwait(false);
         }
     }
 }

@@ -10,10 +10,10 @@ namespace Docms.Client.DocumentStores
     {
         ContainerNode Root { get; }
 
+        Task Initialize();
         ContainerNode GetContainer(PathString path);
         DocumentNode GetDocument(PathString path);
         Node GetNode(PathString path);
-        Task Initialize();
-        Task Sync(IProgress<int> progress = default(IProgress<int>), CancellationToken token = default(CancellationToken));
+        Task SyncAsync(CancellationToken token = default);
     }
 }

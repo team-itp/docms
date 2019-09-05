@@ -1,21 +1,20 @@
 ﻿using Docms.Client.Api;
-using System;
 using System.Net;
 using System.Threading;
 using System.Threading.Tasks;
 
 namespace Docms.Client.Operations
 {
-    public abstract class DocmsApiOperationBase : AsyncOperationBase
+    public abstract class DocmsApiOperationBase : IOperation
     {
         private readonly IDocmsApiClient api;
 
-        public DocmsApiOperationBase(IDocmsApiClient api, CancellationToken cancellationToken = default(CancellationToken)) : base(cancellationToken)
+        public DocmsApiOperationBase(IDocmsApiClient api)
         {
             this.api = api;
         }
 
-        protected override async Task ExecuteAsync(CancellationToken token)
+        public async Task ExecuteAsync(CancellationToken token = default)
         {
             try
             {

@@ -7,7 +7,7 @@ namespace Docms.Client.Synchronization
     public class SynchronizationContext
     {
         public IEnumerable<SynchronizationState> States => _States.Values;
-        private Dictionary<PathString, SynchronizationState> _States;
+        private readonly Dictionary<PathString, SynchronizationState> _States;
 
         public SynchronizationContext()
         {
@@ -91,7 +91,7 @@ namespace Docms.Client.Synchronization
 
         public void UploadRequested(PathString path)
         {
-            if (_States[path] is RequestForUploadState up)
+            if (_States.TryGetValue(path, out var state) && state is RequestForUploadState up)
             {
                 _States[path] = up.Uploaded();
             }
@@ -103,7 +103,7 @@ namespace Docms.Client.Synchronization
 
         public void DownloadRequested(PathString path)
         {
-            if (_States[path] is RequestForDownloadState down)
+            if (_States.TryGetValue(path, out var state) && state is RequestForDownloadState down)
             {
                 _States[path] = down.Downloaded();
             }
@@ -115,7 +115,7 @@ namespace Docms.Client.Synchronization
 
         public void DeleteRequested(PathString path)
         {
-            if (_States[path] is RequestForDeleteState del)
+            if (_States.TryGetValue(path, out var state) && state is RequestForDeleteState del)
             {
                 _States[path] = del.Deleted();
             }

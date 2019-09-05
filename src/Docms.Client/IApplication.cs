@@ -1,6 +1,4 @@
-﻿using Docms.Client.Operations;
-using System.Threading;
-using System.Threading.Tasks;
+﻿using System.Threading;
 
 namespace Docms.Client
 {
@@ -10,6 +8,5 @@ namespace Docms.Client
 
         void Run();
         void Shutdown();
-        Task Invoke(IOperation operation);
     }
 }

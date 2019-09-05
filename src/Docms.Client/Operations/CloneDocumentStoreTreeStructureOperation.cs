@@ -1,19 +1,20 @@
 ﻿using Docms.Client.Documents;
 using Docms.Client.Types;
 using System.Threading;
+using System.Threading.Tasks;
 
 namespace Docms.Client.Operations
 {
-    internal class CloneDocumentStoreTreeStructureOperation : OperationBase
+    internal class CloneDocumentStoreTreeStructureOperation : IOperation
     {
-        private ApplicationContext context;
+        private readonly ApplicationContext context;
 
         public CloneDocumentStoreTreeStructureOperation(ApplicationContext context)
         {
             this.context = context;
         }
 
-        protected override void Execute(CancellationToken token)
+        public Task ExecuteAsync(CancellationToken token)
         {
             var remoteDocuments = context.RemoteStorage.Root.ListAllDocuments();
             foreach (var doc in remoteDocuments)
@@ -22,6 +23,7 @@ namespace Docms.Client.Operations
                 var parentDir = GetOrCreateDirectory(path.ParentPath);
                 parentDir.AddChild(new DocumentNode(path.Name, doc.FileSize, doc.Hash, doc.Created, doc.LastModified));
             }
+            return Task.CompletedTask;
         }
 
         private ContainerNode GetOrCreateDirectory(PathString path)

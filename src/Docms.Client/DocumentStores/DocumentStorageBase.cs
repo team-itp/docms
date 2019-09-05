@@ -93,6 +93,6 @@ namespace Docms.Client.DocumentStores
             return Task.CompletedTask;
         }
 
-        public abstract Task Sync(IProgress<int> progress = default(IProgress<int>), CancellationToken cancellationToken = default(CancellationToken));
+        public abstract Task SyncAsync(CancellationToken cancellationToken = default);
     }
 }

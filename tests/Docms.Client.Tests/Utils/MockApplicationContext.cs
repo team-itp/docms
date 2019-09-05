@@ -5,7 +5,6 @@ namespace Docms.Client.Tests.Utils
 {
     class MockApplicationContext : ApplicationContext
     {
-        public MockApplication MockApp { get; set; }
         public MockDocmsApiClient MockApi { get; set; }
         public MockDocumentDbContext MockDocumentDb { get; set; }
         public MockFileSystem MockFileSystem { get; set; }
@@ -15,14 +14,12 @@ namespace Docms.Client.Tests.Utils
 
         public MockApplicationContext()
         {
-            MockApp = new MockApplication();
             MockApi = new MockDocmsApiClient();
             MockDocumentDb = new MockDocumentDbContext();
             MockFileSystem = new MockFileSystem();
             MockSynchronizationContext = new SynchronizationContext();
             MockLocalStorage = new LocalDocumentStorage(MockFileSystem, MockSynchronizationContext);
             MockRemoteStorage = new RemoteDocumentStorage(MockApi, MockSynchronizationContext, MockDocumentDb);
-            App = MockApp;
             Api = MockApi;
             DocumentDb = MockDocumentDb;
             FileSystem = MockFileSystem;

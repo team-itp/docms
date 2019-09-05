@@ -16,13 +16,11 @@ namespace Docms.Client.Tests
         const string USER_NAME = "testuser";
         const string PASSWORD = "Passw0rd";
         private string watchPath;
-        private MockApplication app;
         private ApplicationStarter sut;
 
         [TestInitialize]
         public void Setup()
         {
-            app = new MockApplication();
             watchPath = Path.Combine(Path.GetTempPath(), Guid.NewGuid().ToString());
             if (!Directory.Exists(watchPath))
             {
@@ -40,37 +38,37 @@ namespace Docms.Client.Tests
         }
 
         [TestMethod]
-        public async Task 初期化処理でフォルダが存在しない場合戻り値がFalseになる()
+        public async Task 初期化処理でフォルダが存在しない場合エラーが発生する()
         {
             Directory.Delete(watchPath, true);
             sut = new ApplicationStarter(watchPath, SERVER_URL, CLIENT_ID, USER_NAME, PASSWORD);
-            Assert.IsFalse(await sut.StartAsync(app).ConfigureAwait(false));
+            await Assert.ThrowsExceptionAsync<Exception>(() => sut.StartAsync());
         }
 
 
         [TestMethod]
-        public async Task 初期化処理でDbContextの初期化に失敗した場合戻り値がFalseになる()
+        public async Task 初期化処理でDbContextの初期化に失敗した場合エラーが発生する()
         {
             Directory.CreateDirectory(Path.Combine(watchPath, ".docms"));
             using (var stream = File.Open(Path.Combine(watchPath, ".docms", "data.db"), FileMode.CreateNew, FileAccess.Write, FileShare.None))
             {
                 sut = new ApplicationStarter(watchPath, SERVER_URL, CLIENT_ID, USER_NAME, PASSWORD);
-                Assert.IsFalse(await sut.StartAsync(app).ConfigureAwait(false));
+                await Assert.ThrowsExceptionAsync<Exception>(() => sut.StartAsync());
             }
         }
 
         [TestMethod]
-        public async Task 初期化処理でログインに失敗した場合戻り値がFalseになる()
+        public async Task 初期化処理でログインに失敗した場合エラーが発生する()
         {
             sut = new ApplicationStarter(watchPath, SERVER_URL, CLIENT_ID, USER_NAME, "invalid_password");
-            Assert.IsFalse(await sut.StartAsync(app).ConfigureAwait(false));
+            await Assert.ThrowsExceptionAsync<Exception>(() => sut.StartAsync());
         }
 
         [TestMethod]
-        public async Task 初期化処理が完了した場合戻り値がTrueになる()
+        public async Task 初期化処理が完了した場合戻り値としてApplicationContextが戻る()
         {
             sut = new ApplicationStarter(watchPath, SERVER_URL, CLIENT_ID, USER_NAME, PASSWORD);
-            Assert.IsTrue(await sut.StartAsync(app).ConfigureAwait(false));
+            Assert.IsNotNull(await sut.StartAsync().ConfigureAwait(false));
         }
     }
 }

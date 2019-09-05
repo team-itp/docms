@@ -2,7 +2,6 @@
 using Docms.Client.FileSystem;
 using Docms.Client.Types;
 using NLog;
-using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
@@ -23,19 +22,16 @@ namespace Docms.Client.DocumentStores
             this.synchronizationContext = synchronizationContext;
         }
 
-        public override Task Sync(IProgress<int> progress = default(IProgress<int>), CancellationToken cancellationToken = default(CancellationToken))
+        public override Task SyncAsync(CancellationToken cancellationToken = default)
         {
             List<(ContainerNode, PathString)> files = new List<(ContainerNode, PathString)>();
             SyncContainerNode(Root, files, cancellationToken);
-            progress?.Report(10);
-            SyncDocumentNodes(files, progress, cancellationToken);
+            SyncDocumentNodes(files, cancellationToken);
             return Task.CompletedTask;
         }
 
-        private void SyncDocumentNodes(List<(ContainerNode, PathString)> files, IProgress<int> progress, CancellationToken cancellationToken)
+        private void SyncDocumentNodes(List<(ContainerNode, PathString)> files, CancellationToken cancellationToken)
         {
-            var total = files.Count;
-            var count = 0;
             foreach (var (node, filepath) in files)
             {
                 cancellationToken.ThrowIfCancellationRequested();
@@ -87,7 +83,6 @@ namespace Docms.Client.DocumentStores
                     synchronizationContext.LocalFileDeleted(filepath, fileNode.Hash, fileNode.FileSize);
                     node.RemoveChild(fileNode);
                 }
-                progress?.Report(10 + (++count * 80 / total));
             }
         }
 

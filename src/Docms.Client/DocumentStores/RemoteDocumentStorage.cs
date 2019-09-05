@@ -16,12 +16,12 @@ namespace Docms.Client.DocumentStores
     {
         private static readonly ILogger logger = LogManager.GetCurrentClassLogger();
 
-        private IDocmsApiClient api;
-        private Synchronization.SynchronizationContext synchronizationContext;
+        private readonly IDocmsApiClient api;
+        private readonly Synchronization.SynchronizationContext synchronizationContext;
 
-        private HashSet<Guid> appliedHistoryIds;
+        private readonly HashSet<Guid> appliedHistoryIds;
 
-        private DocumentDbContext db;
+        private readonly DocumentDbContext db;
 
         public RemoteDocumentStorage(IDocmsApiClient api, Synchronization.SynchronizationContext synchronizationContext, DocumentDbContext db)
         {
@@ -58,7 +58,7 @@ namespace Docms.Client.DocumentStores
             }
         }
 
-        public override async Task Sync(IProgress<int> progress = default(IProgress<int>), CancellationToken cancellationToken = default(CancellationToken))
+        public override async Task SyncAsync(CancellationToken cancellationToken = default)
         {
             logger.Trace($"remote document syncing");
             var latestHistory = await db.Histories.OrderByDescending(h => h.Timestamp).FirstOrDefaultAsync().ConfigureAwait(false);

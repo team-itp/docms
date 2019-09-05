@@ -13,7 +13,7 @@ namespace Docms.Client.Starter
 {
     public class ApplicationStarter
     {
-        private static ILogger _logger = LogManager.GetCurrentClassLogger();
+        private static readonly ILogger _logger = LogManager.GetCurrentClassLogger();
 
         private readonly string watchPath;
         private readonly string serverUrl;
@@ -30,7 +30,7 @@ namespace Docms.Client.Starter
             this.uploadUserPassword = uploadUserPassword;
         }
 
-        public async Task<bool> StartAsync(IApplication app)
+        public async Task<ApplicationContext> StartAsync()
         {
             try
             {
@@ -41,7 +41,6 @@ namespace Docms.Client.Starter
 
                 var context = new ApplicationContext();
 
-                context.App = app;
                 context.Api = ResolveApi();
                 context.DocumentDb = ResolveDocumentDbContext();
                 context.FileSystem = ResolveFileSystem(watchPath);
@@ -52,15 +51,12 @@ namespace Docms.Client.Starter
                 await context.Api.LoginAsync(uploadUserName, uploadUserPassword).ConfigureAwait(false);
                 await context.LocalStorage.Initialize().ConfigureAwait(false);
                 await context.RemoteStorage.Initialize().ConfigureAwait(false);
-
-                new ApplicationEngine(app, context).Start();
-                
-                return true;
+                return context;
             }
             catch (Exception ex)
             {
                 _logger.Error(ex);
-                return false;
+                throw;
             }
         }
 
