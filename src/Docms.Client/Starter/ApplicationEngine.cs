@@ -38,6 +38,7 @@ namespace Docms.Client.Starter
                 logger.Trace("SyncTask ended");
                 await Task.Delay(TimeSpan.FromSeconds(10)).ConfigureAwait(false);
             }
+            logger.Info("Application main loop ended.");
         }
 
         private async Task<bool> ExecuteAsync(ITask task)
