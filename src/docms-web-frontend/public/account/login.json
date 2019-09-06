@@ -1,0 +1,7 @@
+{
+    "token_type": "Bearer",
+    "scope": "scope",
+    "expires_in": 3600,
+    "access_token": "ACCESS_TOKEN",
+    "refresh_token": "REFRESH_TOKEN"
+}
