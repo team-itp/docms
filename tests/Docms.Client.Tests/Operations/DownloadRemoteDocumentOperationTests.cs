@@ -1,5 +1,4 @@
-﻿using Docms.Client.Api;
-using Docms.Client.Operations;
+﻿using Docms.Client.Operations;
 using Docms.Client.Tests.Utils;
 using Docms.Client.Types;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
@@ -30,7 +29,7 @@ namespace Docms.Client.Tests.Operations
         public async Task リモートのファイルが存在しない場合ファイルがダウンロードされないこと()
         {
             var sut = new DownloadRemoteDocumentOperation(context, new PathString("test2.txt"));
-            await Assert.ThrowsExceptionAsync<ServerException>(() => sut.ExecuteAsync());
+            await sut.ExecuteAsync().ConfigureAwait(false);
             Assert.AreEqual(1, context.MockApi.histories.Count);
         }
 

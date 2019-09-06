@@ -55,6 +55,10 @@ namespace Docms.Client.DocumentStores
                                 {
                                     synchronizationContext.LocalFileAdded(filepath, hash, fi.FileSize);
                                 }
+                                else
+                                {
+                                    logger.Trace("file was not changed: " + filepath);
+                                }
                             }
                             catch
                             {
@@ -99,25 +103,24 @@ namespace Docms.Client.DocumentStores
 
             foreach (var dirpath in dirs.Distinct())
             {
-                var dirNode = node.GetChild(dirpath.Name) as ContainerNode;
                 var dir = fileSystem.GetDirectoryInfo(dirpath);
-                if (dir != null)
+                if (node.GetChild(dirpath.Name) is ContainerNode dirNode)
                 {
-                    if (dirNode != null)
+                    if (dir != null)
                     {
-                        SyncContainerNode(dirNode as ContainerNode, results, cancellationToken);
+                        SyncContainerNode(dirNode, results, cancellationToken);
                     }
                     else
                     {
-                        dirNode = new ContainerNode(dirpath.Name);
-                        node.AddChild(dirNode);
-                        SyncContainerNode(dirNode, results, cancellationToken);
+                        DeleteDirNode(dirNode);
+                        node.RemoveChild(dirNode);
                     }
                 }
-                else if (dirNode != null)
+                else if (dir != null)
                 {
-                    DeleteDirNode(dirNode);
-                    node.RemoveChild(dirNode);
+                    dirNode = new ContainerNode(dirpath.Name);
+                    node.AddChild(dirNode);
+                    SyncContainerNode(dirNode, results, cancellationToken);
                 }
             }
             results.AddRange(files.Distinct().Select(fp => (node, fp)));
@@ -152,24 +155,23 @@ namespace Docms.Client.DocumentStores
 
             foreach (var dirpath in dirs.Distinct())
             {
-                var dirNode = node.GetChild(dirpath.Name) as ContainerNode;
                 var dir = fileSystem.GetDirectoryInfo(dirpath);
-                if (dir != null)
+                if (node.GetChild(dirpath.Name) is ContainerNode dirNode)
                 {
-                    if (dirNode != null)
+                    if (dir != null)
                     {
-                        SyncInternal(dirNode as ContainerNode, cancellationToken);
+                        SyncInternal(dirNode, cancellationToken);
                     }
                     else
                     {
-                        dirNode = new ContainerNode(dirpath.Name);
-                        node.AddChild(dirNode);
-                        SyncInternal(dirNode, cancellationToken);
+                        node.RemoveChild(dirNode);
                     }
                 }
-                else if (dirNode != null)
+                else if (dir != null)
                 {
-                    node.RemoveChild(dirNode);
+                    dirNode = new ContainerNode(dirpath.Name);
+                    node.AddChild(dirNode);
+                    SyncInternal(dirNode, cancellationToken);
                 }
             }
             foreach (var filepath in files.Distinct())

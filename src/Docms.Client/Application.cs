@@ -29,7 +29,8 @@ namespace Docms.Client
                     _options.UploadClientId,
                     _options.UploadUserName,
                     _options.UploadUserPassword);
-                using (var context = starter.StartAsync().GetAwaiter().GetResult())
+                using (var task = starter.StartAsync())
+                using (var context = task.GetAwaiter().GetResult())
                 {
                     new ApplicationEngine(this, context).StartAsync().GetAwaiter().GetResult();
                 }

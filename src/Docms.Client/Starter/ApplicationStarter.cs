@@ -34,12 +34,12 @@ namespace Docms.Client.Starter
         {
             try
             {
+                var context = new ApplicationContext();
+
                 if (!Directory.Exists(watchPath))
                 {
                     throw new DirectoryNotFoundException(watchPath);
                 }
-
-                var context = new ApplicationContext();
 
                 context.Api = ResolveApi();
                 context.DocumentDb = ResolveDocumentDbContext();

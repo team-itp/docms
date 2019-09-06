@@ -1,6 +1,4 @@
 ﻿using Docms.Client.Types;
-using NLog;
-using System;
 using System.Threading;
 using System.Threading.Tasks;
 
@@ -8,11 +6,10 @@ namespace Docms.Client.Operations
 {
     public class DownloadRemoteDocumentOperation : DocmsApiOperationBase
     {
-        private static readonly ILogger _logger = LogManager.GetCurrentClassLogger();
         private readonly ApplicationContext context;
         private readonly PathString path;
 
-        public DownloadRemoteDocumentOperation(ApplicationContext context, PathString path) : base(context.Api)
+        public DownloadRemoteDocumentOperation(ApplicationContext context, PathString path) : base(context.Api, $"{path}")
         {
             this.context = context;
             this.path = path;
@@ -20,37 +17,28 @@ namespace Docms.Client.Operations
 
         protected override async Task ExecuteApiOperationAsync(CancellationToken token)
         {
-            try
+            token.ThrowIfCancellationRequested();
+            var document = context.RemoteStorage.GetDocument(path);
+            if (!CanDownload(path))
             {
-                token.ThrowIfCancellationRequested();
-                var document = context.RemoteStorage.GetDocument(path);
+                return;
+            }
+            using (var stream = await context.Api.DownloadAsync(path.ToString()).ConfigureAwait(false))
+            {
                 if (!CanDownload(path))
                 {
                     return;
                 }
-                using (var stream = await context.Api.DownloadAsync(path.ToString()).ConfigureAwait(false))
+                var file = context.FileSystem.GetFileInfo(path);
+                if (file != null)
                 {
-                    if (!CanDownload(path))
-                    {
-                        return;
-                    }
-                    var file = context.FileSystem.GetFileInfo(path);
-                    if (file != null)
-                    {
-                        await context.FileSystem.UpdateFile(path, stream, document.Created, document.LastModified).ConfigureAwait(false);
-                    }
-                    else
-                    {
-                        await context.FileSystem.CreateFile(path, stream, document.Created, document.LastModified).ConfigureAwait(false);
-                    }
-                    context.SynchronizationContext.DownloadRequested(path);
+                    await context.FileSystem.UpdateFile(path, stream, document.Created, document.LastModified).ConfigureAwait(false);
                 }
-            }
-            catch (Exception ex)
-            {
-                _logger.Error("Failed to download remote document.");
-                _logger.Error(ex);
-                throw;
+                else
+                {
+                    await context.FileSystem.CreateFile(path, stream, document.Created, document.LastModified).ConfigureAwait(false);
+                }
+                context.SynchronizationContext.DownloadRequested(path);
             }
         }
 

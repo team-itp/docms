@@ -16,9 +16,11 @@ namespace Docms.Client.Operations
 
         public Task ExecuteAsync(CancellationToken token)
         {
+            token.ThrowIfCancellationRequested();
             var remoteDocuments = context.RemoteStorage.Root.ListAllDocuments();
             foreach (var doc in remoteDocuments)
             {
+                token.ThrowIfCancellationRequested();
                 var path = doc.Path;
                 var parentDir = GetOrCreateDirectory(path.ParentPath);
                 parentDir.AddChild(new DocumentNode(path.Name, doc.FileSize, doc.Hash, doc.Created, doc.LastModified));
