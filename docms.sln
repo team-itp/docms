@@ -1,7 +1,7 @@
 ﻿
 Microsoft Visual Studio Solution File, Format Version 12.00
-# Visual Studio 15
-VisualStudioVersion = 15.0.27703.2042
+# Visual Studio Version 16
+VisualStudioVersion = 16.0.29215.179
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "src", "src", "{5EC1E2AE-85C6-4F2D-B954-2E42105C4EBF}"
 EndProject
@@ -21,7 +21,9 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Docms.Web.Tests", "tests\Do
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "VisualizationSystem.Infrastructure", "src\VisualizationSystem.Infrastructure\VisualizationSystem.Infrastructure.csproj", "{92FCDD8F-7BF6-4AB6-AE2B-B1C004A49AB5}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Docms.Queries", "src\Docms.Queries\Docms.Queries.csproj", "{562E5433-3039-493C-B143-510E7863148A}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Docms.Queries", "src\Docms.Queries\Docms.Queries.csproj", "{562E5433-3039-493C-B143-510E7863148A}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Docms.Maintainance.CleanupTask", "src\Docms.Maintainance.CleanupTask\Docms.Maintainance.CleanupTask.csproj", "{5245EED9-A6C6-4E27-808F-D7F910B56826}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -61,6 +63,10 @@ Global
 		{562E5433-3039-493C-B143-510E7863148A}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{562E5433-3039-493C-B143-510E7863148A}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{562E5433-3039-493C-B143-510E7863148A}.Release|Any CPU.Build.0 = Release|Any CPU
+		{5245EED9-A6C6-4E27-808F-D7F910B56826}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{5245EED9-A6C6-4E27-808F-D7F910B56826}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{5245EED9-A6C6-4E27-808F-D7F910B56826}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{5245EED9-A6C6-4E27-808F-D7F910B56826}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
@@ -74,6 +80,7 @@ Global
 		{53F05C2E-3184-4AB9-9BAD-42697461B5EA} = {D5BF118D-AA84-4EED-A9AC-758BD3FA42BD}
 		{92FCDD8F-7BF6-4AB6-AE2B-B1C004A49AB5} = {5EC1E2AE-85C6-4F2D-B954-2E42105C4EBF}
 		{562E5433-3039-493C-B143-510E7863148A} = {5EC1E2AE-85C6-4F2D-B954-2E42105C4EBF}
+		{5245EED9-A6C6-4E27-808F-D7F910B56826} = {5EC1E2AE-85C6-4F2D-B954-2E42105C4EBF}
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
 		SolutionGuid = {3E97A19D-6D1D-48A5-8A6F-2EB7FE6B6CE7}
