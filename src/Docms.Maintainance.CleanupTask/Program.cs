@@ -6,7 +6,6 @@ using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using Microsoft.WindowsAzure.Storage;
 using System;
-using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 
@@ -24,7 +23,10 @@ namespace Docms.Maintainance.CleanupTask
             var services = CreateServiceCollenction();
             var configuration = CreateConfiguration();
             var context = CreateContext(configuration);
-            var azureStorage = CreateStorageClient(configuration);
+            var blobStorage = CreateStorageClient(configuration);
+
+            var logger = services.GetService<ILogger<Program>>();
+            logger.LogInformation("application started.");
 
             var allDocumentHistories = (await context
                 .DocumentHistories
@@ -48,14 +50,18 @@ namespace Docms.Maintainance.CleanupTask
         private static ServiceProvider CreateServiceCollenction()
         {
             return new ServiceCollection()
-                .AddLogging(builder => builder.AddDebug())
+                .AddLogging(builder =>
+                {
+                    builder.AddDebug();
+                    builder.AddConsole();
+                })
                 .BuildServiceProvider();
         }
 
         private static object CreateStorageClient(IConfiguration configuration)
         {
-            var storageAccount = CloudStorageAccount.Parse(configuration.GetConnectionString("DocmsStorage"));
-            return storageAccount.CreateCloudFileClient();
+            var storageAccount = CloudStorageAccount.Parse(configuration.GetConnectionString("DocmsDataStore"));
+            return storageAccount.CreateCloudBlobClient();
         }
 
         private static DocmsContext CreateContext(IConfiguration configuration)

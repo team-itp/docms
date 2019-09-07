@@ -15,11 +15,12 @@ namespace Docms.Maintainance.CleanupTask
 
         public DocumentContext(List<DocumentHistory> histories, ServiceProvider services)
         {
-            _logger = services.GetService<ILogger>();
+            _logger = services.GetService<ILogger<DocumentContext>>();
             foreach (var history in histories.OrderBy(d => d.Timestamp))
             {
                 Apply(history);
             }
+            _logger.LogTrace("context was successfully created");
         }
 
         private void Apply(DocumentHistory history)
@@ -40,6 +41,7 @@ namespace Docms.Maintainance.CleanupTask
 
         private void CreateDocument(DocumentHistory history)
         {
+            _logger.LogDebug("create document: {0}", history.Path);
             if (_documentStore.TryGetValue(history.DocumentId, out var document))
             {
                 _logger.LogWarning($"invalid created log found: {history.Id}");

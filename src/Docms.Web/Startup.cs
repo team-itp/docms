@@ -171,7 +171,7 @@ namespace Docms.Web
             }
             else
             {
-                services.AddSingleton<IDataStore>(new AzureBlobDataStore(configuration.GetConnectionString("DocumsDataStore"), configuration.GetValue<string>("Docms:ContainerName")));
+                services.AddSingleton<IDataStore>(new AzureBlobDataStore(configuration.GetConnectionString("DocmsDataStore"), configuration.GetValue<string>("Docms:ContainerName")));
             }
             return services;
         }
