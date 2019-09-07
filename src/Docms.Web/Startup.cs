@@ -3,6 +3,7 @@ using Docms.Domain.Identity;
 using Docms.Infrastructure;
 using Docms.Infrastructure.Queries;
 using Docms.Infrastructure.Repositories;
+using Docms.Infrastructure.Storage.AzureBlobStorage;
 using Docms.Infrastructure.Storage.FileSystem;
 using Docms.Queries.Blobs;
 using Docms.Queries.DeviceAuthorization;
@@ -144,7 +145,7 @@ namespace Docms.Web
             // prevent from mapping "sub" claim to nameidentifier.
             JwtSecurityTokenHandler.DefaultInboundClaimTypeMap.Remove("sub");
 
-            var identityUrl = configuration.GetValue<string>("IdentityUrl");
+            var identityUrl = configuration.GetValue<string>("Docms:IdentityUrl");
 
             services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
                 .AddJwtBearer(options =>
@@ -164,7 +165,14 @@ namespace Docms.Web
             services.AddTransient<IBlobsQueries, BlobsQueries>();
             services.AddTransient<IDocumentHistoriesQueries, DocumentHistoriesQueries>();
             services.AddTransient<IDeviceGrantsQueries, DeviceGrantsQueries>();
-            services.AddSingleton<IDataStore>(new FileDataStore("App_Data/files"));
+            if (configuration.GetValue<bool>("Docms:UseFileSystem"))
+            {
+                services.AddSingleton<IDataStore>(new FileDataStore($"{configuration.GetValue<string>("Docms:DataStoreBasePath")}/{configuration.GetValue<string>("Docms:ContainerName")}"));
+            }
+            else
+            {
+                services.AddSingleton<IDataStore>(new AzureBlobDataStore(configuration.GetConnectionString("DocumsDataStore"), configuration.GetValue<string>("Docms:ContainerName")));
+            }
             return services;
         }
 
