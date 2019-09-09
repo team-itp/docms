@@ -1,4 +1,5 @@
-﻿using System.IO;
+﻿using System.Collections.Generic;
+using System.IO;
 using System.Threading.Tasks;
 
 namespace Docms.Domain.Documents
@@ -10,5 +11,6 @@ namespace Docms.Domain.Documents
         Task<IData> CreateAsync(string key, Stream stream, long sizeOfStream);
         Task<IData> FindAsync(string key);
         Task DeleteAsync(string key);
+        Task<IEnumerable<string>> ListAllKeys();
     }
 }

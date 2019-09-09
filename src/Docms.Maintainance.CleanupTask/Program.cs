@@ -1,4 +1,6 @@
-﻿using Docms.Infrastructure;
+﻿using Docms.Domain.Documents;
+using Docms.Infrastructure;
+using Docms.Infrastructure.Storage.AzureBlobStorage;
 using MediatR;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
@@ -23,7 +25,7 @@ namespace Docms.Maintainance.CleanupTask
             var services = CreateServiceCollenction();
             var configuration = CreateConfiguration();
             var context = CreateContext(configuration);
-            var blobStorage = CreateStorageClient(configuration);
+            var dataStore = CreateDataStore(configuration);
 
             var logger = services.GetService<ILogger<Program>>();
             logger.LogInformation("application started.");
@@ -58,10 +60,9 @@ namespace Docms.Maintainance.CleanupTask
                 .BuildServiceProvider();
         }
 
-        private static object CreateStorageClient(IConfiguration configuration)
+        private static IDataStore CreateDataStore(IConfiguration configuration)
         {
-            var storageAccount = CloudStorageAccount.Parse(configuration.GetConnectionString("DocmsDataStore"));
-            return storageAccount.CreateCloudBlobClient();
+            return new AzureBlobDataStore(configuration.GetConnectionString("DocmsDataStore"), "files");
         }
 
         private static DocmsContext CreateContext(IConfiguration configuration)

@@ -39,5 +39,10 @@ namespace Docms.Infrastructure.Storage.InMemory
             values.Remove(key);
             return Task.CompletedTask;
         }
+
+        public Task<IEnumerable<string>> ListAllKeys()
+        {
+            return Task.FromResult<IEnumerable<string>>(values.Keys);
+        }
     }
 }

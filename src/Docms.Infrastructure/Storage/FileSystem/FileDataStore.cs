@@ -1,6 +1,8 @@
 ﻿using Docms.Domain.Documents;
 using System;
+using System.Collections.Generic;
 using System.IO;
+using System.Linq;
 using System.Threading.Tasks;
 
 namespace Docms.Infrastructure.Storage.FileSystem
@@ -56,6 +58,26 @@ namespace Docms.Infrastructure.Storage.FileSystem
                 return Task.FromResult(default(IData));
             }
             return Task.FromResult<IData>(new FileData(fullpath));
+        }
+
+        public Task<IEnumerable<string>> ListAllKeys()
+        {
+            return Task.FromResult(ListAllFiles(_basePath).Select(p => p.Substring(_basePath.Length)));
+        }
+
+        private IEnumerable<string> ListAllFiles(string path)
+        {
+            foreach (var directoryPath in Directory.GetDirectories(path))
+            {
+                foreach (var filePath in ListAllFiles(directoryPath))
+                {
+                    yield return filePath;
+                }
+            }
+            foreach (var filePath in Directory.GetFiles(path))
+            {
+                yield return filePath;
+            }
         }
     }
 }

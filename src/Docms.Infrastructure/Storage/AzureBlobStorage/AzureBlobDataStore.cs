@@ -2,7 +2,9 @@
 using Microsoft.WindowsAzure.Storage;
 using Microsoft.WindowsAzure.Storage.Blob;
 using System;
+using System.Collections.Generic;
 using System.IO;
+using System.Linq;
 using System.Threading.Tasks;
 
 namespace Docms.Infrastructure.Storage.AzureBlobStorage
@@ -117,7 +119,25 @@ namespace Docms.Infrastructure.Storage.AzureBlobStorage
             return new AzureBlobData(container,
                 key,
                 blob.Properties.Length,
-                blob.Metadata.TryGetValue(HASH_KEY, out var value) ? value :null);
+                blob.Metadata.TryGetValue(HASH_KEY, out var value) ? value : null);
+        }
+
+        public async Task<IEnumerable<string>> ListAllKeys()
+        {
+            var container = _client.GetContainerReference(_baseContainerName);
+            if (!await container.ExistsAsync().ConfigureAwait(false))
+            {
+                return null;
+            }
+            var token = new BlobContinuationToken();
+            var list = new List<string>();
+            do
+            {
+                var segment = await container.ListBlobsSegmentedAsync(token).ConfigureAwait(false);
+                list.AddRange(segment.Results.Select(d => d.Uri.ToString()));
+                token = segment.ContinuationToken;
+            } while (string.IsNullOrEmpty(token.NextMarker));
+            return list;
         }
     }
 }
