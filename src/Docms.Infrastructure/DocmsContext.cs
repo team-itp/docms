@@ -44,8 +44,6 @@ namespace Docms.Infrastructure
 
         private readonly IMediator _mediator;
 
-        private DocmsContext(DbContextOptions<DocmsContext> options) : base(options) { }
-
         public DocmsContext(DbContextOptions<DocmsContext> options, IMediator mediator) : base(options)
         {
             _mediator = mediator ?? throw new ArgumentNullException(nameof(mediator));
@@ -56,8 +54,9 @@ namespace Docms.Infrastructure
         {
             using (var tx = await Database.BeginTransactionAsync())
             {
-                await _mediator.DispatchDomainEventsAsync(this);
-                var result = await base.SaveChangesAsync();
+                await base.SaveChangesAsync().ConfigureAwait(false);
+                await _mediator.DispatchDomainEventsAsync(this).ConfigureAwait(false);
+                await base.SaveChangesAsync().ConfigureAwait(false);
                 tx.Commit();
                 return true;
             }

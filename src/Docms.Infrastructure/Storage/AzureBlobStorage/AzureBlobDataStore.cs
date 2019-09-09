@@ -4,7 +4,6 @@ using Microsoft.WindowsAzure.Storage.Blob;
 using System;
 using System.Collections.Generic;
 using System.IO;
-using System.Linq;
 using System.Threading.Tasks;
 
 namespace Docms.Infrastructure.Storage.AzureBlobStorage
@@ -134,9 +133,42 @@ namespace Docms.Infrastructure.Storage.AzureBlobStorage
             do
             {
                 var segment = await container.ListBlobsSegmentedAsync(token).ConfigureAwait(false);
-                list.AddRange(segment.Results.Select(d => d.Uri.ToString()));
+                foreach (var d in segment.Results)
+                {
+                    if (d is CloudBlobDirectory dir)
+                    {
+                        list.AddRange(await ListAllBlobs(dir).ConfigureAwait(false));
+                    }
+                    else if (d is CloudBlob blob)
+                    {
+                        list.Add(blob.Name);
+                    }
+                }
                 token = segment.ContinuationToken;
-            } while (string.IsNullOrEmpty(token.NextMarker));
+            } while (token != null);
+            return list;
+        }
+
+        private async Task<IEnumerable<string>> ListAllBlobs(CloudBlobDirectory blobDirectory)
+        {
+            var token = new BlobContinuationToken();
+            var list = new List<string>();
+            do
+            {
+                var segment = await blobDirectory.ListBlobsSegmentedAsync(token).ConfigureAwait(false);
+                foreach (var d in segment.Results)
+                {
+                    if (d is CloudBlobDirectory dir)
+                    {
+                        list.AddRange(await ListAllBlobs(dir).ConfigureAwait(false));
+                    }
+                    else if (d is CloudBlob blob)
+                    {
+                        list.Add(blob.Name);
+                    }
+                }
+                token = segment.ContinuationToken;
+            } while (token != null);
             return list;
         }
     }
