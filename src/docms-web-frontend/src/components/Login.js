@@ -1,29 +1,39 @@
 import React from 'react';
 import { Redirect } from 'react-router-dom';
+import { connect } from 'react-redux';
 import { Button, Container, FormControlLabel, Grid, Switch, Typography, TextField } from '@material-ui/core';
-import AppContext from '../AppContext';
+import { login } from '../redux/actions';
 
 class Login extends React.Component {
-  static contextType = AppContext;
-
   constructor(props) {
     super(props);
-    this.state = { redirectToReferrer: false };
+    this.state = {
+      userName: '',
+      password: ''
+    }
   }
 
   login() {
-    this.context.login(this.state.userName, this.state.password);
+    this.props.login(this.state.userName, this.state.password);
+  }
+
+  handleUserNameChange(e) {
+    this.setState({ ...this.state, userName: e.target.value });
+  }
+
+  handlePasswordChange(e) {
+    this.setState({ ...this.state, password: e.target.value });
   }
 
   render() {
     const from = this.props.location.state || { from: { pathname: "/" } };
-    const redirectToReferrer = this.state.redirectToReferrer;
+    const redirectToReferrer = this.props.auth.isAuthenticated;
 
     if (redirectToReferrer) return <Redirect to={from} />;
 
     return (
-      <Container component="main" maxWidth="lx" style={{ marginTop: '20px' }}>
-        <Grid alignItems="center">
+      <Container component="main" maxWidth="xl" style={{ marginTop: '20px' }}>
+        <Grid container alignItems="center">
           <Typography component="h2" variant="h5">
             ログイン
           </Typography>
@@ -36,14 +46,18 @@ class Login extends React.Component {
                   <TextField
                     required
                     fullWidth
-                    label="ユーザー名" />
+                    label="ユーザー名"
+                    value={this.state.userName}
+                    onChange={this.handleUserNameChange.bind(this)} />
                 </Grid>
                 <Grid item xs={12}>
                   <TextField
                     required
                     fullWidth
                     type="password"
-                    label="パスワード" />
+                    label="パスワード"
+                    value={this.state.password}
+                    onChange={this.handlePasswordChange.bind(this)} />
                 </Grid>
                 <Grid item xs={12}>
                   <FormControlLabel control={
@@ -62,4 +76,16 @@ class Login extends React.Component {
   }
 }
 
-export default Login;
+function mapStateToProps(state, ownProps) {
+  return {
+    auth: state.auth
+  };
+}
+
+function mapDispatchToProps(dispatch, ownProps) {
+  return {
+    login: (userName, password) => dispatch(login(userName, password))
+  }
+}
+
+export default connect(mapStateToProps, mapDispatchToProps)(Login);

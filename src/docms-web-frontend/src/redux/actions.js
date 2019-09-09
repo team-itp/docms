@@ -19,7 +19,7 @@ export function signout() {
   return { type: SIGNOUT };
 }
 
-export function login(userName, password) {
+export function login({ userName, password }) {
   return function (dispatch) {
     dispatch(requestLogin({ userName, password }));
     return fetch(`http://localhost:3000/account/login.json`)
