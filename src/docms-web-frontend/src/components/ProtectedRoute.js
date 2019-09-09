@@ -5,7 +5,7 @@ import AppContext from '../AppContext';
 class ProtectedRoute extends React.Component {
     render() {
       let { component: Component, ...rest } = this.props;
-      let auth = this.context.auth;
+      let auth = this.context.getState().auth;
       return (
         <Route
           {...rest}

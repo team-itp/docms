@@ -16,7 +16,7 @@ const AuthButton = withRouter(
     return (
       <AppContext.Consumer>
         {context => {
-          const auth = context.auth;
+          const auth = context.getState().auth;
           return auth.isAuthenticated
             ? (<Button color="inherit" onClick={() => auth.signout(() => history.push('/'))}>LOGOUT</Button>)
             : null

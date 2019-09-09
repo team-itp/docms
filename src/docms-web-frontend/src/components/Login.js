@@ -9,14 +9,10 @@ class Login extends React.Component {
   constructor(props) {
     super(props);
     this.state = { redirectToReferrer: false };
-    this.login = this.login.bind(this);
   }
 
   login() {
-    const auth = this.context.auth;
-    auth.authenticate(() => {
-      this.setState({ redirectToReferrer: true });
-    });
+    this.context.login(this.state.userName, this.state.password);
   }
 
   render() {
@@ -55,7 +51,7 @@ class Login extends React.Component {
                   } label="サインイン状態を保存する" />
                 </Grid>
                 <Grid item xs={12}>
-                  <Button onClick={this.login} color="primary" variant="outlined">ログイン</Button>
+                  <Button onClick={this.login.bind(this)} color="primary" variant="outlined">ログイン</Button>
                 </Grid>
               </Grid>
             </Grid>
