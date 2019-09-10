@@ -18,10 +18,10 @@ namespace Docms.Web.Application.Identity
         IUserRoleStore<ApplicationUser>,
         IUserSecurityStampStore<ApplicationUser>
     {
-        private VisualizationSystemContext _vsDb;
-        private DocmsContext _docmsDb;
-        private static RandomNumberGenerator _rng = RandomNumberGenerator.Create();
-        private static Users ADMIN_USER = new Users()
+        private readonly VisualizationSystemContext _vsDb;
+        private readonly DocmsContext _docmsDb;
+        private static readonly RandomNumberGenerator _rng = RandomNumberGenerator.Create();
+        private static readonly Users ADMIN_USER = new Users()
         {
             Id = "admin",
             Name = "管理者",
@@ -187,7 +187,7 @@ namespace Docms.Web.Application.Identity
             return new List<ApplicationUser>();
         }
 
-        private async Task<ApplicationUser> GetApplicationUserAsync(Users user, CancellationToken cancellationToken = default(CancellationToken))
+        private async Task<ApplicationUser> GetApplicationUserAsync(Users user, CancellationToken cancellationToken = default)
         {
             var teamName = default(string);
             if (!string.IsNullOrEmpty(user.TeamId))

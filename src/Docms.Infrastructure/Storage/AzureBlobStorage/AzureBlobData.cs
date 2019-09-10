@@ -7,7 +7,7 @@ namespace Docms.Infrastructure.Storage.AzureBlobStorage
 {
     public class AzureBlobData : IData
     {
-        private CloudBlobContainer _container;
+        private readonly CloudBlobContainer _container;
         private readonly string _blobName;
 
         public AzureBlobData(CloudBlobContainer container, string blobName, long length, string hash)

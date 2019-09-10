@@ -50,7 +50,7 @@ namespace Docms.Infrastructure
             Debug.WriteLine("DocmsContext::ctor ->" + this.GetHashCode());
         }
 
-        public virtual async Task<bool> SaveEntitiesAsync(CancellationToken cancellationToken = default(CancellationToken))
+        public virtual async Task<bool> SaveEntitiesAsync(CancellationToken cancellationToken = default)
         {
             using (var tx = await Database.BeginTransactionAsync())
             {

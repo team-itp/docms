@@ -3,7 +3,6 @@ using Docms.Infrastructure;
 using Docms.Infrastructure.MediatR;
 using Docms.Queries.DocumentHistories;
 using MediatR;
-using System;
 using System.Threading;
 using System.Threading.Tasks;
 
@@ -15,14 +14,14 @@ namespace Docms.Web.Application.DomainEventHandlers
         INotificationHandler<DomainEventNotification<DocumentMovedEvent>>,
         INotificationHandler<DomainEventNotification<DocumentUpdatedEvent>>
     {
-        private DocmsContext _db;
+        private readonly DocmsContext _db;
 
         public UpdateDocumentHistoriesQueriesEventHandler(DocmsContext db)
         {
             _db = db;
         }
 
-        public async Task Handle(DomainEventNotification<DocumentCreatedEvent> notification, CancellationToken cancellationToken = default(CancellationToken))
+        public async Task Handle(DomainEventNotification<DocumentCreatedEvent> notification, CancellationToken cancellationToken = default)
         {
             var ev = notification.Event;
             _db.DocumentHistories
@@ -39,7 +38,7 @@ namespace Docms.Web.Application.DomainEventHandlers
             await _db.SaveChangesAsync();
         }
 
-        public async Task Handle(DomainEventNotification<DocumentUpdatedEvent> notification, CancellationToken cancellationToken = default(CancellationToken))
+        public async Task Handle(DomainEventNotification<DocumentUpdatedEvent> notification, CancellationToken cancellationToken = default)
         {
             var ev = notification.Event;
             _db.DocumentHistories
@@ -56,7 +55,7 @@ namespace Docms.Web.Application.DomainEventHandlers
             await _db.SaveChangesAsync();
         }
 
-        public async Task Handle(DomainEventNotification<DocumentMovedEvent> notification, CancellationToken cancellationToken = default(CancellationToken))
+        public async Task Handle(DomainEventNotification<DocumentMovedEvent> notification, CancellationToken cancellationToken = default)
         {
             var ev = notification.Event;
             _db.DocumentHistories
@@ -79,7 +78,7 @@ namespace Docms.Web.Application.DomainEventHandlers
             await _db.SaveChangesAsync();
         }
 
-        public async Task Handle(DomainEventNotification<DocumentDeletedEvent> notification, CancellationToken cancellationToken = default(CancellationToken))
+        public async Task Handle(DomainEventNotification<DocumentDeletedEvent> notification, CancellationToken cancellationToken = default)
         {
             var ev = notification.Event;
             _db.DocumentHistories
