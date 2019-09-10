@@ -85,7 +85,9 @@ namespace Docms.Web
         public static IServiceCollection AddCustomDbContext(this IServiceCollection services, IConfiguration configuration)
         {
             services.AddDbContext<DocmsContext>(options =>
-                options.UseSqlServer(configuration.GetConnectionString("DocmsConnection")));
+                options.UseSqlServer(
+                    connectionString: configuration.GetConnectionString("DocmsConnection"),
+                    sqlServerOptionsAction: sqlServerOptions => sqlServerOptions.CommandTimeout(600)));
             services.AddDbContext<VisualizationSystemContext>(options =>
                 options.UseSqlServer(configuration.GetConnectionString("VisualizationSystemConnection")));
             return services;
