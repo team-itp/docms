@@ -10,8 +10,10 @@ namespace Docms.Maintainance.CleanupTask
     {
         private readonly ILogger _logger;
         private readonly Dictionary<int, MaintainanceDocument> _documentStore = new Dictionary<int, MaintainanceDocument>();
-        private readonly Dictionary<string, MaintainanceBlob> _blobStore = new Dictionary<string, MaintainanceBlob>();
+        private readonly Dictionary<string, MaintainanceDocument> _documentsByPath = new Dictionary<string, MaintainanceDocument>();
+        private readonly List<MaintainanceDocument> _invalidDocuments = new List<MaintainanceDocument>();
         private readonly List<DocumentHistory> _invalidHistories = new List<DocumentHistory>();
+        private int _documentId = 1;
 
         public DocumentContext(List<DocumentHistory> histories, ServiceProvider services)
         {
@@ -23,6 +25,10 @@ namespace Docms.Maintainance.CleanupTask
             _logger.LogTrace("context was successfully created");
         }
 
+        public IEnumerable<MaintainanceDocument> Documents => _documentStore.Values;
+        public IEnumerable<MaintainanceDocument> InvalidDocuments => _invalidDocuments.ToList();
+        public IEnumerable<DocumentHistory> InvalidHistories => _invalidHistories.ToList();
+
         private void Apply(DocumentHistory history)
         {
             switch (history.Discriminator)
@@ -31,8 +37,10 @@ namespace Docms.Maintainance.CleanupTask
                     CreateDocument(history);
                     break;
                 case DocumentHistoryDiscriminator.DocumentDeleted:
+                    DeleteDocument(history);
                     break;
                 case DocumentHistoryDiscriminator.DocumentUpdated:
+                    UpdateDocument(history);
                     break;
                 default:
                     break;
@@ -42,27 +50,71 @@ namespace Docms.Maintainance.CleanupTask
         private void CreateDocument(DocumentHistory history)
         {
             _logger.LogDebug("create document: {0}", history.Path);
-            if (_documentStore.TryGetValue(history.DocumentId, out var document))
+
+            if (_documentsByPath.TryGetValue(history.Path, out var document))
             {
                 _logger.LogWarning($"invalid created log found: {history.Id}");
+                _invalidHistories.Add(history);
+                _invalidDocuments.Add(document);
+            }
+
+            document = new MaintainanceDocument()
+            {
+                DocumentId = _documentId++,
+                Path = history.Path,
+                StorageKey = history.StorageKey,
+                ContentType = history.ContentType,
+                FileSize = history.FileSize,
+                Hash = history.Hash,
+                Created = history.Created,
+                LastModified = history.LastModified,
+                Histories = new List<DocumentHistory>() { history }
+            };
+
+            _documentStore.Add(document.DocumentId, document);
+            _documentsByPath.Add(document.Path, document);
+        }
+
+        private void UpdateDocument(DocumentHistory history)
+        {
+            _logger.LogDebug("update document: {0}", history.Path);
+
+            if (!_documentsByPath.TryGetValue(history.Path, out var document))
+            {
+                _logger.LogWarning($"invalid update history found: {history.Id}");
+                _invalidHistories.Add(history);
+                CreateDocument(history);
+            }
+            else
+            {
+                document.Histories.Add(history);
+                document.Path = history.Path;
+                document.StorageKey = history.StorageKey;
+                document.ContentType = history.ContentType;
+                document.FileSize = history.FileSize;
+                document.Hash = history.Hash;
+                document.Created = history.Created;
+                document.LastModified = history.LastModified;
+                document.Histories.Add(history);
+                _documentsByPath.Remove(document.Path);
+            }
+        }
+
+
+        private void DeleteDocument(DocumentHistory history)
+        {
+            _logger.LogDebug("delete document: {0}", history.Path);
+
+            if (!_documentsByPath.TryGetValue(history.Path, out var document))
+            {
+                _logger.LogWarning($"invalid delete history found: {history.Id}");
                 _invalidHistories.Add(history);
             }
             else
             {
-                document = new MaintainanceDocument()
-                {
-                    LatestHistory = history,
-                    DocumentId = history.DocumentId,
-                    Path = history.Path,
-                    StorageKey = history.StorageKey,
-                    ContentType = history.ContentType,
-                    FileSize = history.FileSize,
-                    Hash = history.Hash,
-                    Created = history.Created,
-                    LastModified = history.LastModified
-                };
-
-                _documentStore.Add(document.DocumentId, document);
+                document.Histories.Add(history);
+                document.Deleted = true;
+                _documentsByPath.Remove(document.Path);
             }
         }
     }
