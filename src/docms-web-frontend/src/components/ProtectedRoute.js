@@ -1,24 +1,25 @@
 import React from 'react';
 import { Route, Redirect } from 'react-router-dom';
-import AppContext from '../AppContext';
+import { connect } from 'react-redux';
 
-class ProtectedRoute extends React.Component {
-    render() {
-      let { component: Component, ...rest } = this.props;
-      let auth = this.context.getState().auth;
-      return (
-        <Route
-          {...rest}
-          render={props =>
-            auth.isAuthenticated
-            ? (<Component {...props} />)
-            : (<Redirect to={{ pathname: "/login", state: { from: props.location } }} />)
-          }
-        />
-      );
-    }
-  }
-  
-  ProtectedRoute.contextType = AppContext;
+function ProtectedRoute(props) {
+  let { component: Component, isAuthenticated, ...rest } = props;
+  return (
+    <Route
+      {...rest}
+      render={props =>
+        isAuthenticated
+          ? (<Component {...props} />)
+          : (<Redirect to={{ pathname: "/login", state: { from: props.location } }} />)
+      }
+    />
+  );
+}
 
-  export default ProtectedRoute;
+function mapStateToProps(state, ownProps) {
+  return {
+    isAuthenticated: state.auth.isAuthenticated
+  };
+}
+
+export default connect(mapStateToProps)(ProtectedRoute);

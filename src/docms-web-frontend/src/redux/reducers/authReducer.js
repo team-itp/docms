@@ -9,7 +9,6 @@ const initialState = {
   isLoginRequesting: false,
   isAuthenticated: false,
   lastAuthenticated: null,
-  userName: null,
   accessToken: null,
   loginFailedReason: null
 }
@@ -19,8 +18,7 @@ function authReducer(state = initialState, action) {
     case LOGIN_REQUESTED:
       return Object.assign({}, state, {
         isLoginRequesting: true,
-        loginFailedReason: null,
-        userName: action.userName
+        loginFailedReason: null
       });
     case LOGIN_ACCEPTED:
       return Object.assign({}, state, {
@@ -38,7 +36,6 @@ function authReducer(state = initialState, action) {
       return Object.assign({}, state, {
         isLoginRequesting: false,
         isAuthenticated: false,
-        userName: null,
         accessToken: null,
         loginFailedReason: null
       });

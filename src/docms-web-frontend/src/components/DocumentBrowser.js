@@ -5,33 +5,35 @@ import { Breadcrumbs, Container, Link, Typography, Toolbar } from '@material-ui/
 function DocumentBrowser() {
   return (
     <Container maxWidth="xl">
-      <Toolbar>
-        <DocumentHeader />
-      </Toolbar>
+      <DocumentHeader parentPath="" name="a" />
+      <DocumentHeader parentPath="/" name="a" />
+      <DocumentHeader parentPath="a/b" name="a" />
+      <DocumentHeader parentPath="/a/b" name="" />
     </Container>
   );
 }
 
-class DocumentHeader extends React.Component {
-  render() {
-    return (
-      <Breadcrumbs aria-label="breadcrumb">
-        <Link color="inherit" component={RouterLink} to="/">
-          Home
-          </Link>
-        <Link color="inherit" component={RouterLink} to="/Catalog">
-          Catalog
-          </Link>
-        <Link color="inherit" component={RouterLink} to="/Catalog/Accessories">
-          Accessories
-          </Link>
-        <Link color="inherit" component={RouterLink} to="/Catalog/Accessories/New Collection">
-          New Collection
-          </Link>
-        <Typography color="textPrimary">Belts</Typography>
+function DocumentHeader(props) {
+  let path = props.parentPath;
+  let linkPath = '/docs'
+  let links = path.split('/').filter(e => e).map((e, i) => {
+    linkPath = linkPath + '/' + e;
+    return {
+      key: i,
+      path: linkPath,
+      name: e
+    }
+  });
+  console.log(links);
+  return (
+    <Toolbar>
+      <Breadcrumbs aria-label="breadcrumb" >
+        <Link color="inherit" component={RouterLink} to="/">Home</Link>
+        {links.map(e => (<Link key={e.key} color="inherit" component={RouterLink} to={e.path}>{e.name}</Link>))}
+        {props.name && <Typography color="textPrimary">{props.name}</Typography>}
       </Breadcrumbs>
-    );
-  }
+    </Toolbar>
+  );
 }
 
 export default DocumentBrowser;

@@ -1,9 +1,9 @@
 import React from 'react';
 import { withRouter } from 'react-router-dom';
+import { connect } from 'react-redux';
 import { AppBar, Button, Toolbar, Typography } from '@material-ui/core';
 import { makeStyles } from '@material-ui/core/styles';
-import AppContext from '../AppContext';
-
+import { signout } from '../redux/actions';
 
 const useStyles = makeStyles(theme => ({
   title: {
@@ -11,20 +11,32 @@ const useStyles = makeStyles(theme => ({
   },
 }));
 
+function mapStateToProps(state, ownProps) {
+  return {
+    isAuthenticated: state.auth.isAuthenticated
+  };
+}
+
+function mapDispatchToProps(dispatch, ownProps) {
+  return {
+    signout: () => dispatch(signout())
+  };
+}
+
 const AuthButton = withRouter(
-  ({ history }) => {
-    return (
-      <AppContext.Consumer>
-        {context => {
-          const auth = context.getState().auth;
-          return auth.isAuthenticated
-            ? (<Button color="inherit" onClick={() => auth.signout(() => history.push('/'))}>LOGOUT</Button>)
-            : null
-        }}
-      </AppContext.Consumer>
-    );
-  }
-);
+  connect(mapStateToProps, mapDispatchToProps)(
+    ({ history, isAuthenticated, signout }) => {
+      return (
+        isAuthenticated
+          ? (<Button color="inherit" onClick={() => {
+            signout();
+            history.push('/');
+          }}>LOGOUT</Button>)
+          : null
+      );
+    }));
+
+
 
 function AppTitleBar() {
   const classes = useStyles();
