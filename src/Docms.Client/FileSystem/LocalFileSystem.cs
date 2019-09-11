@@ -57,9 +57,13 @@ namespace Docms.Client.FileSystem
             }
             var files = Directory.GetFiles(fullpath);
             var startIndex = fullpath.Length;
-            foreach (var filepath in files)
+            foreach (var filefullpath in files)
             {
-                yield return path.Combine(filepath.Substring(startIndex + 1));
+                var filepath = path.Combine(filefullpath.Substring(startIndex + 1));
+                if (!IgnoreFilePatterns.Default.IsMatch(filepath))
+                {
+                    yield return filepath;
+                }
             }
         }
 
@@ -137,11 +141,40 @@ namespace Docms.Client.FileSystem
             var toFullpath = GetFullPath(toPath);
             await CreateDirectory(toPath.ParentPath).ConfigureAwait(false);
             var dirInfo = GetDirectoryInfo(toPath);
-            if (dirInfo != null)
+            if (File.Exists(fromFullpath))
             {
-                await Delete(dirInfo.Path).ConfigureAwait(false);
+                if (dirInfo != null)
+                {
+                    await Delete(dirInfo.Path).ConfigureAwait(false);
+                }
+                if (fromFullpath.ToUpperInvariant() == toFullpath.ToUpperInvariant())
+                {
+                    var id = Guid.NewGuid().ToString();
+                    File.Move(fromFullpath, toFullpath + "." + id);
+                    File.Move(toFullpath + "." + id, toFullpath);
+                }
+                else
+                {
+                    File.Move(fromFullpath, toFullpath);
+                }
             }
-            File.Move(fromFullpath, toFullpath);
+            else if (Directory.Exists(fromFullpath))
+            {
+                if (fromFullpath.ToUpperInvariant() == toFullpath.ToUpperInvariant())
+                {
+                    var id = Guid.NewGuid().ToString();
+                    Directory.Move(fromFullpath, toFullpath + "." + id);
+                    Directory.Move(toFullpath + "." + id, toFullpath);
+                }
+                else
+                {
+                    Directory.Move(fromFullpath, toFullpath);
+                }
+            }
+            else
+            {
+                throw new FileNotFoundException(fromFullpath);
+            }
         }
 
         public Task Delete(PathString path)

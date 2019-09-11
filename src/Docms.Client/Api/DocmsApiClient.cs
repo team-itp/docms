@@ -61,35 +61,42 @@ namespace Docms.Client.Api
             if (string.IsNullOrEmpty(password))
                 throw new ArgumentNullException(nameof(password));
 
-            var discoveryClient = new DiscoveryClient(new Uri(_serverUri).GetLeftPart(UriPartial.Authority).ToString());
-            discoveryClient.Policy.RequireHttps = false;
-            var doc = await discoveryClient.GetAsync().ConfigureAwait(false);
-
-            _tokenEndpoint = doc.TokenEndpoint;
-            _introspectionEndpoint = doc.IntrospectionEndpoint;
-            _revocationEndpoint = doc.RevocationEndpoint;
-
-            var client = new TokenClient(
-                _tokenEndpoint,
-                "docms-client",
-                "docms-client-secret");
-
-            var response = await client.RequestResourceOwnerPasswordAsync(username, password, "docmsapi").ConfigureAwait(false);
-            if (response.IsError)
+            using (var discoveryClient = new DiscoveryClient(new Uri(_serverUri).GetLeftPart(UriPartial.Authority).ToString()))
             {
-                throw new InvalidLoginException();
+                discoveryClient.Policy.RequireHttps = false;
+                var doc = await discoveryClient.GetAsync().ConfigureAwait(false);
+
+                _tokenEndpoint = doc.TokenEndpoint;
+                _introspectionEndpoint = doc.IntrospectionEndpoint;
+                _revocationEndpoint = doc.RevocationEndpoint;
+
+                if (_tokenEndpoint == null)
+                {
+                    throw new InvalidLoginException();
+                }
+
+                var client = new TokenClient(
+                    _tokenEndpoint,
+                    "docms-client",
+                    "docms-client-secret");
+
+                var response = await client.RequestResourceOwnerPasswordAsync(username, password, "docmsapi").ConfigureAwait(false);
+                if (response.IsError)
+                {
+                    throw new InvalidLoginException();
+                }
+                _logger.Debug("login success.");
+                _username = username;
+                _password = password;
+                _accessToken = response.AccessToken;
+                _client = new RestClient(_serverUri)
+                {
+                    FollowRedirects = false,
+                    Timeout = 30 * 60 * 1000,
+                };
+                _client.ConfigureWebRequest(x => x.AllowWriteStreamBuffering = false);
+                _client.Authenticator = new JwtAuthenticator(_accessToken);
             }
-            _logger.Debug("login success.");
-            _username = username;
-            _password = password;
-            _accessToken = response.AccessToken;
-            _client = new RestClient(_serverUri)
-            {
-                FollowRedirects = false,
-                Timeout = 30 * 60 * 1000,
-            };
-            _client.ConfigureWebRequest(x => x.AllowWriteStreamBuffering = false);
-            _client.Authenticator = new JwtAuthenticator(_accessToken);
         }
 
         /// <summary>
@@ -116,31 +123,48 @@ namespace Docms.Client.Api
         {
             try
             {
-                var client = new IntrospectionClient(
+                using (var client = new IntrospectionClient(
                     _introspectionEndpoint,
                     "docmsapi",
-                    "docmsapi-secret");
-
-                var response = await client.SendAsync(
-                    new IntrospectionRequest
-                    {
-                        Token = _accessToken,
-                        ClientId = "docms-client",
-                        ClientSecret = "docms-client-secret",
-                    }).ConfigureAwait(false);
-                _logger.Debug("token verified.");
-                if (response.IsActive)
+                    "docmsapi-secret"))
                 {
-                    return;
+                    var response = await client.SendAsync(
+                        new IntrospectionRequest
+                        {
+                            Token = _accessToken,
+                            ClientId = "docms-client",
+                            ClientSecret = "docms-client-secret",
+                        }).ConfigureAwait(false);
+
+                    _logger.Debug("token verified.");
+                    if (response.IsActive)
+                    {
+                        return;
+                    }
                 }
+
             }
             catch { }
             await LoginAsync(_username, _password).ConfigureAwait(false);
         }
 
-        private Task<IRestResponse> ExecuteAsync(RestRequest request)
+        private async Task<IRestResponse> ExecuteAsync(RestRequest request)
         {
-            return _client.ExecuteTaskAsync(request);
+            if (_client == null)
+            {
+                throw new InvalidLoginException();
+            }
+            var response = await _client.ExecuteTaskAsync(request).ConfigureAwait(false);
+            if (response.StatusCode == HttpStatusCode.Unauthorized)
+            {
+                try
+                {
+                    await VerifyTokenAsync().ConfigureAwait(false);
+                    response = await _client.ExecuteTaskAsync(request).ConfigureAwait(false);
+                }
+                catch { }
+            }
+            return response;
         }
 
         private void ThrowIfNotSuccessfulStatus(IRestRequest request, IRestResponse result)

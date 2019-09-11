@@ -1,5 +1,4 @@
 ﻿using Docms.Client;
-using Docms.Client.Starter;
 using docmssync.Properties;
 using NLog;
 using System;
@@ -15,8 +14,16 @@ namespace docmssync
         /// </summary>
         static void Main()
         {
+            AppDomain.CurrentDomain.UnhandledException += OnUnandledException;
             _logger.Info("Program started.");
-            var app = new Application();
+            var app = new Application(new ApplicationOptions()
+            {
+                WatchPath = Settings.Default.WatchPath,
+                ServerUrl = Settings.Default.ServerUrl,
+                UploadClientId = Settings.Default.UploadClientId,
+                UploadUserName = Settings.Default.UploadUserName,
+                UploadUserPassword = Settings.Default.UploadUserPassword
+            });
             Console.CancelKeyPress += (s, e) =>
             {
                 _logger.Info("Program canceled.");
@@ -24,25 +31,20 @@ namespace docmssync
                 Environment.Exit(0);
             };
 
-            var starter = new ApplicationStarter(
-                Settings.Default.WatchPath,
-                Settings.Default.ServerUrl,
-                Settings.Default.UploadClientId,
-                Settings.Default.UploadUserName,
-                Settings.Default.UploadUserPassword);
-            var task = starter.StartAsync(app);
             try
             {
-                if (task.Result)
-                {
-                    app.Run();
-                }
+                app.Run();
             }
-            catch(Exception ex)
+            catch (Exception ex)
             {
                 _logger.Error(ex);
                 Environment.Exit(1);
             }
+        }
+
+        private static void OnUnandledException(object sender, UnhandledExceptionEventArgs e)
+        {
+            _logger.Error(e.ExceptionObject);
         }
     }
 }

@@ -5,17 +5,16 @@ namespace Docms.Client.Operations
 {
     public class RemoteDocumentStorageSyncOperation : DocmsApiOperationBase
     {
-        private ApplicationContext context;
+        private readonly ApplicationContext context;
 
-        public RemoteDocumentStorageSyncOperation(ApplicationContext context) : base(context.Api)
+        public RemoteDocumentStorageSyncOperation(ApplicationContext context) : base(context.Api, $"storage sync")
         {
             this.context = context;
         }
 
         protected override async Task ExecuteApiOperationAsync(CancellationToken token)
         {
-            await context.RemoteStorage.Sync().ConfigureAwait(false);
-            await context.RemoteStorage.Save().ConfigureAwait(false);
+            await context.RemoteStorage.SyncAsync(token).ConfigureAwait(false);
         }
     }
 }

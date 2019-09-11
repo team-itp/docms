@@ -14,8 +14,6 @@ namespace Docms.Client.Data
         public DbSet<DocumentCreatedHistory> DocumentCreatedHistories { get; set; }
         public DbSet<DocumentUpdatedHistory> DocumentUpdatedHistories { get; set; }
         public DbSet<DocumentDeletedHistory> DocumentDeletedHistories { get; set; }
-        public DbSet<LocalDocument> LocalDocuments { get; set; }
-        public DbSet<RemoteDocument> RemoteDocuments { get; set; }
 
         protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
         {
@@ -51,34 +49,6 @@ namespace Docms.Client.Data
                     value => DateTime.SpecifyKind(value, DateTimeKind.Utc)
                 );
             modelBuilder.Entity<DocumentUpdatedHistory>()
-                .Property(e => e.LastModified)
-                .HasConversion(
-                    value => value,
-                    value => DateTime.SpecifyKind(value, DateTimeKind.Utc)
-                );
-            modelBuilder.Entity<LocalDocument>()
-                .ToTable("LocalDocuments");
-            modelBuilder.Entity<LocalDocument>()
-                .Property(e => e.Created)
-                .HasConversion(
-                    value => value,
-                    value => DateTime.SpecifyKind(value, DateTimeKind.Utc)
-                );
-            modelBuilder.Entity<LocalDocument>()
-                .Property(e => e.LastModified)
-                .HasConversion(
-                    value => value,
-                    value => DateTime.SpecifyKind(value, DateTimeKind.Utc)
-                );
-            modelBuilder.Entity<RemoteDocument>()
-                .ToTable("RemoteDocuments");
-            modelBuilder.Entity<RemoteDocument>()
-                .Property(e => e.Created)
-                .HasConversion(
-                    value => value,
-                    value => DateTime.SpecifyKind(value, DateTimeKind.Utc)
-                );
-            modelBuilder.Entity<RemoteDocument>()
                 .Property(e => e.LastModified)
                 .HasConversion(
                     value => value,

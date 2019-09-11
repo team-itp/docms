@@ -1,14 +1,12 @@
-﻿using Docms.Client.Operations;
-using System;
-using System.Threading.Tasks;
+﻿using System.Threading;
 
 namespace Docms.Client
 {
     public interface IApplication
     {
-        bool IsShutdownRequested { get; }
+        CancellationToken ShutdownRequestedToken { get; }
+
         void Run();
         void Shutdown();
-        Task Invoke(IOperation operation);
     }
 }

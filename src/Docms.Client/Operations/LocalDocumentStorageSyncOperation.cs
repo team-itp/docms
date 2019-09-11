@@ -3,19 +3,18 @@ using System.Threading.Tasks;
 
 namespace Docms.Client.Operations
 {
-    public class LocalDocumentStorageSyncOperation : AsyncOperationBase
+    public class LocalDocumentStorageSyncOperation : IOperation
     {
-        private ApplicationContext context;
+        private readonly ApplicationContext context;
 
         public LocalDocumentStorageSyncOperation(ApplicationContext context)
         {
             this.context = context;
         }
 
-        protected override async Task ExecuteAsync(CancellationToken token)
+        public async Task ExecuteAsync(CancellationToken token)
         {
-            await context.LocalStorage.Sync(Progress, token).ConfigureAwait(false);
-            await context.LocalStorage.Save(token).ConfigureAwait(false);
+            await context.LocalStorage.SyncAsync(token).ConfigureAwait(false);
         }
     }
 }

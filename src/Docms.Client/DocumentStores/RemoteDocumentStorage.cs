@@ -12,40 +12,62 @@ using System.Threading.Tasks;
 
 namespace Docms.Client.DocumentStores
 {
-    public class RemoteDocumentStorage : DocumentStorageBase<RemoteDocument>
+    public class RemoteDocumentStorage : DocumentStorageBase
     {
         private static readonly ILogger logger = LogManager.GetCurrentClassLogger();
 
-        private IDocmsApiClient api;
-        private HashSet<Guid> appliedHistoryIds;
-        private List<History> historiesToAdd;
+        private readonly IDocmsApiClient api;
+        private readonly Synchronization.SynchronizationContext synchronizationContext;
 
-        public RemoteDocumentStorage(IDocmsApiClient api, DocumentDbContext db) : base(db, docDb => docDb.RemoteDocuments)
+        private readonly HashSet<Guid> appliedHistoryIds;
+
+        private readonly DocumentDbContext db;
+
+        public RemoteDocumentStorage(IDocmsApiClient api, Synchronization.SynchronizationContext synchronizationContext, DocumentDbContext db)
         {
             this.api = api;
+            this.synchronizationContext = synchronizationContext;
+            this.db = db;
             appliedHistoryIds = new HashSet<Guid>();
-            historiesToAdd = new List<History>();
         }
 
         public override async Task Initialize()
         {
             await base.Initialize().ConfigureAwait(false);
-            var historyIds = await Db.Histories.Select(h => h.Id).ToListAsync().ConfigureAwait(false);
-            foreach (var historyId in historyIds)
+            var histories = await db.Histories.ToListAsync().ConfigureAwait(false);
+            foreach (var history in histories)
             {
-                appliedHistoryIds.Add(historyId);
+                Apply(history);
+                appliedHistoryIds.Add(history.Id);
+            }
+            AddRemoveRequestForAllFiles(Root);
+        }
+
+        private void AddRemoveRequestForAllFiles(ContainerNode dirNode)
+        {
+            foreach (var item in dirNode.Children)
+            {
+                if (item is DocumentNode doc)
+                {
+                    synchronizationContext.LocalFileDeleted(doc.Path, doc.Hash, doc.FileSize);
+                }
+                else
+                {
+                    AddRemoveRequestForAllFiles(item as ContainerNode);
+                }
             }
         }
 
-        public override async Task Sync(IProgress<int> progress = default(IProgress<int>), CancellationToken cancellationToken = default(CancellationToken))
+        public override async Task SyncAsync(CancellationToken cancellationToken = default)
         {
             logger.Trace($"remote document syncing");
-            var latestHistory = await Db.Histories.OrderByDescending(h => h.Timestamp).FirstOrDefaultAsync().ConfigureAwait(false);
+            var latestHistory = await db.Histories.OrderByDescending(h => h.Timestamp).FirstOrDefaultAsync().ConfigureAwait(false);
             if (latestHistory != null)
             {
                 logger.Trace($"latest history: {latestHistory.Path} ({latestHistory.Id}, {latestHistory.Timestamp})");
             }
             var histories = await api.GetHistoriesAsync("", latestHistory?.Id).ConfigureAwait(false);
+            var historiesToAdd = new List<History>();
             foreach (var history in histories)
             {
                 if (!appliedHistoryIds.Contains(history.Id))
@@ -55,6 +77,8 @@ namespace Docms.Client.DocumentStores
                     appliedHistoryIds.Add(history.Id);
                 }
             }
+            db.Histories.AddRange(historiesToAdd);
+            await db.SaveChangesAsync().ConfigureAwait(false);
         }
 
         private void Apply(History history)
@@ -80,47 +104,40 @@ namespace Docms.Client.DocumentStores
         {
             var path = new PathString(history.Path);
             var dir = GetOrCreateContainer(path.ParentPath);
-            dir.AddChild(new DocumentNode(path.Name, history.FileSize, history.Hash, history.Created, history.LastModified));
+            var doc = new DocumentNode(path.Name, history.FileSize, history.Hash, history.Created, history.LastModified);
+            dir.AddChild(doc);
+            synchronizationContext.RemoteFileAdded(doc.Path, doc.Hash, doc.FileSize);
         }
 
 
         private void Apply(DocumentUpdatedHistory history)
         {
-            var doc = GetDocument(new PathString(history.Path));
-            doc.Update(history.FileSize, history.Hash, history.Created, history.LastModified);
+            var path = new PathString(history.Path);
+            var doc = GetDocument(path);
+            if (doc == null)
+            {
+                var dir = GetOrCreateContainer(path.ParentPath);
+                doc = new DocumentNode(path.Name, history.FileSize, history.Hash, history.Created, history.LastModified);
+                dir.AddChild(doc);
+                synchronizationContext.RemoteFileAdded(doc.Path, doc.Hash, doc.FileSize);
+            }
+            else
+            {
+                doc.Update(history.FileSize, history.Hash, history.Created, history.LastModified);
+                synchronizationContext.RemoteFileAdded(doc.Path, doc.Hash, doc.FileSize);
+            }
         }
 
         private void Apply(DocumentDeletedHistory history)
         {
             var path = new PathString(history.Path);
             var container = GetContainer(path.ParentPath);
-            var document = GetDocument(path);
-            if (document != null)
+            var doc = GetDocument(path);
+            if (doc != null)
             {
-                container.RemoveChild(document);
+                synchronizationContext.RemoteFileDeleted(doc.Path, doc.Hash, doc.FileSize);
+                container.RemoveChild(doc);
             }
-        }
-
-        protected override RemoteDocument Persist(DocumentNode document)
-        {
-            return new RemoteDocument()
-            {
-                Path = document.Path.ToString(),
-                FileSize = document.FileSize,
-                Hash = document.Hash,
-                Created = document.Created,
-                LastModified = document.LastModified,
-            };
-        }
-
-        public override async Task Save(CancellationToken cancellationToken = default(CancellationToken))
-        {
-            await base.Save(cancellationToken).ConfigureAwait(false);
-
-            Db.Histories.AddRange(historiesToAdd);
-            await Db.SaveChangesAsync();
-
-            historiesToAdd.Clear();
         }
     }
 }

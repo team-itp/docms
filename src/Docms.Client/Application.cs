@@ -1,19 +1,21 @@
-﻿using Docms.Client.Operations;
+﻿using Docms.Client.Starter;
 using NLog;
-using System.Threading.Tasks;
+using System.Threading;
 
 namespace Docms.Client
 {
     public class Application : IApplication
     {
         private static readonly Logger _logger = LogManager.GetCurrentClassLogger();
-        private readonly OperationDispatcher _dispatcher;
+        private readonly CancellationTokenSource _cancellationTokenSource;
+        private readonly ApplicationOptions _options;
 
-        public bool IsShutdownRequested { get; private set; }
+        public CancellationToken ShutdownRequestedToken => _cancellationTokenSource.Token;
 
-        public Application()
+        public Application(ApplicationOptions options)
         {
-            _dispatcher = new OperationDispatcher();
+            _cancellationTokenSource = new CancellationTokenSource();
+            _options = options;
         }
 
         public void Run()
@@ -21,25 +23,25 @@ namespace Docms.Client
             _logger.Info("Application started.");
             try
             {
-                _dispatcher.Task.Wait();
+                var starter = new ApplicationStarter(
+                    _options.WatchPath,
+                    _options.ServerUrl,
+                    _options.UploadClientId,
+                    _options.UploadUserName,
+                    _options.UploadUserPassword);
+                using (var task = starter.StartAsync())
+                using (var context = task.GetAwaiter().GetResult())
+                {
+                    new ApplicationEngine(this, context).StartAsync().GetAwaiter().GetResult();
+                }
             }
             catch { }
-        }
-
-        public Task Invoke(IOperation operation)
-        {
-            _dispatcher.Invoke(operation);
-            return operation.Task;
         }
 
         public void Shutdown()
         {
             _logger.Info("Application is shutting down.");
-            lock (this)
-            {
-                IsShutdownRequested = true;
-                _dispatcher.Dispose();
-            }
+            _cancellationTokenSource.Cancel();
             _logger.Info("Application shutdown.");
         }
     }

@@ -41,7 +41,7 @@ namespace Docms.Client.Tests.Utils
 
         private void RemoveFile(string path)
         {
-            if (!entries.TryGetValue(path, out var entry))
+            if (!entries.ContainsKey(path))
             {
                 throw new InvalidOperationException();
             }
@@ -112,7 +112,6 @@ namespace Docms.Client.Tests.Utils
 
         private void AddMove(string originalPath, string destinationPath, string contentType, byte[] data, DateTime created, DateTime lastModified)
         {
-            var now = DateTime.UtcNow;
             AddHisotry(new DocumentCreatedHistory()
             {
                 Path = destinationPath,
@@ -130,7 +129,6 @@ namespace Docms.Client.Tests.Utils
 
         private void AddDelete(string path)
         {
-            var now = DateTime.UtcNow;
             AddHisotry(new DocumentDeletedHistory()
             {
                 Path = path,
@@ -139,7 +137,7 @@ namespace Docms.Client.Tests.Utils
 
         public Task CreateOrUpdateDocumentAsync(string path, Stream stream, DateTime? created = null, DateTime? lastModified = null)
         {
-            if (entries.TryGetValue(path, out var entry))
+            if (entries.ContainsKey(path))
             {
                 RemoveFile(path);
                 using (var ms = new MemoryStream())
@@ -180,7 +178,7 @@ namespace Docms.Client.Tests.Utils
 
         public Task DeleteDocumentAsync(string path)
         {
-            if (!entries.TryGetValue(path, out var entry))
+            if (!entries.ContainsKey(path))
             {
                 throw new ServerException("documents/delete", "post", path, 400, "Bad Request");
             }
@@ -195,7 +193,7 @@ namespace Docms.Client.Tests.Utils
             {
                 return Task.FromResult(new MemoryStream(data) as Stream);
             }
-            throw new InvalidOperationException();
+            throw new ServerException("documents/download", "get", path, 404, "Not Found");
         }
 
         public Task<Document> GetDocumentAsync(string path)
@@ -238,17 +236,17 @@ namespace Docms.Client.Tests.Utils
 
         public Task LoginAsync(string username, string password)
         {
-            throw new NotImplementedException();
+            return Task.CompletedTask;
         }
 
         public Task LogoutAsync()
         {
-            throw new NotImplementedException();
+            return Task.CompletedTask;
         }
 
         public Task VerifyTokenAsync()
         {
-            throw new NotImplementedException();
+            return Task.CompletedTask;
         }
     }
 }

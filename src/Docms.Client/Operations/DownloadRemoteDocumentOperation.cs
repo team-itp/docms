@@ -1,7 +1,4 @@
-﻿using Docms.Client.Data;
-using Docms.Client.Types;
-using NLog;
-using System;
+﻿using Docms.Client.Types;
 using System.Threading;
 using System.Threading.Tasks;
 
@@ -9,11 +6,10 @@ namespace Docms.Client.Operations
 {
     public class DownloadRemoteDocumentOperation : DocmsApiOperationBase
     {
-        private static readonly ILogger _logger = LogManager.GetCurrentClassLogger();
         private readonly ApplicationContext context;
         private readonly PathString path;
 
-        public DownloadRemoteDocumentOperation(ApplicationContext context, PathString path, CancellationToken cancellationToken) : base(context.Api, cancellationToken)
+        public DownloadRemoteDocumentOperation(ApplicationContext context, PathString path) : base(context.Api, $"{path}")
         {
             this.context = context;
             this.path = path;
@@ -21,52 +17,28 @@ namespace Docms.Client.Operations
 
         protected override async Task ExecuteApiOperationAsync(CancellationToken token)
         {
-            try
+            token.ThrowIfCancellationRequested();
+            var document = context.RemoteStorage.GetDocument(path);
+            if (!CanDownload(path))
             {
-                token.ThrowIfCancellationRequested();
-                var document = context.RemoteStorage.GetDocument(path);
+                return;
+            }
+            using (var stream = await context.Api.DownloadAsync(path.ToString()).ConfigureAwait(false))
+            {
                 if (!CanDownload(path))
                 {
                     return;
                 }
-                using (var stream = await context.Api.DownloadAsync(path.ToString()).ConfigureAwait(false))
+                var file = context.FileSystem.GetFileInfo(path);
+                if (file != null)
                 {
-                    if (!CanDownload(path))
-                    {
-                        return;
-                    }
-                    var file = context.FileSystem.GetFileInfo(path);
-                    if (file != null)
-                    {
-                        await context.FileSystem.UpdateFile(path, stream, document.Created, document.LastModified).ConfigureAwait(false);
-                    }
-                    else
-                    {
-                        await context.FileSystem.CreateFile(path, stream, document.Created, document.LastModified).ConfigureAwait(false);
-                    }
-                    var task = context.SyncHistoryDbDispatcher.Execute(db =>
-                    {
-                        db.SyncHistories.Add(new SyncHistory()
-                        {
-                            Id = Guid.NewGuid(),
-                            Timestamp = DateTime.Now,
-                            Path = path.ToString(),
-                            FileSize = document.FileSize,
-                            Hash = document.Hash,
-                            Type = SyncHistoryType.Download
-                        });
-                        return db.SaveChangesAsync();
-                    }).ConfigureAwait(false);
-                    document.Updated();
-                    await context.RemoteStorage.Save(document).ConfigureAwait(false);
+                    await context.FileSystem.UpdateFile(path, stream, document.Created, document.LastModified).ConfigureAwait(false);
                 }
-
-            }
-            catch (Exception ex)
-            {
-                _logger.Error("Failed to download remote document.");
-                _logger.Error(ex);
-                throw;
+                else
+                {
+                    await context.FileSystem.CreateFile(path, stream, document.Created, document.LastModified).ConfigureAwait(false);
+                }
+                context.SynchronizationContext.DownloadRequested(path);
             }
         }
 

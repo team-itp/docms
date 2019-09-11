@@ -1,59 +1,36 @@
 ﻿using Docms.Client.Operations;
-using NLog;
-using System;
+using Docms.Client.Synchronization;
 using System.Collections.Generic;
-using System.Threading.Tasks;
+using System.Linq;
 
 namespace Docms.Client.Tasks
 {
     public class SyncTask : ITask
     {
-        private static readonly ILogger logger = LogManager.GetCurrentClassLogger();
-        private ApplicationContext context;
-        private object prevResult;
-
-        public bool IsCompleted { get; private set; }
+        private readonly ApplicationContext context;
 
         public SyncTask(ApplicationContext context)
         {
             this.context = context;
         }
 
-        public void Next(object result)
+        public IEnumerable<IOperation> GetOperations()
         {
-            prevResult = result;
-        }
-
-        public async Task ExecuteOperationAsync(IOperation operation)
-        {
-            prevResult = null;
-            await context.App.Invoke(operation).ConfigureAwait(false);
-        }
-
-        public async Task ExecuteAsync()
-        {
-            context.CurrentTask = this;
-            await ExecuteOperationAsync(new LocalDocumentStorageSyncOperation(context)).ConfigureAwait(false);
-            await ExecuteOperationAsync(new RemoteDocumentStorageSyncOperation(context)).ConfigureAwait(false);
-            await ExecuteOperationAsync(new ChangesIntoOperationsOperation(context)).ConfigureAwait(false);
-            if (prevResult == null || !(prevResult is ChangesIntoOperationsOperationResult operationsResult) || operationsResult.Operations.Count == 0)
+            yield return new RemoteDocumentStorageSyncOperation(context);
+            yield return new LocalDocumentStorageSyncOperation(context);
+            var states = context.SynchronizationContext.States.ToArray();
+            foreach (var state in states.OfType<RequestForDeleteState>())
             {
-                IsCompleted = true;
-                return;
+                yield return new DeleteRemoteDocumentOperation(context, state.Path);
             }
-            var errorOperations = new List<IOperation>();
-            foreach (var op in operationsResult.Operations)
+            foreach (var state in states.OfType<RequestForUploadState>())
             {
-                try
-                {
-                    await ExecuteOperationAsync(op).ConfigureAwait(false);
-                }
-                catch (Exception ex)
-                {
-                    logger.Error(ex);
-                }
+                yield return new UploadLocalDocumentOperation(context, state.Path, state.Hash, state.Length);
             }
-            IsCompleted = true;
+            foreach (var state in states.OfType<RequestForDownloadState>())
+            {
+                yield return new DownloadRemoteDocumentOperation(context, state.Path);
+            }
         }
     }
 }

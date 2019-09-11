@@ -1,4 +1,5 @@
 ﻿using Docms.Client.Api;
+using NLog;
 using System;
 using System.Net;
 using System.Threading;
@@ -6,25 +7,36 @@ using System.Threading.Tasks;
 
 namespace Docms.Client.Operations
 {
-    public abstract class DocmsApiOperationBase : AsyncOperationBase
+    public abstract class DocmsApiOperationBase : IOperation
     {
+        private static readonly ILogger _logger = LogManager.GetCurrentClassLogger();
         private readonly IDocmsApiClient api;
+        private readonly string summary;
 
-        public DocmsApiOperationBase(IDocmsApiClient api, CancellationToken cancellationToken = default(CancellationToken)) : base(cancellationToken)
+        public DocmsApiOperationBase(IDocmsApiClient api, string summary)
         {
             this.api = api;
+            this.summary = summary;
         }
 
-        protected override async Task ExecuteAsync(CancellationToken token)
+        public async Task ExecuteAsync(CancellationToken token = default)
         {
             try
             {
-                await ExecuteApiOperationAsync(token).ConfigureAwait(false);
+                try
+                {
+                    await ExecuteApiOperationAsync(token).ConfigureAwait(false);
+                }
+                catch (ServerException ex) when (ex.StatusCode == (int)HttpStatusCode.Unauthorized || ex.StatusCode == (int)HttpStatusCode.NotFound)
+                {
+                    await api.VerifyTokenAsync().ConfigureAwait(false);
+                    await ExecuteApiOperationAsync(token).ConfigureAwait(false);
+                }
             }
-            catch (ServerException ex) when (ex.StatusCode == (int)HttpStatusCode.Unauthorized || ex.StatusCode == (int)HttpStatusCode.NotFound)
+            catch (Exception ex)
             {
-                await api.VerifyTokenAsync().ConfigureAwait(false);
-                await ExecuteApiOperationAsync(token).ConfigureAwait(false);
+                _logger.Info($"failed to process: {summary}");
+                _logger.Error(ex);
             }
         }
 

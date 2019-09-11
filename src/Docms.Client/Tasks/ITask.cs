@@ -1,11 +1,10 @@
-﻿using System.Threading.Tasks;
+﻿using Docms.Client.Operations;
+using System.Collections.Generic;
 
 namespace Docms.Client.Tasks
 {
     public interface ITask
     {
-        bool IsCompleted { get; }
-        void Next(object result);
-        Task ExecuteAsync();
+        IEnumerable<IOperation> GetOperations();
     }
 }
