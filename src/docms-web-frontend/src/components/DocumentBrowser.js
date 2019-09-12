@@ -1,31 +1,32 @@
 import React from 'react';
+import { connect } from 'react-redux';
 import { Link as RouterLink, withRouter } from 'react-router-dom';
 import { Breadcrumbs, Container, Link, Typography, Toolbar, Paper, Grid } from '@material-ui/core';
+import { fetchDocument } from '../redux/actions/documents';
 
 class DocumentBrowser extends React.Component {
 
-  getStateFromPath({ location }) {
-    const path = location.pathname.replace(/^\/docs\//, '');
-    const pathComponents = (path || '').split('/');
-    const name = pathComponents.pop();
-    const parentPath = pathComponents.join('/');
-    return {
-      type: 'UNKNOWN',
-      path: location.pathname,
-      parentPath: parentPath,
-      name: name
-    };
+  componentDidMount() {
+    const path = this.props.location.pathname.replace(/^\/docs\//, '');
+    this.props.onSelectPath(path)
+  }
+
+  selectPath(path) {
+    this.props.onSelectPath(path);
   }
 
   render() {
-    let state = this.getStateFromPath(this.props);
+    const path = this.props.location.pathname.replace(/^\/docs\//, '');
+    const pathComponents = (path || '').split('/');
+    const name = pathComponents.pop();
+    const parentPath = pathComponents.join('/');
     let documentList = this.props.documentList || [];
     return (
       <Container maxWidth="xl">
-        <DocumentHeader parentPath={state.parentPath} name={state.name} />
-        {state.type === 'DIRECTORY'
+        <DocumentHeader parentPath={parentPath} name={name} />
+        {this.props.type === 'DIRECTORY'
           ? documentList.map(e => <DocumentSummary name={e.name} />)
-          : <DocumentViewer {...this.props} {...state} />}
+          : <DocumentViewer {...this.props} />}
       </Container>
     );
   }
@@ -73,4 +74,17 @@ function DocumentViewer(props) {
   )
 }
 
-export default withRouter(DocumentBrowser);
+function mapStateToProps(state, props) {
+  const docInfo = state.documents[props.path] || {};
+  return {
+    isFetching: docInfo.isFetching
+  };
+}
+
+function mapDispatchToProps(dispatch, props) {
+  return {
+    onSelectPath: path => dispatch(fetchDocument(props.path))
+  };
+}
+
+export default withRouter(connect(mapStateToProps, mapDispatchToProps)(DocumentBrowser));

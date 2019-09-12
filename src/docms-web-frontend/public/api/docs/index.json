@@ -1,0 +1,14 @@
+{
+  "type": "DIRECTORY",
+  "name": "/",
+  "documents": [
+    {
+      "type": "DIRECTORY",
+      "name": "test"
+    },
+    {
+      "type": "DOCUMENT",
+      "name": "a.txt"
+    }
+  ]
+}
