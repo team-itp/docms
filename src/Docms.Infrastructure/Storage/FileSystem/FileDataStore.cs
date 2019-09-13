@@ -60,9 +60,9 @@ namespace Docms.Infrastructure.Storage.FileSystem
             return Task.FromResult<IData>(new FileData(fullpath));
         }
 
-        public Task<IEnumerable<string>> ListAllKeys()
+        public IEnumerable<string> ListAllKeys()
         {
-            return Task.FromResult(ListAllFiles(_basePath).Select(p => p.Substring(_basePath.Length)));
+            return ListAllFiles(_basePath).Select(p => p.Substring(_basePath.Length));
         }
 
         private IEnumerable<string> ListAllFiles(string path)

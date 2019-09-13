@@ -1,6 +1,8 @@
 ﻿using Docms.Domain.Documents;
 using Docms.Infrastructure;
 using Docms.Infrastructure.Storage.AzureBlobStorage;
+using Docms.Queries.Blobs;
+using Docms.Queries.DocumentHistories;
 using MediatR;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
@@ -36,78 +38,204 @@ namespace Docms.Maintainance.CleanupTask
                     .DocumentHistories
                     .ToListAsync()
                     .ConfigureAwait(false));
-
                 var allDocuments = (await context
                     .Documents
                     .ToListAsync()
                     .ConfigureAwait(false));
-                var allDocumentsById = allDocuments.ToLookup(d => d.Id);
-                var allDocumentsByPath = allDocuments.ToLookup(d => d.Path);
-                var documentIds = new HashSet<int>(allDocuments.Select(d => d.Id));
-
-                var allBlobEntries = (await context
+                var allBlobs = (await context
                     .Blobs
                     .ToListAsync()
                     .ConfigureAwait(false));
 
-                var blobKeys = (await dataStore.ListAllKeys().ConfigureAwait(false)).ToList();
-                var undeletedStorageKeys = new HashSet<string>(blobKeys);
-                var usingStorageKeys = new HashSet<string>();
+                var allDocumentHistoriesByStorageKey = allDocumentHistories.ToLookup(d => d.StorageKey);
+                var allDocumentsByStorageKey = allDocuments.ToLookup(d => d.StorageKey);
+                var allBlobsByStorageKey = allBlobs.ToLookup(d => d.StorageKey);
+
+                var blobKeys = dataStore.ListAllKeys();
+                foreach (var key in blobKeys)
+                {
+                    if (allDocumentHistoriesByStorageKey[key].Any())
+                    {
+                        continue;
+                    }
+                    if (allDocumentsByStorageKey[key].Any())
+                    {
+                        continue;
+                    }
+                    if (allBlobsByStorageKey[key].Any())
+                    {
+                        continue;
+                    }
+                    await dataStore.DeleteAsync(key).ConfigureAwait(false);
+                }
 
                 var documentContext = new DocumentContext(allDocumentHistories, services);
-                var invalidMaintainanceDocs = new List<MaintainanceDocument>();
                 foreach (var doc in documentContext.Documents)
                 {
-                    undeletedStorageKeys.Remove(doc.StorageKey);
-                    undeletedStorageKeys.RemoveWhere(s => doc.Histories.Any(h => h.StorageKey == s));
-                    usingStorageKeys.Add(doc.StorageKey);
-                    doc.Histories.ForEach(h => { if (!string.IsNullOrEmpty(h.StorageKey)) { usingStorageKeys.Add(h.StorageKey); } });
+                    var firstHistory = doc.Histories.First();
+                    if (firstHistory.Discriminator == DocumentHistoryDiscriminator.DocumentDeleted)
+                    {
+                        logger.LogWarning("deleting invalid first history. path: " + firstHistory.Path);
+                        context.DocumentHistories.Remove(firstHistory);
+                        await context.SaveChangesAsync().ConfigureAwait(false);
+                        if (doc.Histories.Count == 1)
+                        {
+                            continue;
+                        }
+                    }
+                    if (firstHistory.Discriminator == DocumentHistoryDiscriminator.DocumentUpdated)
+                    {
+                        logger.LogWarning("fix first history discriminator to document created. path: " + firstHistory.Path);
+                        firstHistory.Discriminator = DocumentHistoryDiscriminator.DocumentCreated;
+                        context.DocumentHistories.Update(firstHistory);
+                        await context.SaveChangesAsync().ConfigureAwait(false);
+                    }
+
+                    if (doc.Histories.Count > 1)
+                    {
+                        var lastHistory = doc.Histories.Last();
+                        if (lastHistory.Discriminator == DocumentHistoryDiscriminator.DocumentCreated)
+                        {
+                            logger.LogWarning("fix last history discriminator to document updated. path: " + lastHistory.Path);
+                            lastHistory.Discriminator = DocumentHistoryDiscriminator.DocumentUpdated;
+                            context.DocumentHistories.Update(lastHistory);
+                            await context.SaveChangesAsync().ConfigureAwait(false);
+                        }
+                        foreach (var history in doc.Histories.Skip(1).Where(h => h != lastHistory))
+                        {
+                            if (history.Discriminator == DocumentHistoryDiscriminator.DocumentCreated)
+                            {
+                                logger.LogWarning("fix history discriminator to document updated. path: " + history.Path);
+                                history.Discriminator = DocumentHistoryDiscriminator.DocumentUpdated;
+                                context.DocumentHistories.Update(history);
+                                await context.SaveChangesAsync().ConfigureAwait(false);
+                            }
+                        }
+                    }
+                }
+
+                var documentIds = new HashSet<int>(allDocuments.Select(d => d.Id));
+                var paths = new HashSet<string>(allBlobs.Select(b => b.Path));
+                var allBlobsByPath = allBlobs.ToLookup(d => d.Path);
+                foreach (var doc in documentContext.Documents)
+                {
                     if (doc.Deleted)
                     {
                         var documentCandidates = allDocuments
-                            .Where(d => d.Hash == doc.Hash && d.FileSize == doc.FileSize && d.Created == doc.Created && d.LastModified == doc.LastModified)
+                            .Where(d => d.Path == null && d.Hash == doc.Hash && d.FileSize == doc.FileSize && d.Created == doc.Created && d.LastModified == doc.LastModified)
                             .ToList();
 
                         if (documentCandidates.Count != 1)
                         {
-                            logger.LogWarning("virtual document where real document not found or specified.");
-                            invalidMaintainanceDocs.Add(doc);
+                            logger.LogWarning("virtual document where real document not found or specified. path: " + doc.Path);
+                            context.DocumentHistories.RemoveRange(doc.Histories);
+                            await context.SaveChangesAsync().ConfigureAwait(false);
                             continue;
                         }
                         var document = documentCandidates.First();
-                        FixHistoryIfNeeded(document, doc);
+                        await FixHistoryIfNeededAsync(context, document, doc).ConfigureAwait(false);
                         documentIds.Remove(document.Id);
                     }
                     else
                     {
-                        var document = allDocumentsByPath[doc.Path].SingleOrDefault();
+                        var document = allDocuments.SingleOrDefault(d => d.Path == doc.Path);
                         if (document == null)
                         {
-                            logger.LogWarning("virtual document where real document not found or specified.");
-                            invalidMaintainanceDocs.Add(doc);
+                            logger.LogWarning("virtual document where real document not found or specified. path: " + doc.Path);
+                            context.DocumentHistories.RemoveRange(doc.Histories);
+                            await context.SaveChangesAsync().ConfigureAwait(false);
                             continue;
                         }
-                        FixHistoryIfNeeded(document, doc);
+
+                        if (document.Hash != doc.Hash
+                            && document.FileSize != doc.FileSize
+                            && document.Created != doc.Created
+                            && document.LastModified != doc.LastModified)
+                        {
+                            logger.LogWarning("document props does not match history. creating path. path: " + doc.Path);
+                            context.DocumentHistories.Add(new DocumentHistory()
+                            {
+                                Id = Guid.NewGuid(),
+                                Discriminator = DocumentHistoryDiscriminator.DocumentUpdated,
+                                Timestamp = DateTime.UtcNow,
+                                DocumentId = document.Id,
+                                Path = document.Path,
+                                StorageKey = document.StorageKey,
+                                ContentType = document.ContentType,
+                                FileSize = document.FileSize,
+                                Hash = document.Hash,
+                                Created = document.Created,
+                                LastModified = document.LastModified
+                            });
+                            await context.SaveChangesAsync().ConfigureAwait(false);
+                        }
+
+                        await FixHistoryIfNeededAsync(context, document, doc).ConfigureAwait(false);
+
+                        var blob = allBlobsByPath[document.Path].SingleOrDefault();
+                        if (blob == null
+                            || blob.DocumentId != document.Id
+                            || blob.FileSize != document.FileSize
+                            || blob.Hash != document.Hash
+                            || blob.ContentType != document.ContentType
+                            || blob.LastModified != document.LastModified
+                            || blob.Created != document.Created)
+                        {
+                            context.Blobs.Remove(blob);
+                            var docPath = new DocumentPath(document.Path);
+                            await EnsureDirectoryExists(context, docPath.Parent).ConfigureAwait(false);
+                            context.Blobs.Add(new Blob()
+                            {
+                                Path = document.Path,
+                                Name = docPath.Name,
+                                ParentPath = docPath.Parent?.Value,
+                                DocumentId = document.Id,
+                                StorageKey = document.StorageKey,
+                                ContentType = document.ContentType,
+                                FileSize = document.FileSize,
+                                Hash = document.Hash,
+                                Created = document.Created,
+                                LastModified = document.LastModified,
+                            });
+                            await context.SaveChangesAsync().ConfigureAwait(false);
+                        }
+
                         documentIds.Remove(document.Id);
                     }
                 }
-                await context.SaveChangesAsync().ConfigureAwait(false);
 
-                foreach (var storageKey in undeletedStorageKeys)
+                foreach (var documentId in documentIds)
                 {
-                    if (usingStorageKeys.Contains(storageKey))
-                    {
-                        logger.LogWarning("accidentally contains using storage key.");
-                        throw new InvalidOperationException();
-                    }
-                    await dataStore.DeleteAsync(storageKey).ConfigureAwait(false);
+                    var document = await context.Documents.FindAsync(documentId).ConfigureAwait(false);
+                    context.Documents.Remove(document);
+                    var blobs = await context.Blobs.FirstOrDefaultAsync(b => b.DocumentId == documentId).ConfigureAwait(false);
+                    context.Blobs.RemoveRange(blobs);
+                    await context.SaveChangesAsync().ConfigureAwait(false);
                 }
             }
         }
 
-        private static void FixHistoryIfNeeded(Document document, MaintainanceDocument doc)
+        private static async Task EnsureDirectoryExists(DocmsContext context, DocumentPath parent)
+        {
+            while (parent != null)
+            {
+                if (!await context.BlobContainers.AnyAsync(c => c.Path == parent.Value))
+                {
+                    context.BlobContainers.Add(new BlobContainer()
+                    {
+                        Path = parent.Value,
+                        Name = parent.Name,
+                        ParentPath = parent.Parent?.Value
+                    });
+                }
+                parent = parent.Parent;
+            }
+        }
+
+        private static async Task FixHistoryIfNeededAsync(DocmsContext context, Document document, MaintainanceDocument doc)
         {
             doc.Histories.ForEach(h => h.DocumentId = document.Id);
+            await context.SaveChangesAsync().ConfigureAwait(false);
         }
 
         private static ServiceProvider CreateServiceCollenction()
@@ -129,7 +257,10 @@ namespace Docms.Maintainance.CleanupTask
         private static DocmsContext CreateContext(IConfiguration configuration)
         {
             return new DocmsContext(new DbContextOptionsBuilder<DocmsContext>()
-                .UseSqlServer(configuration.GetConnectionString("DocmsConnection"))
+                .UseSqlServer(configuration.GetConnectionString("DocmsConnection"), options =>
+                {
+                    options.CommandTimeout(600);
+                })
                 .Options, new NoMediator());
         }
 

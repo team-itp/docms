@@ -1,6 +1,7 @@
 ﻿using Docms.Queries.DocumentHistories;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 
@@ -13,6 +14,7 @@ namespace Docms.Maintainance.CleanupTask
         private readonly Dictionary<string, MaintainanceDocument> _documentsByPath = new Dictionary<string, MaintainanceDocument>();
         private readonly List<MaintainanceDocument> _invalidDocuments = new List<MaintainanceDocument>();
         private readonly List<DocumentHistory> _invalidHistories = new List<DocumentHistory>();
+        private readonly List<DocumentHistory> _deletableHistory = new List<DocumentHistory>();
         private int _documentId = 1;
 
         public DocumentContext(List<DocumentHistory> histories, ServiceProvider services)
@@ -31,6 +33,10 @@ namespace Docms.Maintainance.CleanupTask
 
         private void Apply(DocumentHistory history)
         {
+            if (!AssertHistory(history))
+            {
+                return;
+            }
             switch (history.Discriminator)
             {
                 case DocumentHistoryDiscriminator.DocumentCreated:
@@ -47,6 +53,28 @@ namespace Docms.Maintainance.CleanupTask
             }
         }
 
+        private bool AssertHistory(DocumentHistory history)
+        {
+            switch (history.Discriminator)
+            {
+                case DocumentHistoryDiscriminator.DocumentCreated:
+                case DocumentHistoryDiscriminator.DocumentUpdated:
+                    return !string.IsNullOrEmpty(history.StorageKey)
+                        && !string.IsNullOrEmpty(history.Path)
+                        && history.FileSize.HasValue
+                        && history.Created.HasValue
+                        && history.LastModified.HasValue;
+                case DocumentHistoryDiscriminator.DocumentDeleted:
+                    return string.IsNullOrEmpty(history.StorageKey)
+                        && !string.IsNullOrEmpty(history.Path)
+                        && !history.FileSize.HasValue
+                        && !history.Created.HasValue
+                        && !history.LastModified.HasValue;
+                default:
+                    return false;
+            }
+        }
+
         private void CreateDocument(DocumentHistory history)
         {
             _logger.LogDebug("create document: {0}", history.Path);
@@ -56,6 +84,7 @@ namespace Docms.Maintainance.CleanupTask
                 _logger.LogWarning($"invalid created log found: {history.Id}");
                 _invalidHistories.Add(history);
                 _invalidDocuments.Add(document);
+                UpdateDocument(history);
             }
 
             document = new MaintainanceDocument()
@@ -87,16 +116,25 @@ namespace Docms.Maintainance.CleanupTask
             }
             else
             {
-                document.Histories.Add(history);
-                document.Path = history.Path;
-                document.StorageKey = history.StorageKey;
-                document.ContentType = history.ContentType;
-                document.FileSize = history.FileSize;
-                document.Hash = history.Hash;
-                document.Created = history.Created;
-                document.LastModified = history.LastModified;
-                document.Histories.Add(history);
-                _documentsByPath.Remove(document.Path);
+                if (history.FileSize != document.FileSize
+                    || history.Hash != document.Hash
+                    || history.LastModified != document.LastModified
+                    || history.Created != document.Created)
+                {
+                    document.Histories.Add(history);
+                    document.Path = history.Path;
+                    document.StorageKey = history.StorageKey;
+                    document.ContentType = history.ContentType;
+                    document.FileSize = history.FileSize;
+                    document.Hash = history.Hash;
+                    document.Created = history.Created;
+                    document.LastModified = history.LastModified;
+                    document.Histories.Add(history);
+                }
+                else
+                {
+                    _deletableHistory.Add(history);
+                }
             }
         }
 

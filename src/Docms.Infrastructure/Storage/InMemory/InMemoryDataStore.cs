@@ -40,9 +40,9 @@ namespace Docms.Infrastructure.Storage.InMemory
             return Task.CompletedTask;
         }
 
-        public Task<IEnumerable<string>> ListAllKeys()
+        public IEnumerable<string> ListAllKeys()
         {
-            return Task.FromResult<IEnumerable<string>>(values.Keys);
+            return values.Keys;
         }
     }
 }

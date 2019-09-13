@@ -11,6 +11,6 @@ namespace Docms.Domain.Documents
         Task<IData> CreateAsync(string key, Stream stream, long sizeOfStream);
         Task<IData> FindAsync(string key);
         Task DeleteAsync(string key);
-        Task<IEnumerable<string>> ListAllKeys();
+        IEnumerable<string> ListAllKeys();
     }
 }

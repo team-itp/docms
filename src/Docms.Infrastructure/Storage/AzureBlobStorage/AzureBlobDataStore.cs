@@ -4,6 +4,7 @@ using Microsoft.WindowsAzure.Storage.Blob;
 using System;
 using System.Collections.Generic;
 using System.IO;
+using System.Linq;
 using System.Threading.Tasks;
 
 namespace Docms.Infrastructure.Storage.AzureBlobStorage
@@ -121,55 +122,53 @@ namespace Docms.Infrastructure.Storage.AzureBlobStorage
                 blob.Metadata.TryGetValue(HASH_KEY, out var value) ? value : null);
         }
 
-        public async Task<IEnumerable<string>> ListAllKeys()
+        public IEnumerable<string> ListAllKeys()
         {
             var container = _client.GetContainerReference(_baseContainerName);
-            if (!await container.ExistsAsync().ConfigureAwait(false))
+            if (!container.ExistsAsync().ConfigureAwait(false).GetAwaiter().GetResult())
             {
-                return null;
+                yield break;
             }
             var token = new BlobContinuationToken();
-            var list = new List<string>();
             do
             {
-                var segment = await container.ListBlobsSegmentedAsync(token).ConfigureAwait(false);
-                foreach (var d in segment.Results)
+                var segment = container.ListBlobsSegmentedAsync(token).ConfigureAwait(false).GetAwaiter().GetResult();
+                var entries = segment.Results.ToList();
+                foreach (var d in entries.OfType<CloudBlobDirectory>())
                 {
-                    if (d is CloudBlobDirectory dir)
+                    foreach (var b in ListAllBlobs(d))
                     {
-                        list.AddRange(await ListAllBlobs(dir).ConfigureAwait(false));
+                        yield return b;
                     }
-                    else if (d is CloudBlob blob)
-                    {
-                        list.Add(blob.Name);
-                    }
+                }
+                foreach (var b in entries.OfType<CloudBlob>())
+                {
+                    yield return b.Name;
                 }
                 token = segment.ContinuationToken;
             } while (token != null);
-            return list;
         }
 
-        private async Task<IEnumerable<string>> ListAllBlobs(CloudBlobDirectory blobDirectory)
+        private IEnumerable<string> ListAllBlobs(CloudBlobDirectory blobDirectory)
         {
             var token = new BlobContinuationToken();
-            var list = new List<string>();
             do
             {
-                var segment = await blobDirectory.ListBlobsSegmentedAsync(token).ConfigureAwait(false);
-                foreach (var d in segment.Results)
+                var segment = blobDirectory.ListBlobsSegmentedAsync(token).ConfigureAwait(false).GetAwaiter().GetResult();
+                var entries = segment.Results.ToList();
+                foreach (var d in entries.OfType<CloudBlobDirectory>())
                 {
-                    if (d is CloudBlobDirectory dir)
+                    foreach (var b in ListAllBlobs(d))
                     {
-                        list.AddRange(await ListAllBlobs(dir).ConfigureAwait(false));
+                        yield return b;
                     }
-                    else if (d is CloudBlob blob)
-                    {
-                        list.Add(blob.Name);
-                    }
+                }
+                foreach (var b in entries.OfType<CloudBlob>())
+                {
+                    yield return b.Name;
                 }
                 token = segment.ContinuationToken;
             } while (token != null);
-            return list;
         }
     }
 }
