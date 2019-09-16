@@ -18,7 +18,7 @@
                 @foreach (var pathComponent in dirPath.Split('/'))
                 {
                     <li class="breadcrumb-item">
-                        @if (sb.Append(pathComponent).ToString() == dirPath)
+                        @if (Model is BlobContainer & sb.Append(pathComponent).ToString() == dirPath)
                         {
                             <span class="active">@pathComponent</span>
                         }
