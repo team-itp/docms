@@ -10,16 +10,18 @@ namespace Docms.Maintainance.CleanupTask
     internal class DocumentContext
     {
         private readonly ILogger _logger;
+        private readonly HashSet<string> _blobKeysSet;
         private readonly Dictionary<int, MaintainanceDocument> _documentStore = new Dictionary<int, MaintainanceDocument>();
         private readonly Dictionary<string, MaintainanceDocument> _documentsByPath = new Dictionary<string, MaintainanceDocument>();
         private readonly List<MaintainanceDocument> _invalidDocuments = new List<MaintainanceDocument>();
         private readonly List<DocumentHistory> _invalidHistories = new List<DocumentHistory>();
-        private readonly List<DocumentHistory> _deletableHistory = new List<DocumentHistory>();
+        private readonly List<DocumentHistory> _deletableHistories = new List<DocumentHistory>();
         private int _documentId = 1;
 
-        public DocumentContext(List<DocumentHistory> histories, ServiceProvider services)
+        public DocumentContext(List<DocumentHistory> histories, HashSet<string> blobKeysSet, ServiceProvider services)
         {
             _logger = services.GetService<ILogger<DocumentContext>>();
+            _blobKeysSet = blobKeysSet;
             foreach (var history in histories.OrderBy(d => d.Timestamp))
             {
                 Apply(history);
@@ -28,13 +30,13 @@ namespace Docms.Maintainance.CleanupTask
         }
 
         public IEnumerable<MaintainanceDocument> Documents => _documentStore.Values;
-        public IEnumerable<MaintainanceDocument> InvalidDocuments => _invalidDocuments.ToList();
-        public IEnumerable<DocumentHistory> InvalidHistories => _invalidHistories.ToList();
+        public IEnumerable<DocumentHistory> DeletableHistories => _deletableHistories.ToList();
 
         private void Apply(DocumentHistory history)
         {
             if (!AssertHistory(history))
             {
+                _deletableHistories.Add(history);
                 return;
             }
             switch (history.Discriminator)
@@ -60,6 +62,7 @@ namespace Docms.Maintainance.CleanupTask
                 case DocumentHistoryDiscriminator.DocumentCreated:
                 case DocumentHistoryDiscriminator.DocumentUpdated:
                     return !string.IsNullOrEmpty(history.StorageKey)
+                        && _blobKeysSet.Contains(history.StorageKey)
                         && !string.IsNullOrEmpty(history.Path)
                         && history.FileSize.HasValue
                         && history.Created.HasValue
@@ -82,8 +85,6 @@ namespace Docms.Maintainance.CleanupTask
             if (_documentsByPath.TryGetValue(history.Path, out var document))
             {
                 _logger.LogWarning($"invalid created log found: {history.Id}");
-                _invalidHistories.Add(history);
-                _invalidDocuments.Add(document);
                 UpdateDocument(history);
             }
 
@@ -111,7 +112,6 @@ namespace Docms.Maintainance.CleanupTask
             if (!_documentsByPath.TryGetValue(history.Path, out var document))
             {
                 _logger.LogWarning($"invalid update history found: {history.Id}");
-                _invalidHistories.Add(history);
                 CreateDocument(history);
             }
             else
@@ -133,7 +133,7 @@ namespace Docms.Maintainance.CleanupTask
                 }
                 else
                 {
-                    _deletableHistory.Add(history);
+                    _deletableHistories.Add(history);
                 }
             }
         }
@@ -146,7 +146,7 @@ namespace Docms.Maintainance.CleanupTask
             if (!_documentsByPath.TryGetValue(history.Path, out var document))
             {
                 _logger.LogWarning($"invalid delete history found: {history.Id}");
-                _invalidHistories.Add(history);
+                _deletableHistories.Add(history);
             }
             else
             {
