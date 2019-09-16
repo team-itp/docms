@@ -21,7 +21,7 @@ namespace Docms.Web.Application.Commands
             _dataStore = dataStore;
         }
 
-        public async Task<bool> Handle(CreateOrUpdateDocumentCommand request, CancellationToken cancellationToken = default(CancellationToken))
+        public async Task<bool> Handle(CreateOrUpdateDocumentCommand request, CancellationToken cancellationToken = default)
         {
             var path = request.Path;
             if (await _documentRepository.IsContainerPath(path.ToString()))
@@ -34,62 +34,71 @@ namespace Docms.Web.Application.Commands
 
             // ファイル情報の取得
             var storageKey = _dataStore.CreateKey();
-            var data = await _dataStore.CreateAsync(storageKey, request.Stream, request.SizeOfStream);
-            if (!ContentTypeProvider.TryGetContentType(path.Extension, out var contentType))
-                contentType = "application/octet-stream";
-            if (document == null)
-            {
-                var utcNow = DateTime.UtcNow;
-                document = new Document(
-                    new DocumentPath(path.ToString()),
-                    storageKey,
-                    contentType,
-                    data,
-                    request.Created ?? utcNow,
-                    request.LastModified ?? request.Created ?? utcNow);
-                await _documentRepository.AddAsync(document);
-            }
-            else if (request.ForceCreate)
-            {
-                var retryCount = 0;
-                var dirPath = path.DirectoryPath;
-                var fnwoe = path.FileNameWithoutExtension;
-                var ext = path.Extension;
-                var filename = path;
-                while (document != null)
-                {
-                    retryCount++;
-                    filename = dirPath.Combine(fnwoe + $"({retryCount})" + ext);
-                    document = await _documentRepository.GetAsync(filename.ToString());
-                }
+            var data = await _dataStore.CreateAsync(storageKey, request.Stream, request.SizeOfStream).ConfigureAwait(false);
 
-                var utcNow = DateTime.UtcNow;
-                document = new Document(
-                    new DocumentPath(filename.ToString()),
-                    storageKey,
-                    contentType,
-                    data,
-                    request.Created ?? utcNow,
-                    request.LastModified ?? request.Created ?? utcNow);
-                await _documentRepository.AddAsync(document);
-            }
-            else
+            try
             {
-                if (data.Hash == document.Hash)
+                if (!ContentTypeProvider.TryGetContentType(path.Extension, out var contentType))
+                    contentType = "application/octet-stream";
+                if (document == null)
                 {
-                    return true;
+                    var utcNow = DateTime.UtcNow;
+                    document = new Document(
+                        new DocumentPath(path.ToString()),
+                        storageKey,
+                        contentType,
+                        data,
+                        request.Created ?? utcNow,
+                        request.LastModified ?? request.Created ?? utcNow);
+                    await _documentRepository.AddAsync(document).ConfigureAwait(false);
                 }
+                else if (request.ForceCreate)
+                {
+                    var retryCount = 0;
+                    var dirPath = path.DirectoryPath;
+                    var fnwoe = path.FileNameWithoutExtension;
+                    var ext = path.Extension;
+                    var filename = path;
+                    while (document != null)
+                    {
+                        retryCount++;
+                        filename = dirPath.Combine(fnwoe + $"({retryCount})" + ext);
+                        document = await _documentRepository.GetAsync(filename.ToString());
+                    }
 
-                var utcNow = DateTime.UtcNow;
-                document.Update(
-                    storageKey,
-                    contentType,
-                    data,
-                    request.Created ?? document.Created,
-                    request.LastModified ?? utcNow);
+                    var utcNow = DateTime.UtcNow;
+                    document = new Document(
+                        new DocumentPath(filename.ToString()),
+                        storageKey,
+                        contentType,
+                        data,
+                        request.Created ?? utcNow,
+                        request.LastModified ?? request.Created ?? utcNow);
+                    await _documentRepository.AddAsync(document).ConfigureAwait(false);
+                }
+                else
+                {
+                    if (data.Hash == document.Hash)
+                    {
+                        return true;
+                    }
+
+                    var utcNow = DateTime.UtcNow;
+                    document.Update(
+                        storageKey,
+                        contentType,
+                        data,
+                        request.Created ?? document.Created,
+                        request.LastModified ?? utcNow);
+                }
+                await _documentRepository.UnitOfWork.SaveEntitiesAsync().ConfigureAwait(false);
+                return true;
             }
-            await _documentRepository.UnitOfWork.SaveEntitiesAsync();
-            return true;
+            catch
+            {
+                await _dataStore.DeleteAsync(storageKey).ConfigureAwait(false);
+                throw;
+            }
         }
     }
 }

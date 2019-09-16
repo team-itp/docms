@@ -1,7 +1,6 @@
 ﻿using Docms.Queries.DocumentHistories;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
-using System;
 using System.Collections.Generic;
 using System.Linq;
 
@@ -13,8 +12,6 @@ namespace Docms.Maintainance.CleanupTask
         private readonly HashSet<string> _blobKeysSet;
         private readonly Dictionary<int, MaintainanceDocument> _documentStore = new Dictionary<int, MaintainanceDocument>();
         private readonly Dictionary<string, MaintainanceDocument> _documentsByPath = new Dictionary<string, MaintainanceDocument>();
-        private readonly List<MaintainanceDocument> _invalidDocuments = new List<MaintainanceDocument>();
-        private readonly List<DocumentHistory> _invalidHistories = new List<DocumentHistory>();
         private readonly List<DocumentHistory> _deletableHistories = new List<DocumentHistory>();
         private int _documentId = 1;
 
@@ -82,13 +79,13 @@ namespace Docms.Maintainance.CleanupTask
         {
             _logger.LogDebug("create document: {0}", history.Path);
 
-            if (_documentsByPath.TryGetValue(history.Path, out var document))
+            if (_documentsByPath.TryGetValue(history.Path, out var _))
             {
                 _logger.LogWarning($"invalid created log found: {history.Id}");
                 UpdateDocument(history);
             }
 
-            document = new MaintainanceDocument()
+            var document = new MaintainanceDocument()
             {
                 DocumentId = _documentId++,
                 Path = history.Path,
@@ -137,7 +134,6 @@ namespace Docms.Maintainance.CleanupTask
                 }
             }
         }
-
 
         private void DeleteDocument(DocumentHistory history)
         {
