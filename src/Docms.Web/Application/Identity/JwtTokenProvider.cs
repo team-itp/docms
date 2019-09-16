@@ -8,7 +8,7 @@ namespace Docms.Web.Application.Identity
 {
     public class JwtTokenProvider
     {
-        private IdentityServerTools _identityServerTools;
+        private readonly IdentityServerTools _identityServerTools;
 
         public JwtTokenProvider(
             IHttpContextAccessor contextAccessor,

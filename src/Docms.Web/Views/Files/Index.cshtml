@@ -42,10 +42,10 @@
     </div>
 </nav>
 
-@if (Model is BlobContainer)
+@if (Model is BlobContainer container)
 {
     <div class="list-group">
-        @foreach (var entry in (Model as BlobContainer).Entries)
+        @foreach (var entry in container.Entries)
         {
             <div class="list-group-item d-flex justify-content-start align-items-center">
                 <a name="@entry.Name" />
@@ -56,7 +56,7 @@
                     </div>
                     <a href="@Url.ViewFile(entry.Path)">@entry.Name</a>
                 }
-                else if (entry is Blob && (entry as Blob).ContentType.StartsWith("image"))
+                else if (entry is Blob blob && (blob.ContentType.StartsWith("image") || blob.ContentType.StartsWith("video")))
                 {
                     <div class="mr-3">
                         <i class="fa fa-2x fa-file-image-o"></i>
@@ -74,9 +74,24 @@
         }
     </div>
 }
-else
+else if (Model is Blob blob)
 {
     <div class="border text-center">
-        <img class="mw-100" alt="@Model.Name" src="@Url.DownloadFile(Model.Path)" />
+        @if (blob.ContentType.StartsWith("image"))
+        {
+            <img class="mw-100" alt="@Model.Name" src="@Url.DownloadFile(Model.Path)" />
+        }
+        else if (blob.ContentType.StartsWith("video"))
+        {
+            <div class="embed-responsive embed-responsive-16by9">
+                <video controls="controls" class="embed-responsive-item">
+                    <source src="@Url.DownloadFile(Model.Path)" type="@blob.ContentType" />
+                </video>
+            </div>
+        }
+        else
+        {
+            <a href="@Url.DownloadFile(Model.Path)">ダウンロード</a>
+        }
     </div>
 }

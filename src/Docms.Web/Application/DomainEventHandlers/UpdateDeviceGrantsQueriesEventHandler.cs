@@ -26,7 +26,7 @@ namespace Docms.Web.Application.DomainEventHandlers
             _userStore = userStore;
         }
 
-        public async Task Handle(DomainEventNotification<DeviceNewlyAccessedEvent> notification, CancellationToken cancellationToken = default(CancellationToken))
+        public async Task Handle(DomainEventNotification<DeviceNewlyAccessedEvent> notification, CancellationToken cancellationToken = default)
         {
             var ev = notification.Event;
             var appUser = await _userStore.FindByIdAsync(ev.UsedBy, cancellationToken);
@@ -42,7 +42,7 @@ namespace Docms.Web.Application.DomainEventHandlers
             await _db.SaveChangesAsync();
         }
 
-        public async Task Handle(DomainEventNotification<DeviceGrantedEvent> notification, CancellationToken cancellationToken)
+        public async Task Handle(DomainEventNotification<DeviceGrantedEvent> notification, CancellationToken cancellationToken = default)
         {
             var ev = notification.Event;
             var deviceGrant = await _db.DeviceGrants.FirstOrDefaultAsync(e => e.DeviceId == ev.DeviceId);
@@ -59,7 +59,7 @@ namespace Docms.Web.Application.DomainEventHandlers
             await _db.SaveChangesAsync();
         }
 
-        public async Task Handle(DomainEventNotification<DeviceRevokedEvent> notification, CancellationToken cancellationToken)
+        public async Task Handle(DomainEventNotification<DeviceRevokedEvent> notification, CancellationToken cancellationToken = default)
         {
             var ev = notification.Event;
             var deviceGrant = await _db.DeviceGrants.FirstOrDefaultAsync(e => e.DeviceId == ev.DeviceId);
