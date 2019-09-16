@@ -1,5 +1,4 @@
-﻿using Docms.Client.Api;
-using Docms.Client.Tasks;
+﻿using Docms.Client.Tasks;
 using NLog;
 using System;
 using System.Threading.Tasks;

@@ -44,7 +44,7 @@ namespace Docms.Client.Tests
         {
             if (noConnection) Assert.Fail("接続不良のため失敗");
             await sut.VerifyTokenAsync().ConfigureAwait(false);
-            var entries = await sut.GetEntriesAsync("").ConfigureAwait(false);
+            _ = await sut.GetEntriesAsync("").ConfigureAwait(false);
         }
 
         [TestMethod]

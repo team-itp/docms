@@ -21,24 +21,27 @@ namespace Docms.Client.DocumentStores
 
         private readonly HashSet<Guid> appliedHistoryIds;
 
-        private readonly DocumentDbContext db;
+        private readonly IDocumentDbContextFactory dbFactory;
 
-        public RemoteDocumentStorage(IDocmsApiClient api, Synchronization.SynchronizationContext synchronizationContext, DocumentDbContext db)
+        public RemoteDocumentStorage(IDocmsApiClient api, Synchronization.SynchronizationContext synchronizationContext, IDocumentDbContextFactory dbFactory)
         {
             this.api = api;
             this.synchronizationContext = synchronizationContext;
-            this.db = db;
+            this.dbFactory = dbFactory;
             appliedHistoryIds = new HashSet<Guid>();
         }
 
         public override async Task Initialize()
         {
             await base.Initialize().ConfigureAwait(false);
-            var histories = await db.Histories.ToListAsync().ConfigureAwait(false);
-            foreach (var history in histories)
+            using (var db = dbFactory.Create())
             {
-                Apply(history);
-                appliedHistoryIds.Add(history.Id);
+                var histories = await db.Histories.ToListAsync().ConfigureAwait(false);
+                foreach (var history in histories)
+                {
+                    Apply(history);
+                    appliedHistoryIds.Add(history.Id);
+                }
             }
             AddRemoveRequestForAllFiles(Root);
         }
@@ -61,24 +64,27 @@ namespace Docms.Client.DocumentStores
         public override async Task SyncAsync(CancellationToken cancellationToken = default)
         {
             logger.Trace($"remote document syncing");
-            var latestHistory = await db.Histories.OrderByDescending(h => h.Timestamp).FirstOrDefaultAsync().ConfigureAwait(false);
-            if (latestHistory != null)
+            using (var db = dbFactory.Create())
             {
-                logger.Trace($"latest history: {latestHistory.Path} ({latestHistory.Id}, {latestHistory.Timestamp})");
-            }
-            var histories = await api.GetHistoriesAsync("", latestHistory?.Id).ConfigureAwait(false);
-            var historiesToAdd = new List<History>();
-            foreach (var history in histories)
-            {
-                if (!appliedHistoryIds.Contains(history.Id))
+                var latestHistory = await db.Histories.OrderByDescending(h => h.Timestamp).FirstOrDefaultAsync().ConfigureAwait(false);
+                if (latestHistory != null)
                 {
-                    Apply(history);
-                    historiesToAdd.Add(history);
-                    appliedHistoryIds.Add(history.Id);
+                    logger.Trace($"latest history: {latestHistory.Path} ({latestHistory.Id}, {latestHistory.Timestamp})");
                 }
+                var histories = await api.GetHistoriesAsync("", latestHistory?.Id).ConfigureAwait(false);
+                var historiesToAdd = new List<History>();
+                foreach (var history in histories)
+                {
+                    if (!appliedHistoryIds.Contains(history.Id))
+                    {
+                        Apply(history);
+                        historiesToAdd.Add(history);
+                        appliedHistoryIds.Add(history.Id);
+                    }
+                }
+                db.Histories.AddRange(historiesToAdd);
+                await db.SaveChangesAsync().ConfigureAwait(false);
             }
-            db.Histories.AddRange(historiesToAdd);
-            await db.SaveChangesAsync().ConfigureAwait(false);
         }
 
         private void Apply(History history)

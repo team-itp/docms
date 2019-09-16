@@ -10,7 +10,7 @@ namespace Docms.Client
     public class ApplicationContext : IDisposable
     {
         public IDocmsApiClient Api { get; set; }
-        public DocumentDbContext DocumentDb { get; set; }
+        public IDocumentDbContextFactory DbFactory { get; set; }
         public IFileSystem FileSystem { get; set; }
         public IDocumentStorage LocalStorage { get; set; }
         public IDocumentStorage RemoteStorage { get; set; }
@@ -18,7 +18,6 @@ namespace Docms.Client
 
         public void Dispose()
         {
-            DocumentDb.Dispose();
         }
     }
 }
