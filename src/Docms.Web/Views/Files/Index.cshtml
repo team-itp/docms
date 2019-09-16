@@ -56,10 +56,17 @@
                     </div>
                     <a href="@Url.ViewFile(entry.Path)">@entry.Name</a>
                 }
-                else if (entry is Blob blob && (blob.ContentType.StartsWith("image") || blob.ContentType.StartsWith("video")))
+                else if (entry is Blob imageBlob && imageBlob.ContentType.StartsWith("image"))
                 {
                     <div class="mr-3">
                         <i class="fa fa-2x fa-file-image-o"></i>
+                    </div>
+                    <a href="@Url.ViewFile(entry.Path)">@entry.Name</a>
+                }
+                else if (entry is Blob videoBlob && videoBlob.ContentType.StartsWith("video"))
+                {
+                    <div class="mr-3">
+                        <i class="fa fa-2x fa-file-video-o"></i>
                     </div>
                     <a href="@Url.ViewFile(entry.Path)">@entry.Name</a>
                 }
