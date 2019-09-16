@@ -33,6 +33,12 @@ namespace Docms.Client.Operations
                     await ExecuteApiOperationAsync(token).ConfigureAwait(false);
                 }
             }
+            catch (ServerException ex) when (ex.StatusCode == (int)HttpStatusCode.Forbidden)
+            {
+                _logger.Info($"failed to process: {summary}");
+                _logger.Warn("returned Forbidden response. cancel all tasks");
+                throw new ServiceUnavailableException(ex);
+            }
             catch (Exception ex)
             {
                 _logger.Info($"failed to process: {summary}");

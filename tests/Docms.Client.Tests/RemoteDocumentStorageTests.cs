@@ -15,15 +15,15 @@ namespace Docms.Client.Tests
         private MockDocmsApiClient apiClient;
         private SynchronizationContext synchronizationContext;
         private RemoteDocumentStorage sut;
-        private MockDocumentDbContext localDb;
+        private MockDocumentDbContextFactory localDbFactory;
 
         [TestInitialize]
         public void Setup()
         {
             apiClient = new MockDocmsApiClient();
             synchronizationContext = new SynchronizationContext();
-            localDb = new MockDocumentDbContext();
-            sut = new RemoteDocumentStorage(apiClient, synchronizationContext, localDb);
+            localDbFactory = new MockDocumentDbContextFactory();
+            sut = new RemoteDocumentStorage(apiClient, synchronizationContext, localDbFactory);
         }
 
         [TestMethod]
@@ -134,10 +134,10 @@ namespace Docms.Client.Tests
             await DocmsApiUtils.Update(apiClient, "dir1/file2.txt").ConfigureAwait(false);
             await sut.SyncAsync().ConfigureAwait(false);
 
-            sut = new RemoteDocumentStorage(apiClient, synchronizationContext, localDb);
+            sut = new RemoteDocumentStorage(apiClient, synchronizationContext, localDbFactory);
             await sut.Initialize().ConfigureAwait(false);
 
-            sut = new RemoteDocumentStorage(apiClient, synchronizationContext, localDb);
+            sut = new RemoteDocumentStorage(apiClient, synchronizationContext, localDbFactory);
             await sut.Initialize().ConfigureAwait(false);
 
             var rootNodes = (sut.GetNode(PathString.Root) as ContainerNode).Children;

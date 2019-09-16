@@ -42,11 +42,11 @@ namespace Docms.Client.Starter
                 }
 
                 context.Api = ResolveApi();
-                context.DocumentDb = ResolveDocumentDbContext();
+                context.DbFactory = ResolveDocumentDbContextFactory();
                 context.FileSystem = ResolveFileSystem(watchPath);
                 context.SynchronizationContext = ResolveSynchronizationContext();
                 context.LocalStorage = ResolveLocalStorage(context.FileSystem, context.SynchronizationContext);
-                context.RemoteStorage = ResolveRemoteStorage(context.Api, context.SynchronizationContext, context.DocumentDb);
+                context.RemoteStorage = ResolveRemoteStorage(context.Api, context.SynchronizationContext, context.DbFactory);
 
                 await context.Api.LoginAsync(uploadUserName, uploadUserPassword).ConfigureAwait(false);
                 await context.LocalStorage.Initialize().ConfigureAwait(false);
@@ -70,7 +70,7 @@ namespace Docms.Client.Starter
             return new LocalFileSystem(watchPath);
         }
 
-        private DocumentDbContext ResolveDocumentDbContext()
+        private DocumentDbContextFactory ResolveDocumentDbContextFactory()
         {
             var configDir = Path.Combine(watchPath, ".docms");
             var configDirInfo = new DirectoryInfo(configDir);
@@ -80,12 +80,15 @@ namespace Docms.Client.Starter
                 configDirInfo.Attributes = FileAttributes.Hidden;
             }
 
-            var db = new DocumentDbContext(new DbContextOptionsBuilder<DocumentDbContext>()
+            var options = new DbContextOptionsBuilder<DocumentDbContext>()
                 .UseSqlite(string.Format("Data Source={0}", Path.Combine(configDir, "data.db")))
                 .EnableSensitiveDataLogging()
-                .Options);
-            db.Database.EnsureCreated();
-            return db;
+                .Options;
+            using (var db = new DocumentDbContext(options))
+            {
+                db.Database.EnsureCreated();
+            }
+            return new DocumentDbContextFactory(options);
         }
 
         private SynchronizationContext ResolveSynchronizationContext()
@@ -93,9 +96,9 @@ namespace Docms.Client.Starter
             return new SynchronizationContext();
         }
 
-        private static RemoteDocumentStorage ResolveRemoteStorage(IDocmsApiClient api, SynchronizationContext synchronizationContext, DocumentDbContext dbContext)
+        private static RemoteDocumentStorage ResolveRemoteStorage(IDocmsApiClient api, SynchronizationContext synchronizationContext, IDocumentDbContextFactory dbContextFactory)
         {
-            return new RemoteDocumentStorage(api, synchronizationContext, dbContext);
+            return new RemoteDocumentStorage(api, synchronizationContext, dbContextFactory);
         }
 
         private LocalDocumentStorage ResolveLocalStorage(IFileSystem fileSystem, SynchronizationContext synchronizationContext)
