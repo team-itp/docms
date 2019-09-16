@@ -53,8 +53,9 @@ namespace Docms.Client.Starter
                 }
                 return true;
             }
-            catch (ServerException ex) when (ex.StatusCode >= 500)
+            catch (ServiceUnavailableException ex)
             {
+                logger.Error(ex);
                 if (!app.ShutdownRequestedToken.IsCancellationRequested)
                     await Task.Delay(TimeSpan.FromMinutes(1)).ConfigureAwait(false);
                 return false;
