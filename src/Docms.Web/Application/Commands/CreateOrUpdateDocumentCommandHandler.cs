@@ -78,19 +78,29 @@ namespace Docms.Web.Application.Commands
                 }
                 else
                 {
+                    var utcNow = DateTime.UtcNow;
+
                     if (data.Hash == document.Hash)
                     {
                         await _dataStore.DeleteAsync(storageKey).ConfigureAwait(false);
-                        return true;
+                        var oldData = await _dataStore.FindAsync(document.StorageKey);
+                        document.Update(
+                            document.StorageKey,
+                            contentType,
+                            oldData,
+                            request.Created ?? document.Created,
+                            request.LastModified ?? utcNow);
+                    }
+                    else
+                    {
+                        document.Update(
+                            storageKey,
+                            contentType,
+                            data,
+                            request.Created ?? document.Created,
+                            request.LastModified ?? utcNow);
                     }
 
-                    var utcNow = DateTime.UtcNow;
-                    document.Update(
-                        storageKey,
-                        contentType,
-                        data,
-                        request.Created ?? document.Created,
-                        request.LastModified ?? utcNow);
                 }
                 await _documentRepository.UnitOfWork.SaveEntitiesAsync().ConfigureAwait(false);
                 return true;
