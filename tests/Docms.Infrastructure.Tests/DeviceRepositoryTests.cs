@@ -1,7 +1,6 @@
 using Docms.Domain.Identity;
 using Docms.Infrastructure.Repositories;
 using Docms.Infrastructure.Tests.Utils;
-using Microsoft.EntityFrameworkCore;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using System.Threading.Tasks;
 

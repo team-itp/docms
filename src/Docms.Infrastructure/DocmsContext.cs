@@ -12,6 +12,7 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Design;
 using System;
 using System.Diagnostics;
+using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 
@@ -54,8 +55,25 @@ namespace Docms.Infrastructure
         {
             using (var tx = await Database.BeginTransactionAsync())
             {
+                var domainEntities = ChangeTracker
+                    .Entries<Entity>()
+                    .Where(x => x.Entity.DomainEvents != null && x.Entity.DomainEvents.Any());
+
+                var domainEvents = domainEntities
+                    .SelectMany(x => x.Entity.DomainEvents)
+                    .OrderBy(x => x.Timestamp)
+                    .ToList();
+
+                domainEntities.ToList()
+                    .ForEach(entity => entity.Entity.ClearDomainEvents());
+
                 await base.SaveChangesAsync().ConfigureAwait(false);
-                await _mediator.DispatchDomainEventsAsync(this).ConfigureAwait(false);
+
+                foreach (var domainEvent in domainEvents)
+                {
+                    await _mediator.Publish(DomainEventNotification.Create(domainEvent)).ConfigureAwait(false);
+                }
+
                 await base.SaveChangesAsync().ConfigureAwait(false);
                 tx.Commit();
                 return true;
