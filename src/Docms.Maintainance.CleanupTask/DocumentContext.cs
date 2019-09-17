@@ -29,7 +29,7 @@ namespace Docms.Maintainance.CleanupTask
         public IEnumerable<MaintainanceDocument> Documents => _documentStore.Values;
         public IEnumerable<DocumentHistory> DeletableHistories => _deletableHistories.ToList();
 
-        private void Apply(DocumentHistory history)
+        public void Apply(DocumentHistory history)
         {
             if (!AssertHistory(history))
             {

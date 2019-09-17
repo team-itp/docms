@@ -27,6 +27,7 @@ namespace Docms.Maintainance.CleanupTask
         {
             var services = CreateServiceCollenction();
             var configuration = CreateConfiguration();
+            var dataStore = CreateDataStore(configuration);
 
             var logger = services.GetService<ILogger<Program>>();
             logger.LogInformation("application started.");
@@ -41,7 +42,6 @@ namespace Docms.Maintainance.CleanupTask
 
             using (var context = CreateContext(configuration))
             {
-                var dataStore = CreateDataStore(configuration);
 
                 allDocumentHistories = (await context
                     .DocumentHistories
@@ -59,39 +59,93 @@ namespace Docms.Maintainance.CleanupTask
                 allDocumentHistoriesByStorageKey = allDocumentHistories.ToLookup(d => d.StorageKey);
                 allDocumentsByStorageKey = allDocuments.ToLookup(d => d.StorageKey);
                 allBlobsByStorageKey = allBlobs.ToLookup(d => d.StorageKey);
+            }
 
-                var blobKeys = dataStore.ListAllKeys();
-                blobKeysSet = new HashSet<string>();
-                foreach (var key in blobKeys)
+            var blobKeys = dataStore.ListAllKeys();
+            blobKeysSet = new HashSet<string>();
+            foreach (var key in blobKeys)
+            {
+                if (blobKeysSet.Add(key))
                 {
-                    if (blobKeysSet.Add(key))
+                    if (allDocumentHistoriesByStorageKey[key].Any())
                     {
-                        if (allDocumentHistoriesByStorageKey[key].Any())
-                        {
-                            continue;
-                        }
-                        if (allDocumentsByStorageKey[key].Any())
-                        {
-                            continue;
-                        }
-                        if (allBlobsByStorageKey[key].Any())
-                        {
-                            continue;
-                        }
-                        logger.LogWarning("delete data for key: " + key);
-                        await dataStore.DeleteAsync(key).ConfigureAwait(false);
+                        continue;
                     }
+                    if (allDocumentsByStorageKey[key].Any())
+                    {
+                        continue;
+                    }
+                    if (allBlobsByStorageKey[key].Any())
+                    {
+                        continue;
+                    }
+                    logger.LogWarning("delete data for key: " + key);
+                    await dataStore.DeleteAsync(key).ConfigureAwait(false);
                 }
             }
 
             var documentContext = new DocumentContext(allDocumentHistories, blobKeysSet, services);
+            var maintainanceDocumentsByPath = documentContext.Documents.ToLookup(d => d.Path);
+            foreach (var dbDoc in allDocuments.Where(d => !string.IsNullOrEmpty(d.Path)).OrderBy(d => d.LastModified))
+            {
+                if (!maintainanceDocumentsByPath[dbDoc.Path].Any())
+                {
+                    logger.LogWarning("no history document found. path: " + dbDoc.Path);
+                    await Task.Delay(300).ConfigureAwait(false);
+                    using (var context = CreateContext(configuration))
+                    {
+                        var created = new DocumentHistory()
+                        {
+                            Id = Guid.NewGuid(),
+                            Discriminator = DocumentHistoryDiscriminator.DocumentUpdated,
+                            Timestamp = DateTime.UtcNow,
+                            DocumentId = dbDoc.Id,
+                            Path = dbDoc.Path,
+                            StorageKey = dbDoc.StorageKey,
+                            ContentType = dbDoc.ContentType,
+                            FileSize = dbDoc.FileSize,
+                            Hash = dbDoc.Hash,
+                            Created = dbDoc.Created,
+                            LastModified = dbDoc.LastModified
+                        };
+                        context.DocumentHistories.Add(created);
+                        var _blob = await context.Blobs.FindAsync(dbDoc.Path).ConfigureAwait(false);
+                        if (_blob != null)
+                        {
+                            context.Blobs.Remove(_blob);
+                        }
+                        var docPath = new DocumentPath(dbDoc.Path);
+                        await EnsureDirectoryExists(context, docPath.Parent).ConfigureAwait(false);
+                        context.Blobs.Add(new Blob()
+                        {
+                            Path = dbDoc.Path,
+                            Name = docPath.Name,
+                            ParentPath = docPath.Parent?.Value,
+                            DocumentId = dbDoc.Id,
+                            StorageKey = dbDoc.StorageKey,
+                            ContentType = dbDoc.ContentType,
+                            FileSize = dbDoc.FileSize,
+                            Hash = dbDoc.Hash,
+                            Created = dbDoc.Created,
+                            LastModified = dbDoc.LastModified,
+                        });
+                        await context.SaveChangesAsync().ConfigureAwait(false);
+                        documentContext.Apply(created);
+                    }
+                }
+            }
 
             using (var context = CreateContext(configuration))
             {
                 var historyIdsToRemove = documentContext.DeletableHistories.Select(h => h.Id).ToList();
-                var historiesToRemove = context.DocumentHistories.Where(h => historyIdsToRemove.Contains(h.Id));
-                context.DocumentHistories.RemoveRange(historiesToRemove);
-                await context.SaveChangesAsync().ConfigureAwait(false);
+                var rep = (historyIdsToRemove.Count / 1000) + 1;
+                for (var i = 0; i < rep; i++)
+                {
+                    var historyIdsToRemoveSubset = historyIdsToRemove.Skip(i * 1000).Take(1000).ToList();
+                    var historiesToRemove = context.DocumentHistories.Where(h => historyIdsToRemoveSubset.Contains(h.Id));
+                    context.DocumentHistories.RemoveRange(historiesToRemove);
+                    await context.SaveChangesAsync().ConfigureAwait(false);
+                }
             }
 
             foreach (var doc in documentContext.Documents)
@@ -206,7 +260,7 @@ namespace Docms.Maintainance.CleanupTask
                         logger.LogWarning("document props does not match history. creating path. path: " + doc.Path);
                         using (var context = CreateContext(configuration))
                         {
-                            context.DocumentHistories.Add(new DocumentHistory()
+                            var created = new DocumentHistory()
                             {
                                 Id = Guid.NewGuid(),
                                 Discriminator = DocumentHistoryDiscriminator.DocumentUpdated,
@@ -219,8 +273,10 @@ namespace Docms.Maintainance.CleanupTask
                                 Hash = document.Hash,
                                 Created = document.Created,
                                 LastModified = document.LastModified
-                            });
+                            };
+                            context.DocumentHistories.Add(created);
                             await context.SaveChangesAsync().ConfigureAwait(false);
+                            documentContext.Apply(created);
                         }
                     }
 
@@ -238,7 +294,10 @@ namespace Docms.Maintainance.CleanupTask
                         using (var context = CreateContext(configuration))
                         {
                             var _blob = await context.Blobs.FindAsync(blob.Path).ConfigureAwait(false);
-                            context.Blobs.Remove(_blob);
+                            if (_blob != null)
+                            {
+                                context.Blobs.Remove(_blob);
+                            }
                             var docPath = new DocumentPath(document.Path);
                             await EnsureDirectoryExists(context, docPath.Parent).ConfigureAwait(false);
                             context.Blobs.Add(new Blob()
@@ -283,6 +342,7 @@ namespace Docms.Maintainance.CleanupTask
                     }
                     if (document != null || blobs != null)
                     {
+                        logger.LogWarning("delete document id: " + documentId + (document != null ? document.Path != null ? " path:" + document.Path : "" : ""));
                         await context.SaveChangesAsync().ConfigureAwait(false);
                     }
                 }
@@ -291,7 +351,6 @@ namespace Docms.Maintainance.CleanupTask
             foreach (var key in blobKeysSet)
             {
                 logger.LogWarning("delete data for key: " + key);
-                var dataStore = CreateDataStore(configuration);
                 await dataStore.DeleteAsync(key).ConfigureAwait(false);
             }
 
