@@ -80,6 +80,7 @@ namespace Docms.Web.Application.Commands
                 {
                     if (data.Hash == document.Hash)
                     {
+                        await _dataStore.DeleteAsync(storageKey).ConfigureAwait(false);
                         return true;
                     }
 
