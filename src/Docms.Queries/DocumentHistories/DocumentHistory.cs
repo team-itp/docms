@@ -25,7 +25,7 @@ namespace Docms.Queries.DocumentHistories
         public int DocumentId { get; set; }
         [Column("Path")]
         [Required]
-        [MaxLength(4000)]
+        [MaxLength(800)]
         public string Path { get; set; }
         [Column("StorageKey")]
         public string StorageKey { get; set; }

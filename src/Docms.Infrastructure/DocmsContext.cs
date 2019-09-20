@@ -105,7 +105,8 @@ namespace Docms.Infrastructure
                         ? DateTime.SpecifyKind(value, DateTimeKind.Utc)
                         : value);
             modelBuilder.Entity<DocumentHistory>()
-                .HasIndex("Path", "Timestamp");
+                .HasIndex("Path", "Timestamp")
+                .ForSqlServerIsClustered(true);
             modelBuilder.Entity<DocumentHistory>()
                 .Property(d => d.Created)
                 .HasConversion(

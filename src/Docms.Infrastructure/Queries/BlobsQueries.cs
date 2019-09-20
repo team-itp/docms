@@ -22,7 +22,8 @@ namespace Docms.Infrastructure.Queries
                     Path = "",
                     Entries = _db.Entries
                         .Where(e => string.IsNullOrEmpty(e.ParentPath))
-                        .OrderBy(e => e is BlobContainer ? "00" + e.Path : e.Path)
+                        .OrderBy(e => e is BlobContainer ? 1 : 2)
+                        .ThenBy(e => e.Name.ToUpperInvariant())
                         .ToList()
                 };
             }
@@ -36,7 +37,9 @@ namespace Docms.Infrastructure.Queries
                 var container = entry as BlobContainer;
                 await _db.Entry(container)
                     .Collection(e => e.Entries).LoadAsync();
-                container.Entries = container.Entries.OrderBy(e => e is BlobContainer ? "00" + e.Path : e.Path).ToList();
+                container.Entries = container.Entries
+                        .OrderBy(e => e is BlobContainer ? 1 : 2)
+                        .ThenBy(e => e.Name.ToUpperInvariant()).ToList();
             }
 
             return entry;

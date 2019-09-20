@@ -10,7 +10,7 @@ namespace Docms.Infrastructure.EntityConfigurations
         {
             builder.Ignore(d => d.DomainEvents);
             builder.HasIndex(d => d.Path);
-            builder.Property(p => p.Path).HasMaxLength(4000);
+            builder.Property(p => p.Path).HasMaxLength(800);
         }
     }
 }
