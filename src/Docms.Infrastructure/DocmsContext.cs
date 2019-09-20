@@ -93,6 +93,14 @@ namespace Docms.Infrastructure
                         ? DateTime.SpecifyKind(value, DateTimeKind.Utc)
                         : value);
             modelBuilder.Entity<DocumentHistory>()
+                .HasKey(d => d.Id)
+                .ForSqlServerIsClustered(false);
+            modelBuilder.Entity<DocumentHistory>()
+                .HasIndex("Timestamp", "Path")
+                .ForSqlServerIsClustered(true);
+            modelBuilder.Entity<DocumentHistory>()
+                .HasIndex(h => h.Path);
+            modelBuilder.Entity<DocumentHistory>()
                 .Property(d => d.Discriminator)
                 .HasConversion(
                     value => Enum.GetName(typeof(DocumentHistoryDiscriminator), value),
@@ -104,9 +112,6 @@ namespace Docms.Infrastructure
                     value => value.Kind == DateTimeKind.Unspecified
                         ? DateTime.SpecifyKind(value, DateTimeKind.Utc)
                         : value);
-            modelBuilder.Entity<DocumentHistory>()
-                .HasIndex("Path", "Timestamp")
-                .ForSqlServerIsClustered(true);
             modelBuilder.Entity<DocumentHistory>()
                 .Property(d => d.Created)
                 .HasConversion(
