@@ -85,7 +85,7 @@ namespace Docms.Maintainance.CleanupTask
             }
 
             var documentContext = new DocumentContext(allDocumentHistories, blobKeysSet, services);
-            var maintainanceDocumentsByPath = documentContext.Documents.ToLookup(d => d.Path);
+            var maintainanceDocumentsByPath = documentContext.Documents.Where(d => !d.Deleted).ToLookup(d => d.Path);
             foreach (var dbDoc in allDocuments.Where(d => !string.IsNullOrEmpty(d.Path)).OrderBy(d => d.LastModified))
             {
                 if (!maintainanceDocumentsByPath[dbDoc.Path].Any())
@@ -97,7 +97,7 @@ namespace Docms.Maintainance.CleanupTask
                         var created = new DocumentHistory()
                         {
                             Id = Guid.NewGuid(),
-                            Discriminator = DocumentHistoryDiscriminator.DocumentUpdated,
+                            Discriminator = DocumentHistoryDiscriminator.DocumentCreated,
                             Timestamp = DateTime.UtcNow,
                             DocumentId = dbDoc.Id,
                             Path = dbDoc.Path,
@@ -253,9 +253,12 @@ namespace Docms.Maintainance.CleanupTask
                     }
 
                     if (document.Hash != doc.Hash
-                        && document.FileSize != doc.FileSize
-                        && document.Created != doc.Created
-                        && document.LastModified != doc.LastModified)
+                        || document.FileSize != doc.FileSize
+                        || document.Hash != doc.Hash
+                        || document.StorageKey != doc.StorageKey
+                        || document.ContentType != doc.ContentType
+                        || document.LastModified != doc.LastModified
+                        || document.Created != doc.Created)
                     {
                         logger.LogWarning("document props does not match history. creating path. path: " + doc.Path);
                         using (var context = CreateContext(configuration))
@@ -287,6 +290,7 @@ namespace Docms.Maintainance.CleanupTask
                         || blob.DocumentId != document.Id
                         || blob.FileSize != document.FileSize
                         || blob.Hash != document.Hash
+                        || blob.StorageKey != document.StorageKey
                         || blob.ContentType != document.ContentType
                         || blob.LastModified != document.LastModified
                         || blob.Created != document.Created)
