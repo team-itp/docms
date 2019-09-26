@@ -1,5 +1,6 @@
 import { createStore, applyMiddleware } from 'redux';
 import reducers from './reducers';
+import api from './middlewares/api';
 
 /**
  * Logs all actions and states after they are dispatched.
@@ -142,7 +143,8 @@ const store = createStore(reducers,
     vanillaPromise,
     readyStatePromise,
     logger,
-    crashReporter
+    crashReporter,
+    ...api
   ));
 
 export default store;

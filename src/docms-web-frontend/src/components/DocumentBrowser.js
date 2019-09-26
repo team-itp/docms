@@ -2,7 +2,7 @@ import React from 'react';
 import { connect } from 'react-redux';
 import { Link as RouterLink, withRouter } from 'react-router-dom';
 import { Breadcrumbs, Container, Link, Typography, Toolbar, Paper, Grid } from '@material-ui/core';
-import { fetchDocument } from '../redux/actions/documents';
+import { requestDocument } from '../redux/actions/documents';
 
 class DocumentBrowser extends React.Component {
 
@@ -83,7 +83,7 @@ function mapStateToProps(state, props) {
 
 function mapDispatchToProps(dispatch, props) {
   return {
-    onSelectPath: path => dispatch(fetchDocument(props.path))
+    onSelectPath: path => dispatch(requestDocument(props.path))
   };
 }
 

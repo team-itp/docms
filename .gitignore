@@ -261,3 +261,5 @@ __pycache__/
 *.pyc
 /src/Docms.Web/App_Data
 /src/Docms.Web/tempkey.rsa
+
+.vscode/

@@ -2,7 +2,7 @@ import React from 'react';
 import { Redirect } from 'react-router-dom';
 import { connect } from 'react-redux';
 import { Button, Container, FormControlLabel, Grid, Switch, Typography, TextField } from '@material-ui/core';
-import { login } from '../redux/actions';
+import { requestLogin } from '../redux/actions';
 
 class Login extends React.Component {
   constructor(props) {
@@ -84,7 +84,7 @@ function mapStateToProps(state, ownProps) {
 
 function mapDispatchToProps(dispatch, ownProps) {
   return {
-    login: (userName, password) => dispatch(login(userName, password))
+    login: (userName, password) => dispatch(requestLogin(userName, password))
   }
 }
 
