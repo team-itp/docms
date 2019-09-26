@@ -9,7 +9,6 @@ using System.Threading.Tasks;
 namespace Docms.Client.Tests
 {
     [TestClass]
-    [Ignore]
     public class DocmsApiClientTests
     {
         private static bool noConnection;
@@ -51,10 +50,12 @@ namespace Docms.Client.Tests
         public async Task サーバーよりサブディレクトリ内のファイルの一覧を取得する()
         {
             if (noConnection) Assert.Fail("接続不良のため失敗");
-            await sut.CreateOrUpdateDocumentAsync("test1/test1.txt", new MemoryStream(Encoding.UTF8.GetBytes("test1"))).ConfigureAwait(false);
+            await sut.CreateOrUpdateDocumentAsync(
+                "test1/test1.txt", 
+                () => new MemoryStream(Encoding.UTF8.GetBytes("test1"))).ConfigureAwait(false);
             await sut.DeleteDocumentAsync("test1/test1.txt").ConfigureAwait(false);
             await sut.CreateOrUpdateDocumentAsync("test1/test1.txt",
-                new MemoryStream(Encoding.UTF8.GetBytes("test1")),
+                () => new MemoryStream(Encoding.UTF8.GetBytes("test1")),
                 new DateTime(2018, 10, 1, 0, 0, 0, DateTimeKind.Utc),
                 new DateTime(2018, 10, 2, 0, 0, 0, DateTimeKind.Utc)).ConfigureAwait(false);
             await sut.VerifyTokenAsync().ConfigureAwait(false);
@@ -77,7 +78,9 @@ namespace Docms.Client.Tests
         {
             if (noConnection) Assert.Fail("接続不良のため失敗");
             await sut.VerifyTokenAsync().ConfigureAwait(false);
-            await sut.CreateOrUpdateDocumentAsync("test1/subtest1/test.txt", new MemoryStream(Encoding.UTF8.GetBytes("test1"))).ConfigureAwait(false);
+            await sut.CreateOrUpdateDocumentAsync(
+                "test1/subtest1/test.txt", 
+                () => new MemoryStream(Encoding.UTF8.GetBytes("test1"))).ConfigureAwait(false);
             var entries = await sut.GetEntriesAsync("test1/subtest1").ConfigureAwait(false);
             Assert.IsTrue(entries.Any(e => e.Path == "test1/subtest1/test.txt"));
         }
@@ -87,7 +90,7 @@ namespace Docms.Client.Tests
         {
             if (noConnection) Assert.Fail("接続不良のため失敗");
             await sut.VerifyTokenAsync().ConfigureAwait(false);
-            await sut.CreateOrUpdateDocumentAsync("test1/subtest1/test.txt", new MemoryStream(
+            await sut.CreateOrUpdateDocumentAsync("test1/subtest1/test.txt", () => new MemoryStream(
                 Enumerable.Range(0, 300_000_000).Select(v => (byte)v).ToArray())
             ).ConfigureAwait(false);
             var entries = await sut.GetEntriesAsync("test1/subtest1").ConfigureAwait(false);
@@ -99,8 +102,8 @@ namespace Docms.Client.Tests
         {
             if (noConnection) Assert.Fail("接続不良のため失敗");
             await sut.VerifyTokenAsync().ConfigureAwait(false);
-            await sut.CreateOrUpdateDocumentAsync("test1/subtest1/test1.txt", new MemoryStream(Encoding.UTF8.GetBytes("test1"))).ConfigureAwait(false);
-            await sut.CreateOrUpdateDocumentAsync("test1/subtest1/test2.txt", new MemoryStream(Encoding.UTF8.GetBytes("test2"))).ConfigureAwait(false);
+            await sut.CreateOrUpdateDocumentAsync("test1/subtest1/test1.txt", () => new MemoryStream(Encoding.UTF8.GetBytes("test1"))).ConfigureAwait(false);
+            await sut.CreateOrUpdateDocumentAsync("test1/subtest1/test2.txt", () => new MemoryStream(Encoding.UTF8.GetBytes("test2"))).ConfigureAwait(false);
             await sut.DeleteDocumentAsync("test1/subtest1/test2.txt").ConfigureAwait(false);
             await sut.MoveDocumentAsync("test1/subtest1/test1.txt", "test1/subtest1/test2.txt").ConfigureAwait(false);
             Assert.IsNull(await sut.GetDocumentAsync("test1/subtest1/test1.txt").ConfigureAwait(false));
@@ -112,7 +115,7 @@ namespace Docms.Client.Tests
         {
             if (noConnection) Assert.Fail("接続不良のため失敗");
             await sut.VerifyTokenAsync().ConfigureAwait(false);
-            await sut.CreateOrUpdateDocumentAsync("test1/subtest1/test1.txt", new MemoryStream(Encoding.UTF8.GetBytes("test1"))).ConfigureAwait(false);
+            await sut.CreateOrUpdateDocumentAsync("test1/subtest1/test1.txt", () => new MemoryStream(Encoding.UTF8.GetBytes("test1"))).ConfigureAwait(false);
             await sut.DeleteDocumentAsync("test1/subtest1/test1.txt").ConfigureAwait(false);
             Assert.IsNull(await sut.GetDocumentAsync("test1/subtest1/test1.txt").ConfigureAwait(false));
             await Assert.ThrowsExceptionAsync<ServerException>(async () => await sut.DownloadAsync("test1/subtest1/test1.txt").ConfigureAwait(false));
@@ -123,7 +126,7 @@ namespace Docms.Client.Tests
         {
             if (noConnection) Assert.Fail("接続不良のため失敗");
             await sut.VerifyTokenAsync().ConfigureAwait(false);
-            await sut.CreateOrUpdateDocumentAsync("test1/subtest1/test1.txt", new MemoryStream(Encoding.UTF8.GetBytes("test1"))).ConfigureAwait(false);
+            await sut.CreateOrUpdateDocumentAsync("test1/subtest1/test1.txt", () => new MemoryStream(Encoding.UTF8.GetBytes("test1"))).ConfigureAwait(false);
             await sut.DeleteDocumentAsync("test1/subtest1/test1.txt").ConfigureAwait(false);
             await sut.DeleteDocumentAsync("test1/subtest1/test1.txt").ConfigureAwait(false);
         }

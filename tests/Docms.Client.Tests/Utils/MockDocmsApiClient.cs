@@ -135,14 +135,14 @@ namespace Docms.Client.Tests.Utils
             });
         }
 
-        public Task CreateOrUpdateDocumentAsync(string path, Stream stream, DateTime? created = null, DateTime? lastModified = null)
+        public Task CreateOrUpdateDocumentAsync(string path, Func<Stream> streamFactory, DateTime? created = null, DateTime? lastModified = null)
         {
             if (entries.ContainsKey(path))
             {
                 RemoveFile(path);
                 using (var ms = new MemoryStream())
                 {
-                    stream.CopyTo(ms);
+                    streamFactory.Invoke().CopyTo(ms);
                     ms.Seek(0, SeekOrigin.Begin);
                     var now = DateTime.UtcNow;
                     AddFile(path, "application/octet-stream", ms.ToArray(), created ?? now, lastModified ?? now);
@@ -153,7 +153,7 @@ namespace Docms.Client.Tests.Utils
             {
                 using (var ms = new MemoryStream())
                 {
-                    stream.CopyTo(ms);
+                    streamFactory.Invoke().CopyTo(ms);
                     ms.Seek(0, SeekOrigin.Begin);
                     var now = DateTime.UtcNow;
                     AddFile(path, "application/octet-stream", ms.ToArray(), created ?? now, lastModified ?? now);
