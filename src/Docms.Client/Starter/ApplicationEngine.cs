@@ -1,4 +1,5 @@
-﻿using Docms.Client.Tasks;
+﻿using Docms.Client.Exceptions;
+using Docms.Client.Tasks;
 using NLog;
 using System;
 using System.Threading.Tasks;
@@ -54,15 +55,18 @@ namespace Docms.Client.Starter
             }
             catch (ServiceUnavailableException ex)
             {
-                logger.Error(ex);
+                logger.Error(ex.Message);
+                logger.Debug(ex);
                 if (!app.ShutdownRequestedToken.IsCancellationRequested)
+                {
+                    logger.Info("アプリケーションを1分間停止します。");
                     await Task.Delay(TimeSpan.FromMinutes(1)).ConfigureAwait(false);
+                }
                 return false;
             }
-            catch (Exception ex)
+            catch
             {
-                logger.Error(ex);
-                return false;
+                throw;
             }
         }
     }

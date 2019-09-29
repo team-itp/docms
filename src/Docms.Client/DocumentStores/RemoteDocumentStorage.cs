@@ -1,6 +1,7 @@
 ﻿using Docms.Client.Api;
 using Docms.Client.Data;
 using Docms.Client.Documents;
+using Docms.Client.Exceptions;
 using Docms.Client.Types;
 using Microsoft.EntityFrameworkCore;
 using NLog;
@@ -71,7 +72,22 @@ namespace Docms.Client.DocumentStores
                 {
                     logger.Trace($"latest history: {latestHistory.Path} ({latestHistory.Id}, {latestHistory.Timestamp})");
                 }
-                var histories = await api.GetHistoriesAsync("", latestHistory?.Id).ConfigureAwait(false);
+                var histories = default(IEnumerable<History>);
+                if (latestHistory == null)
+                {
+                    histories = await api.GetHistoriesAsync("").ConfigureAwait(false);
+                }
+                else
+                {
+                    try
+                    {
+                        histories = await api.GetHistoriesAsync("", latestHistory.Id).ConfigureAwait(false);
+                    }
+                    catch (ServerException ex) when(ex.StatusCode == 400)
+                    {
+                        throw new ApplicationNeedsReinitializeException(ex);
+                    }
+                }
                 var historiesToAdd = new List<History>();
                 foreach (var history in histories)
                 {

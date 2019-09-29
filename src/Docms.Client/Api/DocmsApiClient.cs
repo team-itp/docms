@@ -1,5 +1,6 @@
 ﻿using Docms.Client.Api.Responses;
 using Docms.Client.Api.Serialization;
+using Docms.Client.Exceptions;
 using IdentityModel.Client;
 using Newtonsoft.Json;
 using NLog;
@@ -31,7 +32,7 @@ namespace Docms.Client.Api
 
         public JsonSerializerSettings DefaultJsonSerializerSettings { get; set; }
 
-        public DocmsApiClient(string uri, string defaultPath = "api/v1")
+        public DocmsApiClient(string uri, string defaultPath = "api/v1", string uploadClientId = null)
         {
             if (string.IsNullOrWhiteSpace(uri))
             {
@@ -72,7 +73,7 @@ namespace Docms.Client.Api
 
                 if (_tokenEndpoint == null)
                 {
-                    throw new InvalidLoginException();
+                    throw new ServiceUnavailableException();
                 }
 
                 var client = new TokenClient(

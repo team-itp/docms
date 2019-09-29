@@ -1,5 +1,6 @@
 ﻿using Docms.Client.Api;
 using Docms.Client.Api.Responses;
+using Docms.Client.Exceptions;
 using System;
 using System.Collections.Generic;
 using System.IO;

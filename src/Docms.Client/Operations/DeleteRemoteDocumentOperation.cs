@@ -21,7 +21,7 @@ namespace Docms.Client.Operations
             var fi = context.FileSystem.GetFileInfo(path);
             if (fi == null)
             {
-                await context.Api.DeleteDocumentAsync(path.ToString()).ConfigureAwait(false);
+                await Api.DeleteDocumentAsync(path.ToString()).ConfigureAwait(false);
                 context.SynchronizationContext.DeleteRequested(path);
             }
         }

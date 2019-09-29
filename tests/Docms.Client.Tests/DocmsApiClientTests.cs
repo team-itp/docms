@@ -1,4 +1,5 @@
 ﻿using Docms.Client.Api;
+using Docms.Client.Exceptions;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using System;
 using System.IO;
@@ -10,6 +11,7 @@ using System.Threading.Tasks;
 namespace Docms.Client.Tests
 {
     [TestClass]
+    [Ignore]
     public class DocmsApiClientTests
     {
         private static bool noConnection;
@@ -26,7 +28,7 @@ namespace Docms.Client.Tests
                 sut = new DocmsApiClient("http://localhost:51693");
                 await sut.LoginAsync("testuser", "Passw0rd").ConfigureAwait(false);
             }
-            catch (Exception)
+            catch
             {
                 noConnection = true;
             }

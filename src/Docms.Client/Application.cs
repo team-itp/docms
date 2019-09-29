@@ -1,5 +1,8 @@
-﻿using Docms.Client.Starter;
+﻿using Docms.Client.Exceptions;
+using Docms.Client.Starter;
 using NLog;
+using System;
+using System.IO;
 using System.Threading;
 
 namespace Docms.Client
@@ -21,21 +24,44 @@ namespace Docms.Client
         public void Run()
         {
             _logger.Info("Application started.");
-            try
+            while (true)
             {
-                var starter = new ApplicationStarter(
-                    _options.WatchPath,
-                    _options.ServerUrl,
-                    _options.UploadClientId,
-                    _options.UploadUserName,
-                    _options.UploadUserPassword);
-                using (var task = starter.StartAsync())
-                using (var context = task.GetAwaiter().GetResult())
+                try
                 {
-                    new ApplicationEngine(this, context).StartAsync().GetAwaiter().GetResult();
+                    var starter = new ApplicationStarter(
+                        _options.WatchPath,
+                        _options.ServerUrl,
+                        _options.UploadClientId,
+                        _options.UploadUserName,
+                        _options.UploadUserPassword);
+                    using (var context = starter.StartAsync().GetAwaiter().GetResult())
+                    {
+                        new ApplicationEngine(this, context).StartAsync().GetAwaiter().GetResult();
+                    }
+                    return;
+                }
+                catch (ApplicationNeedsReinitializeException ex)
+                {
+                    _logger.Error(ex.Message);
+                    _logger.Debug(ex);
+                    _logger.Info("Application error. Removing .docms direcotry...");
+                    var success = false;
+                    while (!success && !_cancellationTokenSource.IsCancellationRequested)
+                    {
+                        try
+                        {
+                            Directory.Delete(Path.Combine(_options.WatchPath, ".docms"), true);
+                            _logger.Info("Removing .docms direcotry succeeded.");
+                            success = true;
+                        }
+                        catch
+                        {
+                            // フォルダを削除できるまで継続
+                            Thread.Sleep(1000);
+                        }
+                    }
                 }
             }
-            catch { }
         }
 
         public void Shutdown()
