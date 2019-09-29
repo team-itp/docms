@@ -13,6 +13,7 @@ namespace Docms.Infrastructure.Migrations
                 columns: table => new
                 {
                     DeviceId = table.Column<string>(nullable: false),
+                    DeviceUserAgent = table.Column<string>(nullable: true),
                     IsGranted = table.Column<bool>(nullable: false),
                     GrantedBy = table.Column<string>(nullable: true),
                     GrantedAt = table.Column<DateTime>(nullable: true),
@@ -34,6 +35,7 @@ namespace Docms.Infrastructure.Migrations
                     DeviceId = table.Column<string>(nullable: true),
                     UsedBy = table.Column<string>(nullable: true),
                     Granted = table.Column<bool>(nullable: false),
+                    DeviceUserAgent = table.Column<string>(nullable: true)
                 },
                 constraints: table =>
                 {
@@ -46,19 +48,20 @@ namespace Docms.Infrastructure.Migrations
                 {
                     Id = table.Column<Guid>(nullable: false),
                     Timestamp = table.Column<DateTime>(nullable: false),
-                    Path = table.Column<string>(nullable: true),
-                    Created = table.Column<DateTime>(nullable: true),
                     Discriminator = table.Column<string>(nullable: false),
-                    LastModified = table.Column<DateTime>(nullable: true),
+                    DocumentId = table.Column<int>(nullable: false),
+                    Path = table.Column<string>(maxLength: 800, nullable: false),
+                    StorageKey = table.Column<string>(nullable: true),
                     ContentType = table.Column<string>(nullable: true),
                     FileSize = table.Column<long>(nullable: true),
                     Hash = table.Column<string>(nullable: true),
-                    OldPath = table.Column<string>(nullable: true),
-                    NewPath = table.Column<string>(nullable: true)
+                    Created = table.Column<DateTime>(nullable: true),
+                    LastModified = table.Column<DateTime>(nullable: true)
                 },
                 constraints: table =>
                 {
-                    table.PrimaryKey("PK_DocumentHistories", x => x.Id);
+                    table.PrimaryKey("PK_DocumentHistories", x => x.Id)
+                        .Annotation("SqlServer:Clustered", false);
                 });
 
             migrationBuilder.CreateTable(
@@ -67,12 +70,13 @@ namespace Docms.Infrastructure.Migrations
                 {
                     Id = table.Column<int>(nullable: false)
                         .Annotation("SqlServer:ValueGenerationStrategy", SqlServerValueGenerationStrategy.IdentityColumn),
-                    Path = table.Column<string>(nullable: true),
+                    Path = table.Column<string>(maxLength: 800, nullable: true),
                     ContentType = table.Column<string>(nullable: true),
                     FileSize = table.Column<long>(nullable: false),
                     Hash = table.Column<string>(nullable: true),
                     Created = table.Column<DateTime>(nullable: false),
-                    LastModified = table.Column<DateTime>(nullable: false)
+                    LastModified = table.Column<DateTime>(nullable: false),
+                    StorageKey = table.Column<string>(nullable: true)
                 },
                 constraints: table =>
                 {
@@ -83,13 +87,16 @@ namespace Docms.Infrastructure.Migrations
                 name: "Entries",
                 columns: table => new
                 {
-                    Path = table.Column<string>(nullable: false),
+                    Path = table.Column<string>(maxLength: 800, nullable: false),
                     Name = table.Column<string>(nullable: true),
-                    ParentPath = table.Column<string>(nullable: true),
+                    ParentPath = table.Column<string>(maxLength: 800, nullable: true),
                     Discriminator = table.Column<string>(nullable: false),
+                    DocumentId = table.Column<int>(nullable: true),
+                    StorageKey = table.Column<string>(nullable: true),
                     ContentType = table.Column<string>(nullable: true),
                     FileSize = table.Column<long>(nullable: true),
                     Hash = table.Column<string>(nullable: true),
+                    Created = table.Column<DateTime>(nullable: true),
                     LastModified = table.Column<DateTime>(nullable: true)
                 },
                 constraints: table =>
@@ -114,6 +121,22 @@ namespace Docms.Infrastructure.Migrations
                 {
                     table.PrimaryKey("PK_Users", x => x.Id);
                 });
+
+            migrationBuilder.CreateIndex(
+                name: "IX_DocumentHistories_Path",
+                table: "DocumentHistories",
+                column: "Path");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_DocumentHistories_Timestamp_Path",
+                table: "DocumentHistories",
+                columns: new[] { "Timestamp", "Path" })
+                .Annotation("SqlServer:Clustered", true);
+
+            migrationBuilder.CreateIndex(
+                name: "IX_Documents_Path",
+                table: "Documents",
+                column: "Path");
 
             migrationBuilder.CreateIndex(
                 name: "IX_Entries_ParentPath",

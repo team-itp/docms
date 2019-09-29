@@ -10,14 +10,14 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace Docms.Infrastructure.Migrations
 {
     [DbContext(typeof(DocmsContext))]
-    [Migration("20181028143805_AddCreationTimeField")]
-    partial class AddCreationTimeField
+    [Migration("20190929044833_InitialCreate")]
+    partial class InitialCreate
     {
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
-                .HasAnnotation("ProductVersion", "2.1.3-rtm-32065")
+                .HasAnnotation("ProductVersion", "2.2.6-servicing-10079")
                 .HasAnnotation("Relational:MaxIdentifierLength", 128)
                 .HasAnnotation("SqlServer:ValueGenerationStrategy", SqlServerValueGenerationStrategy.IdentityColumn);
 
@@ -37,9 +37,14 @@ namespace Docms.Infrastructure.Migrations
 
                     b.Property<DateTime>("LastModified");
 
-                    b.Property<string>("Path");
+                    b.Property<string>("Path")
+                        .HasMaxLength(800);
+
+                    b.Property<string>("StorageKey");
 
                     b.HasKey("Id");
+
+                    b.HasIndex("Path");
 
                     b.ToTable("Documents");
                 });
@@ -81,7 +86,8 @@ namespace Docms.Infrastructure.Migrations
                 {
                     b.Property<string>("Path")
                         .ValueGeneratedOnAdd()
-                        .HasColumnName("Path");
+                        .HasColumnName("Path")
+                        .HasMaxLength(800);
 
                     b.Property<string>("Discriminator")
                         .IsRequired();
@@ -90,7 +96,8 @@ namespace Docms.Infrastructure.Migrations
                         .HasColumnName("Name");
 
                     b.Property<string>("ParentPath")
-                        .HasColumnName("ParentPath");
+                        .HasColumnName("ParentPath")
+                        .HasMaxLength(800);
 
                     b.HasKey("Path");
 
@@ -139,20 +146,48 @@ namespace Docms.Infrastructure.Migrations
                         .ValueGeneratedOnAdd()
                         .HasColumnName("Id");
 
+                    b.Property<string>("ContentType")
+                        .HasColumnName("ContentType");
+
+                    b.Property<DateTime?>("Created")
+                        .HasColumnName("Created");
+
                     b.Property<string>("Discriminator")
-                        .IsRequired();
+                        .IsRequired()
+                        .HasColumnName("Discriminator");
+
+                    b.Property<int>("DocumentId")
+                        .HasColumnName("DocumentId");
+
+                    b.Property<long?>("FileSize")
+                        .HasColumnName("FileSize");
+
+                    b.Property<string>("Hash")
+                        .HasColumnName("Hash");
+
+                    b.Property<DateTime?>("LastModified")
+                        .HasColumnName("LastModified");
 
                     b.Property<string>("Path")
-                        .HasColumnName("Path");
+                        .IsRequired()
+                        .HasColumnName("Path")
+                        .HasMaxLength(800);
+
+                    b.Property<string>("StorageKey")
+                        .HasColumnName("StorageKey");
 
                     b.Property<DateTime>("Timestamp")
                         .HasColumnName("Timestamp");
 
-                    b.HasKey("Id");
+                    b.HasKey("Id")
+                        .HasAnnotation("SqlServer:Clustered", false);
+
+                    b.HasIndex("Path");
+
+                    b.HasIndex("Timestamp", "Path")
+                        .HasAnnotation("SqlServer:Clustered", true);
 
                     b.ToTable("DocumentHistories");
-
-                    b.HasDiscriminator<string>("Discriminator").HasValue("DocumentHistory");
                 });
 
             modelBuilder.Entity("Docms.Queries.Blobs.Blob", b =>
@@ -165,6 +200,9 @@ namespace Docms.Infrastructure.Migrations
                     b.Property<DateTime>("Created")
                         .HasColumnName("Created");
 
+                    b.Property<int>("DocumentId")
+                        .HasColumnName("DocumentId");
+
                     b.Property<long>("FileSize")
                         .HasColumnName("FileSize");
 
@@ -174,7 +212,8 @@ namespace Docms.Infrastructure.Migrations
                     b.Property<DateTime>("LastModified")
                         .HasColumnName("LastModified");
 
-                    b.ToTable("Blob");
+                    b.Property<string>("StorageKey")
+                        .HasColumnName("StorageKey");
 
                     b.HasDiscriminator().HasValue("Blob");
                 });
@@ -183,107 +222,7 @@ namespace Docms.Infrastructure.Migrations
                 {
                     b.HasBaseType("Docms.Queries.Blobs.BlobEntry");
 
-
-                    b.ToTable("BlobContainer");
-
                     b.HasDiscriminator().HasValue("BlobContainer");
-                });
-
-            modelBuilder.Entity("Docms.Queries.DocumentHistories.DocumentCreated", b =>
-                {
-                    b.HasBaseType("Docms.Queries.DocumentHistories.DocumentHistory");
-
-                    b.Property<string>("ContentType")
-                        .HasColumnName("ContentType");
-
-                    b.Property<DateTime>("Created")
-                        .HasColumnName("Created");
-
-                    b.Property<long>("FileSize")
-                        .HasColumnName("FileSize");
-
-                    b.Property<string>("Hash")
-                        .HasColumnName("Hash");
-
-                    b.Property<DateTime>("LastModified")
-                        .HasColumnName("LastModified");
-
-                    b.ToTable("DocumentCreated");
-
-                    b.HasDiscriminator().HasValue("DocumentCreated");
-                });
-
-            modelBuilder.Entity("Docms.Queries.DocumentHistories.DocumentDeleted", b =>
-                {
-                    b.HasBaseType("Docms.Queries.DocumentHistories.DocumentHistory");
-
-
-                    b.ToTable("DocumentDeleted");
-
-                    b.HasDiscriminator().HasValue("DocumentDeleted");
-                });
-
-            modelBuilder.Entity("Docms.Queries.DocumentHistories.DocumentMovedFromOldPath", b =>
-                {
-                    b.HasBaseType("Docms.Queries.DocumentHistories.DocumentHistory");
-
-                    b.Property<string>("ContentType")
-                        .HasColumnName("ContentType");
-
-                    b.Property<DateTime>("Created")
-                        .HasColumnName("Created");
-
-                    b.Property<long>("FileSize")
-                        .HasColumnName("FileSize");
-
-                    b.Property<string>("Hash")
-                        .HasColumnName("Hash");
-
-                    b.Property<DateTime>("LastModified")
-                        .HasColumnName("LastModified");
-
-                    b.Property<string>("OldPath")
-                        .HasColumnName("OldPath");
-
-                    b.ToTable("DocumentMovedFromOldPath");
-
-                    b.HasDiscriminator().HasValue("DocumentMovedFromOldPath");
-                });
-
-            modelBuilder.Entity("Docms.Queries.DocumentHistories.DocumentMovedToNewPath", b =>
-                {
-                    b.HasBaseType("Docms.Queries.DocumentHistories.DocumentHistory");
-
-                    b.Property<string>("NewPath")
-                        .HasColumnName("NewPath");
-
-                    b.ToTable("DocumentMovedToNewPath");
-
-                    b.HasDiscriminator().HasValue("DocumentMovedToNewPath");
-                });
-
-            modelBuilder.Entity("Docms.Queries.DocumentHistories.DocumentUpdated", b =>
-                {
-                    b.HasBaseType("Docms.Queries.DocumentHistories.DocumentHistory");
-
-                    b.Property<string>("ContentType")
-                        .HasColumnName("ContentType");
-
-                    b.Property<DateTime>("Created")
-                        .HasColumnName("Created");
-
-                    b.Property<long>("FileSize")
-                        .HasColumnName("FileSize");
-
-                    b.Property<string>("Hash")
-                        .HasColumnName("Hash");
-
-                    b.Property<DateTime>("LastModified")
-                        .HasColumnName("LastModified");
-
-                    b.ToTable("DocumentUpdated");
-
-                    b.HasDiscriminator().HasValue("DocumentUpdated");
                 });
 
             modelBuilder.Entity("Docms.Queries.Blobs.BlobEntry", b =>
