@@ -243,10 +243,5 @@ namespace Docms.Client.Tests.Utils
         {
             return Task.CompletedTask;
         }
-
-        public Task VerifyTokenAsync()
-        {
-            return Task.CompletedTask;
-        }
     }
 }

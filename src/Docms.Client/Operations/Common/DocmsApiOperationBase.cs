@@ -23,21 +23,19 @@ namespace Docms.Client.Operations
         {
             try
             {
-                try
-                {
-                    await ExecuteApiOperationAsync(token).ConfigureAwait(false);
-                }
-                catch (ServerException ex) when (ex.StatusCode == (int)HttpStatusCode.Unauthorized || ex.StatusCode == (int)HttpStatusCode.NotFound)
-                {
-                    await api.VerifyTokenAsync().ConfigureAwait(false);
-                    await ExecuteApiOperationAsync(token).ConfigureAwait(false);
-                }
+                await ExecuteApiOperationAsync(token).ConfigureAwait(false);
             }
             catch (ServerException ex) when (ex.StatusCode == (int)HttpStatusCode.Forbidden)
             {
+                // サーバーのクォータを使い切ったときに発生する想定
                 _logger.Info($"failed to process: {summary}");
                 _logger.Warn("returned Forbidden response. cancel all tasks");
                 throw new ServiceUnavailableException(ex);
+            }
+            catch (InvalidLoginException)
+            {
+                // サーバーへのログインがうまくいかなくなった場合に発生 → システムを停止させる
+                throw;
             }
             catch (Exception ex)
             {

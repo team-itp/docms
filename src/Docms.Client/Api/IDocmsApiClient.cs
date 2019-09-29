@@ -16,6 +16,5 @@ namespace Docms.Client.Api
         Task<IEnumerable<History>> GetHistoriesAsync(string path, Guid? latestHistoryId = default);
         Task LoginAsync(string username, string password);
         Task LogoutAsync();
-        Task VerifyTokenAsync();
     }
 }

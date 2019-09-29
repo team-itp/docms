@@ -116,36 +116,43 @@ namespace Docms.Client.Api
         }
 
         /// <summary>
-        /// トークンの検証を行う
+        /// 現在保持中のアクセストークンを確認する
         /// </summary>
         /// <returns></returns>
-        public async Task VerifyTokenAsync()
+        private async Task<bool> CheckAccessTokenIsActiveAsync()
         {
-            try
+            using (var client = new IntrospectionClient(
+                _introspectionEndpoint,
+                "docmsapi",
+                "docmsapi-secret"))
             {
-                using (var client = new IntrospectionClient(
-                    _introspectionEndpoint,
-                    "docmsapi",
-                    "docmsapi-secret"))
-                {
-                    var response = await client.SendAsync(
-                        new IntrospectionRequest
-                        {
-                            Token = _accessToken,
-                            ClientId = "docms-client",
-                            ClientSecret = "docms-client-secret",
-                        }).ConfigureAwait(false);
-
-                    _logger.Debug("token verified.");
-                    if (response.IsActive)
+                var response = await client.SendAsync(
+                    new IntrospectionRequest
                     {
-                        return;
-                    }
-                }
+                        Token = _accessToken,
+                        ClientId = "docms-client",
+                        ClientSecret = "docms-client-secret",
+                    }).ConfigureAwait(false);
 
+                _logger.Debug("token verified.");
+                return response.IsActive;
             }
-            catch { }
+        }
+
+        /// <summary>
+        /// トークンの検証を行い、エラーがあれば再度トークンを取得する
+        /// </summary>
+        /// <returns></returns>
+        private async Task<bool> VerifyTokenAsync()
+        {
+            if (await CheckAccessTokenIsActiveAsync().ConfigureAwait(false))
+            {
+                return true;
+            }
+
+            // 正常にログインできない場合はエラーが投げられる
             await LoginAsync(_username, _password).ConfigureAwait(false);
+            return false;
         }
 
         private async Task<IRestResponse> ExecuteAsync(Func<RestRequest> requestFactory)
@@ -155,14 +162,13 @@ namespace Docms.Client.Api
                 throw new InvalidLoginException();
             }
             var response = await _client.ExecuteTaskAsync(requestFactory.Invoke()).ConfigureAwait(false);
-            if (response.StatusCode == HttpStatusCode.Unauthorized)
+            if (response.StatusCode == HttpStatusCode.Unauthorized || response.StatusCode == HttpStatusCode.NotFound)
             {
-                try
+                if (await VerifyTokenAsync().ConfigureAwait(false))
                 {
-                    await VerifyTokenAsync().ConfigureAwait(false);
-                    response = await _client.ExecuteTaskAsync(requestFactory.Invoke()).ConfigureAwait(false);
+                    return response;
                 }
-                catch { }
+                response = await _client.ExecuteTaskAsync(requestFactory.Invoke()).ConfigureAwait(false);
             }
             return response;
         }
