@@ -29,18 +29,20 @@ namespace Docms.Infrastructure.Queries
             if (lastHistoryId != null)
             {
                 var lastHistory = ctx.DocumentHistories.Find(lastHistoryId.Value);
-                if (lastHistory != null)
+                if (lastHistory == null)
                 {
-                    var histories = ctx.DocumentHistories
-                        .Where(e => e.Timestamp == lastHistory.Timestamp)
-                        .OrderBy(h => h.Id)
-                        .Select(h => h.Id)
-                        .ToList()
-                        .TakeWhile(h => h != lastHistoryId.Value)
-                        .ToList();
-                    histories.Add(lastHistory.Id);
-                    query = query.Where(e => e.Timestamp >= lastHistory.Timestamp && !histories.Contains(e.Id));
+                    throw new SpecifiedDocumentHistoryNotExistsException("指定された履歴は存在しません。");
                 }
+                var histories = ctx.DocumentHistories
+                    .Where(e => e.Timestamp == lastHistory.Timestamp)
+                    .OrderBy(h => h.Id)
+                    .Select(h => h.Id)
+                    .ToList()
+                    .TakeWhile(h => h != lastHistoryId.Value)
+                    .ToList();
+                histories.Add(lastHistory.Id);
+                query = query.Where(e => e.Timestamp >= lastHistory.Timestamp && !histories.Contains(e.Id));
+
             }
 
             query = query.OrderBy(e => e.Timestamp).ThenBy(e => e.Id);
