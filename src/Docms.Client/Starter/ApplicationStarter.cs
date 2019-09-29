@@ -13,8 +13,6 @@ namespace Docms.Client.Starter
 {
     public class ApplicationStarter
     {
-        private static readonly ILogger _logger = LogManager.GetCurrentClassLogger();
-
         private readonly string watchPath;
         private readonly string serverUrl;
         private readonly string uploadClientId;

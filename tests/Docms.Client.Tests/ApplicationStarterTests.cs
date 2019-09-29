@@ -1,5 +1,6 @@
-﻿using Docms.Client.Starter;
-using Docms.Client.Tests.Utils;
+﻿using Docms.Client.Exceptions;
+using Docms.Client.Starter;
+using Microsoft.Data.Sqlite;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using System;
 using System.IO;
@@ -42,7 +43,7 @@ namespace Docms.Client.Tests
         {
             Directory.Delete(watchPath, true);
             sut = new ApplicationStarter(watchPath, SERVER_URL, CLIENT_ID, USER_NAME, PASSWORD);
-            await Assert.ThrowsExceptionAsync<Exception>(() => sut.StartAsync());
+            await Assert.ThrowsExceptionAsync<DirectoryNotFoundException>(() => sut.StartAsync());
         }
 
 
@@ -53,7 +54,7 @@ namespace Docms.Client.Tests
             using (var stream = File.Open(Path.Combine(watchPath, ".docms", "data.db"), FileMode.CreateNew, FileAccess.Write, FileShare.None))
             {
                 sut = new ApplicationStarter(watchPath, SERVER_URL, CLIENT_ID, USER_NAME, PASSWORD);
-                await Assert.ThrowsExceptionAsync<Exception>(() => sut.StartAsync());
+                await Assert.ThrowsExceptionAsync<SqliteException>(() => sut.StartAsync());
             }
         }
 
@@ -61,7 +62,7 @@ namespace Docms.Client.Tests
         public async Task 初期化処理でログインに失敗した場合エラーが発生する()
         {
             sut = new ApplicationStarter(watchPath, SERVER_URL, CLIENT_ID, USER_NAME, "invalid_password");
-            await Assert.ThrowsExceptionAsync<Exception>(() => sut.StartAsync());
+            await Assert.ThrowsExceptionAsync<InvalidLoginException>(() => sut.StartAsync());
         }
 
         [TestMethod]

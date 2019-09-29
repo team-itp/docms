@@ -230,7 +230,14 @@ namespace Docms.Client.Tests.Utils
             historyValues = historyValues.OrderBy(e => e.Timestamp);
             if (lastHistoryId != null)
             {
-                historyValues = historyValues.SkipWhile(h => h.Id != lastHistoryId.Value).Skip(1);
+                if (historyValues.Any(h=>h.Id == lastHistoryId))
+                {
+                    historyValues = historyValues.SkipWhile(h => h.Id != lastHistoryId.Value).Skip(1);
+                }
+                else
+                {
+                    throw new ServerException("histories", "get", path, 400, "Not Found");
+                }
             }
             return Task.FromResult(historyValues.ToArray() as IEnumerable<History>);
         }

@@ -1,5 +1,6 @@
 ﻿using Docms.Client.Documents;
 using Docms.Client.DocumentStores;
+using Docms.Client.Exceptions;
 using Docms.Client.Synchronization;
 using Docms.Client.Tests.Utils;
 using Docms.Client.Types;
@@ -10,7 +11,7 @@ using System.Threading.Tasks;
 namespace Docms.Client.Tests
 {
     [TestClass]
-    public class DocumentNodeStorageTests
+    public class RemoteDocumentStorageTests
     {
         private MockDocmsApiClient apiClient;
         private SynchronizationContext synchronizationContext;
@@ -123,6 +124,20 @@ namespace Docms.Client.Tests
             Assert.AreEqual("file3_moved.txt", file3.Name);
             Assert.AreEqual(new PathString("file3_moved.txt"), file3.Path);
             Assert.AreEqual("file3.txt".Length, file3.FileSize);
+        }
+
+        [TestMethod]
+        public async Task サーバーから履歴を読み込む際にサーバーの履歴が変わっている場合は例外を発行する()
+        {
+            await DocmsApiUtils.Create(apiClient, "file1.txt").ConfigureAwait(false);
+            await sut.SyncAsync().ConfigureAwait(false);
+
+            apiClient = new MockDocmsApiClient();
+            sut = new RemoteDocumentStorage(apiClient, synchronizationContext, localDbFactory);
+            await Assert.ThrowsExceptionAsync<ApplicationNeedsReinitializeException>(async () =>
+            {
+                await sut.SyncAsync().ConfigureAwait(false);
+            }).ConfigureAwait(false);
         }
 
         [TestMethod]
