@@ -39,43 +39,42 @@ namespace Docms.Web.Controllers
         [HttpGet("view/{*path=}")]
         public async Task<IActionResult> Index(string path)
         {
-            var entry = await _blobs.GetEntryAsync(path);
+            var entry = await _blobs.GetEntryAsync(path).ConfigureAwait(false);
             if (entry == null)
             {
                 return Redirect(Url.ViewFile(new DocumentPath(path).Parent?.Value));
             }
-            ViewData["DirPath"] = entry is BlobContainer ? entry.Path : entry.ParentPath;
+            ViewData["Path"] = entry.Path;
             return View(entry);
         }
 
         [HttpGet("histories/{*path=}")]
         public async Task<IActionResult> Histories(string path,
-            [FromQuery] int? page = null,
-            [FromQuery] int? per_page = null)
+            [FromQuery] int page = 1,
+            [FromQuery] int per_page = 100)
         {
             var entry = await _blobs.GetEntryAsync(path);
             if (entry == null)
             {
                 return Redirect(Url.ViewFile(path.Split("/").Last()));
             }
-            ViewData["DirPath"] = entry is BlobContainer ? entry.Path : entry.ParentPath;
-
+            ViewData["Path"] = entry.Path;
             var histories = _histories.GetHistories(path ?? "")
-                .OrderByDescending(h => h.Timestamp);
-            var cnt = await histories.CountAsync();
-            int p = page ?? 1;
-            int pp = per_page ?? 10;
+                .OrderByDescending(d => d.Timestamp)
+                .ThenByDescending(d => d.Path);
+            var cnt = await histories.CountAsync().ConfigureAwait(false);
+            var data = await histories.Skip(per_page * (page - 1)).Take(per_page).ToListAsync().ConfigureAwait(false);
             return View(
                 new PageableList<DocumentHistory>(
-                    await histories.Skip(pp * (p - 1)).Take(pp).ToListAsync(),
-                    p, pp, cnt));
+                    data,
+                    page, per_page, cnt));
         }
 
 
         [HttpHead("download/{*path}")]
         public async Task<IActionResult> DownloadHead(string path)
         {
-            if (!(await _blobs.GetEntryAsync(path) is Blob entry))
+            if (!(await _blobs.GetEntryAsync(path).ConfigureAwait(false) is Blob entry))
             {
                 return NotFound();
             }
@@ -87,7 +86,7 @@ namespace Docms.Web.Controllers
                 return new StatusCodeResult((int)HttpStatusCode.NotModified);
             }
 
-            var data = await _storage.FindAsync(entry.StorageKey ?? entry.Path);
+            var data = await _storage.FindAsync(entry.StorageKey ?? entry.Path).ConfigureAwait(false);
             if (data == null)
             {
                 return new StatusCodeResult((int)HttpStatusCode.InternalServerError);
@@ -105,7 +104,7 @@ namespace Docms.Web.Controllers
         [HttpGet("download/{*path}")]
         public async Task<IActionResult> Download(string path)
         {
-            if (!(await _blobs.GetEntryAsync(path) is Blob entry))
+            if (!(await _blobs.GetEntryAsync(path).ConfigureAwait(false) is Blob entry))
             {
                 return NotFound();
             }
@@ -117,14 +116,14 @@ namespace Docms.Web.Controllers
                 return new StatusCodeResult((int)HttpStatusCode.NotModified);
             }
 
-            var data = await _storage.FindAsync(entry.StorageKey ?? entry.Path);
+            var data = await _storage.FindAsync(entry.StorageKey ?? entry.Path).ConfigureAwait(false);
             if (data == null)
             {
                 return new StatusCodeResult((int)HttpStatusCode.InternalServerError);
             }
 
             Response.Headers.Add("Cache-Control", "max-age=15");
-            return File(await data.OpenStreamAsync(), entry.ContentType, entry.Name, new DateTimeOffset(entry.LastModified), new EntityTagHeaderValue("\"" + entry.Hash + "\""), true);
+            return File(await data.OpenStreamAsync().ConfigureAwait(false), entry.ContentType, entry.Name, new DateTimeOffset(entry.LastModified), new EntityTagHeaderValue("\"" + entry.Hash + "\""), true);
         }
 
         [HttpGet("upload/{*dirPath=}")]
@@ -162,7 +161,7 @@ namespace Docms.Web.Controllers
                         SizeOfStream = file.Length,
                         ForceCreate = true
                     };
-                    var response = await mediator.Send(command);
+                    var response = await mediator.Send(command).ConfigureAwait(false);
                 }
             }
             return Redirect(Url.ViewFile(directryPath.ToString()));

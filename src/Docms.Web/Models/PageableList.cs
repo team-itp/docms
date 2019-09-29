@@ -8,7 +8,7 @@ namespace Docms.Web.Models
         {
             List = list;
             CurrentPage = page;
-            LastPage = (totalCount / perPage) + 1;
+            LastPage = totalCount % perPage == 0 ? (totalCount / perPage) : (totalCount / perPage) + 1;
             PerPage = perPage;
         }
 
@@ -16,7 +16,7 @@ namespace Docms.Web.Models
         public int CurrentPage { get; }
         public int PerPage { get; }
         public int LastPage { get; }
-        public bool HasNext => CurrentPage == LastPage;
+        public bool HasNext => CurrentPage != LastPage;
         public bool HasPrev => CurrentPage != 1;
     }
 }

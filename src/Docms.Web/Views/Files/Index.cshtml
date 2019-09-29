@@ -3,7 +3,7 @@
 
 @{
     ViewData["Title"] = Model.Name ?? "ファイル一覧";
-    var dirPath = ViewBag.DirPath as string;
+    var path = ViewBag.Path as string;
 }
 
 <nav class="rounded mb-3" style="background-color: #e9ecef">
@@ -12,13 +12,13 @@
             <li class="breadcrumb-item">
                 <a href="@Url.ViewFile("")">TOP</a>
             </li>
-            @if (dirPath != null)
+            @if (path != null)
             {
                 var sb = new System.Text.StringBuilder();
-                @foreach (var pathComponent in dirPath.Split('/'))
+                @foreach (var pathComponent in path.Split('/'))
                 {
                     <li class="breadcrumb-item">
-                        @if (Model is BlobContainer & sb.Append(pathComponent).ToString() == dirPath)
+                        @if (sb.Append(pathComponent).ToString() == path)
                         {
                             <span class="active">@pathComponent</span>
                         }
@@ -34,7 +34,7 @@
         @if (User.IsInRole("Administrator"))
         {
             <div class="pr-3">
-                <a href="@Url.FileHistory(dirPath)">
+                <a href="@Url.FileHistory(path)">
                     <span class="fa fa-history"></span>
                 </a>
             </div>

@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using System.Linq;
 using System.Web;
 using Microsoft.AspNetCore.Mvc;
@@ -26,13 +27,32 @@ namespace Docms.Web.Extensions
             return Url.Content("~/files/view/" + escapedPath + "#" + escapedPathComponents.Last());
         }
 
-        public static string FileHistory(this IUrlHelper Url, string path)
+        public static string FileHistory(this IUrlHelper Url, string path, int page = 1, int per_page = 100)
         {
+            var url = default(string);
+            var param = new List<string>();
             if (path == null)
-                return Url.Content("~/files/histories/");
-
-            var escapedPath = string.Join('/', path.Split('/').Select(Uri.EscapeDataString));
-            return Url.Content("~/files/histories/" + escapedPath);
+            {
+                url = Url.Content("~/files/histories/");
+            }
+            else
+            {
+                var escapedPath = string.Join('/', path.Split('/').Select(Uri.EscapeDataString));
+                url = Url.Content("~/files/histories/" + escapedPath);
+            }
+            if (page != 1)
+            {
+                param.Add($"page={page}");
+            }
+            if (per_page != 100)
+            {
+                param.Add($"per_page={per_page}");
+            }
+            if (param.Count != 0)
+            {
+                url = url + "?" + string.Join("&", param);
+            }
+            return url;
         }
 
         public static string DownloadFile(this IUrlHelper Url, string path)
