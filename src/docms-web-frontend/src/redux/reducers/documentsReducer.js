@@ -1,7 +1,6 @@
-import { DOCUMENT_REQUEST, DOCUMENT_RECEIVED } from "../actions/documents";
+import { DOCUMENT_REQUEST, SET_DOCUMENT } from "../actions/documents";
 
 const initialState = {
-  documents: {}
 }
 
 function documentsReducer(state = initialState, action) {
@@ -12,13 +11,13 @@ function documentsReducer(state = initialState, action) {
           isRequesting: true
         }
       });
-    case DOCUMENT_RECEIVED:
+    case SET_DOCUMENT:
       return Object.assign({}, state, {
         [action.path]: {
           isRequesting: false,
           type: action.payload.type,
           name: action.payload.name,
-          documents: action.payload.documents,
+          entries: action.payload.entries,
         }
       });
     default:

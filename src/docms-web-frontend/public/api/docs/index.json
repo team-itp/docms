@@ -1,7 +1,7 @@
 {
   "type": "DIRECTORY",
   "name": "/",
-  "documents": [
+  "entries": [
     {
       "type": "DIRECTORY",
       "name": "test"

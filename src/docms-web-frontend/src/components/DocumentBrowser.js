@@ -4,11 +4,33 @@ import { Link as RouterLink, withRouter } from 'react-router-dom';
 import { Breadcrumbs, Container, Link, Typography, Toolbar, Paper, Grid } from '@material-ui/core';
 import { requestDocument } from '../redux/actions/documents';
 
+function getCurrentEntry(documents, path) {
+  return documents[path];
+}
+
+function mapStateToProps(state, props) {
+  const path = props.location.pathname.replace(/^\/docs\//, '');
+  const pathComponents = (path || '').split('/');
+  const name = pathComponents.pop();
+  const parentPath = pathComponents.join('/');
+  return {
+    path: path,
+    parentPath: parentPath,
+    name: name,
+    entry: getCurrentEntry(state.documents, props.path)
+  };
+}
+
+function mapDispatchToProps(dispatch, props) {
+  return {
+    onSelectPath: path => dispatch(requestDocument(path))
+  };
+}
+
 class DocumentBrowser extends React.Component {
 
   componentDidMount() {
-    const path = this.props.location.pathname.replace(/^\/docs\//, '');
-    this.props.onSelectPath(path)
+    this.props.onSelectPath(this.props.path);
   }
 
   selectPath(path) {
@@ -16,17 +38,15 @@ class DocumentBrowser extends React.Component {
   }
 
   render() {
-    const path = this.props.location.pathname.replace(/^\/docs\//, '');
-    const pathComponents = (path || '').split('/');
-    const name = pathComponents.pop();
-    const parentPath = pathComponents.join('/');
-    let documentList = this.props.documentList || [];
+    const { parentPath, name, entry } = this.props;
     return (
       <Container maxWidth="xl">
         <DocumentHeader parentPath={parentPath} name={name} />
-        {this.props.type === 'DIRECTORY'
-          ? documentList.map(e => <DocumentSummary name={e.name} />)
-          : <DocumentViewer {...this.props} />}
+        {(!entry || entry.isFetching)
+          ? null
+          : entry.type === 'DIRECTORY'
+            ? entry.entries.map(e => <DocumentSummary name={e.name} />)
+            : <DocumentViewer {...entry} />}
       </Container>
     );
   }
@@ -72,19 +92,6 @@ function DocumentViewer(props) {
       </Grid>
     </Paper>
   )
-}
-
-function mapStateToProps(state, props) {
-  const docInfo = state.documents[props.path] || {};
-  return {
-    isFetching: docInfo.isFetching
-  };
-}
-
-function mapDispatchToProps(dispatch, props) {
-  return {
-    onSelectPath: path => dispatch(requestDocument(props.path))
-  };
 }
 
 export default withRouter(connect(mapStateToProps, mapDispatchToProps)(DocumentBrowser));

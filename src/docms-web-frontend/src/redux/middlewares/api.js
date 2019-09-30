@@ -1,17 +1,50 @@
 import { LOGIN_REQUESTED, authenticated, loginDenied } from "../actions";
-import { DOCUMENT_REQUEST } from "../actions/documents";
+import { DOCUMENT_REQUEST, documentReceived, documentNotExists } from "../actions/documents";
 
 const api = ({ dispatch }) => next => action => {
   next(action);
 
   if (action.type === 'API') {
-    const { url, success, fail } = action.payload;
-    fetch(url)
-      .then(
-        response => response.json(),
-        error => dispatch(fail(error))
-      )
-      .then(json => dispatch(success(json)));
+    let { url, request, success, fail } = action.payload;
+    let httpRequestOptions = {
+      headers: {
+        'Accept': 'application/json'
+      }
+    };
+    if (request) {
+      // httpRequestOptions.method = request.method || 'GET';
+      httpRequestOptions.method = 'GET';
+      if (request.headers) {
+        for (const key in request.headers) {
+          if (request.headers.hasOwnProperty(key)) {
+            httpRequestOptions.headers[key] = request.headers[key];
+          }
+        }
+      }
+      if (request.body) {
+        let param = new URLSearchParams();
+        param['Content-Type'] = 'application/x-www-form-urlencoded';
+        for (const key in request.body) {
+          if (request.body.hasOwnProperty(key)) {
+            param.set(key, request.body[key]);
+          }
+        }
+        if (httpRequestOptions.method === 'GET') {
+          if (url.includes('?')) {
+            url = url + '&' + param;
+          } else {
+            url = url + '?' + param;
+          }
+        } else {
+          httpRequestOptions.body = param;
+        }
+      }
+    }
+
+    fetch(url, httpRequestOptions)
+      .then(response => response.json())
+      .then(json => dispatch(success(json)))
+      .catch(error => dispatch(fail(error)));
   }
 }
 
@@ -24,10 +57,12 @@ const login = store => next => action => {
       type: 'API',
       payload: {
         url: 'http://localhost:3000/account/login.json',
-        method: 'POST',
-        body: {
-          userName,
-          password
+        request: {
+          method: 'POST',
+          body: {
+            userName,
+            password
+          }
         },
         success: authenticated,
         fail: loginDenied
@@ -41,12 +76,16 @@ const document = ({ dispatch }) => next => action => {
   next(action);
 
   if (action.type === DOCUMENT_REQUEST) {
-    const { path, documentReceived, documentNotExists } = action.payload;
+    let { path } = action.payload;
+    if (!path) {
+      path = '';
+    } else if (!path.startsWith('/')) {
+      path = '/' + path;
+    }
     dispatch({
       type: 'API',
       payload: {
-        url: '/api/docs' + path + 'index.js',
-        method: 'GET',
+        url: '/api/docs' + path + '/index.json',
         success: documentReceived,
         fail: documentNotExists
       }
