@@ -64,9 +64,11 @@ namespace Docms.Client.Starter
                 }
                 return false;
             }
-            catch
+            catch(Exception ex)
             {
-                throw;
+                logger.Error(ex.Message);
+                logger.Debug(ex);
+                return false;
             }
         }
     }
