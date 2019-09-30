@@ -1,6 +1,5 @@
 ﻿using Docms.Domain.Documents;
 using Docms.Infrastructure.Storage;
-using Docms.Queries.Blobs;
 using MediatR;
 using System;
 using System.Threading;
@@ -33,9 +32,6 @@ namespace Docms.Web.Application.Commands
             var document = await _documentRepository.GetAsync(path.ToString());
 
             // ファイル情報の取得
-            var storageKey = _dataStore.CreateKey();
-            var data = await _dataStore.CreateAsync(storageKey, request.Stream, request.SizeOfStream).ConfigureAwait(false);
-
             try
             {
                 if (!ContentTypeProvider.TryGetContentType(path.Extension, out var contentType))
@@ -45,9 +41,8 @@ namespace Docms.Web.Application.Commands
                     var utcNow = DateTime.UtcNow;
                     document = new Document(
                         new DocumentPath(path.ToString()),
-                        storageKey,
                         contentType,
-                        data,
+                        request.Data,
                         request.Created ?? utcNow,
                         request.LastModified ?? request.Created ?? utcNow);
                     await _documentRepository.AddAsync(document).ConfigureAwait(false);
@@ -69,9 +64,8 @@ namespace Docms.Web.Application.Commands
                     var utcNow = DateTime.UtcNow;
                     document = new Document(
                         new DocumentPath(filename.ToString()),
-                        storageKey,
                         contentType,
-                        data,
+                        request.Data,
                         request.Created ?? utcNow,
                         request.LastModified ?? request.Created ?? utcNow);
                     await _documentRepository.AddAsync(document).ConfigureAwait(false);
@@ -80,12 +74,11 @@ namespace Docms.Web.Application.Commands
                 {
                     var utcNow = DateTime.UtcNow;
 
-                    if (data.Hash == document.Hash)
+                    if (request.Data.Hash == document.Hash)
                     {
-                        await _dataStore.DeleteAsync(storageKey).ConfigureAwait(false);
+                        await _dataStore.DeleteAsync(request.Data.StorageKey).ConfigureAwait(false);
                         var oldData = await _dataStore.FindAsync(document.StorageKey);
                         document.Update(
-                            document.StorageKey,
                             contentType,
                             oldData,
                             request.Created ?? document.Created,
@@ -94,9 +87,8 @@ namespace Docms.Web.Application.Commands
                     else
                     {
                         document.Update(
-                            storageKey,
                             contentType,
-                            data,
+                            request.Data,
                             request.Created ?? document.Created,
                             request.LastModified ?? utcNow);
                     }
@@ -107,7 +99,7 @@ namespace Docms.Web.Application.Commands
             }
             catch
             {
-                await _dataStore.DeleteAsync(storageKey).ConfigureAwait(false);
+                await _dataStore.DeleteAsync(request.Data.StorageKey).ConfigureAwait(false);
                 throw;
             }
         }

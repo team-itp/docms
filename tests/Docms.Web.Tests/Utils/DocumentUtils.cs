@@ -1,5 +1,4 @@
 ﻿using Docms.Domain.Documents;
-using Docms.Infrastructure.Storage;
 using Docms.Infrastructure.Storage.InMemory;
 using System;
 using System.Text;
@@ -12,9 +11,8 @@ namespace Docms.Web.Tests.Utils
         {
             var now = new DateTime(2018, 1, 1, 0, 0, 0, DateTimeKind.Utc);
             return new Document(new DocumentPath(path),
-                path,
                 "text/plain",
-                InMemoryData.Create(Encoding.UTF8.GetBytes(textContent)),
+                InMemoryData.Create(path, Encoding.UTF8.GetBytes(textContent)),
                 now,
                 now);
         }

@@ -142,7 +142,7 @@ namespace Docms.Web.Tests
 
             var bytes2 = Encoding.UTF8.GetBytes("path1/subpath1/content1.txt updated");
             document1.ClearDomainEvents();
-            document1.Update("storagekey2", "application/json", InMemoryData.Create(bytes2));
+            document1.Update("application/json", InMemoryData.Create("storagekey2", bytes2));
             var ev2 = document1.DomainEvents.First();
             await sut.Handle(new DomainEventNotification<DocumentUpdatedEvent>(ev2 as DocumentUpdatedEvent));
             Assert.AreEqual("application/json", (await ctx.Blobs.FirstAsync(f => f.Path == "path1/subpath1/content1.txt")).ContentType);

@@ -1,11 +1,9 @@
-﻿using Docms.Domain.Documents;
-using Docms.Infrastructure.Files;
-using Docms.Infrastructure.Repositories;
-using Docms.Infrastructure.Storage;
+﻿using Docms.Infrastructure.Files;
 using Docms.Infrastructure.Storage.InMemory;
 using Docms.Web.Application.Commands;
 using Docms.Web.Tests.Utils;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
+using System;
 using System.IO;
 using System.Linq;
 using System.Text;
@@ -31,15 +29,12 @@ namespace Docms.Web.Tests
         [TestMethod]
         public async Task コマンドを発行してドキュメントが作成されること()
         {
-            using (var ms = new MemoryStream(Encoding.UTF8.GetBytes("Hello, world")))
+            
+            await sut.Handle(new CreateOrUpdateDocumentCommand()
             {
-                await sut.Handle(new CreateOrUpdateDocumentCommand()
-                {
-                    Path = new FilePath("document.txt"),
-                    Stream = ms,
-                    SizeOfStream = ms.Length,
-                });
-            }
+                Path = new FilePath("document.txt"),
+                Data = await dataStore.CreateAsync(Encoding.UTF8.GetBytes("Hello, world")).ConfigureAwait(false)
+            });
             var document = repository.Entities.Single();
             Assert.AreEqual("document.txt", document.Path.ToString());
             Assert.AreEqual("Hello, world", await ReadTextAsync(document.StorageKey));
@@ -49,15 +44,11 @@ namespace Docms.Web.Tests
         public async Task コマンドを発行してドキュメントが更新されること()
         {
             await repository.AddAsync(DocumentUtils.Create("test1/document1.txt", "Hello, world"));
-            using (var ms = new MemoryStream(Encoding.UTF8.GetBytes("Hello, new world")))
+            await sut.Handle(new CreateOrUpdateDocumentCommand()
             {
-                await sut.Handle(new CreateOrUpdateDocumentCommand()
-                {
-                    Path = new FilePath("test1/document1.txt"),
-                    Stream = ms,
-                    SizeOfStream = ms.Length,
-                });
-            }
+                Path = new FilePath("test1/document1.txt"),
+                Data = await dataStore.CreateAsync(Encoding.UTF8.GetBytes("Hello, new world")).ConfigureAwait(false)
+            });
             var document = repository.Entities.Single();
             Assert.AreEqual("test1/document1.txt", document.Path.ToString());
             Assert.AreEqual("Hello, new world", await ReadTextAsync(document.StorageKey));
@@ -66,26 +57,18 @@ namespace Docms.Web.Tests
         [TestMethod]
         public async Task ファイルが存在する場合でもコマンドを発行してドキュメントが作成されること()
         {
-            using (var ms = new MemoryStream(Encoding.UTF8.GetBytes("Hello, world")))
+            await sut.Handle(new CreateOrUpdateDocumentCommand()
             {
-                await sut.Handle(new CreateOrUpdateDocumentCommand()
-                {
-                    Path = new FilePath("test1/document1.txt"),
-                    Stream = ms,
-                    SizeOfStream = ms.Length,
-                    ForceCreate = true
-                });
-            }
-            using (var ms = new MemoryStream(Encoding.UTF8.GetBytes("Hello, new world")))
+                Path = new FilePath("test1/document1.txt"),
+                Data = await dataStore.CreateAsync(Encoding.UTF8.GetBytes("Hello, world")).ConfigureAwait(false),
+                ForceCreate = true
+            });
+            await sut.Handle(new CreateOrUpdateDocumentCommand()
             {
-                await sut.Handle(new CreateOrUpdateDocumentCommand()
-                {
-                    Path = new FilePath("test1/document1.txt"),
-                    Stream = ms,
-                    SizeOfStream = ms.Length,
-                    ForceCreate = true
-                });
-            }
+                Path = new FilePath("test1/document1.txt"),
+                Data = await dataStore.CreateAsync(Encoding.UTF8.GetBytes("Hello, new world")).ConfigureAwait(false),
+                ForceCreate = true
+            });
             var doc1 = repository.Entities.FirstOrDefault(e => e.Path == "test1/document1.txt");
             var doc2 = repository.Entities.FirstOrDefault(e => e.Path == "test1/document1(1).txt");
             Assert.IsNotNull(doc1);
@@ -100,15 +83,11 @@ namespace Docms.Web.Tests
             var document = DocumentUtils.Create("test1/document1.txt", "Hello, world");
             document.Delete();
             await repository.AddAsync(document);
-            using (var ms = new MemoryStream(Encoding.UTF8.GetBytes("Hello, new world")))
+            await sut.Handle(new CreateOrUpdateDocumentCommand()
             {
-                await sut.Handle(new CreateOrUpdateDocumentCommand()
-                {
-                    Path = new FilePath("test1/document1.txt"),
-                    Stream = ms,
-                    SizeOfStream = ms.Length,
-                });
-            }
+                Path = new FilePath("test1/document1.txt"),
+                Data = await dataStore.CreateAsync(Encoding.UTF8.GetBytes("Hello, new world")).ConfigureAwait(false),
+            });
             var doc1 = repository.Entities.FirstOrDefault(e => e.Path == null);
             var doc2 = repository.Entities.FirstOrDefault(e => e.Path == "test1/document1.txt");
             Assert.IsNotNull(doc1);

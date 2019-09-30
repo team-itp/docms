@@ -19,7 +19,7 @@ namespace Docms.Infrastructure.Storage.InMemory
 
         public Task<IData> CreateAsync(string key, Stream stream)
         {
-            var data = InMemoryData.Create(stream);
+            var data = InMemoryData.Create(key, stream);
             values.Add(key, data);
             return Task.FromResult<IData>(data);
         }
@@ -27,6 +27,14 @@ namespace Docms.Infrastructure.Storage.InMemory
         public Task<IData> CreateAsync(string key, Stream stream, long sizeOfStream)
         {
             return CreateAsync(key, stream);
+        }
+
+        public Task<IData> CreateAsync(byte[] byteArray)
+        {
+            var key = CreateKey();
+            var data = InMemoryData.Create(key, byteArray);
+            values.Add(key, data);
+            return Task.FromResult<IData>(data);
         }
 
         public Task<IData> FindAsync(string key)

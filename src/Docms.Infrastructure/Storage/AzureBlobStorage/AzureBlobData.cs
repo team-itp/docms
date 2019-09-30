@@ -8,15 +8,16 @@ namespace Docms.Infrastructure.Storage.AzureBlobStorage
     public class AzureBlobData : IData
     {
         private readonly CloudBlobContainer _container;
-        private readonly string _blobName;
 
         public AzureBlobData(CloudBlobContainer container, string blobName, long length, string hash)
         {
             _container = container;
-            _blobName = blobName;
+            StorageKey = blobName;
             Length = length;
             Hash = hash;
         }
+
+        public string StorageKey { get; }
 
         public long Length { get; }
 
@@ -24,7 +25,7 @@ namespace Docms.Infrastructure.Storage.AzureBlobStorage
 
         public Task<Stream> OpenStreamAsync()
         {
-            var blob = _container.GetBlobReference(_blobName);
+            var blob = _container.GetBlobReference(StorageKey);
             return blob.OpenReadAsync();
         }
     }

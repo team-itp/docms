@@ -32,7 +32,7 @@ namespace Docms.Infrastructure.Storage.FileSystem
             {
                 await stream.CopyToAsync(fs).ConfigureAwait(false);
             }
-            return new FileData(fullpath);
+            return new FileData(key, fullpath);
         }
 
         public Task<IData> CreateAsync(string key, Stream stream, long sizeOfStream)
@@ -57,7 +57,7 @@ namespace Docms.Infrastructure.Storage.FileSystem
             {
                 return Task.FromResult(default(IData));
             }
-            return Task.FromResult<IData>(new FileData(fullpath));
+            return Task.FromResult<IData>(new FileData(key, fullpath));
         }
 
         public IEnumerable<string> ListAllKeys()

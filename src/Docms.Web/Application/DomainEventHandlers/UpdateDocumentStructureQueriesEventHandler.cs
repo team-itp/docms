@@ -18,7 +18,7 @@ namespace Docms.Web.Application.DomainEventHandlers
         INotificationHandler<DomainEventNotification<DocumentMovedEvent>>,
         INotificationHandler<DomainEventNotification<DocumentUpdatedEvent>>
     {
-        private DocmsContext _db;
+        private readonly DocmsContext _db;
 
         public UpdateDocumentStructureQueriesEventHandler(DocmsContext db)
         {
@@ -60,7 +60,7 @@ namespace Docms.Web.Application.DomainEventHandlers
             }
         }
 
-        public async Task Handle(DomainEventNotification<DocumentCreatedEvent> notification, CancellationToken cancellationToken = default(CancellationToken))
+        public async Task Handle(DomainEventNotification<DocumentCreatedEvent> notification, CancellationToken cancellationToken = default)
         {
             var ev = notification.Event;
 
@@ -87,7 +87,7 @@ namespace Docms.Web.Application.DomainEventHandlers
             await _db.SaveChangesAsync();
         }
 
-        public async Task Handle(DomainEventNotification<DocumentDeletedEvent> notification, CancellationToken cancellationToken = default(CancellationToken))
+        public async Task Handle(DomainEventNotification<DocumentDeletedEvent> notification, CancellationToken cancellationToken = default)
         {
             var ev = notification.Event;
 
@@ -103,7 +103,7 @@ namespace Docms.Web.Application.DomainEventHandlers
             await _db.SaveChangesAsync();
         }
 
-        public async Task Handle(DomainEventNotification<DocumentMovedEvent> notification, CancellationToken cancellationToken = default(CancellationToken))
+        public async Task Handle(DomainEventNotification<DocumentMovedEvent> notification, CancellationToken cancellationToken = default)
         {
             var ev = notification.Event;
 
@@ -133,13 +133,13 @@ namespace Docms.Web.Application.DomainEventHandlers
             await _db.SaveChangesAsync();
         }
 
-        public async Task Handle(DomainEventNotification<DocumentUpdatedEvent> notification, CancellationToken cancellationToken = default(CancellationToken))
+        public async Task Handle(DomainEventNotification<DocumentUpdatedEvent> notification, CancellationToken cancellationToken = default)
         {
             var ev = notification.Event;
 
             var blob = await _db.Blobs.FirstOrDefaultAsync(e => e.Path == ev.Path.Value);
             blob.DocumentId = ev.Entity.Id;
-            blob.StorageKey = ev.StorageKey;
+            blob.StorageKey = ev.Data.StorageKey;
             blob.ContentType = ev.ContentType;
             blob.FileSize = ev.Data.Length;
             blob.Hash = ev.Data.Hash;

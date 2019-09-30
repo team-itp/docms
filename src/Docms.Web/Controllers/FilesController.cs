@@ -151,14 +151,14 @@ namespace Docms.Web.Controllers
             var directryPath = new FilePath(dirPath ?? "");
             foreach (var file in request.Files)
             {
-                var filePath = directryPath.Combine(System.IO.Path.GetFileName(file.FileName ?? "NONAME"));
                 using (var stream = file.OpenReadStream())
                 {
+                    var data = await _storage.CreateAsync(_storage.CreateKey(), stream).ConfigureAwait(false);
+                    var filePath = directryPath.Combine(System.IO.Path.GetFileName(file.FileName ?? "NONAME"));
                     var command = new CreateOrUpdateDocumentCommand
                     {
                         Path = filePath,
-                        Stream = stream,
-                        SizeOfStream = file.Length,
+                        Data = data,
                         ForceCreate = true
                     };
                     var response = await mediator.Send(command).ConfigureAwait(false);

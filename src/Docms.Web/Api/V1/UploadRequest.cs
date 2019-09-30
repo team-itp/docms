@@ -1,4 +1,4 @@
-using Microsoft.AspNetCore.Http;
+using Docms.Domain.Documents;
 using System;
 using System.ComponentModel.DataAnnotations;
 
@@ -10,7 +10,7 @@ namespace Docms.Web.Api.V1
         public string Path { get; set; }
 
         [Required]
-        public IFormFile File { get; set; }
+        public IData File { get; set; }
 
         public DateTime? Created { get; set; }
 

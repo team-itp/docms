@@ -7,11 +7,12 @@ namespace Docms.Infrastructure.Storage.FileSystem
 {
     public class FileData : IData
     {
-        private FileInfo _fileInfo;
-        private Lazy<string> _hash;
+        private readonly FileInfo _fileInfo;
+        private readonly Lazy<string> _hash;
 
-        public FileData(string filepath)
+        public FileData(string key, string filepath)
         {
+            StorageKey = key;
             _fileInfo = new FileInfo(filepath);
             _hash = new Lazy<string>(() =>
             {
@@ -21,6 +22,8 @@ namespace Docms.Infrastructure.Storage.FileSystem
                 }
             });
         }
+
+        public string StorageKey { get; }
 
         public long Length => _fileInfo.Length;
 

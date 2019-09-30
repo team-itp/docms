@@ -12,9 +12,8 @@ namespace Docms.Infrastructure.Tests.Utils
         {
             var now = new DateTime(2018, 1, 1, 0, 0, 0, DateTimeKind.Utc);
             return new Document(new DocumentPath(path),
-                path,
                 "text/plain",
-                InMemoryData.Create(Encoding.UTF8.GetBytes(textContent)),
+                InMemoryData.Create(path, Encoding.UTF8.GetBytes(textContent)),
                 now,
                 now);
         }

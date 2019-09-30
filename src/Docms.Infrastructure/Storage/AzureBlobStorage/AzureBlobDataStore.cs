@@ -5,6 +5,7 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using System.Security.Cryptography;
 using System.Threading.Tasks;
 
 namespace Docms.Infrastructure.Storage.AzureBlobStorage
@@ -39,61 +40,40 @@ namespace Docms.Infrastructure.Storage.AzureBlobStorage
         {
             var container = _client.GetContainerReference(_baseContainerName);
             await container.CreateIfNotExistsAsync().ConfigureAwait(false);
-
-            if (stream.CanSeek)
-            {
-                var length = stream.Length;
-                var hash = Hash.CalculateHash(stream);
-                stream.Seek(0, SeekOrigin.Begin);
-                return await UploadData(key, stream, container, length, hash).ConfigureAwait(false);
-            }
-            else if (sizeOfStream > -1 && sizeOfStream < 33_554_432)
-            {
-                var ms = new MemoryStream();
-                stream.CopyTo(ms);
-                ms.Seek(0, SeekOrigin.Begin);
-                var length = stream.Length;
-                var hash = Hash.CalculateHash(ms.ToArray());
-                return await UploadData(key, ms, container, length, hash).ConfigureAwait(false);
-            }
-            else
-            {
-                var tempfilename = Path.GetTempFileName();
-                try
-                {
-                    using (var fs = File.OpenWrite(tempfilename))
-                    {
-                        await stream.CopyToAsync(fs);
-                    }
-                    var fi = new FileInfo(tempfilename);
-                    var length = fi.Length;
-                    var hash = default(string);
-                    using (var fs = File.OpenRead(tempfilename))
-                    {
-                        hash = Hash.CalculateHash(fs);
-                    }
-                    using (var fs = File.OpenRead(tempfilename))
-                    {
-                        return await UploadData(key, fs, container, length, hash).ConfigureAwait(false);
-                    }
-                }
-                finally
-                {
-                    if (File.Exists(tempfilename))
-                    {
-                        File.Delete(tempfilename);
-                    }
-                }
-            }
+            return await UploadData(key, stream, container).ConfigureAwait(false);
         }
 
-        private static async Task<IData> UploadData(string key, Stream stream, CloudBlobContainer container, long length, string hash)
+        private static async Task<IData> UploadData(string key, Stream stream, CloudBlobContainer container)
         {
             var blobRef = container.GetBlockBlobReference(key);
-            await blobRef.UploadFromStreamAsync(stream).ConfigureAwait(false);
-            blobRef.Metadata.Add(HASH_KEY, hash);
-            await blobRef.SetMetadataAsync().ConfigureAwait(false);
-            return new AzureBlobData(container, key, length, hash);
+            using (var cloudStream = await blobRef.OpenWriteAsync().ConfigureAwait(false))
+            {
+                var buf = new byte[8192];
+                var readBytes = default(int);
+                var length = 0;
+                using (var sha1 = SHA1.Create())
+                {
+                    while (true)
+                    {
+                        readBytes = await stream.ReadAsync(buf, 0, buf.Length).ConfigureAwait(false);
+                        length += readBytes;
+                        if (readBytes <= 0)
+                        {
+                            await cloudStream.CommitAsync();
+                            break;
+                        }
+                        sha1.TransformBlock(buf, 0, readBytes, null, 0);
+                        await cloudStream.WriteAsync(buf, 0, readBytes).ConfigureAwait(false);
+                    }
+                    sha1.TransformFinalBlock(buf, 0, 0);
+                    var hashBytes = sha1.Hash;
+
+                    var hash = BitConverter.ToString(hashBytes).Replace("-", "");
+                    blobRef.Metadata.Add(HASH_KEY, hash);
+                    await blobRef.SetMetadataAsync().ConfigureAwait(false);
+                    return new AzureBlobData(container, key, length, hash);
+                }
+            }
         }
 
         public async Task DeleteAsync(string key)

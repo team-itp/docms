@@ -87,7 +87,7 @@ namespace Docms.Web.Tests
             await sut.Handle(new DomainEventNotification<DocumentCreatedEvent>(ev1 as DocumentCreatedEvent));
 
             document1.ClearDomainEvents();
-            document1.Update("storagekey2", "application/json", InMemoryData.Create(Encoding.UTF8.GetBytes("Hello, New World")));
+            document1.Update("application/json", InMemoryData.Create("storagekey2", Encoding.UTF8.GetBytes("Hello, New World")));
             var ev2 = document1.DomainEvents.First();
             await sut.Handle(new DomainEventNotification<DocumentUpdatedEvent>(ev2 as DocumentUpdatedEvent));
             Assert.AreEqual(1, await ctx.DocumentHistories.Where(f => f.Path == "path1/subpath1/content1.txt" && f.Discriminator == DocumentHistoryDiscriminator.DocumentCreated).CountAsync());

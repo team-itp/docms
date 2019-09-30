@@ -18,21 +18,21 @@ namespace Docms.Domain.Documents
         {
         }
 
-        public Document(DocumentPath path, string storageKey, string contentType, IData data)
-            : this(path, storageKey, contentType, data, DateTime.UtcNow)
+        public Document(DocumentPath path, string contentType, IData data)
+            : this(path, contentType, data, DateTime.UtcNow)
         {
         }
 
-        public Document(DocumentPath path, string storageKey, string contentType, IData data, DateTime created)
-            : this(path, storageKey, contentType, data, created, created)
+        public Document(DocumentPath path, string contentType, IData data, DateTime created)
+            : this(path, contentType, data, created, created)
         {
         }
 
-        public Document(DocumentPath path, string storageKey, string contentType, IData data, DateTime created, DateTime lastModified)
+        public Document(DocumentPath path, string contentType, IData data, DateTime created, DateTime lastModified)
         {
             Path = (path ?? throw new ArgumentNullException(nameof(path))).Value;
-            StorageKey = storageKey ?? throw new ArgumentNullException(nameof(storageKey));
             ContentType = contentType ?? throw new ArgumentNullException(nameof(contentType));
+            StorageKey = data?.StorageKey ?? throw new ArgumentNullException(nameof(data.StorageKey));
             FileSize = data?.Length ?? throw new ArgumentNullException(nameof(data));
             Hash = data.Hash ?? throw new ArgumentNullException(nameof(data.Hash));
 
@@ -55,22 +55,22 @@ namespace Docms.Domain.Documents
             OnDocumentMoved(new DocumentPath(originalPath), destinationPath);
         }
 
-        public void Update(string storageKey, string contentType, IData data)
+        public void Update(string contentType, IData data)
         {
             var now = DateTime.UtcNow;
-            Update(storageKey, contentType, data, Created, now);
+            Update(contentType, data, Created, now);
         }
 
-        public void Update(string storageKey, string contentType, IData data, DateTime created, DateTime lastModified)
+        public void Update(string contentType, IData data, DateTime created, DateTime lastModified)
         {
-            StorageKey = storageKey ?? throw new ArgumentNullException(nameof(storageKey));
             ContentType = contentType ?? throw new ArgumentNullException(nameof(contentType));
-            FileSize = data?.Length ?? throw new ArgumentNullException(nameof(data));
+            StorageKey = data?.StorageKey ?? throw new ArgumentNullException(nameof(data.StorageKey));
+            FileSize = data?.Length ?? throw new ArgumentNullException(nameof(data.Length));
             Hash = data.Hash ?? throw new ArgumentNullException(nameof(data.Hash));
             Created = created;
             LastModified = lastModified;
 
-            OnDocumentUpdated(storageKey, contentType, data, created, lastModified);
+            OnDocumentUpdated(contentType, data, created, lastModified);
         }
 
         public void Delete()
@@ -93,9 +93,9 @@ namespace Docms.Domain.Documents
             AddDomainEvent(ev);
         }
 
-        private void OnDocumentUpdated(string storageKey, string contentType, IData data, DateTime created, DateTime lastModified)
+        private void OnDocumentUpdated(string contentType, IData data, DateTime created, DateTime lastModified)
         {
-            var ev = new DocumentUpdatedEvent(this, new DocumentPath(Path), storageKey, contentType, data, created, lastModified);
+            var ev = new DocumentUpdatedEvent(this, new DocumentPath(Path), contentType, data, created, lastModified);
             AddDomainEvent(ev);
         }
 

@@ -46,7 +46,7 @@ namespace Docms.Web.Application.DomainEventHandlers
                     ev.Timestamp,
                     ev.Entity.Id,
                     ev.Path.ToString(),
-                    ev.StorageKey,
+                    ev.Data.StorageKey,
                     ev.ContentType,
                     ev.Data.Length,
                     ev.Data.Hash,
