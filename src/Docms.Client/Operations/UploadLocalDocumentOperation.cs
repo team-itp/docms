@@ -36,10 +36,7 @@ namespace Docms.Client.Operations
                 return;
             }
 
-            using (var stream = file.OpenRead())
-            {
-                await context.Api.CreateOrUpdateDocumentAsync(path.ToString(), stream, document.Created, document.LastModified).ConfigureAwait(false);
-            }
+            await context.Api.CreateOrUpdateDocumentAsync(path.ToString(), () => file.OpenRead(), document.Created, document.LastModified).ConfigureAwait(false);
             context.SynchronizationContext.UploadRequested(path);
         }
     }

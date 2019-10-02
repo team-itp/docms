@@ -37,7 +37,8 @@ namespace docmssync
             }
             catch (Exception ex)
             {
-                _logger.Error(ex);
+                _logger.Error(ex.Message);
+                _logger.Debug(ex);
                 Environment.Exit(1);
             }
         }

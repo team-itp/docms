@@ -13,8 +13,6 @@ namespace Docms.Client.Starter
 {
     public class ApplicationStarter
     {
-        private static readonly ILogger _logger = LogManager.GetCurrentClassLogger();
-
         private readonly string watchPath;
         private readonly string serverUrl;
         private readonly string uploadClientId;
@@ -32,37 +30,29 @@ namespace Docms.Client.Starter
 
         public async Task<ApplicationContext> StartAsync()
         {
-            try
+            var context = new ApplicationContext();
+
+            if (!Directory.Exists(watchPath))
             {
-                var context = new ApplicationContext();
-
-                if (!Directory.Exists(watchPath))
-                {
-                    throw new DirectoryNotFoundException(watchPath);
-                }
-
-                context.Api = ResolveApi();
-                context.DbFactory = ResolveDocumentDbContextFactory();
-                context.FileSystem = ResolveFileSystem(watchPath);
-                context.SynchronizationContext = ResolveSynchronizationContext();
-                context.LocalStorage = ResolveLocalStorage(context.FileSystem, context.SynchronizationContext);
-                context.RemoteStorage = ResolveRemoteStorage(context.Api, context.SynchronizationContext, context.DbFactory);
-
-                await context.Api.LoginAsync(uploadUserName, uploadUserPassword).ConfigureAwait(false);
-                await context.LocalStorage.Initialize().ConfigureAwait(false);
-                await context.RemoteStorage.Initialize().ConfigureAwait(false);
-                return context;
+                throw new DirectoryNotFoundException(watchPath);
             }
-            catch (Exception ex)
-            {
-                _logger.Error(ex);
-                throw;
-            }
+
+            context.Api = ResolveApi(uploadClientId);
+            context.DbFactory = ResolveDocumentDbContextFactory();
+            context.FileSystem = ResolveFileSystem(watchPath);
+            context.SynchronizationContext = ResolveSynchronizationContext();
+            context.LocalStorage = ResolveLocalStorage(context.FileSystem, context.SynchronizationContext);
+            context.RemoteStorage = ResolveRemoteStorage(context.Api, context.SynchronizationContext, context.DbFactory);
+
+            await context.Api.LoginAsync(uploadUserName, uploadUserPassword).ConfigureAwait(false);
+            await context.LocalStorage.Initialize().ConfigureAwait(false);
+            await context.RemoteStorage.Initialize().ConfigureAwait(false);
+            return context;
         }
 
-        private IDocmsApiClient ResolveApi()
+        private IDocmsApiClient ResolveApi(string uploadClientId)
         {
-            return new DocmsApiClient(serverUrl);
+            return new DocmsApiClient(serverUrl, uploadClientId: uploadClientId);
         }
 
         private IFileSystem ResolveFileSystem(string watchPath)

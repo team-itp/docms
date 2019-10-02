@@ -1,8 +1,10 @@
 ﻿using Docms.Client.Api;
+using Docms.Client.Exceptions;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using System;
 using System.IO;
 using System.Linq;
+using System.Reflection;
 using System.Text;
 using System.Threading.Tasks;
 
@@ -26,7 +28,7 @@ namespace Docms.Client.Tests
                 sut = new DocmsApiClient("http://localhost:51693");
                 await sut.LoginAsync("testuser", "Passw0rd").ConfigureAwait(false);
             }
-            catch (Exception)
+            catch
             {
                 noConnection = true;
             }
@@ -43,21 +45,22 @@ namespace Docms.Client.Tests
         public async Task サーバーよりルートディレクトリ内のファイルの一覧を取得する()
         {
             if (noConnection) Assert.Fail("接続不良のため失敗");
-            await sut.VerifyTokenAsync().ConfigureAwait(false);
-            _ = await sut.GetEntriesAsync("").ConfigureAwait(false);
+            var entries = await sut.GetEntriesAsync("").ConfigureAwait(false);
+            Assert.IsNotNull(entries);
         }
 
         [TestMethod]
         public async Task サーバーよりサブディレクトリ内のファイルの一覧を取得する()
         {
             if (noConnection) Assert.Fail("接続不良のため失敗");
-            await sut.CreateOrUpdateDocumentAsync("test1/test1.txt", new MemoryStream(Encoding.UTF8.GetBytes("test1"))).ConfigureAwait(false);
+            await sut.CreateOrUpdateDocumentAsync(
+                "test1/test1.txt", 
+                () => new MemoryStream(Encoding.UTF8.GetBytes("test1"))).ConfigureAwait(false);
             await sut.DeleteDocumentAsync("test1/test1.txt").ConfigureAwait(false);
             await sut.CreateOrUpdateDocumentAsync("test1/test1.txt",
-                new MemoryStream(Encoding.UTF8.GetBytes("test1")),
+                () => new MemoryStream(Encoding.UTF8.GetBytes("test1")),
                 new DateTime(2018, 10, 1, 0, 0, 0, DateTimeKind.Utc),
                 new DateTime(2018, 10, 2, 0, 0, 0, DateTimeKind.Utc)).ConfigureAwait(false);
-            await sut.VerifyTokenAsync().ConfigureAwait(false);
             var entries = await sut.GetEntriesAsync("test1").ConfigureAwait(false);
             Assert.IsTrue(entries.Any(e => e.Path == "test1/test1.txt"));
             using(var sr = await sut.DownloadAsync("test1/test1.txt"))
@@ -76,18 +79,40 @@ namespace Docms.Client.Tests
         public async Task サーバーにファイルをアップロードする()
         {
             if (noConnection) Assert.Fail("接続不良のため失敗");
-            await sut.VerifyTokenAsync().ConfigureAwait(false);
-            await sut.CreateOrUpdateDocumentAsync("test1/subtest1/test.txt", new MemoryStream(Encoding.UTF8.GetBytes("test1"))).ConfigureAwait(false);
+            await sut.CreateOrUpdateDocumentAsync("test1/subtest1/test.txt", () => new MemoryStream(Encoding.UTF8.GetBytes("test1"))).ConfigureAwait(false);
             var entries = await sut.GetEntriesAsync("test1/subtest1").ConfigureAwait(false);
             Assert.IsTrue(entries.Any(e => e.Path == "test1/subtest1/test.txt"));
+        }
+
+        [TestMethod]
+        public async Task ファイルのアップロードでトークンがエラーとなる場合に自動的に再ログインしてリクエストを送信する()
+        {
+            if (noConnection) Assert.Fail("接続不良のため失敗");
+            var restSharp = sut.GetType().GetField("_client", BindingFlags.NonPublic | BindingFlags.Instance).GetValue(sut) as RestSharp.IRestClient;
+            sut.GetType().GetField("_accessToken", BindingFlags.NonPublic | BindingFlags.Instance).SetValue(sut, "invalid_access_token");
+            restSharp.Authenticator = new RestSharp.Authenticators.JwtAuthenticator("invalid_access_token");
+            await sut.CreateOrUpdateDocumentAsync("test1/subtest1/test.txt", () => new MemoryStream(Encoding.UTF8.GetBytes("test1"))).ConfigureAwait(false);
+            var entries = await sut.GetEntriesAsync("test1/subtest1").ConfigureAwait(false);
+            Assert.IsTrue(entries.Any(e => e.Path == "test1/subtest1/test.txt"));
+        }
+
+        [TestMethod]
+        public async Task ファイルの読み込みでエラーになった場合に読み込みエラーの例外が発生する()
+        {
+            if (noConnection) Assert.Fail("接続不良のため失敗");
+            var filename = Path.GetTempFileName();
+            File.Delete(filename);
+            await Assert.ThrowsExceptionAsync<FileNotFoundException>(async () =>
+            {
+                await sut.CreateOrUpdateDocumentAsync("test1/subtest1/test.txt", () => File.OpenRead(filename)).ConfigureAwait(false);
+            }).ConfigureAwait(false);
         }
 
         [TestMethod]
         public async Task 大きいファイルをサーバーにアップロードする()
         {
             if (noConnection) Assert.Fail("接続不良のため失敗");
-            await sut.VerifyTokenAsync().ConfigureAwait(false);
-            await sut.CreateOrUpdateDocumentAsync("test1/subtest1/test.txt", new MemoryStream(
+            await sut.CreateOrUpdateDocumentAsync("test1/subtest1/test.txt", () => new MemoryStream(
                 Enumerable.Range(0, 300_000_000).Select(v => (byte)v).ToArray())
             ).ConfigureAwait(false);
             var entries = await sut.GetEntriesAsync("test1/subtest1").ConfigureAwait(false);
@@ -98,9 +123,8 @@ namespace Docms.Client.Tests
         public async Task サーバーのファイルを移動する()
         {
             if (noConnection) Assert.Fail("接続不良のため失敗");
-            await sut.VerifyTokenAsync().ConfigureAwait(false);
-            await sut.CreateOrUpdateDocumentAsync("test1/subtest1/test1.txt", new MemoryStream(Encoding.UTF8.GetBytes("test1"))).ConfigureAwait(false);
-            await sut.CreateOrUpdateDocumentAsync("test1/subtest1/test2.txt", new MemoryStream(Encoding.UTF8.GetBytes("test2"))).ConfigureAwait(false);
+            await sut.CreateOrUpdateDocumentAsync("test1/subtest1/test1.txt", () => new MemoryStream(Encoding.UTF8.GetBytes("test1"))).ConfigureAwait(false);
+            await sut.CreateOrUpdateDocumentAsync("test1/subtest1/test2.txt", () => new MemoryStream(Encoding.UTF8.GetBytes("test2"))).ConfigureAwait(false);
             await sut.DeleteDocumentAsync("test1/subtest1/test2.txt").ConfigureAwait(false);
             await sut.MoveDocumentAsync("test1/subtest1/test1.txt", "test1/subtest1/test2.txt").ConfigureAwait(false);
             Assert.IsNull(await sut.GetDocumentAsync("test1/subtest1/test1.txt").ConfigureAwait(false));
@@ -111,8 +135,7 @@ namespace Docms.Client.Tests
         public async Task 存在しないファイルを取得する()
         {
             if (noConnection) Assert.Fail("接続不良のため失敗");
-            await sut.VerifyTokenAsync().ConfigureAwait(false);
-            await sut.CreateOrUpdateDocumentAsync("test1/subtest1/test1.txt", new MemoryStream(Encoding.UTF8.GetBytes("test1"))).ConfigureAwait(false);
+            await sut.CreateOrUpdateDocumentAsync("test1/subtest1/test1.txt", () => new MemoryStream(Encoding.UTF8.GetBytes("test1"))).ConfigureAwait(false);
             await sut.DeleteDocumentAsync("test1/subtest1/test1.txt").ConfigureAwait(false);
             Assert.IsNull(await sut.GetDocumentAsync("test1/subtest1/test1.txt").ConfigureAwait(false));
             await Assert.ThrowsExceptionAsync<ServerException>(async () => await sut.DownloadAsync("test1/subtest1/test1.txt").ConfigureAwait(false));
@@ -122,8 +145,7 @@ namespace Docms.Client.Tests
         public async Task 存在しないファイルを削除してもエラーにはならない()
         {
             if (noConnection) Assert.Fail("接続不良のため失敗");
-            await sut.VerifyTokenAsync().ConfigureAwait(false);
-            await sut.CreateOrUpdateDocumentAsync("test1/subtest1/test1.txt", new MemoryStream(Encoding.UTF8.GetBytes("test1"))).ConfigureAwait(false);
+            await sut.CreateOrUpdateDocumentAsync("test1/subtest1/test1.txt", () => new MemoryStream(Encoding.UTF8.GetBytes("test1"))).ConfigureAwait(false);
             await sut.DeleteDocumentAsync("test1/subtest1/test1.txt").ConfigureAwait(false);
             await sut.DeleteDocumentAsync("test1/subtest1/test1.txt").ConfigureAwait(false);
         }
@@ -132,7 +154,6 @@ namespace Docms.Client.Tests
         public async Task 履歴が取得できること()
         {
             if (noConnection) Assert.Fail("接続不良のため失敗");
-            await sut.VerifyTokenAsync().ConfigureAwait(false);
             var histories = await sut.GetHistoriesAsync("").ConfigureAwait(false);
             var first = histories.First();
             var second = histories.Skip(1).First();

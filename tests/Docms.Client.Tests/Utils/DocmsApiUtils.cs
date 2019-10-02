@@ -11,7 +11,7 @@ namespace Docms.Client.Tests.Utils
         public static Task Create(IDocmsApiClient apiClient, string path)
         {
             var time = new DateTime(2019, 1, 1, 10, 11, 12, DateTimeKind.Utc);
-            return apiClient.CreateOrUpdateDocumentAsync(path, new MemoryStream(Encoding.UTF8.GetBytes(path)), time, time);
+            return apiClient.CreateOrUpdateDocumentAsync(path, () => new MemoryStream(Encoding.UTF8.GetBytes(path)), time, time);
         }
 
         public static async Task Update(IDocmsApiClient apiClient, string path)
@@ -21,7 +21,7 @@ namespace Docms.Client.Tests.Utils
             var ms = new MemoryStream();
             await stream.CopyToAsync(ms).ConfigureAwait(false);
             var str = Encoding.UTF8.GetString(ms.ToArray()) + " updated";
-            await apiClient.CreateOrUpdateDocumentAsync(path, new MemoryStream(Encoding.UTF8.GetBytes(str)), file.Created, file.LastModified.AddHours(1)).ConfigureAwait(false);
+            await apiClient.CreateOrUpdateDocumentAsync(path, () => new MemoryStream(Encoding.UTF8.GetBytes(str)), file.Created, file.LastModified.AddHours(1)).ConfigureAwait(false);
         }
 
         public static Task Move(IDocmsApiClient apiClient, string fromPath, string toPath)

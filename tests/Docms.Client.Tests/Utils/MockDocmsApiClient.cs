@@ -1,5 +1,6 @@
 ﻿using Docms.Client.Api;
 using Docms.Client.Api.Responses;
+using Docms.Client.Exceptions;
 using System;
 using System.Collections.Generic;
 using System.IO;
@@ -135,14 +136,14 @@ namespace Docms.Client.Tests.Utils
             });
         }
 
-        public Task CreateOrUpdateDocumentAsync(string path, Stream stream, DateTime? created = null, DateTime? lastModified = null)
+        public Task CreateOrUpdateDocumentAsync(string path, Func<Stream> streamFactory, DateTime? created = null, DateTime? lastModified = null)
         {
             if (entries.ContainsKey(path))
             {
                 RemoveFile(path);
                 using (var ms = new MemoryStream())
                 {
-                    stream.CopyTo(ms);
+                    streamFactory.Invoke().CopyTo(ms);
                     ms.Seek(0, SeekOrigin.Begin);
                     var now = DateTime.UtcNow;
                     AddFile(path, "application/octet-stream", ms.ToArray(), created ?? now, lastModified ?? now);
@@ -153,7 +154,7 @@ namespace Docms.Client.Tests.Utils
             {
                 using (var ms = new MemoryStream())
                 {
-                    stream.CopyTo(ms);
+                    streamFactory.Invoke().CopyTo(ms);
                     ms.Seek(0, SeekOrigin.Begin);
                     var now = DateTime.UtcNow;
                     AddFile(path, "application/octet-stream", ms.ToArray(), created ?? now, lastModified ?? now);
@@ -229,7 +230,14 @@ namespace Docms.Client.Tests.Utils
             historyValues = historyValues.OrderBy(e => e.Timestamp);
             if (lastHistoryId != null)
             {
-                historyValues = historyValues.SkipWhile(h => h.Id != lastHistoryId.Value).Skip(1);
+                if (historyValues.Any(h=>h.Id == lastHistoryId))
+                {
+                    historyValues = historyValues.SkipWhile(h => h.Id != lastHistoryId.Value).Skip(1);
+                }
+                else
+                {
+                    throw new ServerException("histories", "get", path, 400, "Not Found");
+                }
             }
             return Task.FromResult(historyValues.ToArray() as IEnumerable<History>);
         }
@@ -240,11 +248,6 @@ namespace Docms.Client.Tests.Utils
         }
 
         public Task LogoutAsync()
-        {
-            return Task.CompletedTask;
-        }
-
-        public Task VerifyTokenAsync()
         {
             return Task.CompletedTask;
         }

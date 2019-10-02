@@ -1,37 +1,8 @@
 ﻿using System;
 
-namespace Docms.Client.Api
+namespace Docms.Client.Exceptions
 {
-    public class DocmsApiClientException : Exception
-    {
-        public DocmsApiClientException()
-        {
-        }
-
-        public DocmsApiClientException(string message) : base(message)
-        {
-        }
-
-        public DocmsApiClientException(string message, Exception innerException) : base(message, innerException)
-        {
-        }
-    }
-
-    public class ServerConnectionException : DocmsApiClientException
-    {
-        public ServerConnectionException() : base($"サーバーに接続できません。")
-        {
-        }
-    }
-
-    public class InvalidLoginException : DocmsApiClientException
-    {
-        public InvalidLoginException() : base("ログインができません。ユーザー名とパスワードを確認してください。")
-        {
-        }
-    }
-
-    public class ServerException : DocmsApiClientException
+    public class ServerException : Exception
     {
         public string RequestUri { get; }
         public string RequestMethod { get; }
