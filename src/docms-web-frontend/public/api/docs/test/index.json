@@ -1,0 +1,17 @@
+{
+  "path": "test",
+  "type": "DIRECTORY",
+  "name": "",
+  "entries": [
+    {
+      "path": "test/1.txt",
+      "type": "DOCUMENT",
+      "name": "1.txt"
+    },
+    {
+      "path": "test/2.txt",
+      "type": "DOCUMENT",
+      "name": "2.txt"
+    }
+  ]
+}

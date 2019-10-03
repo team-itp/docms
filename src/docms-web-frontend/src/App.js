@@ -10,7 +10,7 @@ import AppTitleBar from './components/AppTitleBar';
 import Login from './components/Login';
 import Home from './components/Home';
 import NotFound from './components/NotFound';
-import DocumentBrowser from './components/DocumentBrowser';
+import DocumentBrowser from './containers/DocumentBrowser';
 
 const theme = createMuiTheme({
   palette: {

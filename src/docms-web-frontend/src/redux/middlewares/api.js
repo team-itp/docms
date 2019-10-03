@@ -77,17 +77,16 @@ const document = ({ dispatch }) => next => action => {
 
   if (action.type === DOCUMENT_REQUEST) {
     let { path } = action.payload;
-    if (!path) {
-      path = '';
-    } else if (!path.startsWith('/')) {
-      path = '/' + path;
+    if (path) {
+      path = path + '/';
     }
+    
     dispatch({
       type: 'API',
       payload: {
-        url: '/api/docs' + path + '/index.json',
-        success: documentReceived,
-        fail: documentNotExists
+        url: '/api/docs/' + path + 'index.json',
+        success: data => documentReceived(data),
+        fail: error => documentNotExists(error, path)
       }
     })
   }

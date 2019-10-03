@@ -7,16 +7,17 @@ function documentsReducer(state = initialState, action) {
   switch (action.type) {
     case DOCUMENT_REQUEST:
       return Object.assign({}, state, {
-        [action.path]: {
+        [action.payload.path]: {
           isRequesting: true
         }
       });
     case SET_DOCUMENT:
       return Object.assign({}, state, {
-        [action.path]: {
+        [action.payload.path]: {
           isRequesting: false,
           type: action.payload.type,
           name: action.payload.name,
+          path: action.payload.path,
           entries: action.payload.entries,
         }
       });

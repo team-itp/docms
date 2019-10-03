@@ -1,12 +1,15 @@
 {
+  "path": "",
   "type": "DIRECTORY",
-  "name": "/",
+  "name": "",
   "entries": [
     {
+      "path": "test",
       "type": "DIRECTORY",
       "name": "test"
     },
     {
+      "path": "a.txt",
       "type": "DOCUMENT",
       "name": "a.txt"
     }
