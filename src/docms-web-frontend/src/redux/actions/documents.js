@@ -1,13 +1,13 @@
-export const DOCUMENT_REQUEST = 'DOCUMENT_REQUEST';
+export const REQUEST_DOCUMENT = 'REQUEST_DOCUMENT';
 export const SET_DOCUMENT = 'SET_DOCUMENT';
-export const DOCUMENT_REQUEST_FAIL = 'DOCUMENT_REQUEST_FAIL';
+export const DOCUMENT_NOT_FOUND = 'DOCUMENT_NOT_FOUND';
 
 export function requestDocument(path) {
-  return { type: DOCUMENT_REQUEST, payload: { path: path } };
+  return { type: REQUEST_DOCUMENT, payload: { path: path } };
 }
-export function documentReceived(data) {
+export function setDocument(data) {
   return { type: SET_DOCUMENT, payload: { ...data } };
 }
-export function documentNotExists(error, path) {
-  return { type: DOCUMENT_REQUEST_FAIL, payload: { path, error } };
+export function documentNotFound(error, path) {
+  return { type: DOCUMENT_NOT_FOUND, payload: { path, error } };
 }

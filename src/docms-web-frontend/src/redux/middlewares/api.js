@@ -1,5 +1,5 @@
 import { LOGIN_REQUESTED, authenticated, loginDenied } from "../actions";
-import { DOCUMENT_REQUEST, documentReceived, documentNotExists } from "../actions/documents";
+import { REQUEST_DOCUMENT, setDocument, documentNotFound } from "../actions/documents";
 
 const api = ({ dispatch }) => next => action => {
   next(action);
@@ -75,18 +75,18 @@ const login = store => next => action => {
 const document = ({ dispatch }) => next => action => {
   next(action);
 
-  if (action.type === DOCUMENT_REQUEST) {
+  if (action.type === REQUEST_DOCUMENT) {
     let { path } = action.payload;
     if (path) {
       path = path + '/';
     }
-    
+
     dispatch({
       type: 'API',
       payload: {
         url: '/api/docs/' + path + 'index.json',
-        success: data => documentReceived(data),
-        fail: error => documentNotExists(error, path)
+        success: data => setDocument(data),
+        fail: error => documentNotFound(error, path)
       }
     })
   }

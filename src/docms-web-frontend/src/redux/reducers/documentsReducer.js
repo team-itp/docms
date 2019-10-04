@@ -1,11 +1,11 @@
-import { DOCUMENT_REQUEST, SET_DOCUMENT } from "../actions/documents";
+import { REQUEST_DOCUMENT, SET_DOCUMENT } from "../actions/documents";
 
 const initialState = {
 }
 
 function documentsReducer(state = initialState, action) {
   switch (action.type) {
-    case DOCUMENT_REQUEST:
+    case REQUEST_DOCUMENT:
       return Object.assign({}, state, {
         [action.payload.path]: {
           isRequesting: true

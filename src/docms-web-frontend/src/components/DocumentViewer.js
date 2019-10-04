@@ -32,11 +32,13 @@ export function DocumentViewer(props) {
   return (
     <Container maxWidth="xl">
       <DocumentHeader {...props} />
-      <Paper>
-        <Grid>
-          <Typography>{props.name}</Typography>
-        </Grid>
-      </Paper>
+      <Container>
+        <Paper>
+          <Grid>
+            <Typography>{props.name}</Typography>
+          </Grid>
+        </Paper>
+      </Container>
     </Container>
   );
 }
