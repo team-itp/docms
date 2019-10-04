@@ -1,6 +1,5 @@
 import { LOGIN_REQUESTED, authenticated, loginDenied } from "../actions";
 import { REQUEST_DOCUMENT, setDocument, documentNotFound } from "../actions/documents";
-import { saveState } from "../actions/persistence";
 
 const api = ({ dispatch }) => next => action => {
   next(action);
@@ -51,7 +50,6 @@ const api = ({ dispatch }) => next => action => {
       })
       .then(json => {
         dispatch(success(json));
-        dispatch(saveState());
       })
       .catch(error => dispatch(fail(error)));
   }

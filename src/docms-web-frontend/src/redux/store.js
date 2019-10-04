@@ -1,8 +1,7 @@
 import { createStore, applyMiddleware } from 'redux';
 import reducers from './reducers';
 import api from './middlewares/api';
-import persistence from './middlewares/persistence';
-import { restoreState } from './actions/persistence';
+import { restoreState, SAVE_STATE } from './actions/persistence';
 
 /**
  * Logs all actions and states after they are dispatched.
@@ -28,126 +27,26 @@ const crashReporter = store => next => action => {
   }
 }
 
-/**
- * Schedules actions with { meta: { delay: N } } to be delayed by N milliseconds.
- * Makes `dispatch` return a function to cancel the timeout in this case.
- */
-const timeoutScheduler = store => next => action => {
-  if (!action.meta || !action.meta.delay) {
-    return next(action)
+const persister = ({ getState }) => next => action => {
+  const stateBefore = getState();
+  next(action);
+  const stateAfter = getState();
+  if (stateBefore !== stateAfter) {
+    localStorage.setItem('docms-client-app-store', JSON.stringify(stateAfter));
   }
 
-  const timeoutId = setTimeout(() => next(action), action.meta.delay)
-
-  return function cancel() {
-    clearTimeout(timeoutId)
+  if (action.type === SAVE_STATE) {
+    const state = getState();
+    localStorage.setItem('docms-client-app-store', JSON.stringify(state));
   }
 }
-
-/**
- * Schedules actions with { meta: { raf: true } } to be dispatched inside a rAF loop
- * frame.  Makes `dispatch` return a function to remove the action from the queue in
- * this case.
- */
-const rafScheduler = store => next => {
-  let queuedActions = []
-  let frame = null
-
-  function loop() {
-    frame = null
-    try {
-      if (queuedActions.length) {
-        next(queuedActions.shift())
-      }
-    } finally {
-      maybeRaf()
-    }
-  }
-
-  function maybeRaf() {
-    if (queuedActions.length && !frame) {
-      frame = requestAnimationFrame(loop)
-    }
-  }
-
-  return action => {
-    if (!action.meta || !action.meta.raf) {
-      return next(action)
-    }
-
-    queuedActions.push(action)
-    maybeRaf()
-
-    return function cancel() {
-      queuedActions = queuedActions.filter(a => a !== action)
-    }
-  }
-}
-
-/**
- * Lets you dispatch promises in addition to actions.
- * If the promise is resolved, its result will be dispatched as an action.
- * The promise is returned from `dispatch` so the caller may handle rejection.
- */
-const vanillaPromise = store => next => action => {
-  if (typeof action.then !== 'function') {
-    return next(action)
-  }
-
-  return Promise.resolve(action).then(store.dispatch)
-}
-
-/**
- * Lets you dispatch special actions with a { promise } field.
- *
- * This middleware will turn them into a single action at the beginning,
- * and a single success (or failure) action when the `promise` resolves.
- *
- * For convenience, `dispatch` will return the promise so the caller can wait.
- */
-const readyStatePromise = store => next => action => {
-  if (!action.promise) {
-    return next(action)
-  }
-
-  function makeAction(ready, data) {
-    const newAction = Object.assign({}, action, { ready }, data)
-    delete newAction.promise
-    return newAction
-  }
-
-  next(makeAction(false))
-  return action.promise.then(
-    result => next(makeAction(true, { result })),
-    error => next(makeAction(true, { error }))
-  )
-}
-
-/**
- * Lets you dispatch a function instead of an action.
- * This function will receive `dispatch` and `getState` as arguments.
- *
- * Useful for early exits (conditions over `getState()`), as well
- * as for async control flow (it can `dispatch()` something else).
- *
- * `dispatch` will return the return value of the dispatched function.
- */
-const thunk = store => next => action =>
-  typeof action === 'function'
-    ? action(store.dispatch, store.getState)
-    : next(action)
 
 const store = createStore(reducers,
   applyMiddleware(
-    rafScheduler,
-    timeoutScheduler,
-    thunk,
-    vanillaPromise,
-    readyStatePromise,
     logger,
     crashReporter,
-    ...api,
-    ...persistence
+    persister,
+    ...api
   ));
 
 store.dispatch(restoreState());
