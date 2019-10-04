@@ -2,6 +2,7 @@ import React from 'react';
 import { withRouter } from 'react-router-dom';
 import { connect } from 'react-redux';
 import { AppBar, Button, Toolbar, Typography } from '@material-ui/core';
+import SettingsIcon from '@material-ui/icons/Settings';
 import { makeStyles } from '@material-ui/core/styles';
 import { signout } from '../redux/actions';
 
@@ -23,6 +24,15 @@ function mapDispatchToProps(dispatch, ownProps) {
   };
 }
 
+const AppTitle = withRouter(
+  ({ history }) => {
+    const classes = useStyles();
+    return (<Typography className={classes.title} variant="h6" onClick={() => history.push('/')}>
+      文書管理システム
+    </Typography>);
+  }
+);
+
 const AuthButton = withRouter(
   connect(mapStateToProps, mapDispatchToProps)(
     ({ history, isAuthenticated, signout }) => {
@@ -36,17 +46,27 @@ const AuthButton = withRouter(
       );
     }));
 
+const SettingsButton = withRouter(
+  connect(mapStateToProps, mapDispatchToProps)(
+    ({ history, isAuthenticated, isAdministrator }) => {
+      return (
+        (isAuthenticated && isAdministrator)
+          ? (<Button color="inherit" onClick={() => {
+            history.push('/admin');
+          }}><SettingsIcon /></Button>)
+          : null
+      );
+    }));
+
 
 
 function AppTitleBar() {
-  const classes = useStyles();
   return (
     <AppBar position="static">
       <Toolbar>
-        <Typography variant="h6" className={classes.title}>
-          文書管理システム
-        </Typography>
+        <AppTitle />
         <AuthButton />
+        <SettingsButton />
       </Toolbar>
     </AppBar>
   );
