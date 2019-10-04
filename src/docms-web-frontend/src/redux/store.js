@@ -1,6 +1,8 @@
 import { createStore, applyMiddleware } from 'redux';
 import reducers from './reducers';
 import api from './middlewares/api';
+import persistence from './middlewares/persistence';
+import { restoreState } from './actions/persistence';
 
 /**
  * Logs all actions and states after they are dispatched.
@@ -144,7 +146,10 @@ const store = createStore(reducers,
     readyStatePromise,
     logger,
     crashReporter,
-    ...api
+    ...api,
+    ...persistence
   ));
+
+store.dispatch(restoreState());
 
 export default store;

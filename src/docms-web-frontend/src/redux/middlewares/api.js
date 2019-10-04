@@ -1,5 +1,6 @@
 import { LOGIN_REQUESTED, authenticated, loginDenied } from "../actions";
 import { REQUEST_DOCUMENT, setDocument, documentNotFound } from "../actions/documents";
+import { saveState } from "../actions/persistence";
 
 const api = ({ dispatch }) => next => action => {
   next(action);
@@ -42,8 +43,16 @@ const api = ({ dispatch }) => next => action => {
     }
 
     fetch(url, httpRequestOptions)
-      .then(response => response.json())
-      .then(json => dispatch(success(json)))
+      .then(response => {
+        if (response.ok) {
+          return response.json();
+        }
+        throw new Error('status code is not ok. status code: ' + response.status)
+      })
+      .then(json => {
+        dispatch(success(json));
+        dispatch(saveState());
+      })
       .catch(error => dispatch(fail(error)));
   }
 }
