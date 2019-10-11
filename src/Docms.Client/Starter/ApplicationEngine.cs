@@ -53,18 +53,23 @@ namespace Docms.Client.Starter
                 }
                 return true;
             }
+            catch (ApplicationNeedsReinitializeException ex)
+            {
+                throw;
+            }
             catch (ServiceUnavailableException ex)
             {
                 logger.Error(ex.Message);
                 logger.Debug(ex);
                 if (!app.ShutdownRequestedToken.IsCancellationRequested)
                 {
-                    logger.Info("アプリケーションを1分間停止します。");
+                    logger.Info("application paused for 1 minute.");
                     await Task.Delay(TimeSpan.FromMinutes(1)).ConfigureAwait(false);
+                    logger.Info("application resumed.");
                 }
                 return false;
             }
-            catch(Exception ex)
+            catch (Exception ex)
             {
                 logger.Error(ex.Message);
                 logger.Debug(ex);
