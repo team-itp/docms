@@ -28,7 +28,7 @@ namespace Docms.Client.Starter
                 initializationCompleted = await ExecuteAsync(new InitializeTask(context)).ConfigureAwait(false);
             }
             logger.Trace("InitializeTask ended");
-            await Task.Delay(TimeSpan.FromSeconds(10)).ConfigureAwait(false);
+            await Task.Delay(TimeSpan.FromSeconds(10), app.ShutdownRequestedToken).ConfigureAwait(false);
 
             logger.Info("Application main loop started.");
             while (!app.ShutdownRequestedToken.IsCancellationRequested)
@@ -36,7 +36,7 @@ namespace Docms.Client.Starter
                 logger.Trace("SyncTask started");
                 await ExecuteAsync(new SyncTask(context)).ConfigureAwait(false);
                 logger.Trace("SyncTask ended");
-                await Task.Delay(TimeSpan.FromSeconds(10)).ConfigureAwait(false);
+                await Task.Delay(TimeSpan.FromSeconds(10), app.ShutdownRequestedToken).ConfigureAwait(false);
             }
             logger.Info("Application main loop ended.");
         }
@@ -60,7 +60,7 @@ namespace Docms.Client.Starter
                 if (!app.ShutdownRequestedToken.IsCancellationRequested)
                 {
                     logger.Info("アプリケーションを1分間停止します。");
-                    await Task.Delay(TimeSpan.FromMinutes(1)).ConfigureAwait(false);
+                    await Task.Delay(TimeSpan.FromMinutes(1), app.ShutdownRequestedToken).ConfigureAwait(false);
                 }
                 return false;
             }
