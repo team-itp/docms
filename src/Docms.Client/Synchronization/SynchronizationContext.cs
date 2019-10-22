@@ -39,7 +39,7 @@ namespace Docms.Client.Synchronization
         {
             if (_States.TryGetValue(path, out var value))
             {
-                if (value is UploadingState)
+                if (value is UploadingState || value is RequestForDownloadState)
                 {
                     _States[path] = new RequestForDeleteState(path, hash, length);
                 }
