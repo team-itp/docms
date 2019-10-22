@@ -12,7 +12,6 @@ using System.Net;
 using System.Net.Http;
 using System.Net.Http.Headers;
 using System.Threading.Tasks;
-using System.Web;
 using System.Xml;
 
 namespace Docms.Client.Api
@@ -182,6 +181,11 @@ namespace Docms.Client.Api
             return JsonConvert.DeserializeObject<T>(await result.Content.ReadAsStringAsync().ConfigureAwait(false), DefaultJsonSerializerSettings);
         }
 
+        private string ToQueryString(Dictionary<string, string> query)
+        {
+            return string.Join("&", query.Select(kv => Uri.EscapeDataString(kv.Key) + "=" + Uri.EscapeDataString(kv.Value)));
+        }
+
         private void ThrowIfNotSuccessfulStatus(HttpResponseMessage result)
         {
             if (!result.IsSuccessStatusCode)
@@ -200,7 +204,7 @@ namespace Docms.Client.Api
             _logger.Debug("requesting get entries for path: " + path);
             var result = await ExecuteAsync(() =>
             {
-                var query = HttpUtility.ParseQueryString(string.Empty);
+                var query = new Dictionary<string, string>();
                 if (!string.IsNullOrEmpty(path))
                 {
                     query["path"] = path;
@@ -208,7 +212,7 @@ namespace Docms.Client.Api
 
                 var requestUri = new UriBuilder(_serverUri);
                 requestUri.Path = _defaultPath + "files";
-                requestUri.Query = query.ToString();
+                requestUri.Query = ToQueryString(query);
                 var request = new HttpRequestMessage(HttpMethod.Get, requestUri.Uri);
                 return request;
             }).ConfigureAwait(false);
@@ -225,12 +229,12 @@ namespace Docms.Client.Api
             _logger.Debug("Requesting get document for path: " + path);
             var result = await ExecuteAsync(() =>
             {
-                var query = HttpUtility.ParseQueryString(string.Empty);
+                var query = new Dictionary<string, string>();
                 query["path"] = path ?? throw new ArgumentNullException(nameof(path));
 
                 var requestUri = new UriBuilder(_serverUri);
                 requestUri.Path = _defaultPath + "files";
-                requestUri.Query = query.ToString();
+                requestUri.Query = ToQueryString(query);
                 var request = new HttpRequestMessage(HttpMethod.Get, requestUri.Uri);
                 return request;
             }).ConfigureAwait(false);
@@ -250,13 +254,13 @@ namespace Docms.Client.Api
             _logger.Debug("requesting downloading for path: " + path);
             var result = await ExecuteAsync(() =>
             {
-                var query = HttpUtility.ParseQueryString(string.Empty);
+                var query = new Dictionary<string, string>();
                 query["path"] = path ?? throw new ArgumentNullException(nameof(path));
                 query["download"] = true.ToString();
 
                 var requestUri = new UriBuilder(_serverUri);
                 requestUri.Path = _defaultPath + "files";
-                requestUri.Query = query.ToString();
+                requestUri.Query = ToQueryString(query);
                 var request = new HttpRequestMessage(HttpMethod.Get, requestUri.Uri);
                 return request;
             }).ConfigureAwait(false);
@@ -324,12 +328,12 @@ namespace Docms.Client.Api
             {
                 var result = await ExecuteAsync(() =>
                 {
-                    var query = HttpUtility.ParseQueryString(string.Empty);
+                    var query = new Dictionary<string, string>();
                     query["path"] = path ?? throw new ArgumentNullException(nameof(path));
 
                     var requestUri = new UriBuilder(_serverUri);
                     requestUri.Path = _defaultPath + "files";
-                    requestUri.Query = query.ToString();
+                    requestUri.Query = ToQueryString(query);
 
                     var request = new HttpRequestMessage(HttpMethod.Delete, requestUri.Uri);
                     return request;
@@ -351,7 +355,7 @@ namespace Docms.Client.Api
             _logger.Debug("requesting histories for path: " + path + " lastHistoryId: " + lastHistoryId?.ToString() ?? "");
             var result = await ExecuteAsync(() =>
             {
-                var query = HttpUtility.ParseQueryString(string.Empty);
+                var query = new Dictionary<string, string>();
                 if (!string.IsNullOrEmpty(path))
                 {
                     query["path"] = path;
@@ -364,7 +368,7 @@ namespace Docms.Client.Api
 
                 var requestUri = new UriBuilder(_serverUri);
                 requestUri.Path = _defaultPath + "histories";
-                requestUri.Query = query.ToString();
+                requestUri.Query = ToQueryString(query);
                 var request = new HttpRequestMessage(HttpMethod.Get, requestUri.Uri);
                 return request;
             }).ConfigureAwait(false);
