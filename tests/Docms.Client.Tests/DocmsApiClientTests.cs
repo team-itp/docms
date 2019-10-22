@@ -4,6 +4,8 @@ using Microsoft.VisualStudio.TestTools.UnitTesting;
 using System;
 using System.IO;
 using System.Linq;
+using System.Net.Http;
+using System.Net.Http.Headers;
 using System.Reflection;
 using System.Text;
 using System.Threading.Tasks;
@@ -88,9 +90,9 @@ namespace Docms.Client.Tests
         public async Task ファイルのアップロードでトークンがエラーとなる場合に自動的に再ログインしてリクエストを送信する()
         {
             if (noConnection) Assert.Fail("接続不良のため失敗");
-            var restSharp = sut.GetType().GetField("_client", BindingFlags.NonPublic | BindingFlags.Instance).GetValue(sut) as RestSharp.IRestClient;
+            var httpClient = sut.GetType().GetField("_client", BindingFlags.NonPublic | BindingFlags.Instance).GetValue(sut) as HttpClient;
             sut.GetType().GetField("_accessToken", BindingFlags.NonPublic | BindingFlags.Instance).SetValue(sut, "invalid_access_token");
-            restSharp.Authenticator = new RestSharp.Authenticators.JwtAuthenticator("invalid_access_token");
+            httpClient.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", "invalid_access_token");
             await sut.CreateOrUpdateDocumentAsync("test1/subtest1/test.txt", () => new MemoryStream(Encoding.UTF8.GetBytes("test1"))).ConfigureAwait(false);
             var entries = await sut.GetEntriesAsync("test1/subtest1").ConfigureAwait(false);
             Assert.IsTrue(entries.Any(e => e.Path == "test1/subtest1/test.txt"));

@@ -4,14 +4,15 @@ using Docms.Client.Exceptions;
 using IdentityModel.Client;
 using Newtonsoft.Json;
 using NLog;
-using RestSharp;
-using RestSharp.Authenticators;
 using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Net;
+using System.Net.Http;
+using System.Net.Http.Headers;
 using System.Threading.Tasks;
+using System.Web;
 using System.Xml;
 
 namespace Docms.Client.Api
@@ -28,7 +29,7 @@ namespace Docms.Client.Api
         private string _username;
         private string _password;
         private string _accessToken;
-        private RestClient _client;
+        private HttpClient _client;
 
         public JsonSerializerSettings DefaultJsonSerializerSettings { get; set; }
 
@@ -40,6 +41,11 @@ namespace Docms.Client.Api
             }
             _serverUri = uri.EndsWith("/") ? uri : uri + "/";
             _defaultPath = (defaultPath ?? "").EndsWith("/") ? defaultPath : defaultPath + "/";
+            _client = new HttpClient()
+            {
+                Timeout = TimeSpan.FromMinutes(30),
+            };
+            _client.DefaultRequestHeaders.Accept.Add(new MediaTypeWithQualityHeaderValue("application/json"));
             DefaultJsonSerializerSettings = new JsonSerializerSettings()
             {
                 TypeNameHandling = TypeNameHandling.Objects,
@@ -90,13 +96,7 @@ namespace Docms.Client.Api
                 _username = username;
                 _password = password;
                 _accessToken = response.AccessToken;
-                _client = new RestClient(_serverUri)
-                {
-                    FollowRedirects = false,
-                    Timeout = 30 * 60 * 1000,
-                };
-                _client.ConfigureWebRequest(x => x.AllowWriteStreamBuffering = false);
-                _client.Authenticator = new JwtAuthenticator(_accessToken);
+                _client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", _accessToken);
             }
         }
 
@@ -112,7 +112,7 @@ namespace Docms.Client.Api
                 "docms-client-secret");
 
             await client.RevokeAccessTokenAsync(_accessToken).ConfigureAwait(false);
-            _client.Authenticator = null;
+            _client.DefaultRequestHeaders.Authorization = null;
             _logger.Debug("logout success.");
         }
 
@@ -156,36 +156,42 @@ namespace Docms.Client.Api
             return false;
         }
 
-        private async Task<IRestResponse> ExecuteAsync(Func<RestRequest> requestFactory)
+        private async Task<HttpResponseMessage> ExecuteAsync(Func<HttpRequestMessage> requestFactory)
         {
-            if (_client == null)
+            try
             {
-                throw new InvalidLoginException();
-            }
-            var response = await _client.ExecuteTaskAsync(requestFactory.Invoke()).ConfigureAwait(false);
-            if (response.StatusCode == HttpStatusCode.Unauthorized || response.StatusCode == HttpStatusCode.NotFound)
-            {
-                if (await VerifyTokenAsync().ConfigureAwait(false))
+                var response = await _client.SendAsync(requestFactory.Invoke()).ConfigureAwait(false);
+                if (response.StatusCode == HttpStatusCode.Unauthorized || response.StatusCode == HttpStatusCode.NotFound)
                 {
-                    return response;
+                    if (await VerifyTokenAsync().ConfigureAwait(false))
+                    {
+                        return response;
+                    }
+                    response = await _client.SendAsync(requestFactory.Invoke()).ConfigureAwait(false);
                 }
-                response = await _client.ExecuteTaskAsync(requestFactory.Invoke()).ConfigureAwait(false);
+                return response;
             }
-            return response;
+            catch (Exception ex)
+            {
+                throw new ServerException("", ex);
+            }
         }
 
-        private void ThrowIfNotSuccessfulStatus(IRestResponse result)
+        private async Task<T> ParseJson<T>(HttpResponseMessage result)
         {
-            if (!result.IsSuccessful)
+            return JsonConvert.DeserializeObject<T>(await result.Content.ReadAsStringAsync().ConfigureAwait(false), DefaultJsonSerializerSettings);
+        }
+
+        private void ThrowIfNotSuccessfulStatus(HttpResponseMessage result)
+        {
+            if (!result.IsSuccessStatusCode)
             {
-                if (result.ErrorException != null)
-                {
-                    throw new ServerException(result.Content, result.ErrorException);
-                }
-                else
-                {
-                    throw new ServerException(result.Request.Resource, result.Request.Method.ToString(), result.Request.ToString(), (int)result.StatusCode, result.Content);
-                }
+                throw new ServerException(
+                    result.RequestMessage.RequestUri.ToString(),
+                    result.RequestMessage.Method.ToString(),
+                    result.RequestMessage.Content?.ToString(),
+                    (int)result.StatusCode,
+                    result.Content.ToString());
             }
         }
 
@@ -194,15 +200,20 @@ namespace Docms.Client.Api
             _logger.Debug("requesting get entries for path: " + path);
             var result = await ExecuteAsync(() =>
             {
-                var request = new RestRequest(_defaultPath + "files", Method.GET);
+                var query = HttpUtility.ParseQueryString(string.Empty);
                 if (!string.IsNullOrEmpty(path))
                 {
-                    request.AddQueryParameter("path", path);
+                    query["path"] = path;
                 }
+
+                var requestUri = new UriBuilder(_serverUri);
+                requestUri.Path = _defaultPath + "files";
+                requestUri.Query = query.ToString();
+                var request = new HttpRequestMessage(HttpMethod.Get, requestUri.Uri);
                 return request;
             }).ConfigureAwait(false);
             ThrowIfNotSuccessfulStatus(result);
-            var container = JsonConvert.DeserializeObject<ContainerResponse>(result.Content, DefaultJsonSerializerSettings);
+            var container = await ParseJson<ContainerResponse>(result).ConfigureAwait(false);
             return container.Entries
                 .Select(e => e is ContainerResponse
                     ? new Container(e as ContainerResponse, this) as Entry
@@ -214,8 +225,13 @@ namespace Docms.Client.Api
             _logger.Debug("Requesting get document for path: " + path);
             var result = await ExecuteAsync(() =>
             {
-                var request = new RestRequest(_defaultPath + "files", Method.GET);
-                request.AddQueryParameter("path", path ?? throw new ArgumentNullException(nameof(path)));
+                var query = HttpUtility.ParseQueryString(string.Empty);
+                query["path"] = path ?? throw new ArgumentNullException(nameof(path));
+
+                var requestUri = new UriBuilder(_serverUri);
+                requestUri.Path = _defaultPath + "files";
+                requestUri.Query = query.ToString();
+                var request = new HttpRequestMessage(HttpMethod.Get, requestUri.Uri);
                 return request;
             }).ConfigureAwait(false);
             if (result.StatusCode == HttpStatusCode.NotFound)
@@ -225,68 +241,60 @@ namespace Docms.Client.Api
             else
             {
                 ThrowIfNotSuccessfulStatus(result);
-                var document = JsonConvert.DeserializeObject<DocumentResponse>(result.Content, DefaultJsonSerializerSettings);
-                return new Document(document, this);
+                return new Document(await ParseJson<DocumentResponse>(result).ConfigureAwait(false), this);
             }
         }
 
         public async Task<Stream> DownloadAsync(string path)
         {
             _logger.Debug("requesting downloading for path: " + path);
-            var downloadResponse = new DownloadResponse();
             var result = await ExecuteAsync(() =>
             {
-                var request = new RestRequest(_defaultPath + "files", Method.GET);
-                request.ResponseWriter = stream => downloadResponse.WriteResponse(stream);
-                if (!string.IsNullOrEmpty(path))
-                {
-                    request.AddQueryParameter("path", path);
-                    request.AddQueryParameter("download", true.ToString());
-                }
+                var query = HttpUtility.ParseQueryString(string.Empty);
+                query["path"] = path ?? throw new ArgumentNullException(nameof(path));
+                query["download"] = true.ToString();
+
+                var requestUri = new UriBuilder(_serverUri);
+                requestUri.Path = _defaultPath + "files";
+                requestUri.Query = query.ToString();
+                var request = new HttpRequestMessage(HttpMethod.Get, requestUri.Uri);
                 return request;
             }).ConfigureAwait(false);
-            try
-            {
-                ThrowIfNotSuccessfulStatus(result);
-            }
-            catch
-            {
-                downloadResponse.Dispose();
-                throw;
-            }
+            ThrowIfNotSuccessfulStatus(result);
+            var downloadResponse = new DownloadResponse();
+            downloadResponse.WriteResponse(await result.Content.ReadAsStreamAsync().ConfigureAwait(false));
             return downloadResponse;
         }
 
         public async Task CreateOrUpdateDocumentAsync(string path, Func<Stream> streamFactory, DateTime? created = null, DateTime? lastModified = null)
         {
             _logger.Debug("requesting uploading for path: " + path);
-            var result = await ExecuteAsync(() =>
+            using (var stream = streamFactory.Invoke())
             {
-                var stream = streamFactory.Invoke();
-                var request = new RestRequest(_defaultPath + "files", Method.POST);
-                request.AddParameter("path", path ?? throw new ArgumentNullException(nameof(path)));
-                request.AddFile("file", sr =>
+                var result = await ExecuteAsync(() =>
                 {
-                    try
+                    var requestUri = new UriBuilder(_serverUri);
+                    requestUri.Path = _defaultPath + "files";
+
+                    var content = new MultipartFormDataContent();
+                    content.Add(new StringContent(path ?? throw new ArgumentNullException(nameof(path))), "path");
+                    stream.Seek(0, SeekOrigin.Begin);
+                    content.Add(new StreamContent(stream), "file", path.Substring(path.LastIndexOf('/') > -1 ? path.LastIndexOf('/') : 0));
+                    if (created != null)
                     {
-                        stream.CopyTo(sr);
+                        content.Add(new StringContent(XmlConvert.ToString(created.Value, XmlDateTimeSerializationMode.Utc)), "created");
                     }
-                    finally
+                    if (lastModified != null)
                     {
-                        stream?.Dispose();
+                        content.Add(new StringContent(XmlConvert.ToString(lastModified.Value, XmlDateTimeSerializationMode.Utc)), "lastModified");
                     }
-                }, path.Substring(path.LastIndexOf('/') > -1 ? path.LastIndexOf('/') : 0), stream.Length);
-                if (created != null)
-                {
-                    request.AddParameter("created", XmlConvert.ToString(created.Value, XmlDateTimeSerializationMode.Utc));
-                }
-                if (lastModified != null)
-                {
-                    request.AddParameter("lastModified", XmlConvert.ToString(lastModified.Value, XmlDateTimeSerializationMode.Utc));
-                }
-                return request;
-            }).ConfigureAwait(false);
-            ThrowIfNotSuccessfulStatus(result);
+
+                    var request = new HttpRequestMessage(HttpMethod.Post, requestUri.Uri);
+                    request.Content = content;
+                    return request;
+                }).ConfigureAwait(false);
+                ThrowIfNotSuccessfulStatus(result);
+            }
         }
 
         public async Task MoveDocumentAsync(string originalPath, string destinationPath)
@@ -294,9 +302,16 @@ namespace Docms.Client.Api
             _logger.Debug("requesting move for original path: " + originalPath + " to destination path: " + destinationPath);
             var result = await ExecuteAsync(() =>
             {
-                var request = new RestRequest(_defaultPath + "files/move", Method.POST);
-                request.AddParameter("destinationPath", destinationPath);
-                request.AddParameter("originalPath", originalPath);
+                var requestUri = new UriBuilder(_serverUri);
+                requestUri.Path = _defaultPath + "files/move";
+
+                var keyValue = new Dictionary<string, string>();
+                keyValue.Add("destinationPath", destinationPath);
+                keyValue.Add("originalPath", originalPath);
+
+                var content = new FormUrlEncodedContent(keyValue);
+                var request = new HttpRequestMessage(HttpMethod.Post, requestUri.Uri);
+                request.Content = content;
                 return request;
             }).ConfigureAwait(false);
             ThrowIfNotSuccessfulStatus(result);
@@ -309,8 +324,14 @@ namespace Docms.Client.Api
             {
                 var result = await ExecuteAsync(() =>
                 {
-                    var request = new RestRequest(_defaultPath + "files", Method.DELETE);
-                    request.AddQueryParameter("path", path);
+                    var query = HttpUtility.ParseQueryString(string.Empty);
+                    query["path"] = path ?? throw new ArgumentNullException(nameof(path));
+
+                    var requestUri = new UriBuilder(_serverUri);
+                    requestUri.Path = _defaultPath + "files";
+                    requestUri.Query = query.ToString();
+
+                    var request = new HttpRequestMessage(HttpMethod.Delete, requestUri.Uri);
                     return request;
                 }).ConfigureAwait(false);
                 ThrowIfNotSuccessfulStatus(result);
@@ -330,32 +351,37 @@ namespace Docms.Client.Api
             _logger.Debug("requesting histories for path: " + path + " lastHistoryId: " + lastHistoryId?.ToString() ?? "");
             var result = await ExecuteAsync(() =>
             {
-                var request = new RestRequest(_defaultPath + "histories", Method.GET);
+                var query = HttpUtility.ParseQueryString(string.Empty);
                 if (!string.IsNullOrEmpty(path))
                 {
-                    request.AddQueryParameter("path", path);
+                    query["path"] = path;
                 }
                 if (lastHistoryId != null)
                 {
-                    request.AddQueryParameter("last_history_id", lastHistoryId.Value.ToString());
+                    query["last_history_id"] = lastHistoryId.Value.ToString();
                 }
-                request.AddQueryParameter("per_page", "1000");
+                query["per_page"] = "1000";
+
+                var requestUri = new UriBuilder(_serverUri);
+                requestUri.Path = _defaultPath + "histories";
+                requestUri.Query = query.ToString();
+                var request = new HttpRequestMessage(HttpMethod.Get, requestUri.Uri);
                 return request;
             }).ConfigureAwait(false);
             ThrowIfNotSuccessfulStatus(result);
 
-            var resultList = JsonConvert.DeserializeObject<List<History>>(result.Content, DefaultJsonSerializerSettings);
-            var pagination = PaginationHeader.Parse(result.Headers.FirstOrDefault(h => h.Name == "Link")?.Value?.ToString());
+            var resultList = await ParseJson<List<History>>(result).ConfigureAwait(false);
+            var pagination = PaginationHeader.Parse(result.Headers.FirstOrDefault(h => h.Key == "Link").Value?.FirstOrDefault());
             while (!string.IsNullOrEmpty(pagination?.Next))
             {
                 result = await ExecuteAsync(() =>
                 {
-                    var request = new RestRequest(pagination.Next, Method.GET);
+                    var request = new HttpRequestMessage(HttpMethod.Get, pagination.Next);
                     return request;
                 }).ConfigureAwait(false);
                 ThrowIfNotSuccessfulStatus(result);
-                resultList.AddRange(JsonConvert.DeserializeObject<List<History>>(result.Content, DefaultJsonSerializerSettings));
-                pagination = PaginationHeader.Parse(result.Headers.FirstOrDefault(h => h.Name == "Link")?.Value?.ToString());
+                resultList.AddRange(await ParseJson<List<History>>(result).ConfigureAwait(false));
+                pagination = PaginationHeader.Parse(result.Headers.FirstOrDefault(h => h.Key == "Link").Value?.ToString());
             }
             return resultList;
         }
