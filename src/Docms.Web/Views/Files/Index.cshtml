@@ -48,7 +48,7 @@
         @foreach (var entry in container.Entries)
         {
             <div class="list-group-item d-flex justify-content-start align-items-center">
-                <a name="@entry.Name" />
+                <a class="anchor" name="@entry.Name"></a>
                 @if (entry is BlobContainer)
                 {
                     <div class="mr-3">
@@ -96,9 +96,11 @@ else if (Model is Blob blob)
                 </video>
             </div>
         }
-        else
-        {
-            <a href="@Url.DownloadFile(Model.Path)">ダウンロード</a>
-        }
     </div>
+    <p class="mt-3">
+        <a class="btn btn-outline-primary" href="@Url.DownloadFile(Model.Path)" download="@Model.Name">
+            <i class="fa fa-download"></i>
+            ダウンロード
+        </a>
+    </p>
 }
