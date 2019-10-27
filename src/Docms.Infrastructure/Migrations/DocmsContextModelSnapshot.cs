@@ -80,6 +80,19 @@ namespace Docms.Infrastructure.Migrations
                     b.ToTable("Users");
                 });
 
+            modelBuilder.Entity("Docms.Infrastructure.Identity.DocmsUserRole", b =>
+                {
+                    b.Property<string>("UserId")
+                        .HasColumnName("UserId");
+
+                    b.Property<string>("Role")
+                        .HasColumnName("Role");
+
+                    b.HasKey("UserId", "Role");
+
+                    b.ToTable("UserRoles");
+                });
+
             modelBuilder.Entity("Docms.Queries.Blobs.BlobEntry", b =>
                 {
                     b.Property<string>("Path")

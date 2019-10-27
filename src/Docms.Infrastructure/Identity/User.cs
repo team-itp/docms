@@ -11,4 +11,13 @@ namespace Docms.Infrastructure.Identity
         [Column("SecurityStamp")]
         public string SecurityStamp { get; set; }
     }
+
+    public class DocmsUserRole
+    {
+        [Column("UserId")]
+        public string UserId { get; set; }
+
+        [Column("Role")]
+        public string Role { get; set; }
+    }
 }

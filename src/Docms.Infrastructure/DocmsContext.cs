@@ -26,6 +26,7 @@ namespace Docms.Infrastructure
 
         #region "Identity"
         public DbSet<DocmsUser> Users { get; set; }
+        public DbSet<DocmsUserRole> UserRoles { get; set; }
         public DbSet<Device> Devices { get; set; }
         #endregion
 
@@ -84,6 +85,9 @@ namespace Docms.Infrastructure
         {
             modelBuilder.ApplyConfiguration(new DocumentTypeConfigurations());
             modelBuilder.ApplyConfiguration(new DeviceTypeConfigurations());
+
+            modelBuilder.Entity<DocmsUserRole>()
+                .HasKey(ur => new { ur.UserId, ur.Role });
 
             modelBuilder.Entity<DeviceGrant>()
                 .Property(d => d.LastAccessTime)

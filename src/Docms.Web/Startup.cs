@@ -1,4 +1,5 @@
-﻿using Docms.Domain.Documents;
+﻿using Docms.Application.Commands;
+using Docms.Domain.Documents;
 using Docms.Domain.Identity;
 using Docms.Infrastructure;
 using Docms.Infrastructure.Queries;
@@ -8,8 +9,9 @@ using Docms.Infrastructure.Storage.FileSystem;
 using Docms.Queries.Blobs;
 using Docms.Queries.DeviceAuthorization;
 using Docms.Queries.DocumentHistories;
+using Docms.Queries.Identity;
 using Docms.Web.Api.Serialization;
-using Docms.Web.Application.Identity;
+using Docms.Web.Identity;
 using IdentityServer4.Models;
 using MediatR;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
@@ -167,6 +169,7 @@ namespace Docms.Web
             services.AddTransient<IBlobsQueries, BlobsQueries>();
             services.AddTransient<IDocumentHistoriesQueries, DocumentHistoriesQueries>();
             services.AddTransient<IDeviceGrantsQueries, DeviceGrantsQueries>();
+            services.AddTransient<IUsersQueries, UsersQueries>();
             if (configuration.GetValue<bool>("Docms:UseFileSystem"))
             {
                 services.AddSingleton<IDataStore>(new FileDataStore($"{configuration.GetValue<string>("Docms:DataStoreBasePath")}/{configuration.GetValue<string>("Docms:ContainerName")}"));
@@ -180,7 +183,7 @@ namespace Docms.Web
 
         public static IServiceCollection RegisterMediators(this IServiceCollection services, IConfiguration configuration)
         {
-            services.AddMediatR(typeof(Startup).GetTypeInfo().Assembly);
+            services.AddMediatR(Assembly.GetAssembly(typeof(CreateOrUpdateDocumentCommandHandler)));
             return services;
         }
     }

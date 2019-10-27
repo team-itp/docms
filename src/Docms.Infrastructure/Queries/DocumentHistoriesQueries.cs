@@ -7,14 +7,14 @@ namespace Docms.Infrastructure.Queries
 {
     public class DocumentHistoriesQueries : IDocumentHistoriesQueries
     {
-        private DocmsContext ctx;
+        private readonly DocmsContext ctx;
 
         public DocumentHistoriesQueries(DocmsContext ctx)
         {
             this.ctx = ctx;
         }
 
-        public IQueryable<DocumentHistory> GetHistories(string path, DateTime? since = default(DateTime?), Guid? lastHistoryId = default(Guid?))
+        public IQueryable<DocumentHistory> GetHistories(string path, DateTime? since = default, Guid? lastHistoryId = default)
         {
             var query = ctx.DocumentHistories as IQueryable<DocumentHistory>;
             if (!string.IsNullOrEmpty(path))

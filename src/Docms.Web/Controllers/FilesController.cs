@@ -2,7 +2,7 @@ using Docms.Domain.Documents;
 using Docms.Infrastructure.Files;
 using Docms.Queries.Blobs;
 using Docms.Queries.DocumentHistories;
-using Docms.Web.Application.Commands;
+using Docms.Application.Commands;
 using Docms.Web.Extensions;
 using Docms.Web.Filters;
 using Docms.Web.Models;

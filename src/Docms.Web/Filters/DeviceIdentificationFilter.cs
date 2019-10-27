@@ -1,6 +1,6 @@
 ﻿using Docms.Queries.DeviceAuthorization;
-using Docms.Web.Application.Commands;
-using Docms.Web.Application.Identity;
+using Docms.Application.Commands;
+using Docms.Web.Identity;
 using MediatR;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
@@ -70,7 +70,7 @@ namespace Docms.Web.Filters
                 {
                     Expires = expires,
                     MaxAge = expires - now,
-                    Secure = true,
+                    Secure = false,
                     HttpOnly = true,
                     IsEssential = true,
                 });
@@ -82,8 +82,7 @@ namespace Docms.Web.Filters
                     {
                         DeviceId = deviceId,
                         DeviceUserAgent = context.HttpContext.Request.Headers.TryGetValue("USER-AGENT", out var uaValue) ? (string)uaValue : null,
-                        UsedBy = appUser.Id
-                    });
+                        UsedBy = appUser.Id                    });
                 }
                 else
                 {

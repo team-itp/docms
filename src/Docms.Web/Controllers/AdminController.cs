@@ -1,6 +1,6 @@
 ﻿using Docms.Queries.DeviceAuthorization;
-using Docms.Web.Application.Commands;
-using Docms.Web.Application.Identity;
+using Docms.Application.Commands;
+using Docms.Web.Identity;
 using MediatR;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Identity;

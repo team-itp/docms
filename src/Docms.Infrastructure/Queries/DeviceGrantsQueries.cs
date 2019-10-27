@@ -7,7 +7,7 @@ namespace Docms.Infrastructure.Queries
 {
     public class DeviceGrantsQueries : IDeviceGrantsQueries
     {
-        private DocmsContext _db;
+        private readonly DocmsContext _db;
 
         public DeviceGrantsQueries(DocmsContext db)
         {

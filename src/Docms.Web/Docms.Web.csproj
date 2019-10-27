@@ -16,14 +16,11 @@
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\Docms.Domain\Docms.Domain.csproj" />
-    <ProjectReference Include="..\Docms.Infrastructure\Docms.Infrastructure.csproj" />
-    <ProjectReference Include="..\Docms.Queries\Docms.Queries.csproj" />
-    <ProjectReference Include="..\VisualizationSystem.Infrastructure\VisualizationSystem.Infrastructure.csproj" />
+    <Folder Include="App_Data\" />
   </ItemGroup>
 
   <ItemGroup>
-    <Folder Include="App_Data\" />
+    <ProjectReference Include="..\Docms.Application\Docms.Application.csproj" />
   </ItemGroup>
 
 </Project>

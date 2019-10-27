@@ -6,7 +6,7 @@ namespace Docms.Infrastructure.Queries
 {
     public class BlobsQueries : IBlobsQueries
     {
-        private DocmsContext _db;
+        private readonly DocmsContext _db;
 
         public BlobsQueries(DocmsContext db)
         {

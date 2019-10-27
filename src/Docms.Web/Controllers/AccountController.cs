@@ -1,4 +1,4 @@
-﻿using Docms.Web.Application.Identity;
+﻿using Docms.Web.Identity;
 using Docms.Web.Models;
 using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Authorization;

@@ -18,6 +18,7 @@
   <ItemGroup>
     <ProjectReference Include="..\Docms.Queries\Docms.Queries.csproj" />
     <ProjectReference Include="..\Docms.Domain\Docms.Domain.csproj" />
+    <ProjectReference Include="..\VisualizationSystem.Infrastructure\VisualizationSystem.Infrastructure.csproj" />
   </ItemGroup>
 
 </Project>

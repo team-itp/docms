@@ -6,9 +6,9 @@ namespace Docms.Infrastructure.Files
 {
     public sealed class FilePath : IEquatable<FilePath>
     {
-        private static char[] invalidPathChars = Path.GetInvalidPathChars();
-        private string _path;
-        private Lazy<FilePath> _parent;
+        private static readonly char[] invalidPathChars = Path.GetInvalidPathChars();
+        private readonly string _path;
+        private readonly Lazy<FilePath> _parent;
 
         public FilePath(string path) : this(path, true)
         {
