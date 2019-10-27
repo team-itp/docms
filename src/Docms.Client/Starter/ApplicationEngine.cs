@@ -64,7 +64,11 @@ namespace Docms.Client.Starter
                 }
                 return false;
             }
-            catch(Exception ex)
+            catch (ApplicationNeedsReinitializeException)
+            {
+                throw;
+            }
+            catch (Exception ex)
             {
                 logger.Error(ex.Message);
                 logger.Debug(ex);
