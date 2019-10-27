@@ -1,4 +1,5 @@
-﻿using Docms.Domain.Documents;
+﻿using Docms.Domain.Clients;
+using Docms.Domain.Documents;
 using Docms.Domain.Identity;
 using Docms.Domain.SeedWork;
 using Docms.Infrastructure.EntityConfigurations;
@@ -28,6 +29,10 @@ namespace Docms.Infrastructure
         public DbSet<DocmsUser> Users { get; set; }
         public DbSet<DocmsUserRole> UserRoles { get; set; }
         public DbSet<Device> Devices { get; set; }
+        #endregion
+
+        #region "Client"
+        public DbSet<Client> Clients { get; set; }
         #endregion
 
         #region "Blobs Queries"
@@ -85,6 +90,7 @@ namespace Docms.Infrastructure
         {
             modelBuilder.ApplyConfiguration(new DocumentTypeConfigurations());
             modelBuilder.ApplyConfiguration(new DeviceTypeConfigurations());
+            modelBuilder.ApplyConfiguration(new ClientTypeConfigurations());
 
             modelBuilder.Entity<DocmsUserRole>()
                 .HasKey(ur => new { ur.UserId, ur.Role });
