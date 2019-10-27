@@ -14,6 +14,8 @@ namespace Docms.Client.Api.Serialization
             {"document_deleted", typeof(DocumentDeletedHistory)  },
             {"container", typeof(ContainerResponse) },
             {"document", typeof(DocumentResponse) },
+            {"clientInfo", typeof(ClientInfoResponse) },
+            {"clientInfoRequest", typeof(ClientInfoRequstResponse) },
         };
 
         public void BindToName(Type serializedType, out string assemblyName, out string typeName)

@@ -28,7 +28,7 @@ namespace Docms.Client.Api
         private string _username;
         private string _password;
         private string _accessToken;
-        private HttpClient _client;
+        private readonly HttpClient _client;
 
         public JsonSerializerSettings DefaultJsonSerializerSettings { get; set; }
 
@@ -199,6 +199,102 @@ namespace Docms.Client.Api
             }
         }
 
+        public async Task PostRegisterClient(string clientId, string type)
+        {
+            _logger.Debug("requesting post client: " + clientId);
+            var result = await ExecuteAsync(() =>
+            {
+                var requestUri = new UriBuilder(_serverUri)
+                {
+                    Path = $"{_defaultPath}clients"
+                };
+
+                var keyValue = new Dictionary<string, string>
+                {
+                    { "clientId", clientId },
+                    { "type", type }
+                };
+
+                var request = new HttpRequestMessage(HttpMethod.Post, requestUri.Uri)
+                {
+                    Content = new FormUrlEncodedContent(keyValue)
+                };
+                return request;
+            }).ConfigureAwait(false);
+            ThrowIfNotSuccessfulStatus(result);
+        }
+
+        public async Task<ClientInfoResponse> GetClientInfoAsync(string clientId)
+        {
+            _logger.Debug("requesting get client info: " + clientId);
+            var result = await ExecuteAsync(() =>
+            {
+                var requestUri = new UriBuilder(_serverUri)
+                {
+                    Path = $"{_defaultPath}clients/{clientId}"
+                };
+                var request = new HttpRequestMessage(HttpMethod.Get, requestUri.Uri);
+                return request;
+            }).ConfigureAwait(false);
+            ThrowIfNotSuccessfulStatus(result);
+            return await ParseJson<ClientInfoResponse>(result).ConfigureAwait(false);
+        }
+
+        public async Task<ClientInfoRequstResponse> GetLatestRequest(string clientId)
+        {
+            _logger.Debug("requesting get request for client: " + clientId);
+            var result = await ExecuteAsync(() =>
+            {
+                var requestUri = new UriBuilder(_serverUri)
+                {
+                    Path = $"{_defaultPath}clients/{clientId}"
+                };
+                var request = new HttpRequestMessage(HttpMethod.Get, requestUri.Uri);
+                return request;
+            }).ConfigureAwait(false);
+            ThrowIfNotSuccessfulStatus(result);
+            return await ParseJson<ClientInfoRequstResponse>(result).ConfigureAwait(false);
+        }
+
+        public async Task PutAccepted(string clientId, string requestId)
+        {
+            _logger.Debug("requesting put accept client: " + clientId + ", request: " + requestId);
+            var result = await ExecuteAsync(() =>
+            {
+                var requestUri = new UriBuilder(_serverUri)
+                {
+                    Path = $"{_defaultPath}clients/{clientId}/requests/{requestId}/accept"
+                };
+                var request = new HttpRequestMessage(HttpMethod.Put, requestUri.Uri);
+                return request;
+            }).ConfigureAwait(false);
+            ThrowIfNotSuccessfulStatus(result);
+        }
+
+        public async Task PutStatus(string clientId, string status)
+        {
+            _logger.Debug("requesting put status for client: " + clientId);
+            var result = await ExecuteAsync(() =>
+            {
+                var requestUri = new UriBuilder(_serverUri)
+                {
+                    Path = $"{_defaultPath}clients/{clientId}/status"
+                };
+
+                var keyValuePair = new Dictionary<string, string>
+                {
+                    { "status",  status }
+                };
+
+                var request = new HttpRequestMessage(HttpMethod.Put, requestUri.Uri)
+                {
+                    Content = new FormUrlEncodedContent(keyValuePair)
+                };
+                return request;
+            }).ConfigureAwait(false);
+            ThrowIfNotSuccessfulStatus(result);
+        }
+
         public async Task<IEnumerable<Entry>> GetEntriesAsync(string path)
         {
             _logger.Debug("requesting get entries for path: " + path);
@@ -210,9 +306,11 @@ namespace Docms.Client.Api
                     query["path"] = path;
                 }
 
-                var requestUri = new UriBuilder(_serverUri);
-                requestUri.Path = _defaultPath + "files";
-                requestUri.Query = ToQueryString(query);
+                var requestUri = new UriBuilder(_serverUri)
+                {
+                    Path = $"{_defaultPath}files",
+                    Query = ToQueryString(query)
+                };
                 var request = new HttpRequestMessage(HttpMethod.Get, requestUri.Uri);
                 return request;
             }).ConfigureAwait(false);
@@ -229,12 +327,16 @@ namespace Docms.Client.Api
             _logger.Debug("Requesting get document for path: " + path);
             var result = await ExecuteAsync(() =>
             {
-                var query = new Dictionary<string, string>();
-                query["path"] = path ?? throw new ArgumentNullException(nameof(path));
+                var query = new Dictionary<string, string>
+                {
+                    { "path", path ?? throw new ArgumentNullException(nameof(path)) }
+                };
 
-                var requestUri = new UriBuilder(_serverUri);
-                requestUri.Path = _defaultPath + "files";
-                requestUri.Query = ToQueryString(query);
+                var requestUri = new UriBuilder(_serverUri)
+                {
+                    Path = $"{_defaultPath}files",
+                    Query = ToQueryString(query)
+                };
                 var request = new HttpRequestMessage(HttpMethod.Get, requestUri.Uri);
                 return request;
             }).ConfigureAwait(false);
@@ -254,13 +356,17 @@ namespace Docms.Client.Api
             _logger.Debug("requesting downloading for path: " + path);
             var result = await ExecuteAsync(() =>
             {
-                var query = new Dictionary<string, string>();
-                query["path"] = path ?? throw new ArgumentNullException(nameof(path));
-                query["download"] = true.ToString();
+                var query = new Dictionary<string, string>
+                {
+                    { "path" , path ?? throw new ArgumentNullException(nameof(path)) },
+                    { "download", true.ToString() }
+                };
 
-                var requestUri = new UriBuilder(_serverUri);
-                requestUri.Path = _defaultPath + "files";
-                requestUri.Query = ToQueryString(query);
+                var requestUri = new UriBuilder(_serverUri)
+                {
+                    Path = $"{_defaultPath}files",
+                    Query = ToQueryString(query)
+                };
                 var request = new HttpRequestMessage(HttpMethod.Get, requestUri.Uri);
                 return request;
             }).ConfigureAwait(false);
@@ -277,11 +383,15 @@ namespace Docms.Client.Api
             {
                 var result = await ExecuteAsync(() =>
                 {
-                    var requestUri = new UriBuilder(_serverUri);
-                    requestUri.Path = _defaultPath + "files";
+                    var requestUri = new UriBuilder(_serverUri)
+                    {
+                        Path = $"{_defaultPath}files"
+                    };
 
-                    var content = new MultipartFormDataContent();
-                    content.Add(new StringContent(path ?? throw new ArgumentNullException(nameof(path))), "path");
+                    var content = new MultipartFormDataContent
+                    {
+                        { new StringContent(path ?? throw new ArgumentNullException(nameof(path))), "path" }
+                    };
                     stream.Seek(0, SeekOrigin.Begin);
                     content.Add(new StreamContent(stream), "file", path.Substring(path.LastIndexOf('/') > -1 ? path.LastIndexOf('/') : 0));
                     if (created != null)
@@ -293,8 +403,10 @@ namespace Docms.Client.Api
                         content.Add(new StringContent(XmlConvert.ToString(lastModified.Value, XmlDateTimeSerializationMode.Utc)), "lastModified");
                     }
 
-                    var request = new HttpRequestMessage(HttpMethod.Post, requestUri.Uri);
-                    request.Content = content;
+                    var request = new HttpRequestMessage(HttpMethod.Post, requestUri.Uri)
+                    {
+                        Content = content
+                    };
                     return request;
                 }).ConfigureAwait(false);
                 ThrowIfNotSuccessfulStatus(result);
@@ -306,16 +418,21 @@ namespace Docms.Client.Api
             _logger.Debug("requesting move for original path: " + originalPath + " to destination path: " + destinationPath);
             var result = await ExecuteAsync(() =>
             {
-                var requestUri = new UriBuilder(_serverUri);
-                requestUri.Path = _defaultPath + "files/move";
+                var requestUri = new UriBuilder(_serverUri)
+                {
+                    Path = $"{_defaultPath}files/move"
+                };
 
-                var keyValue = new Dictionary<string, string>();
-                keyValue.Add("destinationPath", destinationPath);
-                keyValue.Add("originalPath", originalPath);
+                var keyValue = new Dictionary<string, string>
+                {
+                    { "destinationPath", destinationPath },
+                    { "originalPath", originalPath }
+                };
 
-                var content = new FormUrlEncodedContent(keyValue);
-                var request = new HttpRequestMessage(HttpMethod.Post, requestUri.Uri);
-                request.Content = content;
+                var request = new HttpRequestMessage(HttpMethod.Post, requestUri.Uri)
+                {
+                    Content = new FormUrlEncodedContent(keyValue)
+                };
                 return request;
             }).ConfigureAwait(false);
             ThrowIfNotSuccessfulStatus(result);
@@ -328,12 +445,16 @@ namespace Docms.Client.Api
             {
                 var result = await ExecuteAsync(() =>
                 {
-                    var query = new Dictionary<string, string>();
-                    query["path"] = path ?? throw new ArgumentNullException(nameof(path));
+                    var query = new Dictionary<string, string>
+                    {
+                        { "path", path ?? throw new ArgumentNullException(nameof(path)) }
+                    };
 
-                    var requestUri = new UriBuilder(_serverUri);
-                    requestUri.Path = _defaultPath + "files";
-                    requestUri.Query = ToQueryString(query);
+                    var requestUri = new UriBuilder(_serverUri)
+                    {
+                        Path = $"{_defaultPath}files",
+                        Query = ToQueryString(query)
+                    };
 
                     var request = new HttpRequestMessage(HttpMethod.Delete, requestUri.Uri);
                     return request;
@@ -366,9 +487,11 @@ namespace Docms.Client.Api
                 }
                 query["per_page"] = "1000";
 
-                var requestUri = new UriBuilder(_serverUri);
-                requestUri.Path = _defaultPath + "histories";
-                requestUri.Query = ToQueryString(query);
+                var requestUri = new UriBuilder(_serverUri)
+                {
+                    Path = $"{_defaultPath}histories",
+                    Query = ToQueryString(query)
+                };
                 var request = new HttpRequestMessage(HttpMethod.Get, requestUri.Uri);
                 return request;
             }).ConfigureAwait(false);

@@ -44,6 +44,16 @@ namespace Docms.Client.Tests
         }
 
         [TestMethod]
+        public async Task サーバーにクライアント情報を登録する()
+        {
+            if (noConnection) Assert.Fail("接続不良のため失敗");
+            var clientId = Guid.NewGuid().ToString();
+            await sut.PostRegisterClient(clientId, "UPLOADER").ConfigureAwait(false);
+            var clientInfo = await sut.GetClientInfoAsync(clientId);
+            Assert.IsNotNull(clientInfo);
+        }
+
+        [TestMethod]
         public async Task サーバーよりルートディレクトリ内のファイルの一覧を取得する()
         {
             if (noConnection) Assert.Fail("接続不良のため失敗");

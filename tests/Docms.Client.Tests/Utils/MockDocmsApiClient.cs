@@ -16,6 +16,7 @@ namespace Docms.Client.Tests.Utils
         public Dictionary<string, Document> entries = new Dictionary<string, Document>();
         public Dictionary<string, byte[]> streams = new Dictionary<string, byte[]>();
         public Dictionary<string, List<History>> histories = new Dictionary<string, List<History>>();
+        public Dictionary<string, ClientInfoResponse> clients = new Dictionary<string, ClientInfoResponse>();
 
         private void AddFile(string path, string contentType, byte[] data, DateTime created, DateTime lastModified)
         {
@@ -230,7 +231,7 @@ namespace Docms.Client.Tests.Utils
             historyValues = historyValues.OrderBy(e => e.Timestamp);
             if (lastHistoryId != null)
             {
-                if (historyValues.Any(h=>h.Id == lastHistoryId))
+                if (historyValues.Any(h => h.Id == lastHistoryId))
                 {
                     historyValues = historyValues.SkipWhile(h => h.Id != lastHistoryId.Value).Skip(1);
                 }
@@ -249,6 +250,74 @@ namespace Docms.Client.Tests.Utils
 
         public Task LogoutAsync()
         {
+            return Task.CompletedTask;
+        }
+
+        public Task PostRegisterClient(string clientId, string type)
+        {
+            if (clients.TryGetValue(clientId, out var _))
+            {
+                throw new ServerException($"clients/{clientId}", "get", "", 400, "Bad Request");
+            }
+
+            clients.Add(clientId, new ClientInfoResponse()
+            {
+                ClientId = clientId,
+                Type = type,
+                Status = "STOPPED"
+            });
+            return Task.CompletedTask;
+        }
+
+        public Task<ClientInfoResponse> GetClientInfoAsync(string clientId)
+        {
+            if (!clients.TryGetValue(clientId, out var clientInfo))
+            {
+                throw new ServerException($"clients/{clientId}", "get", "", 404, "Not Found");
+            }
+
+            return Task.FromResult(clientInfo);
+        }
+
+        public Task<ClientInfoRequstResponse> GetLatestRequest(string clientId)
+        {
+            if (!clients.TryGetValue(clientId, out var clientInfo))
+            {
+                throw new ServerException($"clients/{clientId}/requests/latest", "get", "", 404, "Not Found");
+            }
+
+            return Task.FromResult(new ClientInfoRequstResponse()
+            {
+                RequestId = clientInfo.RequestId,
+                RequestType = clientInfo.RequestType,
+                RequestedAt = clientInfo.RequestedAt
+            });
+        }
+
+        public Task PutAccepted(string clientId, string requestId)
+        {
+            if (!clients.TryGetValue(clientId, out var clientInfo))
+            {
+                throw new ServerException($"clients/{clientId}/requests/{requestId}/accept", "put", "", 404, "Not Found");
+            }
+
+            if (clientInfo.RequestId == requestId)
+            {
+                clientInfo.AcceptedRequestId = requestId;
+                clientInfo.AcceptedRequestType = clientInfo.RequestType;
+                clientInfo.AcceptedAt = DateTime.UtcNow;
+            }
+            return Task.CompletedTask;
+        }
+
+        public Task PutStatus(string clientId, string status)
+        {
+            if (!clients.TryGetValue(clientId, out var clientInfo))
+            {
+                throw new ServerException($"clients/{clientId}/status", "put", "", 404, "Not Found");
+            }
+
+            clientInfo.Status = status;
             return Task.CompletedTask;
         }
     }
