@@ -7,7 +7,7 @@ using System.Threading.Tasks;
 namespace Docms.Application.Tests
 {
     [TestClass]
-    public class RegisterClientCommandTests
+    public class ClientCommandTests
     {
         private MockClientRepository repository;
         private RegisterClientCommandHandler sut;

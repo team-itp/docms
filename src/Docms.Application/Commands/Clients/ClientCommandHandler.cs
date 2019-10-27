@@ -6,7 +6,8 @@ using System.Threading.Tasks;
 
 namespace Docms.Application.Commands
 {
-    public class RegisterClientCommandHandler : IRequestHandler<RegisterClientCommand, bool>
+    public class RegisterClientCommandHandler : 
+        IRequestHandler<RegisterClientCommand, bool>
     {
         private readonly IClientRepository _clientRepository;
 

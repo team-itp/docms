@@ -7,12 +7,15 @@ using System.Threading.Tasks;
 
 namespace Docms.Application.Commands
 {
-    public class CreateOrUpdateDocumentCommandHandler : IRequestHandler<CreateOrUpdateDocumentCommand, bool>
+    public class DocumentCommandHandler : 
+        IRequestHandler<CreateOrUpdateDocumentCommand, bool>,
+        IRequestHandler<DeleteDocumentCommand, bool>,
+        IRequestHandler<MoveDocumentCommand, bool>
     {
         private readonly IDocumentRepository _documentRepository;
         private readonly IDataStore _dataStore;
 
-        public CreateOrUpdateDocumentCommandHandler(
+        public DocumentCommandHandler(
             IDocumentRepository documentRepository,
             IDataStore dataStore)
         {
@@ -102,6 +105,33 @@ namespace Docms.Application.Commands
                 await _dataStore.DeleteAsync(request.Data.StorageKey).ConfigureAwait(false);
                 throw;
             }
+        }
+
+        public async Task<bool> Handle(DeleteDocumentCommand request, CancellationToken cancellationToken = default)
+        {
+            var document = await _documentRepository.GetAsync(request.Path.ToString());
+            if (document == null)
+            {
+                throw new InvalidOperationException();
+            }
+            document.Delete();
+            await _documentRepository.UpdateAsync(document);
+            await _documentRepository.UnitOfWork.SaveEntitiesAsync();
+            return true;
+        }
+
+        public async Task<bool> Handle(MoveDocumentCommand request, CancellationToken cancellationToken = default)
+        {
+            var document = await _documentRepository.GetAsync(request.OriginalPath.ToString());
+            if (document == null)
+            {
+                throw new InvalidOperationException();
+            }
+
+            document.MoveTo(new DocumentPath(request.DestinationPath.ToString()));
+            await _documentRepository.UpdateAsync(document);
+            await _documentRepository.UnitOfWork.SaveEntitiesAsync();
+            return true;
         }
     }
 }

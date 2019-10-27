@@ -12,18 +12,18 @@ using System.Threading.Tasks;
 namespace Docms.Application.Tests
 {
     [TestClass]
-    public class CreateOrUpdateDocumentCommandTests
+    public class DocumentCommandTests
     {
         private MockDocumentRepository repository;
         private InMemoryDataStore dataStore;
-        private CreateOrUpdateDocumentCommandHandler sut;
+        private DocumentCommandHandler sut;
 
         [TestInitialize]
         public void Setup()
         {
             repository = new MockDocumentRepository();
             dataStore = new InMemoryDataStore();
-            sut = new CreateOrUpdateDocumentCommandHandler(repository, dataStore);
+            sut = new DocumentCommandHandler(repository, dataStore);
         }
 
         [TestMethod]
@@ -93,6 +93,29 @@ namespace Docms.Application.Tests
             Assert.IsNotNull(doc1);
             Assert.IsNotNull(doc2);
             Assert.AreEqual("Hello, new world", await ReadTextAsync(doc2.StorageKey));
+        }
+
+        [TestMethod]
+        public async Task コマンドを発行してドキュメントが削除されること()
+        {
+            await repository.AddAsync(DocumentUtils.Create("test1/document1.txt", "Hello, World"));
+            await sut.Handle(new DeleteDocumentCommand()
+            {
+                Path = new FilePath("test1/document1.txt"),
+            });
+            Assert.IsNull(await repository.GetAsync("test1/document1.txt"));
+        }
+
+        [TestMethod]
+        public async Task コマンドを発行してファイルが移動すること()
+        {
+            await repository.AddAsync(DocumentUtils.Create("test1/document1.txt", "Hello, world"));
+            await sut.Handle(new MoveDocumentCommand()
+            {
+                OriginalPath = new FilePath("test1/document1.txt"),
+                DestinationPath = new FilePath("test2/document2.txt"),
+            });
+            Assert.AreEqual("test2/document2.txt", repository.Entities.First().Path);
         }
 
         private async Task<string> ReadTextAsync(string key)
