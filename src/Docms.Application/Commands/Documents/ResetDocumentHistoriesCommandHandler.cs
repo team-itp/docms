@@ -23,7 +23,7 @@ namespace Docms.Application.Commands
             _dataStore = dataStore;
         }
 
-        public async Task<bool> Handle(ResetDocumentHistoriesCommand request, CancellationToken cancellationToken = default(CancellationToken))
+        public async Task<bool> Handle(ResetDocumentHistoriesCommand request, CancellationToken cancellationToken = default)
         {
             _context.Entries.RemoveRange(_context.Entries);
             _context.DocumentHistories.RemoveRange(_context.DocumentHistories);
