@@ -1,4 +1,5 @@
 ﻿using Docms.Application.Commands;
+using Docms.Domain.Clients;
 using Docms.Domain.Documents;
 using Docms.Domain.Identity;
 using Docms.Infrastructure;
@@ -7,6 +8,7 @@ using Docms.Infrastructure.Repositories;
 using Docms.Infrastructure.Storage.AzureBlobStorage;
 using Docms.Infrastructure.Storage.FileSystem;
 using Docms.Queries.Blobs;
+using Docms.Queries.Clients;
 using Docms.Queries.DeviceAuthorization;
 using Docms.Queries.DocumentHistories;
 using Docms.Queries.Identity;
@@ -112,9 +114,9 @@ namespace Docms.Web
 
             services.AddIdentityServer()
                 .AddDeveloperSigningCredential()
-                .AddInMemoryClients(new List<Client>()
+                .AddInMemoryClients(new List<IdentityServer4.Models.Client>()
                 {
-                    new Client()
+                    new IdentityServer4.Models.Client()
                     {
                         ClientId = "docms-client",
                         ClientSecrets = new List<Secret>()
@@ -166,7 +168,9 @@ namespace Docms.Web
         {
             services.AddScoped<IDocumentRepository, DocumentRepository>();
             services.AddScoped<IDeviceRepository, DeviceRepository>();
+            services.AddScoped<IClientRepository, ClientRepository>();
             services.AddTransient<IBlobsQueries, BlobsQueries>();
+            services.AddTransient<IClientsQueries, ClientsQueries>();
             services.AddTransient<IDocumentHistoriesQueries, DocumentHistoriesQueries>();
             services.AddTransient<IDeviceGrantsQueries, DeviceGrantsQueries>();
             services.AddTransient<IUsersQueries, UsersQueries>();

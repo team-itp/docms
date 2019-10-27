@@ -81,11 +81,22 @@ namespace Docms.Application.Commands
                     {
                         await _dataStore.DeleteAsync(request.Data.StorageKey).ConfigureAwait(false);
                         var oldData = await _dataStore.FindAsync(document.StorageKey);
-                        document.Update(
-                            contentType,
-                            oldData,
-                            request.Created ?? document.Created,
-                            request.LastModified ?? utcNow);
+                        if (oldData == null)
+                        {
+                            document.Update(
+                                contentType,
+                                request.Data,
+                                request.Created ?? document.Created,
+                                request.LastModified ?? utcNow);
+                        }
+                        else
+                        {
+                            document.Update(
+                                contentType,
+                                oldData,
+                                request.Created ?? document.Created,
+                                request.LastModified ?? utcNow);
+                        }
                     }
                     else
                     {

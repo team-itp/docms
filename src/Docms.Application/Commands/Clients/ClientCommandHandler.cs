@@ -9,7 +9,8 @@ namespace Docms.Application.Commands
     public class ClientCommandHandler : 
         IRequestHandler<RegisterClientCommand, bool>,
         IRequestHandler<RequestToClientCommand, bool>,
-        IRequestHandler<AcceptRequestFromUserCommand, bool>
+        IRequestHandler<AcceptRequestFromUserCommand, bool>,
+        IRequestHandler<UpdateClientStatusCommand, bool>
     {
         private readonly IClientRepository _clientRepository;
 

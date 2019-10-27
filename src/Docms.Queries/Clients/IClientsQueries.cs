@@ -5,5 +5,6 @@ namespace Docms.Queries.Clients
 {
     public interface IClientsQueries
     {
+        Task<ClientInfo> FindByIdAsync(string id);
     }
 }
