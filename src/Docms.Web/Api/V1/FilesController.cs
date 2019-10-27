@@ -1,7 +1,7 @@
+using Docms.Application.Commands;
 using Docms.Domain.Documents;
 using Docms.Infrastructure.Files;
 using Docms.Queries.Blobs;
-using Docms.Application.Commands;
 using Docms.Web.Filters;
 using Docms.Web.Helpers;
 using MediatR;
@@ -16,6 +16,7 @@ using Microsoft.Net.Http.Headers;
 using System;
 using System.Globalization;
 using System.IO;
+using System.Net;
 using System.Text;
 using System.Threading.Tasks;
 using System.Web;
@@ -59,6 +60,10 @@ namespace Docms.Web.Api.V1
                 }
 
                 var data = await _storage.FindAsync(blob.StorageKey ?? blob.Path).ConfigureAwait(false);
+                if (data == null)
+                {
+                    return new StatusCodeResult((int)HttpStatusCode.InternalServerError);
+                }
                 return File(await data.OpenStreamAsync().ConfigureAwait(false), blob.ContentType, blob.Name, new DateTimeOffset(blob.LastModified), new EntityTagHeaderValue("\"" + blob.Hash + "\""));
             }
             else

@@ -95,11 +95,18 @@ namespace Docms.Infrastructure.Storage.AzureBlobStorage
                 return null;
             }
             var blob = container.GetBlockBlobReference(key);
-            await blob.FetchAttributesAsync().ConfigureAwait(false);
-            return new AzureBlobData(container,
-                key,
-                blob.Properties.Length,
-                blob.Metadata.TryGetValue(HASH_KEY, out var value) ? value : null);
+            if (await blob.ExistsAsync().ConfigureAwait(false))
+            {
+                await blob.FetchAttributesAsync().ConfigureAwait(false);
+                return new AzureBlobData(container,
+                    key,
+                    blob.Properties.Length,
+                    blob.Metadata.TryGetValue(HASH_KEY, out var value) ? value : null);
+            }
+            else
+            {
+                return null;
+            }
         }
 
         public IEnumerable<string> ListAllKeys()
