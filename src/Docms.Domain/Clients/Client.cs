@@ -10,7 +10,7 @@ namespace Docms.Domain.Clients
         public string Type { get; set; }
         public string IpAddress { get; set; }
         public string RequestId { get; set; }
-        public ClientRequestType? RequestType { get; set; }
+        public ClientRequestType RequestType { get; set; }
         public bool IsAccepted { get; set; }
         public DateTime? LastAccessedTime { get; set; }
         public ClientStatus Status { get; set; }
@@ -30,7 +30,7 @@ namespace Docms.Domain.Clients
 
         public void Request(ClientRequestType requestType)
         {
-            if (RequestType != requestType)
+            if (!object.Equals(RequestType, requestType))
             {
                 var requestId = Guid.NewGuid().ToString();
 
@@ -82,7 +82,7 @@ namespace Docms.Domain.Clients
 
         private void OnRequestAccepted(string requestId)
         {
-            var ev = new ClientRequestAcceptedEvent(this, ClientId, requestId, RequestType.Value);
+            var ev = new ClientRequestAcceptedEvent(this, ClientId, requestId, RequestType);
             AddDomainEvent(ev);
         }
 

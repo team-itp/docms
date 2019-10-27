@@ -1,23 +1,20 @@
-﻿using Docms.Domain.Documents;
+﻿using Docms.Application.DomainEventHandlers;
+using Docms.Application.Tests.Utils;
+using Docms.Domain.Documents;
 using Docms.Domain.Documents.Events;
 using Docms.Infrastructure;
-using Docms.Infrastructure.Storage;
-using Docms.Infrastructure.Files;
 using Docms.Infrastructure.MediatR;
-using Docms.Application.DomainEventHandlers;
-using Docms.Application.Tests.Utils;
+using Docms.Infrastructure.Storage.InMemory;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
-using System.IO;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
-using Docms.Infrastructure.Storage.InMemory;
 
 namespace Docms.Application.Tests
 {
     [TestClass]
-    public class UpdateDocumentStructureQueriesEventHandlerTests
+    public class BlobsQueriesEventHandlerTests
     {
         private DocmsContext ctx;
         private UpdateDocumentStructureQueriesEventHandler sut;
@@ -25,7 +22,7 @@ namespace Docms.Application.Tests
         [TestInitialize]
         public void Setup()
         {
-            ctx = new MockDocmsContext("UpdateDocumentStructureQueriesEventHandlerTests");
+            ctx = new MockDocmsContext("BlobsQueriesEventHandlerTests");
             sut = new UpdateDocumentStructureQueriesEventHandler(ctx);
         }
 

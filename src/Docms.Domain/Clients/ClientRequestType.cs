@@ -1,8 +1,23 @@
-﻿namespace Docms.Domain.Clients
+﻿using System.Collections.Generic;
+using Docms.Domain.SeedWork;
+
+namespace Docms.Domain.Clients
 {
-    public enum ClientRequestType
+    public class ClientRequestType : ValueObject
     {
-        Start,
-        Stop
+        public static ClientRequestType Start { get; } = new ClientRequestType("Start");
+        public static ClientRequestType Stop { get; } = new ClientRequestType("Stop");
+
+        private string value;
+
+        public ClientRequestType(string value)
+        {
+            this.value = value;
+        }
+
+        protected override IEnumerable<object> GetAtomicValues()
+        {
+            return new[] { value };
+        }
     }
 }

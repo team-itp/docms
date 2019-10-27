@@ -1,24 +1,21 @@
-﻿using Docms.Domain.Documents;
+﻿using Docms.Application.DomainEventHandlers;
+using Docms.Application.Tests.Utils;
+using Docms.Domain.Documents;
 using Docms.Domain.Documents.Events;
 using Docms.Infrastructure;
-using Docms.Infrastructure.Storage;
-using Docms.Infrastructure.Files;
 using Docms.Infrastructure.MediatR;
+using Docms.Infrastructure.Storage.InMemory;
 using Docms.Queries.DocumentHistories;
-using Docms.Application.DomainEventHandlers;
-using Docms.Application.Tests.Utils;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
-using System.IO;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
-using Docms.Infrastructure.Storage.InMemory;
 
 namespace Docms.Application.Tests
 {
     [TestClass]
-    public class UpdateDocumentHistoriesQueriesEventHandlerTests
+    public class DocumentHistoriesQueriesEventHandlerTests
     {
         private DocmsContext ctx;
         private UpdateDocumentHistoriesQueriesEventHandler sut;
@@ -27,7 +24,7 @@ namespace Docms.Application.Tests
         public void Setup()
         {
             ctx = new DocmsContext(new DbContextOptionsBuilder<DocmsContext>()
-                .UseInMemoryDatabase("UpdateDocumentHistoriesQueriesEventHandlerTests")
+                .UseInMemoryDatabase("DocumentHistoriesQueriesEventHandlerTests")
                 .Options, new MockMediator());
             sut = new UpdateDocumentHistoriesQueriesEventHandler(ctx);
         }

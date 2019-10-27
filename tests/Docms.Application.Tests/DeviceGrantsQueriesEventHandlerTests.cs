@@ -12,7 +12,7 @@ using System.Threading.Tasks;
 namespace Docms.Application.Tests
 {
     [TestClass]
-    public class UpdateDeviceGrantsQueriesEventHandlerTests
+    public class DeviceGrantsQueriesEventHandlerTests
     {
         private MockDocmsContext ctx;
         private MockUsersQueries usersQueries;
@@ -21,7 +21,7 @@ namespace Docms.Application.Tests
         [TestInitialize]
         public void Setup()
         {
-            ctx = new MockDocmsContext("UpdateDeviceGrantsQueriesEventHandlerTests");
+            ctx = new MockDocmsContext("DeviceGrantsQueriesEventHandlerTests");
             usersQueries = new MockUsersQueries();
             usersQueries.Create(new User()
             {

@@ -1,9 +1,8 @@
-﻿using Docms.Infrastructure.Files;
-using Docms.Infrastructure.Storage.InMemory;
-using Docms.Application.Commands;
+﻿using Docms.Application.Commands;
 using Docms.Application.Tests.Utils;
+using Docms.Infrastructure.Files;
+using Docms.Infrastructure.Storage.InMemory;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
-using System;
 using System.IO;
 using System.Linq;
 using System.Text;
