@@ -8,7 +8,7 @@ using System.Threading.Tasks;
 
 namespace Docms.Application.DomainEventHandlers
 {
-    public class UpdateDocumentHistoriesQueriesEventHandler :
+    public class DocumentHistoriesQueriesEventHandler :
         INotificationHandler<DomainEventNotification<DocumentCreatedEvent>>,
         INotificationHandler<DomainEventNotification<DocumentDeletedEvent>>,
         INotificationHandler<DomainEventNotification<DocumentMovedEvent>>,
@@ -16,7 +16,7 @@ namespace Docms.Application.DomainEventHandlers
     {
         private readonly DocmsContext _db;
 
-        public UpdateDocumentHistoriesQueriesEventHandler(DocmsContext db)
+        public DocumentHistoriesQueriesEventHandler(DocmsContext db)
         {
             _db = db;
         }

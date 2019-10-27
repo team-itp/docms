@@ -18,7 +18,7 @@ namespace Docms.Application.Tests
     public class DocumentHistoriesQueriesEventHandlerTests
     {
         private DocmsContext ctx;
-        private UpdateDocumentHistoriesQueriesEventHandler sut;
+        private DocumentHistoriesQueriesEventHandler sut;
 
         [TestInitialize]
         public void Setup()
@@ -26,7 +26,7 @@ namespace Docms.Application.Tests
             ctx = new DocmsContext(new DbContextOptionsBuilder<DocmsContext>()
                 .UseInMemoryDatabase("DocumentHistoriesQueriesEventHandlerTests")
                 .Options, new MockMediator());
-            sut = new UpdateDocumentHistoriesQueriesEventHandler(ctx);
+            sut = new DocumentHistoriesQueriesEventHandler(ctx);
         }
 
         [TestCleanup]

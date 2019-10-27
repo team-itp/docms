@@ -12,7 +12,7 @@ using System.Threading.Tasks;
 
 namespace Docms.Application.DomainEventHandlers
 {
-    public class UpdateDocumentStructureQueriesEventHandler :
+    public class BlobsQueriesEventHandler :
         INotificationHandler<DomainEventNotification<DocumentCreatedEvent>>,
         INotificationHandler<DomainEventNotification<DocumentDeletedEvent>>,
         INotificationHandler<DomainEventNotification<DocumentMovedEvent>>,
@@ -20,7 +20,7 @@ namespace Docms.Application.DomainEventHandlers
     {
         private readonly DocmsContext _db;
 
-        public UpdateDocumentStructureQueriesEventHandler(DocmsContext db)
+        public BlobsQueriesEventHandler(DocmsContext db)
         {
             _db = db;
         }

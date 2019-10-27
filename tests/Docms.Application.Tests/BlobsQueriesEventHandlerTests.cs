@@ -17,13 +17,13 @@ namespace Docms.Application.Tests
     public class BlobsQueriesEventHandlerTests
     {
         private DocmsContext ctx;
-        private UpdateDocumentStructureQueriesEventHandler sut;
+        private BlobsQueriesEventHandler sut;
 
         [TestInitialize]
         public void Setup()
         {
             ctx = new MockDocmsContext("BlobsQueriesEventHandlerTests");
-            sut = new UpdateDocumentStructureQueriesEventHandler(ctx);
+            sut = new BlobsQueriesEventHandler(ctx);
         }
 
         [TestCleanup]

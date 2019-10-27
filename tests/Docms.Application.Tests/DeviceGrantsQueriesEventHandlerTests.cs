@@ -16,7 +16,7 @@ namespace Docms.Application.Tests
     {
         private MockDocmsContext ctx;
         private MockUsersQueries usersQueries;
-        private UpdateDeviceGrantsQueriesEventHandler sut;
+        private DeviceGrantsQueriesEventHandler sut;
 
         [TestInitialize]
         public void Setup()
@@ -29,7 +29,7 @@ namespace Docms.Application.Tests
                 AccountName = "USERACCOUNTNAME",
                 Name = "USER NAME",
             });
-            sut = new UpdateDeviceGrantsQueriesEventHandler(ctx, usersQueries);
+            sut = new DeviceGrantsQueriesEventHandler(ctx, usersQueries);
         }
 
         [TestCleanup]

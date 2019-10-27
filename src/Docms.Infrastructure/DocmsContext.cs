@@ -6,6 +6,7 @@ using Docms.Infrastructure.EntityConfigurations;
 using Docms.Infrastructure.Identity;
 using Docms.Infrastructure.MediatR;
 using Docms.Queries.Blobs;
+using Docms.Queries.Clients;
 using Docms.Queries.DeviceAuthorization;
 using Docms.Queries.DocumentHistories;
 using MediatR;
@@ -47,6 +48,10 @@ namespace Docms.Infrastructure
 
         #region "Device Authorization Queries"
         public DbSet<DeviceGrant> DeviceGrants { get; set; }
+        #endregion
+
+        #region "Client"
+        public DbSet<ClientInfo> ClientInfo { get; set; }
         #endregion
 
         private readonly IMediator _mediator;

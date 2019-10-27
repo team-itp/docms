@@ -11,7 +11,7 @@ using Microsoft.EntityFrameworkCore;
 
 namespace Docms.Application.DomainEventHandlers
 {
-    public class UpdateDeviceGrantsQueriesEventHandler :
+    public class DeviceGrantsQueriesEventHandler :
         INotificationHandler<DomainEventNotification<DeviceNewlyAccessedEvent>>,
         INotificationHandler<DomainEventNotification<DeviceGrantedEvent>>,
         INotificationHandler<DomainEventNotification<DeviceRevokedEvent>>
@@ -19,7 +19,7 @@ namespace Docms.Application.DomainEventHandlers
         private readonly DocmsContext _db;
         private readonly IUsersQueries _usersQueries;
 
-        public UpdateDeviceGrantsQueriesEventHandler(DocmsContext db, IUsersQueries usersQueries)
+        public DeviceGrantsQueriesEventHandler(DocmsContext db, IUsersQueries usersQueries)
         {
             _db = db;
             _usersQueries = usersQueries;
