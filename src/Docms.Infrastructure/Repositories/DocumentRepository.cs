@@ -24,13 +24,6 @@ namespace Docms.Infrastructure.Repositories
                 .ToListAsync();
         }
 
-        public async Task<Document> GetAsync(int documentId)
-        {
-            return await _context
-                .Documents
-                .SingleOrDefaultAsync(e => e.Id == documentId);
-        }
-
         public async Task<Document> GetAsync(string documentPath)
         {
             return await _context
@@ -38,10 +31,9 @@ namespace Docms.Infrastructure.Repositories
                 .SingleOrDefaultAsync(e => e.Path == documentPath);
         }
 
-        public Task<Document> AddAsync(Document document)
+        public Task AddAsync(Document document)
         {
-            _context.Documents.Add(document);
-            return Task.FromResult(document);
+            return _context.Documents.AddAsync(document);
         }
 
         public Task UpdateAsync(Document document)

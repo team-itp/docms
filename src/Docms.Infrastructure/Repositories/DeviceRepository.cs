@@ -16,22 +16,15 @@ namespace Docms.Infrastructure.Repositories
             _context = context;
         }
 
-        public async Task<Device> GetAsync(int deviceId)
-        {
-            var device = await _context.Devices.FirstOrDefaultAsync(e => e.Id == deviceId);
-            return device;
-        }
-
         public async Task<Device> GetAsync(string deviceId)
         {
             var device = await _context.Devices.FirstOrDefaultAsync(e => e.DeviceId == deviceId);
             return device;
         }
 
-        public Task<Device> AddAsync(Device device)
+        public Task AddAsync(Device device)
         {
-            _context.Devices.Add(device);
-            return Task.FromResult(device);
+            return _context.Devices.AddAsync(device);
         }
 
         public Task UpdateAsync(Device device)

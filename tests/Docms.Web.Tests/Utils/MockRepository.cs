@@ -1,5 +1,4 @@
-﻿using Docms.Domain.Documents;
-using Docms.Domain.SeedWork;
+﻿using Docms.Domain.SeedWork;
 using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
@@ -14,12 +13,12 @@ namespace Docms.Web.Tests.Utils
         {
         }
 
-        public Task<int> SaveChangesAsync(CancellationToken cancellationToken = default(CancellationToken))
+        public Task<int> SaveChangesAsync(CancellationToken cancellationToken = default)
         {
             return Task.FromResult(1);
         }
 
-        public Task<bool> SaveEntitiesAsync(CancellationToken cancellationToken = default(CancellationToken))
+        public Task<bool> SaveEntitiesAsync(CancellationToken cancellationToken = default)
         {
             return Task.FromResult(true);
         }
@@ -39,7 +38,7 @@ namespace Docms.Web.Tests.Utils
 
         public List<T> Entities { get; } = new List<T>();
 
-        public Task<T> AddAsync(T entity)
+        public Task AddAsync(T entity)
         {
             var fi = typeof(Entity).GetField("_Id", BindingFlags.Instance | BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Static);
             fi.SetValue(entity, ++_lastPublishedId);

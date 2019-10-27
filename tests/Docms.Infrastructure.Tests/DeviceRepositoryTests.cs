@@ -12,10 +12,9 @@ namespace Docms.Infrastructure.Tests
         [TestMethod]
         public async Task デバイスがDeviceIdで取得できること()
         {
-            var mediator = new MockMediator();
             var ctx = new MockDocmsContext("MockDocmsContext");
             var sut = new DeviceRepository(ctx);
-            var d1 = await sut.AddAsync(new Device("ABC", "USERAGENT", "USER1"));
+            await sut.AddAsync(new Device("ABC", "USERAGENT", "USER1"));
             await sut.UnitOfWork.SaveEntitiesAsync();
             var d2 = await sut.GetAsync("ABC");
             Assert.AreEqual("ABC", d2.DeviceId);
