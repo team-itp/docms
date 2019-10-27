@@ -16,7 +16,7 @@ namespace Docms.Application.Commands
             _documentRepository = documentRepository;
         }
 
-        public async Task<bool> Handle(MoveDocumentCommand request, CancellationToken cancellationToken = default(CancellationToken))
+        public async Task<bool> Handle(MoveDocumentCommand request, CancellationToken cancellationToken = default)
         {
             var document = await _documentRepository.GetAsync(request.OriginalPath.ToString());
             if (document == null)

@@ -13,11 +13,6 @@ namespace Docms.Application.Tests.Utils
         {
         }
 
-        public Task<int> SaveChangesAsync(CancellationToken cancellationToken = default)
-        {
-            return Task.FromResult(1);
-        }
-
         public Task<bool> SaveEntitiesAsync(CancellationToken cancellationToken = default)
         {
             return Task.FromResult(true);
@@ -38,17 +33,17 @@ namespace Docms.Application.Tests.Utils
 
         public List<T> Entities { get; } = new List<T>();
 
+        public Task<T> GetAsync(int id)
+        {
+            return Task.FromResult(Entities.FirstOrDefault(e => e.Id == id));
+        }
+
         public Task AddAsync(T entity)
         {
             var fi = typeof(Entity).GetField("_Id", BindingFlags.Instance | BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Static);
             fi.SetValue(entity, ++_lastPublishedId);
             Entities.Add(entity);
             return Task.FromResult(entity);
-        }
-
-        public Task<T> GetAsync(int id)
-        {
-            return Task.FromResult(Entities.FirstOrDefault(e => e.Id == id));
         }
 
         public Task UpdateAsync(T entity)

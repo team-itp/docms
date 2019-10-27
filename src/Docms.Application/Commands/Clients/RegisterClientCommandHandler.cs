@@ -17,14 +17,14 @@ namespace Docms.Application.Commands
 
         public async Task<bool> Handle(RegisterClientCommand request, CancellationToken cancellationToken = default)
         {
-            var client = await _clientRepository.FindAsync(request.ClientId);
+            var client = await _clientRepository.GetAsync(request.ClientId);
             if (client != null)
             {
                 throw new InvalidOperationException();
             }
 
             client = new Client(request.ClientId, request.Type, request.IpAddress);
-            await _clientRepository.SaveAsync(client);
+            await _clientRepository.AddAsync(client);
             await _clientRepository.UnitOfWork.SaveEntitiesAsync(cancellationToken);
             return true;
         }

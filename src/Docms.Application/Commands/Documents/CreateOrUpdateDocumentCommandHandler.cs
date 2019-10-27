@@ -92,7 +92,7 @@ namespace Docms.Application.Commands
                             request.Created ?? document.Created,
                             request.LastModified ?? utcNow);
                     }
-
+                    await _documentRepository.UpdateAsync(document);
                 }
                 await _documentRepository.UnitOfWork.SaveEntitiesAsync().ConfigureAwait(false);
                 return true;
