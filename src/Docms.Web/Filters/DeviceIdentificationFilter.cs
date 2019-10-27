@@ -82,14 +82,16 @@ namespace Docms.Web.Filters
                     {
                         DeviceId = deviceId,
                         DeviceUserAgent = context.HttpContext.Request.Headers.TryGetValue("USER-AGENT", out var uaValue) ? (string)uaValue : null,
-                        UsedBy = appUser.Id                    });
+                        UsedBy = appUser.Id
+                    });
                 }
                 else
                 {
                     var command = new UpdateDeviceLastAccessTimeCommand()
                     {
                         DeviceId = deviceId,
-                        UsedBy = appUser.Id,
+                        LastAccessUserId = appUser.Id,
+                        LastAccessUserName = appUser.Name
                     };
                     await _mediator.Send(command);
 

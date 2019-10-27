@@ -11,12 +11,10 @@ namespace Docms.Application.Commands
     public class UpdateDeviceLastAccessTimeCommandHandler : IRequestHandler<UpdateDeviceLastAccessTimeCommand, bool>
     {
         private readonly DocmsContext _context;
-        private readonly IUsersQueries _usersQueries;
 
-        public UpdateDeviceLastAccessTimeCommandHandler(DocmsContext context, IUsersQueries usersQueries)
+        public UpdateDeviceLastAccessTimeCommandHandler(DocmsContext context)
         {
             _context = context;
-            _usersQueries = usersQueries;
         }
 
         public async Task<bool> Handle(UpdateDeviceLastAccessTimeCommand request, CancellationToken cancellationToken = default)
@@ -27,10 +25,8 @@ namespace Docms.Application.Commands
                 throw new InvalidOperationException();
             }
 
-            var user = await _usersQueries.FindByIdAsync(request.UsedBy, cancellationToken);
-
-            device.LastAccessUserId = request.UsedBy;
-            device.LastAccessUserName = user?.Name;
+            device.LastAccessUserId = request.LastAccessUserId;
+            device.LastAccessUserName = request.LastAccessUserName;
             device.LastAccessTime = DateTime.UtcNow;
 
             _context.DeviceGrants.Update(device);
