@@ -20,25 +20,31 @@ namespace Docms.Client.Starter
 
         public async Task StartAsync()
         {
-            var initializationCompleted = false;
-            logger.Trace("InitializeTask started");
-            while (!app.ShutdownRequestedToken.IsCancellationRequested
-                && !initializationCompleted)
+            try
             {
-                initializationCompleted = await ExecuteAsync(new InitializeTask(context)).ConfigureAwait(false);
-            }
-            logger.Trace("InitializeTask ended");
-            await Task.Delay(TimeSpan.FromSeconds(10), app.ShutdownRequestedToken).ConfigureAwait(false);
-
-            logger.Info("Application main loop started.");
-            while (!app.ShutdownRequestedToken.IsCancellationRequested)
-            {
-                logger.Trace("SyncTask started");
-                await ExecuteAsync(new SyncTask(context)).ConfigureAwait(false);
-                logger.Trace("SyncTask ended");
+                var initializationCompleted = false;
+                logger.Trace("InitializeTask started");
+                while (!app.ShutdownRequestedToken.IsCancellationRequested
+                    && !initializationCompleted)
+                {
+                    initializationCompleted = await ExecuteAsync(new InitializeTask(context)).ConfigureAwait(false);
+                }
+                logger.Trace("InitializeTask ended");
                 await Task.Delay(TimeSpan.FromSeconds(10), app.ShutdownRequestedToken).ConfigureAwait(false);
+
+                logger.Info("Application main loop started.");
+                while (!app.ShutdownRequestedToken.IsCancellationRequested)
+                {
+                    logger.Trace("SyncTask started");
+                    await ExecuteAsync(new SyncTask(context)).ConfigureAwait(false);
+                    logger.Trace("SyncTask ended");
+                    await Task.Delay(TimeSpan.FromSeconds(10), app.ShutdownRequestedToken).ConfigureAwait(false);
+                }
+                logger.Info("Application main loop ended.");
             }
-            logger.Info("Application main loop ended.");
+            catch (TaskCanceledException)
+            {
+            }
         }
 
         private async Task<bool> ExecuteAsync(ITask task)

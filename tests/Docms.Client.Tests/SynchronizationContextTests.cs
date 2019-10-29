@@ -133,6 +133,23 @@ namespace Docms.Client.Tests
         }
 
         [TestMethod]
+        public void 同期コンテキストがダウンロード要求状態でローカルファイルに同じファイルが追加されると状態が打ち消される()
+        {
+            sut.RemoteFileAdded(new PathString("test.txt"), "HASH", 10);
+            sut.LocalFileAdded(new PathString("test.txt"), "HASH", 10);
+            Assert.AreEqual(0, sut.States.Count());
+        }
+
+        [TestMethod]
+        public void 同期コンテキストがダウンロード要求状態でローカルファイルに異なるファイルが追加されるとアップロード要求状態となる()
+        {
+            sut.RemoteFileAdded(new PathString("test.txt"), "HASH", 10);
+            sut.LocalFileAdded(new PathString("test.txt"), "HASH1", 10);
+            Assert.AreEqual(1, sut.States.Count());
+            Assert.IsTrue(sut.States.Any(q => q is RequestForUploadState));
+        }
+
+        [TestMethod]
         public void 同期コンテキストのダウンロード完了待ち状態でダウンロードしたファイルと同じファイルがローカルで見つかると状態がクリアされる()
         {
             sut.RemoteFileAdded(new PathString("test.txt"), "HASH", 10);
@@ -202,6 +219,18 @@ namespace Docms.Client.Tests
         }
 
         [TestMethod]
+        public void 同期コンテキストにダウンロード完了待ちでローカルファイルが削除されると削除要求となる()
+        {
+            sut.RemoteFileAdded(new PathString("test.txt"), "HASH", 10);
+            sut.DownloadRequested(new PathString("test.txt"));
+            sut.LocalFileDeleted(new PathString("test.txt"), "HASH", 10);
+            Assert.AreEqual(1, sut.States.Count());
+            Assert.IsTrue(sut.States.Any(q => q is RequestForDeleteState));
+            Assert.AreEqual("HASH", sut.States.First().Hash);
+            Assert.AreEqual(10, sut.States.First().Length);
+        }
+
+        [TestMethod]
         public void 同期コンテキストでファイルを削除された場合に削除要求が追加される()
         {
             sut.LocalFileDeleted(new PathString("test.txt"), "HASH", 10);
@@ -246,6 +275,16 @@ namespace Docms.Client.Tests
             Assert.AreEqual(11, sut.States.First().Length);
         }
 
+        [TestMethod]
+        public void 同期コンテキストで削除要求状態でリモートにファイルが追加された場合削除要求が残る()
+        {
+            sut.LocalFileDeleted(new PathString("test.txt"), "HASH", 10);
+            sut.RemoteFileAdded(new PathString("test.txt"), "HASH2", 11);
+            Assert.AreEqual(1, sut.States.Count());
+            Assert.IsTrue(sut.States.Any(q => q is RequestForDeleteState));
+            Assert.AreEqual("HASH", sut.States.First().Hash);
+            Assert.AreEqual(10, sut.States.First().Length);
+        }
 
         [TestMethod]
         public void 同期コンテキストで削除要求完了状態で同一のファイルがローカルに追加された場合アップロード要求待ちになる()

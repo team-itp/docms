@@ -18,7 +18,10 @@ namespace Docms.Client.Synchronization
         {
             if (_States.TryGetValue(path, out var value))
             {
-                if ((value is DownloadingState || value is RemoteFileDeletedState || value is RequestForDeleteState)
+                if ((value is RequestForDownloadState
+                    || value is RequestForDeleteState
+                    || value is RemoteFileDeletedState
+                    || value is DownloadingState)
                     && value.Hash == hash
                     && value.Length == length)
                 {
@@ -39,7 +42,9 @@ namespace Docms.Client.Synchronization
         {
             if (_States.TryGetValue(path, out var value))
             {
-                if (value is UploadingState || value is RequestForDownloadState)
+                if (value is RequestForDownloadState
+                    || value is UploadingState
+                    || value is DownloadingState)
                 {
                     _States[path] = new RequestForDeleteState(path, hash, length);
                 }
@@ -58,12 +63,14 @@ namespace Docms.Client.Synchronization
         {
             if (_States.TryGetValue(path, out var value))
             {
-
-                if (value.Hash == hash && value.Length == length)
+                if ((value is RequestForUploadState
+                    || value is UploadingState) 
+                    && value.Hash == hash 
+                    && value.Length == length)
                 {
                     _States.Remove(path);
                 }
-                else if (value is UploadingState || value is RequestForDownloadState)
+                else if (!(value is RequestForUploadState || value is RequestForDeleteState))
                 {
                     _States[path] = new RequestForDownloadState(path, hash, length);
                 }
