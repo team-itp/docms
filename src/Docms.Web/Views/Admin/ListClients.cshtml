@@ -1,0 +1,64 @@
+﻿@model IEnumerable<Docms.Queries.Clients.ClientInfo>
+
+@{
+    ViewData["Title"] = "クライアント一覧";
+}
+
+@if (!string.IsNullOrEmpty(ViewBag.Message))
+{
+    <div class="alert alert-success">
+        @ViewBag.Message
+    </div>
+}
+
+<h1>クライアント一覧</h1>
+
+<div class="list-group">
+    @foreach (var item in Model)
+    {
+        <a asp-action="ShowClient" class="list-group-item list-group-item-action">
+            <div class="d-flex w-100 justify-content-between">
+                <h5 class="mb-1">@item.ClientId</h5>
+                <small>@item.Status</small>
+            </div>
+
+            <div class="row mt-2">
+                <div class="col-md-6">
+                    <div class="row">
+                        <div class="col-4">
+                            <b>種類</b>
+                        </div>
+                        <div class="col-8">
+                            @item.Type
+                        </div>
+                    </div>
+                </div>
+                <div class="w-100 d-none d-md-block"></div>
+                <div class="col-md-6">
+                    <div class="row">
+                        <div class="col-4">
+                            <b>状態</b>
+                        </div>
+                        <div class="col-8">
+                            @item.Status
+                        </div>
+                    </div>
+                </div>
+                <div class="w-100 d-none d-md-block"></div>
+                <div class="col-md-6">
+                    <div class="row">
+                        <div class="col-4">
+                            <b>最終アクセス</b>
+                        </div>
+                        <div class="col-8">
+                            @item.LastAccessedTime?.ToString("yyyy/MM/dd HH:mm:ss")
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <p class="mb-1">
+                @item.LastMessage
+            </p>
+        </a>
+    }
+</div>

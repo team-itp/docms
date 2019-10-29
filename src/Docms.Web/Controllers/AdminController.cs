@@ -1,5 +1,6 @@
-﻿using Docms.Queries.DeviceAuthorization;
-using Docms.Application.Commands;
+﻿using Docms.Application.Commands;
+using Docms.Queries.Clients;
+using Docms.Queries.DeviceAuthorization;
 using Docms.Web.Identity;
 using MediatR;
 using Microsoft.AspNetCore.Authorization;
@@ -76,6 +77,14 @@ namespace Docms.Web.Controllers
             var response = await mediator.Send(command);
             TempData["Message"] = "端末を拒否しました。";
             return RedirectToAction(nameof(ListDevices));
+        }
+
+        [HttpGet("clients")]
+        public async Task<IActionResult> ListClients([FromServices] IClientsQueries queries)
+        {
+            ViewData["Message"] = TempData["Message"];
+            var clients = queries.GetClients();
+            return View(await clients.ToListAsync());
         }
     }
 }

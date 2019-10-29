@@ -1,4 +1,5 @@
 ﻿using Docms.Queries.Clients;
+using System.Linq;
 using System.Threading.Tasks;
 
 namespace Docms.Infrastructure.Queries
@@ -15,6 +16,11 @@ namespace Docms.Infrastructure.Queries
         public Task<ClientInfo> FindByIdAsync(string id)
         {
             return _context.ClientInfo.FindAsync(id);
+        }
+
+        public IQueryable<ClientInfo> GetClients()
+        {
+            return _context.ClientInfo;
         }
     }
 }
