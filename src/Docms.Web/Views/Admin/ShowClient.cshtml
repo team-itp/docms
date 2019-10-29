@@ -1,0 +1,85 @@
+﻿@model Docms.Queries.Clients.ClientInfo
+
+@{
+    ViewData["Title"] = "クライアント詳細";
+}
+
+@if (!string.IsNullOrEmpty(ViewBag.Message))
+{
+    <div class="alert alert-success">
+        @ViewBag.Message
+    </div>
+}
+
+<h1>クライアント詳細</h1>
+
+<div>
+    <h4>@Model.ClientId</h4>
+    <hr />
+    <div>
+        <dl class="row">
+            <dt class="col-sm-4 col-md-3">状態</dt>
+            <dd class="col-sm-8 col-md-9">
+                @Model.Status
+                @if (Model.RequestId != Model.AcceptedRequestId)
+                {
+                    <text>(@(Model.RequestType == "Start" ? "開始要求済み" : ""))</text>
+                }
+            </dd>
+        </dl>
+        @if (Model.RequestType == "Start")
+        {
+            <form asp-action="StopClient" class="form-inline  d-inline">
+                <input type="hidden" asp-for="ClientId" />
+                <button type="submit" class="btn btn-danger">停止</button>
+            </form>
+        }
+        else
+        {
+            <form asp-action="StartClient" class="form-inline d-inline">
+                <input type="hidden" asp-for="ClientId" />
+                <button type="submit" class="btn btn-primary">開始</button>
+            </form>
+        }
+    </div>
+    <hr />
+    <dl class="row">
+        <dt class="col-sm-4 col-md-3">種類</dt>
+        <dd class="col-sm-8 col-md-9">
+            @Model.Type
+        </dd>
+        <dt class="col-sm-4 col-md-3">IP</dt>
+        <dd class="col-sm-8 col-md-9">
+            @Model.IpAddress
+        </dd>
+        <dt class="col-sm-4 col-md-3">
+            最終アクセス時間
+        </dt>
+        <dd class="col-sm-8 col-md-9">
+            @Model.LastAccessedTime?.ToString("yyyy/MM/dd HH:mm:ss")
+        </dd>
+        <dt class="col-sm-4 col-md-3">要求</dt>
+        <dd class="col-sm-8 col-md-9">
+            @Model.RequestType
+            @if (Model.RequestedAt.HasValue)
+            {
+                <text>(@Model.RequestedAt?.ToString("yyyy/MM/dd HH:mm:ss"))</text>
+            }
+        </dd>
+        <dt class="col-sm-4 col-md-3">最終承認</dt>
+        <dd class="col-sm-8 col-md-9">
+            @Model.AcceptedRequestType
+            @if (Model.AcceptedAt.HasValue)
+            {
+                <text>(@Model.AcceptedAt?.ToString("yyyy/MM/dd HH:mm:ss"))</text>
+            }
+        </dd>
+        <dt class="col-sm-4 col-md-3">最終ログ</dt>
+        <dd class="col-sm-8 col-md-9">
+            @Model.LastMessage
+        </dd>
+    </dl>
+</div>
+<div>
+    <a asp-action="Index">戻る</a>
+</div>

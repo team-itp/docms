@@ -4,19 +4,12 @@
     ViewData["Title"] = "クライアント一覧";
 }
 
-@if (!string.IsNullOrEmpty(ViewBag.Message))
-{
-    <div class="alert alert-success">
-        @ViewBag.Message
-    </div>
-}
-
 <h1>クライアント一覧</h1>
 
 <div class="list-group">
     @foreach (var item in Model)
     {
-        <a asp-action="ShowClient" class="list-group-item list-group-item-action">
+        <a asp-action="ShowClient" asp-route-id="@item.ClientId" class="list-group-item list-group-item-action">
             <div class="d-flex w-100 justify-content-between">
                 <h5 class="mb-1">@item.ClientId</h5>
                 <small>@item.Status</small>

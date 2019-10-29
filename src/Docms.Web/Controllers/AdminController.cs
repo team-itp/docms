@@ -86,5 +86,13 @@ namespace Docms.Web.Controllers
             var clients = queries.GetClients();
             return View(await clients.ToListAsync());
         }
+
+        [HttpGet("clients/{id}")]
+        public async Task<IActionResult> ShowClient(string id, [FromServices] IClientsQueries queries)
+        {
+            ViewData["Message"] = TempData["Message"];
+            var client = queries.FindByIdAsync(id).ConfigureAwait(false);
+            return View(await client);
+        }
     }
 }
