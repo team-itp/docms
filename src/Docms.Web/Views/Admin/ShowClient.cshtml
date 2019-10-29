@@ -23,7 +23,14 @@
                 @Model.Status
                 @if (Model.RequestId != Model.AcceptedRequestId)
                 {
-                    <text>(@(Model.RequestType == "Start" ? "開始要求済み" : ""))</text>
+                    if (Model.Status == "Stopped" || Model.Status == "Stopping")
+                    {
+                        <text>@(Model.RequestType == "Start" ? "(開始要求済み)" : "")</text>
+                    }
+                    else
+                    {
+                        <text>@(Model.RequestType == "Stop" ? "(停止要求済み)" : "")</text>
+                    }
                 }
             </dd>
         </dl>
@@ -65,6 +72,10 @@
             {
                 <text>(@Model.RequestedAt?.ToString("yyyy/MM/dd HH:mm:ss"))</text>
             }
+            else
+            {
+                <text>-</text>
+            }
         </dd>
         <dt class="col-sm-4 col-md-3">最終承認</dt>
         <dd class="col-sm-8 col-md-9">
@@ -73,10 +84,14 @@
             {
                 <text>(@Model.AcceptedAt?.ToString("yyyy/MM/dd HH:mm:ss"))</text>
             }
+            else
+            {
+                <text>-</text>
+            }
         </dd>
         <dt class="col-sm-4 col-md-3">最終ログ</dt>
         <dd class="col-sm-8 col-md-9">
-            @Model.LastMessage
+            @(Model.LastMessage ?? "-")
         </dd>
     </dl>
 </div>

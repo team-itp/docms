@@ -1,4 +1,5 @@
 ﻿using Docms.Application.Commands;
+using Docms.Domain.Clients;
 using Docms.Queries.Clients;
 using Docms.Queries.DeviceAuthorization;
 using Docms.Web.Identity;
@@ -93,6 +94,22 @@ namespace Docms.Web.Controllers
             ViewData["Message"] = TempData["Message"];
             var client = queries.FindByIdAsync(id).ConfigureAwait(false);
             return View(await client);
+        }
+
+        [HttpPost("clients/{id}/start")]
+        public async Task<IActionResult> StartClient(string id, [FromServices] IMediator mediator)
+        {
+            await mediator.Send(new RequestToClientCommand() { ClientId = id, RequestType = ClientRequestType.Start });
+            TempData["Message"] = "開始要求を送信しました。";
+            return RedirectToAction("ShowClient", new { id });
+        }
+
+        [HttpPost("clients/{id}/stop")]
+        public async Task<IActionResult> StopClient(string id, [FromServices] IMediator mediator)
+        {
+            await mediator.Send(new RequestToClientCommand() { ClientId = id, RequestType = ClientRequestType.Stop });
+            TempData["Message"] = "停止要求を送信しました。";
+            return RedirectToAction("ShowClient", new { id });
         }
     }
 }
