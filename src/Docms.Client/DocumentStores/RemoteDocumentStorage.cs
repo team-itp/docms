@@ -98,8 +98,11 @@ namespace Docms.Client.DocumentStores
                         appliedHistoryIds.Add(history.Id);
                     }
                 }
-                db.Histories.AddRange(historiesToAdd);
-                await db.SaveChangesAsync().ConfigureAwait(false);
+                if (historiesToAdd.Count > 0)
+                {
+                    db.Histories.AddRange(historiesToAdd);
+                    await db.SaveChangesAsync().ConfigureAwait(false);
+                }
             }
         }
 

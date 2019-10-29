@@ -142,6 +142,24 @@ namespace Docms.Client.Tests
         }
 
         [TestMethod]
+        public void 同期コンテキストがダウンロード要求状態でローカルファイルで同じファイルが削除されると削除要求待ちになる()
+        {
+            sut.RemoteFileAdded(new PathString("test.txt"), "HASH", 10);
+            sut.LocalFileDeleted(new PathString("test.txt"), "HASH", 10);
+            Assert.AreEqual(1, sut.States.Count());
+            Assert.IsTrue(sut.States.Any(q => q is RequestForDeleteState));
+        }
+
+        [TestMethod]
+        public void 同期コンテキストがダウンロード要求状態でローカルファイルで違うファイルが削除されると削除要求待ちになる()
+        {
+            sut.RemoteFileAdded(new PathString("test.txt"), "HASH", 10);
+            sut.LocalFileDeleted(new PathString("test.txt"), "HASH1", 11);
+            Assert.AreEqual(1, sut.States.Count());
+            Assert.IsTrue(sut.States.Any(q => q is RequestForDeleteState));
+        }
+
+        [TestMethod]
         public void 同期コンテキストにダウンロード要求がある場合にローカルファイルが変更されるとアップロード要求となる()
         {
             sut.RemoteFileAdded(new PathString("test.txt"), "HASH", 10);

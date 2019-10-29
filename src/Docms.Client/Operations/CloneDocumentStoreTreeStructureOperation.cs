@@ -24,6 +24,7 @@ namespace Docms.Client.Operations
                 var path = doc.Path;
                 var parentDir = GetOrCreateDirectory(path.ParentPath);
                 parentDir.AddChild(new DocumentNode(path.Name, doc.FileSize, doc.Hash, doc.Created, doc.LastModified));
+                context.SynchronizationContext.LocalFileAdded(path, doc.Hash, doc.FileSize);
             }
             return Task.CompletedTask;
         }
