@@ -12,6 +12,8 @@
     <FileAlignment>512</FileAlignment>
     <AutoGenerateBindingRedirects>true</AutoGenerateBindingRedirects>
     <Deterministic>true</Deterministic>
+    <NuGetPackageImportStamp>
+    </NuGetPackageImportStamp>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
     <PlatformTarget>AnyCPU</PlatformTarget>
@@ -69,14 +71,20 @@
     </Compile>
   </ItemGroup>
   <ItemGroup>
-    <None Include="App.config" />
+    <None Include="App.config">
+      <SubType>Designer</SubType>
+    </None>
   </ItemGroup>
   <ItemGroup>
     <EmbeddedResource Include="icon.ico" />
   </ItemGroup>
   <ItemGroup>
+    <ProjectReference Include="..\Docms.Client.App\Docms.Client.App.csproj">
+      <Project>{c1ca23fa-84fb-404d-9222-b13165c253d2}</Project>
+      <Name>Docms.Client.App</Name>
+    </ProjectReference>
     <ProjectReference Include="..\Docms.Client\Docms.Client.csproj">
-      <Project>{7960EE43-F55D-47D5-A437-6D8541ED7ECD}</Project>
+      <Project>{7960ee43-f55d-47d5-a437-6d8541ed7ecd}</Project>
       <Name>Docms.Client</Name>
     </ProjectReference>
   </ItemGroup>

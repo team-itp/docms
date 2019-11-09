@@ -1,8 +1,7 @@
-﻿using Docms.Client.App.Properties;
+﻿using Docms.Client.Configuration;
 using Docms.Client.InterprocessCommunication;
 using NLog;
 using System;
-using System.Diagnostics;
 using System.Threading;
 using System.Threading.Tasks;
 
@@ -28,11 +27,11 @@ namespace Docms.Client.App
                 _logger.Info("Program started.");
                 var app = new Application(new ApplicationOptions()
                 {
-                    WatchPath = Settings.Default.WatchPath,
-                    ServerUrl = Settings.Default.ServerUrl,
-                    UploadClientId = Settings.Default.UploadClientId,
-                    UploadUserName = Settings.Default.UploadUserName,
-                    UploadUserPassword = Settings.Default.UploadUserPassword
+                    WatchPath = Settings.WatchPath,
+                    ServerUrl = Settings.ServerUrl,
+                    UploadClientId = Settings.UploadClientId,
+                    UploadUserName = Settings.UploadUserName,
+                    UploadUserPassword = Settings.UploadUserPassword
                 });
                 Console.CancelKeyPress += (s, e) =>
                 {

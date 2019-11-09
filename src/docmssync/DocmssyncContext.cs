@@ -1,4 +1,5 @@
-﻿using Docms.Client.InterprocessCommunication;
+﻿using Docms.Client.Configuration;
+using Docms.Client.InterprocessCommunication;
 using System;
 using System.Diagnostics;
 using System.Drawing;
@@ -44,7 +45,7 @@ namespace docmssync
             }
             else
             {
-                var filename = Path.GetFullPath("../../../Docms.Client.App/bin/Debug/Docms.Client.App.exe");
+                var filename = Path.GetFullPath("Docms.Client.App.exe");
                 clientApp = Process.Start(filename);
             }
         }

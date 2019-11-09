@@ -1,7 +1,21 @@
 ﻿<?xml version='1.0' encoding='utf-8'?>
-<SettingsFile xmlns="http://schemas.microsoft.com/VisualStudio/2004/01/settings" CurrentProfile="(Default)">
-  <Profiles>
-    <Profile Name="(Default)" />
-  </Profiles>
-  <Settings />
+<SettingsFile xmlns="http://schemas.microsoft.com/VisualStudio/2004/01/settings" CurrentProfile="(Default)" GeneratedClassNamespace="docmssync.Properties" GeneratedClassName="Settings">
+  <Profiles />
+  <Settings>
+    <Setting Name="WatchPath" Type="System.String" Scope="Application">
+      <Value Profile="(Default)">C:\temp\Images</Value>
+    </Setting>
+    <Setting Name="ServerUrl" Type="System.String" Scope="Application">
+      <Value Profile="(Default)">http://localhost:51693</Value>
+    </Setting>
+    <Setting Name="UploadClientId" Type="System.String" Scope="Application">
+      <Value Profile="(Default)">53140a5b-4b21-48d8-a38f-a0c880e23b93</Value>
+    </Setting>
+    <Setting Name="UploadUserName" Type="System.String" Scope="Application">
+      <Value Profile="(Default)">testuser</Value>
+    </Setting>
+    <Setting Name="UploadUserPassword" Type="System.String" Scope="Application">
+      <Value Profile="(Default)">Passw0rd</Value>
+    </Setting>
+  </Settings>
 </SettingsFile>
