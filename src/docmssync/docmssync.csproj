@@ -74,5 +74,11 @@
   <ItemGroup>
     <EmbeddedResource Include="icon.ico" />
   </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\Docms.Client\Docms.Client.csproj">
+      <Project>{7960EE43-F55D-47D5-A437-6D8541ED7ECD}</Project>
+      <Name>Docms.Client</Name>
+    </ProjectReference>
+  </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
 </Project>
