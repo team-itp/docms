@@ -1,72 +1,91 @@
-﻿using Docms.Client.Configuration;
-using Docms.Client.InterprocessCommunication;
-using System;
-using System.Diagnostics;
+﻿using System;
 using System.Drawing;
-using System.IO;
-using System.Linq;
-using System.Threading;
 using System.Windows.Forms;
 
 namespace docmssync
 {
     class DocmssyncContext : ApplicationContext
     {
-        private Process clientApp;
+        public static DocmssyncContext Context { get; private set; }
 
-        private NotifyIcon trayIcon;
-
-        public DocmssyncContext()
+        static DocmssyncContext()
         {
-            StartProcess();
-            var icon = new Icon(this.GetType().Assembly.GetManifestResourceStream("docmssync.icon.ico"));
-            var contextMenu = new ContextMenuStrip();
-            contextMenu.Items.Add("終了", null, (s, e) =>
-            {
-                trayIcon.Visible = false;
-                StopProcess();
-                Application.Exit();
-            });
+            Context = new DocmssyncContext();
+        }
 
-            trayIcon = new NotifyIcon()
+        private readonly NotifyIcon _trayIcon;
+
+        private readonly Timer _timer;
+
+        private DocmssyncContext()
+        {
+            _timer = new Timer();
+            _timer.Interval = (int)TimeSpan.FromSeconds(30).TotalMilliseconds;
+            _timer.Tick += new EventHandler(TimerTick);
+
+            var contextMenu = new ContextMenuStrip();
+            contextMenu.Items.Add("開始", null, new EventHandler(StartApp));
+            contextMenu.Items.Add("停止", null, new EventHandler(StopApp));
+            contextMenu.Items.Add("再起動", null, new EventHandler(RestartApp));
+            contextMenu.Items.Add("終了", null, new EventHandler(ExitMonitor));
+
+            var icon = new Icon(this.GetType().Assembly.GetManifestResourceStream("docmssync.icon.ico"));
+            _trayIcon = new NotifyIcon()
             {
                 Icon = icon,
                 ContextMenuStrip = contextMenu,
                 Visible = true
             };
+            _timer.Start();
         }
 
-        private void StartProcess()
+        private void StartApp(object sender, EventArgs e)
         {
-            var processes = Process.GetProcessesByName("Docms.Client.App");
-            if (processes.Length > 0)
-            {
-                clientApp = processes.First();
-            }
-            else
-            {
-                var filename = Path.GetFullPath("Docms.Client.App.exe");
-                clientApp = Process.Start(filename);
-            }
+            DocmssyncActions.StartApp();
         }
 
-        private void StopProcess()
+        private void StopApp(object sender, EventArgs e)
         {
-            try
-            {
-                Process.GetProcessById(clientApp.Id);
-                if (EventWaitHandle.TryOpenExisting(Constants.StopProcessHandle, out var handle))
-                {
-                    handle.Set();
-                }
-                if (!clientApp.WaitForExit(10000))
-                {
-                    clientApp.Kill();
-                }
-            }
-            catch (ArgumentException)
-            {
-            }
+            DocmssyncActions.StopApp();
+        }
+
+        private void RestartApp(object sender, EventArgs e)
+        {
+            DocmssyncActions.StopApp();
+            DocmssyncActions.StartApp();
+        }
+
+        public void OnApplicationStarted()
+        {
+            _trayIcon.BalloonTipTitle = "docmssync";
+            _trayIcon.BalloonTipText = "同期を開始します。";
+            _trayIcon.ShowBalloonTip(10000);
+        }
+
+        public void OnApplicationStopped()
+        {
+            _trayIcon.BalloonTipTitle = "docmssync";
+            _trayIcon.BalloonTipText = "同期を終了します。";
+            _trayIcon.ShowBalloonTip(10000);
+        }
+
+        public void OnError(Exception e)
+        {
+            _trayIcon.BalloonTipTitle = "docmssync";
+            _trayIcon.BalloonTipText = e.Message;
+            _trayIcon.ShowBalloonTip(10000);
+        }
+
+        private void ExitMonitor(object sender, EventArgs e)
+        {
+            _timer.Stop();
+            _trayIcon.Visible = false;
+            Application.Exit();
+        }
+
+        private void TimerTick(object sender, EventArgs e)
+        {
+            DocmssyncActions.UpdateAppStatus();
         }
     }
 }

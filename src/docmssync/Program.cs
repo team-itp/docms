@@ -25,7 +25,8 @@ namespace docmssync
                 {
                     Application.EnableVisualStyles();
                     Application.SetCompatibleTextRenderingDefault(true);
-                    Application.Run(new DocmssyncContext());
+                    DocmssyncActions.StartApp();
+                    Application.Run(DocmssyncContext.Context);
                 }
             }
         }
