@@ -80,7 +80,7 @@ namespace Docms.Web.Api.V1
         }
 
         [HttpPut("{id}/status")]
-        public async Task<IActionResult> PutStatus(string id, [FromBody] string status, [FromServices] IMediator mediator)
+        public async Task<IActionResult> PutStatus(string id, [FromForm] string status, [FromServices] IMediator mediator)
         {
             var client = await _queries.FindByIdAsync(id).ConfigureAwait(false);
             if (client == null)

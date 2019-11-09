@@ -24,7 +24,7 @@ namespace Docms.Application.Commands
             var client = await _clientRepository.GetAsync(request.ClientId).ConfigureAwait(false);
             if (client != null)
             {
-                throw new InvalidOperationException();
+                return false;
             }
 
             client = new Client(request.ClientId, request.Type, request.IpAddress);

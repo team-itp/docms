@@ -9,7 +9,7 @@ namespace Docms.Web.Api.Serialization
 {
     public class DocmsJsonTypeBinder : ISerializationBinder
     {
-        Dictionary<Type, string> matches = new Dictionary<Type, string>()
+        readonly Dictionary<Type, string> matches = new Dictionary<Type, string>()
         {
             {typeof(BlobContainer), "container" },
             {typeof(Blob), "document" },
