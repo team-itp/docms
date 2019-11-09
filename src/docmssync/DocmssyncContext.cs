@@ -19,8 +19,10 @@ namespace docmssync
 
         private DocmssyncContext()
         {
-            _timer = new Timer();
-            _timer.Interval = (int)TimeSpan.FromSeconds(30).TotalMilliseconds;
+            _timer = new Timer
+            {
+                Interval = (int)TimeSpan.FromSeconds(30).TotalMilliseconds
+            };
             _timer.Tick += new EventHandler(TimerTick);
 
             var contextMenu = new ContextMenuStrip();
@@ -36,6 +38,8 @@ namespace docmssync
                 ContextMenuStrip = contextMenu,
                 Visible = true
             };
+
+            DocmssyncActions.UpdateAppStatus();
             _timer.Start();
         }
 
@@ -79,6 +83,7 @@ namespace docmssync
         private void ExitMonitor(object sender, EventArgs e)
         {
             _timer.Stop();
+            DocmssyncActions.StopApp();
             _trayIcon.Visible = false;
             Application.Exit();
         }

@@ -22,17 +22,16 @@ namespace Docms.Client.Api
 
         private readonly string _serverUri;
         private readonly string _defaultPath;
+        private readonly string _uploadClientId;
         private string _tokenEndpoint;
         private string _introspectionEndpoint;
         private string _revocationEndpoint;
-        private string _username;
-        private string _password;
         private string _accessToken;
         private readonly HttpClient _client;
 
         public JsonSerializerSettings DefaultJsonSerializerSettings { get; set; }
 
-        public DocmsApiClient(string uri, string defaultPath = "api/v1", string uploadClientId = null)
+        public DocmsApiClient(string uploadClientId, string uri, string defaultPath = "api/v1")
         {
             if (string.IsNullOrWhiteSpace(uri))
             {
@@ -40,6 +39,7 @@ namespace Docms.Client.Api
             }
             _serverUri = uri.EndsWith("/") ? uri : uri + "/";
             _defaultPath = (defaultPath ?? "").EndsWith("/") ? defaultPath : defaultPath + "/";
+            _uploadClientId = uploadClientId;
             _client = new HttpClient()
             {
                 Timeout = TimeSpan.FromMinutes(30),
@@ -57,16 +57,9 @@ namespace Docms.Client.Api
         /// <summary>
         /// ログイン
         /// </summary>
-        /// <param name="username">ユーザー名</param>
-        /// <param name="password">パスワード</param>
         /// <returns></returns>
-        public async Task LoginAsync(string username, string password)
+        public async Task LoginAsync()
         {
-            if (string.IsNullOrEmpty(username))
-                throw new ArgumentNullException(nameof(username));
-            if (string.IsNullOrEmpty(password))
-                throw new ArgumentNullException(nameof(password));
-
             using (var discoveryClient = new DiscoveryClient(new Uri(_serverUri).GetLeftPart(UriPartial.Authority).ToString()))
             {
                 discoveryClient.Policy.RequireHttps = false;
@@ -86,14 +79,12 @@ namespace Docms.Client.Api
                     "docms-client",
                     "docms-client-secret");
 
-                var response = await client.RequestResourceOwnerPasswordAsync(username, password, "docmsapi").ConfigureAwait(false);
+                var response = await client.RequestClientCredentialsAsync("docmsapi").ConfigureAwait(false);
                 if (response.IsError)
                 {
                     throw new InvalidLoginException();
                 }
                 _logger.Debug("login success.");
-                _username = username;
-                _password = password;
                 _accessToken = response.AccessToken;
                 _client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", _accessToken);
             }
@@ -151,7 +142,7 @@ namespace Docms.Client.Api
             }
 
             // 正常にログインできない場合はエラーが投げられる
-            await LoginAsync(_username, _password).ConfigureAwait(false);
+            await LoginAsync().ConfigureAwait(false);
             return false;
         }
 
@@ -199,9 +190,9 @@ namespace Docms.Client.Api
             }
         }
 
-        public async Task PostRegisterClient(string clientId, string type)
+        public async Task PostRegisterClient(string type)
         {
-            _logger.Debug("requesting post client: " + clientId);
+            _logger.Debug("requesting post client: " + _uploadClientId);
             var result = await ExecuteAsync(() =>
             {
                 var requestUri = new UriBuilder(_serverUri)
@@ -211,7 +202,7 @@ namespace Docms.Client.Api
 
                 var keyValue = new Dictionary<string, string>
                 {
-                    { "clientId", clientId },
+                    { "clientId", _uploadClientId },
                     { "type", type }
                 };
 
@@ -224,14 +215,14 @@ namespace Docms.Client.Api
             ThrowIfNotSuccessfulStatus(result);
         }
 
-        public async Task<ClientInfoResponse> GetClientInfoAsync(string clientId)
+        public async Task<ClientInfoResponse> GetClientInfoAsync()
         {
-            _logger.Debug("requesting get client info: " + clientId);
+            _logger.Debug("requesting get client info: " + _uploadClientId);
             var result = await ExecuteAsync(() =>
             {
                 var requestUri = new UriBuilder(_serverUri)
                 {
-                    Path = $"{_defaultPath}clients/{clientId}"
+                    Path = $"{_defaultPath}clients/{_uploadClientId}"
                 };
                 var request = new HttpRequestMessage(HttpMethod.Get, requestUri.Uri);
                 return request;
@@ -240,14 +231,14 @@ namespace Docms.Client.Api
             return await ParseJson<ClientInfoResponse>(result).ConfigureAwait(false);
         }
 
-        public async Task<ClientInfoRequstResponse> GetLatestRequest(string clientId)
+        public async Task<ClientInfoRequstResponse> GetLatestRequest()
         {
-            _logger.Debug("requesting get request for client: " + clientId);
+            _logger.Debug("requesting get request for client: " + _uploadClientId);
             var result = await ExecuteAsync(() =>
             {
                 var requestUri = new UriBuilder(_serverUri)
                 {
-                    Path = $"{_defaultPath}clients/{clientId}"
+                    Path = $"{_defaultPath}clients/{_uploadClientId}"
                 };
                 var request = new HttpRequestMessage(HttpMethod.Get, requestUri.Uri);
                 return request;
@@ -256,14 +247,14 @@ namespace Docms.Client.Api
             return await ParseJson<ClientInfoRequstResponse>(result).ConfigureAwait(false);
         }
 
-        public async Task PutAccepted(string clientId, string requestId)
+        public async Task PutAccepted(string requestId)
         {
-            _logger.Debug("requesting put accept client: " + clientId + ", request: " + requestId);
+            _logger.Debug("requesting put accept client: " + _uploadClientId + ", request: " + requestId);
             var result = await ExecuteAsync(() =>
             {
                 var requestUri = new UriBuilder(_serverUri)
                 {
-                    Path = $"{_defaultPath}clients/{clientId}/requests/{requestId}/accept"
+                    Path = $"{_defaultPath}clients/{_uploadClientId}/requests/{requestId}/accept"
                 };
                 var request = new HttpRequestMessage(HttpMethod.Put, requestUri.Uri);
                 return request;
@@ -271,14 +262,14 @@ namespace Docms.Client.Api
             ThrowIfNotSuccessfulStatus(result);
         }
 
-        public async Task PutStatus(string clientId, string status)
+        public async Task PutStatus(string status)
         {
-            _logger.Debug("requesting put status for client: " + clientId);
+            _logger.Debug("requesting put status for client: " + _uploadClientId);
             var result = await ExecuteAsync(() =>
             {
                 var requestUri = new UriBuilder(_serverUri)
                 {
-                    Path = $"{_defaultPath}clients/{clientId}/status"
+                    Path = $"{_defaultPath}clients/{_uploadClientId}/status"
                 };
 
                 var keyValuePair = new Dictionary<string, string>

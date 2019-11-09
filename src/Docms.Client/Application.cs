@@ -31,9 +31,7 @@ namespace Docms.Client
                     var starter = new ApplicationStarter(
                         _options.WatchPath,
                         _options.ServerUrl,
-                        _options.UploadClientId,
-                        _options.UploadUserName,
-                        _options.UploadUserPassword);
+                        _options.UploadClientId);
                     using (var context = starter.StartAsync().GetAwaiter().GetResult())
                     {
                         new ApplicationEngine(this, context).StartAsync().GetAwaiter().GetResult();

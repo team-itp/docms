@@ -16,16 +16,12 @@ namespace Docms.Client.Starter
         private readonly string watchPath;
         private readonly string serverUrl;
         private readonly string uploadClientId;
-        private readonly string uploadUserName;
-        private readonly string uploadUserPassword;
 
-        public ApplicationStarter(string watchPath, string serverUrl, string uploadClientId, string uploadUserName, string uploadUserPassword)
+        public ApplicationStarter(string watchPath, string serverUrl, string uploadClientId)
         {
             this.watchPath = watchPath;
             this.serverUrl = serverUrl;
             this.uploadClientId = uploadClientId;
-            this.uploadUserName = uploadUserName;
-            this.uploadUserPassword = uploadUserPassword;
         }
 
         public async Task<ApplicationContext> StartAsync()
@@ -44,7 +40,7 @@ namespace Docms.Client.Starter
             context.LocalStorage = ResolveLocalStorage(context.FileSystem, context.SynchronizationContext);
             context.RemoteStorage = ResolveRemoteStorage(context.Api, context.SynchronizationContext, context.DbFactory);
 
-            await context.Api.LoginAsync(uploadUserName, uploadUserPassword).ConfigureAwait(false);
+            await context.Api.LoginAsync().ConfigureAwait(false);
             await context.LocalStorage.Initialize().ConfigureAwait(false);
             await context.RemoteStorage.Initialize().ConfigureAwait(false);
             return context;
@@ -52,7 +48,7 @@ namespace Docms.Client.Starter
 
         private IDocmsApiClient ResolveApi(string uploadClientId)
         {
-            return new DocmsApiClient(serverUrl, uploadClientId: uploadClientId);
+            return new DocmsApiClient(uploadClientId: uploadClientId, uri: serverUrl);
         }
 
         private IFileSystem ResolveFileSystem(string watchPath)

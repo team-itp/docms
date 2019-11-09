@@ -1,8 +1,5 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Linq;
 using System.Threading;
-using System.Threading.Tasks;
 using System.Windows.Forms;
 
 namespace docmssync
@@ -25,7 +22,6 @@ namespace docmssync
                 {
                     Application.EnableVisualStyles();
                     Application.SetCompatibleTextRenderingDefault(true);
-                    DocmssyncActions.StartApp();
                     Application.Run(DocmssyncContext.Context);
                 }
             }

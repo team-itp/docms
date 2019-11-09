@@ -30,8 +30,6 @@ namespace Docms.Client.App
                     WatchPath = Settings.WatchPath,
                     ServerUrl = Settings.ServerUrl,
                     UploadClientId = Settings.UploadClientId,
-                    UploadUserName = Settings.UploadUserName,
-                    UploadUserPassword = Settings.UploadUserPassword
                 });
                 Console.CancelKeyPress += (s, e) =>
                 {
@@ -56,6 +54,7 @@ namespace Docms.Client.App
                     Environment.Exit(1);
                 }
 
+                handle.Close();
             }
         }
 

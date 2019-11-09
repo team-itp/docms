@@ -5,7 +5,7 @@ namespace Docms.Client.Configuration
 {
     public class Settings
     {
-        private static ClientSettingsSection settings;
+        private static readonly ClientSettingsSection settings;
 
         static Settings()
         {
@@ -20,7 +20,6 @@ namespace Docms.Client.Configuration
             return settings.Settings.Get(v).Value.ValueXml.InnerXml;
         }
 
-        public static string AppPath => GetConfig("AppPath");
         public static string WatchPath => GetConfig("WatchPath");
         public static string ServerUrl => GetConfig("ServerUrl");
         public static string UploadClientId => GetConfig("UploadClientId");

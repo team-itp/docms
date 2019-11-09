@@ -17,6 +17,7 @@ namespace Docms.Client.Tests.Utils
         public Dictionary<string, byte[]> streams = new Dictionary<string, byte[]>();
         public Dictionary<string, List<History>> histories = new Dictionary<string, List<History>>();
         public Dictionary<string, ClientInfoResponse> clients = new Dictionary<string, ClientInfoResponse>();
+        private readonly string clientId = Guid.NewGuid().ToString();
 
         private void AddFile(string path, string contentType, byte[] data, DateTime created, DateTime lastModified)
         {
@@ -243,7 +244,7 @@ namespace Docms.Client.Tests.Utils
             return Task.FromResult(historyValues.ToArray() as IEnumerable<History>);
         }
 
-        public Task LoginAsync(string username, string password)
+        public Task LoginAsync()
         {
             return Task.CompletedTask;
         }
@@ -253,7 +254,7 @@ namespace Docms.Client.Tests.Utils
             return Task.CompletedTask;
         }
 
-        public Task PostRegisterClient(string clientId, string type)
+        public Task PostRegisterClient(string type)
         {
             if (clients.TryGetValue(clientId, out var _))
             {
@@ -269,7 +270,7 @@ namespace Docms.Client.Tests.Utils
             return Task.CompletedTask;
         }
 
-        public Task<ClientInfoResponse> GetClientInfoAsync(string clientId)
+        public Task<ClientInfoResponse> GetClientInfoAsync()
         {
             if (!clients.TryGetValue(clientId, out var clientInfo))
             {
@@ -279,7 +280,7 @@ namespace Docms.Client.Tests.Utils
             return Task.FromResult(clientInfo);
         }
 
-        public Task<ClientInfoRequstResponse> GetLatestRequest(string clientId)
+        public Task<ClientInfoRequstResponse> GetLatestRequest()
         {
             if (!clients.TryGetValue(clientId, out var clientInfo))
             {
@@ -294,7 +295,7 @@ namespace Docms.Client.Tests.Utils
             });
         }
 
-        public Task PutAccepted(string clientId, string requestId)
+        public Task PutAccepted(string requestId)
         {
             if (!clients.TryGetValue(clientId, out var clientInfo))
             {
@@ -310,7 +311,7 @@ namespace Docms.Client.Tests.Utils
             return Task.CompletedTask;
         }
 
-        public Task PutStatus(string clientId, string status)
+        public Task PutStatus(string status)
         {
             if (!clients.TryGetValue(clientId, out var clientInfo))
             {

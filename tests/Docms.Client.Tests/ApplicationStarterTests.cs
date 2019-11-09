@@ -14,8 +14,6 @@ namespace Docms.Client.Tests
     {
         const string SERVER_URL = "http://localhost:51693";
         const string CLIENT_ID = "53140a5b-4b21-48d8-a38f-a0c880e23b93";
-        const string USER_NAME = "testuser";
-        const string PASSWORD = "Passw0rd";
         private string watchPath;
         private ApplicationStarter sut;
 
@@ -42,7 +40,7 @@ namespace Docms.Client.Tests
         public async Task 初期化処理でフォルダが存在しない場合エラーが発生する()
         {
             Directory.Delete(watchPath, true);
-            sut = new ApplicationStarter(watchPath, SERVER_URL, CLIENT_ID, USER_NAME, PASSWORD);
+            sut = new ApplicationStarter(watchPath, SERVER_URL, CLIENT_ID);
             await Assert.ThrowsExceptionAsync<DirectoryNotFoundException>(() => sut.StartAsync());
         }
 
@@ -53,22 +51,15 @@ namespace Docms.Client.Tests
             Directory.CreateDirectory(Path.Combine(watchPath, ".docms"));
             using (var stream = File.Open(Path.Combine(watchPath, ".docms", "data.db"), FileMode.CreateNew, FileAccess.Write, FileShare.None))
             {
-                sut = new ApplicationStarter(watchPath, SERVER_URL, CLIENT_ID, USER_NAME, PASSWORD);
+                sut = new ApplicationStarter(watchPath, SERVER_URL, CLIENT_ID);
                 await Assert.ThrowsExceptionAsync<SqliteException>(() => sut.StartAsync());
             }
         }
 
         [TestMethod]
-        public async Task 初期化処理でログインに失敗した場合エラーが発生する()
-        {
-            sut = new ApplicationStarter(watchPath, SERVER_URL, CLIENT_ID, USER_NAME, "invalid_password");
-            await Assert.ThrowsExceptionAsync<InvalidLoginException>(() => sut.StartAsync());
-        }
-
-        [TestMethod]
         public async Task 初期化処理が完了した場合戻り値としてApplicationContextが戻る()
         {
-            sut = new ApplicationStarter(watchPath, SERVER_URL, CLIENT_ID, USER_NAME, PASSWORD);
+            sut = new ApplicationStarter(watchPath, SERVER_URL, CLIENT_ID);
             Assert.IsNotNull(await sut.StartAsync().ConfigureAwait(false));
         }
     }

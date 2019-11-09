@@ -17,7 +17,7 @@ namespace Docms.Client.Tests
     public class DocmsApiClientTests
     {
         private static bool noConnection;
-
+        private string clientId;
         private DocmsApiClient sut;
 
         [TestInitialize]
@@ -27,8 +27,9 @@ namespace Docms.Client.Tests
 
             try
             {
-                sut = new DocmsApiClient("http://localhost:51693");
-                await sut.LoginAsync("testuser", "Passw0rd").ConfigureAwait(false);
+                clientId = Guid.NewGuid().ToString();
+                sut = new DocmsApiClient(clientId, "http://localhost:51693");
+                await sut.LoginAsync().ConfigureAwait(false);
             }
             catch
             {
@@ -47,9 +48,8 @@ namespace Docms.Client.Tests
         public async Task サーバーにクライアント情報を登録する()
         {
             if (noConnection) Assert.Fail("接続不良のため失敗");
-            var clientId = Guid.NewGuid().ToString();
-            await sut.PostRegisterClient(clientId, "UPLOADER").ConfigureAwait(false);
-            var clientInfo = await sut.GetClientInfoAsync(clientId);
+            await sut.PostRegisterClient("UPLOADER").ConfigureAwait(false);
+            var clientInfo = await sut.GetClientInfoAsync();
             Assert.IsNotNull(clientInfo);
         }
 
@@ -66,7 +66,7 @@ namespace Docms.Client.Tests
         {
             if (noConnection) Assert.Fail("接続不良のため失敗");
             await sut.CreateOrUpdateDocumentAsync(
-                "test1/test1.txt", 
+                "test1/test1.txt",
                 () => new MemoryStream(Encoding.UTF8.GetBytes("test1"))).ConfigureAwait(false);
             await sut.DeleteDocumentAsync("test1/test1.txt").ConfigureAwait(false);
             await sut.CreateOrUpdateDocumentAsync("test1/test1.txt",
@@ -75,7 +75,7 @@ namespace Docms.Client.Tests
                 new DateTime(2018, 10, 2, 0, 0, 0, DateTimeKind.Utc)).ConfigureAwait(false);
             var entries = await sut.GetEntriesAsync("test1").ConfigureAwait(false);
             Assert.IsTrue(entries.Any(e => e.Path == "test1/test1.txt"));
-            using(var sr = await sut.DownloadAsync("test1/test1.txt"))
+            using (var sr = await sut.DownloadAsync("test1/test1.txt"))
             {
                 var ms = new MemoryStream();
                 await sr.CopyToAsync(ms);
