@@ -1,61 +1,69 @@
-﻿using Docms.Client.Configuration;
-using Docms.Client.InterprocessCommunication;
+﻿using Docms.Client.App.Commands;
 using NLog;
 using System;
-using System.Threading;
-using System.Threading.Tasks;
+using System.Collections.Generic;
+using System.Linq;
 
 namespace Docms.Client.App
 {
     static class Program
     {
         private static readonly Logger _logger = LogManager.GetCurrentClassLogger();
+        private static List<Command> Commands = new List<Command>()
+        {
+            new StartCommand(),
+            new StopCommand(),
+            new ServiceCommand(),
+            new WatchCommand(),
+            new DefaultCommand()
+        };
 
         /// <summary>
         /// アプリケーションのメイン エントリ ポイントです。
         /// </summary>
-        static void Main()
+        [STAThread]
+        public static int Main(string[] args)
         {
             AppDomain.CurrentDomain.UnhandledException += OnUnandledException;
-            using (var handle = new EventWaitHandle(false, EventResetMode.ManualReset, Constants.StopProcessHandle, out var created))
+            string commandName = args.Length == 0 ? "default" : args[0];
+            Command command = Commands.FirstOrDefault((Command c) => c.CommandName.Equals(commandName, StringComparison.InvariantCultureIgnoreCase));
+            if (command == null)
             {
-                if (!created)
-                {
-                    return;
-                }
-
-                _logger.Info("Program started.");
-                var app = new Application(new ApplicationOptions()
-                {
-                    WatchPath = Settings.WatchPath,
-                    ServerUrl = Settings.ServerUrl,
-                    UploadClientId = Settings.UploadClientId,
-                });
-                Console.CancelKeyPress += (s, e) =>
-                {
-                    _logger.Info("Program canceled.");
-                    app.Shutdown();
-                    Environment.Exit(0);
-                };
-                Task.Run(() =>
-                {
-                    handle.WaitOne();
-                    app.Shutdown();
-                });
-
+                _logger.Error("Unknown command '{0}'.", commandName);
+                return -2;
+            }
+            for (int i = 1; i < args.Length; i++)
+            {
+                string text = args[i];
                 try
                 {
-                    app.Run();
+                    if (text.StartsWith("/") || text.StartsWith("-"))
+                    {
+                        text = text.Substring(1);
+                        if (i + 1 < args.Length && (!args[i + 1].StartsWith("/")) && !args[i + 1].StartsWith("-"))
+                        {
+                            i++;
+                            command.SetArgument(text, args[i]);
+                        }
+                    }
                 }
-                catch (Exception ex)
+                catch (DocmssyncException ex)
                 {
-                    _logger.Error(ex.Message);
-                    _logger.Debug(ex);
-                    Environment.Exit(1);
+                    _logger.Error("Cannot parse '{0}': {1}", text, ex.Message);
+                    command.PrintHelp();
+                    return -1;
                 }
-
-                handle.Close();
             }
+            try
+            {
+                command.RunCommand();
+            }
+            catch (Exception ex)
+            {
+                _logger.Error("{0}", ex.Message);
+                return -3;
+            }
+            return 0;
         }
 
         private static void OnUnandledException(object sender, UnhandledExceptionEventArgs e)

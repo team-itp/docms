@@ -73,17 +73,9 @@ namespace docmssync
             _trayIcon.ShowBalloonTip(10000);
         }
 
-        public void OnError(Exception e)
-        {
-            _trayIcon.BalloonTipTitle = "docmssync";
-            _trayIcon.BalloonTipText = e.Message;
-            _trayIcon.ShowBalloonTip(10000);
-        }
-
         private void ExitMonitor(object sender, EventArgs e)
         {
             _timer.Stop();
-            DocmssyncActions.StopApp();
             _trayIcon.Visible = false;
             Application.Exit();
         }
