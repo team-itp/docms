@@ -2,9 +2,9 @@
 using System.Drawing;
 using System.Windows.Forms;
 
-namespace docmssync
+namespace Docms.Client.App
 {
-    class DocmssyncContext : ApplicationContext
+    class DocmssyncContext : System.Windows.Forms.ApplicationContext
     {
         public static DocmssyncContext Context { get; private set; }
 
@@ -31,7 +31,7 @@ namespace docmssync
             contextMenu.Items.Add("再起動", null, new EventHandler(RestartApp));
             contextMenu.Items.Add("終了", null, new EventHandler(ExitMonitor));
 
-            var icon = new Icon(this.GetType().Assembly.GetManifestResourceStream("docmssync.icon.ico"));
+            var icon = new Icon(this.GetType().Assembly.GetManifestResourceStream("Docms.Client.App.icon.ico"));
             _trayIcon = new NotifyIcon()
             {
                 Icon = icon,
@@ -77,7 +77,7 @@ namespace docmssync
         {
             _timer.Stop();
             _trayIcon.Visible = false;
-            Application.Exit();
+            System.Windows.Forms.Application.Exit();
         }
 
         private void TimerTick(object sender, EventArgs e)

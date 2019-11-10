@@ -1,30 +1,75 @@
-﻿using System;
-using System.Threading;
-using System.Windows.Forms;
+﻿using Docms.Client.App;
+using Docms.Client.App.Commands;
+using NLog;
+using System;
+using System.Collections.Generic;
+using System.Linq;
 
 namespace docmssync
 {
     static class Program
     {
+        private static readonly Logger _logger = LogManager.GetCurrentClassLogger();
+        private static List<Command> Commands = new List<Command>()
+        {
+            new StartCommand(),
+            new StopCommand(),
+            new ServiceCommand(),
+            new WatchCommand(),
+            new DefaultCommand()
+        };
+
         /// <summary>
         /// アプリケーションのメイン エントリ ポイントです。
         /// </summary>
         [STAThread]
-        static void Main()
+        public static int Main(string[] args)
         {
-            using (new Mutex(true, "docmssync-4ce6c823-50bc-4117-96c6-2d4d464e485f", out var created))
+            AppDomain.CurrentDomain.UnhandledException += OnUnandledException;
+            string commandName = args.Length == 0 ? "default" : args[0];
+            Command command = Commands.FirstOrDefault((Command c) => c.CommandName.Equals(commandName, StringComparison.InvariantCultureIgnoreCase));
+            if (command == null)
             {
-                if (!created)
+                _logger.Error("Unknown command '{0}'.", commandName);
+                return -2;
+            }
+            for (int i = 1; i < args.Length; i++)
+            {
+                string text = args[i];
+                try
                 {
-                    Application.Exit();
+                    if (text.StartsWith("/") || text.StartsWith("-"))
+                    {
+                        text = text.Substring(1);
+                        if (i + 1 < args.Length && (!args[i + 1].StartsWith("/")) && !args[i + 1].StartsWith("-"))
+                        {
+                            i++;
+                            command.SetArgument(text, args[i]);
+                        }
+                    }
                 }
-                else
+                catch (DocmssyncException ex)
                 {
-                    Application.EnableVisualStyles();
-                    Application.SetCompatibleTextRenderingDefault(true);
-                    Application.Run(DocmssyncContext.Context);
+                    _logger.Error("Cannot parse '{0}': {1}", text, ex.Message);
+                    command.PrintHelp();
+                    return -1;
                 }
             }
+            try
+            {
+                command.RunCommand();
+            }
+            catch (Exception ex)
+            {
+                _logger.Error("{0}", ex.Message);
+                return -3;
+            }
+            return 0;
+        }
+
+        private static void OnUnandledException(object sender, UnhandledExceptionEventArgs e)
+        {
+            _logger.Error(e.ExceptionObject);
         }
     }
 }

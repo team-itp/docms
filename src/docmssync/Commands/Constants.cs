@@ -1,4 +1,4 @@
-﻿namespace docmssync
+﻿namespace Docms.Client.App.Commands
 {
     public class Constants
     {

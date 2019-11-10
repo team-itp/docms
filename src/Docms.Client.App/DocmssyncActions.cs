@@ -2,7 +2,7 @@
 using System.IO;
 using System.Threading;
 
-namespace docmssync
+namespace Docms.Client.App
 {
     static class DocmssyncActions
     {
@@ -13,7 +13,7 @@ namespace docmssync
         {
             try
             {
-                var filename = Path.GetFullPath("Docms.Client.App.exe");
+                var filename = Path.GetFullPath("docmssync.exe");
                 Process.Start(filename);
                 initialized = true;
             }
@@ -63,7 +63,7 @@ namespace docmssync
                 return;
             }
 
-            var filename = Path.GetFullPath("Docms.Client.App.exe");
+            var filename = Path.GetFullPath("docmssync.exe");
             Process.Start(filename, "watch");
         }
 
