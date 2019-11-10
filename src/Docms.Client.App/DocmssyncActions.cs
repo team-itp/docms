@@ -31,11 +31,11 @@ namespace Docms.Client.App
 
             if (watchIsRunnning)
             {
-                try
+                if (EventWaitHandle.TryOpenExisting(Constants.WatchStopProcessHandle, out var handle))
                 {
-                    EventWaitHandle.OpenExisting(Constants.WatchStopProcessHandle);
+                    handle.Dispose();
                 }
-                catch
+                else
                 {
                     DocmssyncContext.Context.OnApplicationStopped();
                     watchIsRunnning = false;
@@ -43,14 +43,11 @@ namespace Docms.Client.App
             }
             else
             {
-                try
+                if (EventWaitHandle.TryOpenExisting(Constants.WatchStopProcessHandle, out var handle))
                 {
-                    EventWaitHandle.OpenExisting(Constants.WatchStopProcessHandle);
-                    DocmssyncContext.Context.OnApplicationStopped();
+                    handle.Dispose();
+                    DocmssyncContext.Context.OnApplicationStarted();
                     watchIsRunnning = true;
-                }
-                catch
-                {
                 }
             }
         }

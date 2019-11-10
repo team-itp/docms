@@ -100,16 +100,13 @@ namespace Docms.Client.App.Commands
             if (processes.Length > 0)
             {
                 _watchProcess = processes.First();
-            }
-            if (_watchProcess != null)
-            {
                 return;
             }
 
             try
             {
                 _apiClient.PutStatus("Starting").GetAwaiter().GetResult();
-                AppStarted(ProcessManager.Execute("start"));
+                AppStarted(ProcessManager.Execute("watch"));
             }
             catch
             {
