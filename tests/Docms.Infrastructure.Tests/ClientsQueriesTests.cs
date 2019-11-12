@@ -1,6 +1,7 @@
 ﻿using Docms.Infrastructure.Queries;
 using Docms.Infrastructure.Tests.Utils;
 using Docms.Queries.Clients;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using System.Linq;
 using System.Threading.Tasks;
@@ -27,7 +28,8 @@ namespace Docms.Infrastructure.Tests
                 Type = "UPLOADER",
                 IpAddress = "192.168.10.2",
             });
-            var clients = await sut.GetClientsAsync();
+            await context.SaveChangesAsync();
+            var clients = await sut.GetClients().ToListAsync();
             Assert.AreEqual(2, clients.Count());
         }
     }
