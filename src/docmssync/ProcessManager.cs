@@ -46,11 +46,14 @@ namespace Docms.Client.App
                         if (managementObject["CommandLine"] is string commandText)
                         {
                             int num = commandText.IndexOf(processName, StringComparison.InvariantCultureIgnoreCase) + processName.Length;
-                            var filename = commandText.Substring(0, num).Trim(new[] { '\\' });
-                            var arguments = commandText.Substring(num + 1).Trim();
-                            if (arguments.Equals(argument, StringComparison.InvariantCultureIgnoreCase))
+                            if (num < commandText.Length)
                             {
-                                list.Add(process);
+                                var filename = commandText.Substring(0, num).Trim(new[] { '\\' });
+                                var arguments = commandText.Substring(num + 1).Trim();
+                                if (arguments.Equals(argument, StringComparison.InvariantCultureIgnoreCase))
+                                {
+                                    list.Add(process);
+                                }
                             }
                         }
                     }
