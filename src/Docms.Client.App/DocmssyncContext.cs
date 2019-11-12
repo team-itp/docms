@@ -62,14 +62,14 @@ namespace Docms.Client.App
         public void OnApplicationStarted()
         {
             _trayIcon.BalloonTipTitle = "docmssync";
-            _trayIcon.BalloonTipText = "同期を開始します。";
+            _trayIcon.BalloonTipText = "サービスを開始します。";
             _trayIcon.ShowBalloonTip(10000);
         }
 
         public void OnApplicationStopped()
         {
             _trayIcon.BalloonTipTitle = "docmssync";
-            _trayIcon.BalloonTipText = "同期を終了します。";
+            _trayIcon.BalloonTipText = "サービスを終了します。";
             _trayIcon.ShowBalloonTip(10000);
         }
 

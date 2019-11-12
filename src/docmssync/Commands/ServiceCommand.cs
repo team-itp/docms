@@ -25,10 +25,18 @@ namespace Docms.Client.App.Commands
                     return;
                 }
 
-                Initialize();
+                try
+                {
+                    Initialize();
+                }
+                catch
+                {
+                }
 
                 var time = new Timer(new TimerCallback(TimerTick), null, 0, 30000);
                 stopHandle.WaitOne();
+
+                Cleanup();
             }
         }
 
@@ -42,6 +50,11 @@ namespace Docms.Client.App.Commands
                 StartApp();
             }
             _initialized = true;
+        }
+
+        private void Cleanup()
+        {
+            StopApp();
         }
 
         private void TimerTick(object state)
@@ -115,28 +128,40 @@ namespace Docms.Client.App.Commands
 
         public void StopApp()
         {
-            var processes = Process.GetProcessesByName("Docms.Client.App");
-            if (processes.Length > 0)
-            {
-                _watchProcess = processes.First();
-            }
-            if (_watchProcess == null)
+            var processes = ProcessManager.FindProcess("watch");
+            if (processes.Length == 0)
             {
                 return;
             }
 
             try
             {
-                _apiClient.PutStatus("Stopping").GetAwaiter().GetResult();
-                Process.GetProcessById(_watchProcess.Id);
-                if (EventWaitHandle.TryOpenExisting(Constants.WatchStopProcessHandle, out var handle))
+                try
                 {
-                    handle.Set();
-                    handle.Dispose();
+                    _apiClient.PutStatus("Stopping").GetAwaiter().GetResult();
                 }
-                if (!_watchProcess.WaitForExit(10000))
+                catch
                 {
-                    _watchProcess.Kill();
+                }
+
+                foreach (var process in processes)
+                {
+                    try
+                    {
+                        Process.GetProcessById(process.Id);
+                        if (EventWaitHandle.TryOpenExisting(Constants.WatchStopProcessHandle, out var handle))
+                        {
+                            handle.Set();
+                            handle.Dispose();
+                        }
+                        if (!process.WaitForExit(10000))
+                        {
+                            process.Kill();
+                        }
+                    }
+                    catch
+                    {
+                    }
                 }
                 Thread.Sleep(1000);
                 AppStopped();

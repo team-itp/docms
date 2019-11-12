@@ -1,9 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Diagnostics;
-using System.IO;
-using System.Management;
-using System.Threading;
+﻿using System.Threading;
 
 namespace Docms.Client.App.Commands
 {
@@ -22,6 +17,7 @@ namespace Docms.Client.App.Commands
 
             if (EventWaitHandle.TryOpenExisting(Constants.ServiceStopWaitHandle, out var handle))
             {
+                handle.Set();
                 handle.Dispose();
             }
             else

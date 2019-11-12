@@ -26,8 +26,8 @@ namespace docmssync
         public static int Main(string[] args)
         {
             AppDomain.CurrentDomain.UnhandledException += OnUnandledException;
-            string commandName = args.Length == 0 ? "default" : args[0];
-            Command command = Commands.FirstOrDefault((Command c) => c.CommandName.Equals(commandName, StringComparison.InvariantCultureIgnoreCase));
+            var commandName = args.Length == 0 ? "default" : args[0];
+            var command = Commands.FirstOrDefault((Command c) => c.CommandName.Equals(commandName, StringComparison.InvariantCultureIgnoreCase));
             if (command == null)
             {
                 _logger.Error("Unknown command '{0}'.", commandName);

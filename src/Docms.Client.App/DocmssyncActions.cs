@@ -31,22 +31,22 @@ namespace Docms.Client.App
 
             if (watchIsRunnning)
             {
-                if (EventWaitHandle.TryOpenExisting(Constants.WatchStopProcessHandle, out var handle))
+                if (EventWaitHandle.TryOpenExisting(Constants.ServiceStopWaitHandle, out var handle))
                 {
                     handle.Dispose();
                 }
                 else
                 {
-                    DocmssyncContext.Context.OnApplicationStopped();
+                    DocmssyncContext.Context?.OnApplicationStopped();
                     watchIsRunnning = false;
                 }
             }
             else
             {
-                if (EventWaitHandle.TryOpenExisting(Constants.WatchStopProcessHandle, out var handle))
+                if (EventWaitHandle.TryOpenExisting(Constants.ServiceStopWaitHandle, out var handle))
                 {
                     handle.Dispose();
-                    DocmssyncContext.Context.OnApplicationStarted();
+                    DocmssyncContext.Context?.OnApplicationStarted();
                     watchIsRunnning = true;
                 }
             }
@@ -54,23 +54,14 @@ namespace Docms.Client.App
 
         internal static void StartApp()
         {
-            if (EventWaitHandle.TryOpenExisting(Constants.WatchStopProcessHandle, out var handle))
-            {
-                handle.Dispose();
-                return;
-            }
-
             var filename = Path.GetFullPath("docmssync.exe");
-            Process.Start(filename, "watch");
+            Process.Start(filename, "start");
         }
 
         internal static void StopApp()
         {
-            if (EventWaitHandle.TryOpenExisting(Constants.WatchStopProcessHandle, out var handle))
-            {
-                handle.Set();
-                handle.Dispose();
-            }
+            var filename = Path.GetFullPath("docmssync.exe");
+            Process.Start(filename, "stop");
         }
     }
 }

@@ -45,7 +45,7 @@ namespace Docms.Client.App
                         ManagementObject managementObject = (ManagementObject)managementBaseObject;
                         if (managementObject["CommandLine"] is string commandText)
                         {
-                            int num = commandText.IndexOf(processName, StringComparison.OrdinalIgnoreCase) + processName.Length;
+                            int num = commandText.IndexOf(processName, StringComparison.InvariantCultureIgnoreCase) + processName.Length;
                             var filename = commandText.Substring(0, num).Trim(new[] { '\\' });
                             var arguments = commandText.Substring(num + 1).Trim();
                             if (arguments.Equals(argument, StringComparison.InvariantCultureIgnoreCase))
