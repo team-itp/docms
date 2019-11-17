@@ -1,43 +1,64 @@
 ﻿using Docms.Client.Api;
 using Docms.Client.Configuration;
+using Microsoft.Win32;
+using NLog;
 using System;
 using System.Diagnostics;
-using System.Linq;
 using System.Threading;
 
 namespace Docms.Client.App.Commands
 {
     class ServiceCommand : Command
     {
-        private static bool _initialized = false;
-        private Process _watchProcess;
+        private static Logger _logger = LogManager.GetCurrentClassLogger();
+        private bool _initialized = false;
+        private bool _cleanup = false;
+        private bool _isRunning = false;
         private static readonly DocmsApiClient _apiClient = new DocmsApiClient(Settings.UploadClientId, Settings.ServerUrl);
         private static readonly Mutex mutex = new Mutex();
 
         public override string CommandName => "service";
 
+        private readonly EventWaitHandle sessionEndEvent = new EventWaitHandle(false, EventResetMode.ManualReset);
+        private readonly EventWaitHandle cancelKeyEvent = new EventWaitHandle(false, EventResetMode.ManualReset);
+        private Timer _timer;
+
         public override void RunCommand()
         {
+            _logger.Trace("service starting");
             using (var stopHandle = new EventWaitHandle(false, EventResetMode.ManualReset, Constants.ServiceStopWaitHandle, out var created))
             {
                 if (!created)
                 {
+                    _logger.Trace("service stopping");
                     return;
                 }
 
-                try
+                _logger.Info("service started");
+                _logger.Trace("service started, thread id: " + Thread.CurrentThread.ManagedThreadId);
+                SystemEvents.SessionEnding += new SessionEndingEventHandler(SessionEnding);
+                Console.CancelKeyPress += new ConsoleCancelEventHandler(ConsoleCancel);
+                _timer = new Timer(new TimerCallback(TimerTick), null, 0, 30000);
+                WaitHandle.WaitAny(new[] { stopHandle, sessionEndEvent, cancelKeyEvent });
+                if (!_cleanup)
                 {
-                    Initialize();
+                    Cleanup();
                 }
-                catch
-                {
-                }
-
-                var time = new Timer(new TimerCallback(TimerTick), null, 0, 30000);
-                stopHandle.WaitOne();
-
-                Cleanup();
             }
+        }
+
+        private void SessionEnding(object sender, SessionEndingEventArgs e)
+        {
+            _logger.Trace("session ending, thread id: " + Thread.CurrentThread.ManagedThreadId);
+            sessionEndEvent.Set();
+            Cleanup();
+        }
+
+        private void ConsoleCancel(object sender, ConsoleCancelEventArgs e)
+        {
+            _logger.Trace("console canceled, thread id: " + Thread.CurrentThread.ManagedThreadId);
+            cancelKeyEvent.Set();
+            Cleanup();
         }
 
         private void Initialize()
@@ -54,11 +75,17 @@ namespace Docms.Client.App.Commands
 
         private void Cleanup()
         {
+            _logger.Trace("cleanup, thread id: " + Thread.CurrentThread.ManagedThreadId);
+            mutex.WaitOne();
+            _timer.Dispose();
             StopApp();
+            _cleanup = true;
+            mutex.ReleaseMutex();
         }
 
         private void TimerTick(object state)
         {
+            _logger.Trace("timer tick, thread id: " + Thread.CurrentThread.ManagedThreadId);
             if (mutex.WaitOne(10))
             {
                 UpdateAppStatus();
@@ -93,13 +120,13 @@ namespace Docms.Client.App.Commands
                             break;
                     }
                 }
-                else if (info.Status != "Running" && _watchProcess != null)
+                else if (info.Status != "Running" && _isRunning)
                 {
                     _apiClient.PutStatus("Running").GetAwaiter().GetResult();
                 }
-                else if (info.Status != "Stopped" && _watchProcess == null)
+                else if (info.Status != "Stopped" && !_isRunning)
                 {
-                    _apiClient.PutStatus("Running").GetAwaiter().GetResult();
+                    _apiClient.PutStatus("Stopped").GetAwaiter().GetResult();
                 }
             }
             catch
@@ -109,17 +136,17 @@ namespace Docms.Client.App.Commands
 
         public void StartApp()
         {
-            var processes = ProcessManager.FindProcess("watch");
-            if (processes.Length > 0)
+            if (EventWaitHandle.TryOpenExisting(Constants.WatchStopProcessHandle, out var handle))
             {
-                _watchProcess = processes.First();
+                handle.Dispose();
                 return;
             }
 
             try
             {
                 _apiClient.PutStatus("Starting").GetAwaiter().GetResult();
-                AppStarted(ProcessManager.Execute("watch"));
+                ProcessManager.Execute("watch");
+                AppStarted();
             }
             catch
             {
@@ -128,78 +155,65 @@ namespace Docms.Client.App.Commands
 
         public void StopApp()
         {
-            var processes = ProcessManager.FindProcess("watch");
-            if (processes.Length == 0)
+            if (!EventWaitHandle.TryOpenExisting(Constants.WatchStopProcessHandle, out var handle))
             {
                 return;
             }
 
-            try
+            using (handle)
             {
                 try
                 {
-                    _apiClient.PutStatus("Stopping").GetAwaiter().GetResult();
-                }
-                catch
-                {
-                }
-
-                foreach (var process in processes)
-                {
                     try
                     {
-                        Process.GetProcessById(process.Id);
-                        if (EventWaitHandle.TryOpenExisting(Constants.WatchStopProcessHandle, out var handle))
-                        {
-                            handle.Set();
-                            handle.Dispose();
-                        }
+                        _apiClient.PutStatus("Stopping").GetAwaiter().GetResult();
+                    }
+                    catch
+                    {
+                    }
+
+                    var processes = ProcessManager.FindProcess("watch");
+                    handle.Set();
+                    foreach (var process in processes)
+                    {
                         if (!process.WaitForExit(10000))
                         {
                             process.Kill();
                         }
                     }
-                    catch
-                    {
-                    }
+                    AppStopped();
                 }
-                Thread.Sleep(1000);
-                AppStopped();
-            }
-            catch
-            {
+                catch
+                {
+                }
             }
         }
 
         public void UpdateAppStatus()
         {
             ProcessRequest();
-            if (_watchProcess != null)
+            if (EventWaitHandle.TryOpenExisting(Constants.WatchStopProcessHandle, out var handle))
             {
-                try
+                handle.Dispose();
+                if (!_isRunning)
                 {
-                    Process.GetProcessById(_watchProcess.Id);
-                }
-                catch (ArgumentException)
-                {
-                    AppStopped();
+                    AppStarted();
                 }
             }
             else
             {
-                var processes = ProcessManager.FindProcess("watch");
-                if (processes.Length > 0)
+                if (_isRunning)
                 {
-                    AppStarted(processes.First());
+                    AppStopped();
                 }
             }
         }
 
-        private void AppStarted(Process process)
+        private void AppStarted()
         {
             try
             {
-                _watchProcess = process;
+                _isRunning = true;
                 _apiClient.PutStatus("Running").GetAwaiter().GetResult();
             }
             catch
@@ -211,7 +225,7 @@ namespace Docms.Client.App.Commands
         {
             try
             {
-                _watchProcess = null;
+                _isRunning = false;
                 _apiClient.PutStatus("Stopped").GetAwaiter().GetResult();
             }
             catch
