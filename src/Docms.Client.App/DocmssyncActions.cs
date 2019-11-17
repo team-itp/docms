@@ -13,8 +13,7 @@ namespace Docms.Client.App
         {
             try
             {
-                var filename = Path.GetFullPath("docmssync.exe");
-                Process.Start(filename);
+                StartApp();
                 initialized = true;
             }
             catch

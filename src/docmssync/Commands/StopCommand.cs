@@ -8,26 +8,18 @@ namespace Docms.Client.App.Commands
 
         public override void RunCommand()
         {
-            var processes = ProcessManager.FindProcess("service");
-            if (processes.Length == 0)
-            {
-                // 既にプログラムは終了済み
-                return;
-            }
-
             if (EventWaitHandle.TryOpenExisting(Constants.ServiceStopWaitHandle, out var handle))
             {
                 handle.Set();
                 handle.Dispose();
             }
-            else
+
+            var processes = ProcessManager.FindProcess("service");
+            foreach (var item in processes)
             {
-                foreach (var item in processes)
+                if (!item.WaitForExit(10000))
                 {
-                    if (!item.WaitForExit(10000))
-                    {
-                        item.Kill();
-                    }
+                    item.Kill();
                 }
             }
         }

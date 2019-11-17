@@ -50,7 +50,6 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="Commands\Command.cs" />
-    <Compile Include="Commands\DefaultCommand.cs" />
     <Compile Include="Commands\ServiceCommand.cs" />
     <Compile Include="DocmssyncException.cs" />
     <Compile Include="Commands\Constants.cs" />

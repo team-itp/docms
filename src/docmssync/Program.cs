@@ -16,7 +16,6 @@ namespace docmssync
             new StopCommand(),
             new ServiceCommand(),
             new WatchCommand(),
-            new DefaultCommand()
         };
 
         /// <summary>
@@ -26,7 +25,7 @@ namespace docmssync
         public static int Main(string[] args)
         {
             AppDomain.CurrentDomain.UnhandledException += OnUnandledException;
-            var commandName = args.Length == 0 ? "default" : args[0];
+            var commandName = args.Length == 0 ? "service" : args[0];
             var command = Commands.FirstOrDefault((Command c) => c.CommandName.Equals(commandName, StringComparison.InvariantCultureIgnoreCase));
             if (command == null)
             {
