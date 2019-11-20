@@ -489,7 +489,7 @@ namespace Docms.Client.Api
             ThrowIfNotSuccessfulStatus(result);
 
             var resultList = await ParseJson<List<History>>(result).ConfigureAwait(false);
-            var pagination = PaginationHeader.Parse(result.Headers.FirstOrDefault(h => h.Key == "Link").Value?.FirstOrDefault());
+            var pagination = PaginationHeader.Parse(result.Headers.FirstOrDefault(h => string.Equals(h.Key, "Link", StringComparison.InvariantCultureIgnoreCase)).Value?.FirstOrDefault());
             while (!string.IsNullOrEmpty(pagination?.Next))
             {
                 result = await ExecuteAsync(() =>
@@ -499,7 +499,7 @@ namespace Docms.Client.Api
                 }).ConfigureAwait(false);
                 ThrowIfNotSuccessfulStatus(result);
                 resultList.AddRange(await ParseJson<List<History>>(result).ConfigureAwait(false));
-                pagination = PaginationHeader.Parse(result.Headers.FirstOrDefault(h => h.Key == "Link").Value?.ToString());
+                pagination = PaginationHeader.Parse(result.Headers.FirstOrDefault(h => string.Equals(h.Key, "Link", StringComparison.InvariantCultureIgnoreCase)).Value?.FirstOrDefault());
             }
             return resultList;
         }

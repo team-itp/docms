@@ -5,7 +5,7 @@ using System.Threading.Tasks;
 
 namespace Docms.Client.Operations
 {
-    internal class CloneDocumentStoreTreeStructureOperation : IOperation
+    public class CloneDocumentStoreTreeStructureOperation : IOperation
     {
         private readonly ApplicationContext context;
 
