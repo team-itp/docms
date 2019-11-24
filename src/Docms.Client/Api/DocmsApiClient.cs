@@ -363,7 +363,11 @@ namespace Docms.Client.Api
             }).ConfigureAwait(false);
             ThrowIfNotSuccessfulStatus(result);
             var downloadResponse = new DownloadResponse();
-            downloadResponse.WriteResponse(await result.Content.ReadAsStreamAsync().ConfigureAwait(false));
+            await downloadResponse
+                .WriteResponse(await result.Content
+                    .ReadAsStreamAsync()
+                    .ConfigureAwait(false))
+                .ConfigureAwait(false);
             return downloadResponse;
         }
 

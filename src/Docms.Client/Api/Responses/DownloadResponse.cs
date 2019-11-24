@@ -1,4 +1,5 @@
 ﻿using System.IO;
+using System.Threading.Tasks;
 
 namespace Docms.Client.Api.Responses
 {
@@ -12,13 +13,13 @@ namespace Docms.Client.Api.Responses
             tempFilePath = Path.GetTempFileName();
         }
 
-        public void WriteResponse(Stream stream)
+        public async Task WriteResponse(Stream stream)
         {
-            using (var fs = new FileStream(tempFilePath, FileMode.OpenOrCreate, FileAccess.Write, FileShare.None))
+            using (var fs = new FileStream(tempFilePath, FileMode.OpenOrCreate, FileAccess.Write, FileShare.None, 4096, true))
             {
-                stream.CopyTo(fs);
+                await stream.CopyToAsync(fs);
             }
-            fileStream = new FileStream(tempFilePath, FileMode.Open, FileAccess.Read, FileShare.None);
+            fileStream = new FileStream(tempFilePath, FileMode.Open, FileAccess.Read, FileShare.None, 4096, true);
         }
 
         public override bool CanRead => fileStream.CanRead;
