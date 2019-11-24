@@ -40,7 +40,7 @@ namespace Docms.Client.DocumentStores
                 var histories = await db.Histories.ToListAsync().ConfigureAwait(false);
                 foreach (var history in histories)
                 {
-                    Apply(history);
+                    Apply(history, true);
                     appliedHistoryIds.Add(history.Id);
                 }
             }
@@ -83,7 +83,7 @@ namespace Docms.Client.DocumentStores
                     {
                         histories = await api.GetHistoriesAsync("", latestHistory.Id).ConfigureAwait(false);
                     }
-                    catch (ServerException ex) when(ex.StatusCode == 400)
+                    catch (ServerException ex) when (ex.StatusCode == 400)
                     {
                         throw new ApplicationNeedsReinitializeException(ex);
                     }
@@ -93,7 +93,7 @@ namespace Docms.Client.DocumentStores
                 {
                     if (!appliedHistoryIds.Contains(history.Id))
                     {
-                        Apply(history);
+                        Apply(history, false);
                         historiesToAdd.Add(history);
                         appliedHistoryIds.Add(history.Id);
                     }
@@ -106,21 +106,30 @@ namespace Docms.Client.DocumentStores
             }
         }
 
-        private void Apply(History history)
+        private void Apply(History history, bool initializing)
         {
             if (history is DocumentCreatedHistory created)
             {
-                logger.Trace($"document created: {history.Path} ({history.Id}, {history.Timestamp})");
+                if (!initializing)
+                {
+                    logger.Trace($"document created: {history.Path} ({history.Id}, {history.Timestamp})");
+                }
                 Apply(created);
             }
             else if (history is DocumentUpdatedHistory updated)
             {
-                logger.Trace($"document updated: {history.Path} ({history.Id}, {history.Timestamp})");
+                if (!initializing)
+                {
+                    logger.Trace($"document updated: {history.Path} ({history.Id}, {history.Timestamp})");
+                }
                 Apply(updated);
             }
             else if (history is DocumentDeletedHistory deleted)
             {
-                logger.Trace($"document deleted: {history.Path} ({history.Id}, {history.Timestamp})");
+                if (!initializing)
+                {
+                    logger.Trace($"document deleted: {history.Path} ({history.Id}, {history.Timestamp})");
+                }
                 Apply(deleted);
             }
         }
