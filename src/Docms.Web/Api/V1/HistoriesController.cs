@@ -34,18 +34,18 @@ namespace Docms.Web.Api.V1
             try
             {
                 var histories = _queries.GetHistories(path ?? "", since, last_history_id);
-                var cnt = await histories.CountAsync();
                 if (per_page != null)
                 {
+                    var list = await histories
+                        .Skip(per_page.Value * ((page ?? 1) - 1))
+                        .Take(per_page.Value)
+                        .ToListAsync();
                     Response.Headers.AddPaginationHeader(
                         Url.Action("Get", "Histories", new { path, last_history_id }, Request.Scheme, Request.Host.Value),
                         page ?? 1,
                         per_page.Value,
-                        cnt);
-                    return Ok(await histories
-                        .Skip(per_page.Value * ((page ?? 1) - 1))
-                        .Take(per_page.Value)
-                        .ToListAsync());
+                        list.Count < per_page.Value ? -1 : -2);
+                    return Ok(histories);
                 }
                 return Ok(histories);
             }
