@@ -62,12 +62,11 @@ namespace Docms.Web.Controllers
             var histories = _histories.GetHistories(path ?? "")
                 .OrderByDescending(d => d.Timestamp)
                 .ThenByDescending(d => d.Path);
-            var cnt = await histories.CountAsync().ConfigureAwait(false);
             var data = await histories.Skip(per_page * (page - 1)).Take(per_page).ToListAsync().ConfigureAwait(false);
             return View(
-                new PageableList<DocumentHistory>(
+                new EnumerableList<DocumentHistory>(
                     data,
-                    page, per_page, cnt));
+                    page, per_page));
         }
 
 
