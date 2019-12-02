@@ -22,7 +22,7 @@ namespace Docms.Client.FileSystem
 
         public Stream OpenRead()
         {
-            return fileInfo.Open(FileMode.Open, FileAccess.Read, FileShare.Read);
+            return new FileStream(fileInfo.FullName, FileMode.Open, FileAccess.Read, FileShare.Read, 4096, true);
         }
 
         public string CalculateHash()
