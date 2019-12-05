@@ -153,6 +153,7 @@ namespace Docms.Web.Identity
 
         private async Task<ApplicationUser> GetApplicationUserAsync(User user, CancellationToken cancellationToken)
         {
+            if (user == null) return default;
             var hasher = new PasswordHasher<ApplicationUser>();
             var appUser = new ApplicationUser()
             {
