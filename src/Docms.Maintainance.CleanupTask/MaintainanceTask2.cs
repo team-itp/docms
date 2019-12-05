@@ -38,11 +38,15 @@ namespace Docms.Maintainance.CleanupTask
                 foreach (var container in context.BlobContainers)
                 {
                     var blobsInContainer = await context.Blobs.Where(b => b.ParentPath == container.Path).ToListAsync();
+                    var docIdsInContainer = blobsInContainer.Select(d => d.DocumentId).ToList();
+                    var pathsInContainer = blobsInContainer.Select(d => d.Path).ToList();
+                    var documentsInContainer = context.Documents.Where(d => docIdsInContainer.Contains(d.Id)).ToLookup(d => d.Id);
+                    var historiesInContainer = context.DocumentHistories.Where(d => pathsInContainer.Contains(d.Path)).ToLookup(d => d.Path);
                     foreach (var blob in blobsInContainer)
                     {
                         try
                         {
-                            await CheckAndFixStructure(context, blob);
+                            await CheckAndFixStructure(context, blob, documentsInContainer, historiesInContainer);
                         }
                         catch (Exception ex)
                         {
@@ -53,10 +57,10 @@ namespace Docms.Maintainance.CleanupTask
             }
         }
 
-        private async Task CheckAndFixStructure(DocmsContext context, Blob blob)
+        private async Task CheckAndFixStructure(DocmsContext context, Blob blob, ILookup<int, Document> documentsInContainer, ILookup<string, DocumentHistory> historiesInContainer)
         {
             logger.LogTrace("checking blob and document, path: {0}", blob.Path);
-            var document = await context.Documents.FindAsync(blob.DocumentId);
+            var document = documentsInContainer[blob.DocumentId].FirstOrDefault();
             if (document == null)
             {
                 logger.LogWarning("document not exists.");
@@ -73,7 +77,7 @@ namespace Docms.Maintainance.CleanupTask
                 logger.LogInformation("deleting blob");
                 context.Blobs.Remove(blob);
                 logger.LogInformation("fixing history");
-                await FixHistory(context, document, blob.Path);
+                await FixHistory(context, document, blob.Path, historiesInContainer[blob.Path].ToList());
                 logger.LogInformation("adding delete history");
                 context.DocumentHistories.Add(new DocumentHistory()
                 {
@@ -88,7 +92,7 @@ namespace Docms.Maintainance.CleanupTask
             }
 
             logger.LogInformation("fixing history");
-            await FixHistory(context, document, blob.Path);
+            await FixHistory(context, document, blob.Path, historiesInContainer[blob.Path].ToList());
 
             if (document.Path != blob.Path)
             {
@@ -120,12 +124,8 @@ namespace Docms.Maintainance.CleanupTask
             }
         }
 
-        private async Task FixHistory(DocmsContext context, Document document, string path)
+        private async Task FixHistory(DocmsContext context, Document document, string path, List<DocumentHistory> histories)
         {
-            var histories = await context.DocumentHistories
-                .Where(h => h.Path == path)
-                .ToListAsync();
-
             var historiesToDelete = histories.Where(h => h.DocumentId < 0).ToList();
             if (historiesToDelete.Count > 0)
             {
@@ -162,8 +162,21 @@ namespace Docms.Maintainance.CleanupTask
                             break;
                         case DocumentHistoryDiscriminator.DocumentUpdated:
                             // エラー
-                            history.Discriminator = DocumentHistoryDiscriminator.DocumentCreated;
-                            currentHistory = history;
+                            var createdHistory1 = new DocumentHistory()
+                            {
+                                Id = Guid.NewGuid(),
+                                Discriminator = DocumentHistoryDiscriminator.DocumentCreated,
+                                Timestamp = history.Timestamp,
+                                DocumentId = history.DocumentId,
+                                Path = path,
+                                StorageKey = history.StorageKey,
+                                ContentType = history.ContentType,
+                                FileSize = history.FileSize,
+                                Hash = history.Hash,
+                                Created = history.Created,
+                                LastModified = history.LastModified
+                            };
+                            currentHistory = createdHistory1;
                             break;
                         case DocumentHistoryDiscriminator.DocumentDeleted:
                             // エラー (回復不能)
@@ -270,10 +283,13 @@ namespace Docms.Maintainance.CleanupTask
                 }
             }
 
-            context.DocumentHistories.RemoveRange(histories);
-            await context.SaveChangesAsync();
-            context.DocumentHistories.AddRange(fixedHistory);
-            await context.SaveChangesAsync();
+            if (!histories.Select(h => h.Id).SequenceEqual(fixedHistory.Select(h => h.Id)))
+            {
+                context.DocumentHistories.RemoveRange(histories);
+                await context.SaveChangesAsync();
+                context.DocumentHistories.AddRange(fixedHistory);
+                await context.SaveChangesAsync();
+            }
         }
     }
 }
