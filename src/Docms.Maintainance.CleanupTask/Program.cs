@@ -29,11 +29,9 @@ namespace Docms.Maintainance.CleanupTask
             var configuration = CreateConfiguration();
             var dataStore = CreateDataStore(configuration);
 
-            var task = new MaintainanceTask1(services, configuration, dataStore, CreateContext);
+            var task = new MaintainanceTask2(services, configuration, dataStore, CreateContext);
             await task.ExecuteAsync();
-
         }
-
 
         private static ServiceProvider CreateServiceCollenction()
         {
@@ -42,6 +40,7 @@ namespace Docms.Maintainance.CleanupTask
                 {
                     builder.AddDebug();
                     builder.AddConsole();
+                    builder.SetMinimumLevel(LogLevel.Trace);
                 })
                 .BuildServiceProvider();
         }
@@ -56,6 +55,7 @@ namespace Docms.Maintainance.CleanupTask
             return new DocmsContext(new DbContextOptionsBuilder<DocmsContext>()
                 .UseSqlServer(configuration.GetConnectionString("DocmsConnection"), options =>
                 {
+                    options.EnableRetryOnFailure();
                     options.CommandTimeout(600);
                 })
                 .Options, new NoMediator());
