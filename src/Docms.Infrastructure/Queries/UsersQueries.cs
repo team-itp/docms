@@ -23,7 +23,7 @@ namespace Docms.Infrastructure.Queries
             Password = "05Jgx6Uh",
             DepartmentName = null,
             TeamName = null,
-            Roles = new List<string>() { "Administrator"}
+            Roles = new List<string>() { "Administrator" }
         };
 
         public UsersQueries(VisualizationSystemContext vsDb, DocmsContext docmsDb)
@@ -38,7 +38,7 @@ namespace Docms.Infrastructure.Queries
             if (string.IsNullOrEmpty(userId)) throw new ArgumentNullException(nameof(userId));
             if (userId == ADMIN_USER.Id)
             {
-                return ADMIN_USER;
+                return await GetAdminUserAsync();
             }
             var user = await _vsDb.Users.FindAsync(userId);
             if (user == null)
@@ -56,7 +56,7 @@ namespace Docms.Infrastructure.Queries
             if (string.IsNullOrEmpty(normalizedUserName)) throw new ArgumentNullException(nameof(normalizedUserName));
             if (normalizedUserName == ADMIN_USER.AccountName.ToUpperInvariant())
             {
-                return ADMIN_USER;
+                return await GetAdminUserAsync();
             }
 
             var user = await _vsDb.Users.FirstOrDefaultAsync(u => u.AccountName.ToUpperInvariant() == normalizedUserName);
@@ -126,6 +126,13 @@ namespace Docms.Infrastructure.Queries
             appUser.Roles = roles;
 
             return appUser;
+        }
+
+        private async Task<User> GetAdminUserAsync()
+        {
+            var docmsUser = await _docmsDb.Users.FindAsync(ADMIN_USER.Id);
+            ADMIN_USER.SecurityStamp = docmsUser?.SecurityStamp;
+            return ADMIN_USER;
         }
 
         public void Dispose()
