@@ -111,8 +111,12 @@ namespace Docms.Infrastructure
                 .HasKey(d => d.Id)
                 .ForSqlServerIsClustered(false);
             modelBuilder.Entity<DocumentHistory>()
-                .HasIndex("Timestamp", "Path")
+                .HasIndex(d => d.Timestamp)
                 .ForSqlServerIsClustered(true);
+            modelBuilder.Entity<DocumentHistory>()
+                .HasIndex(h => new { h.Timestamp, h.Path });
+            modelBuilder.Entity<DocumentHistory>()
+                .HasIndex(h => new { h.Path, h.Timestamp });
             modelBuilder.Entity<DocumentHistory>()
                 .HasIndex(h => h.Path);
             modelBuilder.Entity<DocumentHistory>()
