@@ -45,7 +45,6 @@ namespace Docms.Infrastructure.Queries
 
             }
 
-            query = query.OrderBy(e => e.Timestamp).ThenBy(e => e.Id);
             return query;
         }
     }

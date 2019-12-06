@@ -37,6 +37,8 @@ namespace Docms.Web.Api.V1
                 if (per_page != null)
                 {
                     var list = await histories
+                        .OrderBy(e => e.Timestamp)
+                        .ThenBy(e => e.Id)
                         .Skip(per_page.Value * ((page ?? 1) - 1))
                         .Take(per_page.Value)
                         .ToListAsync();
