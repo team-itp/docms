@@ -47,9 +47,9 @@ namespace Docms.Web.Api.V1
                         page ?? 1,
                         per_page.Value,
                         list.Count < per_page.Value ? -1 : -2);
-                    return Ok(histories);
+                    return Ok(list);
                 }
-                return Ok(histories);
+                return Ok(await histories.ToListAsync());
             }
             catch (SpecifiedDocumentHistoryNotExistsException)
             {

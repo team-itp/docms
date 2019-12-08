@@ -42,7 +42,6 @@ namespace Docms.Infrastructure.Queries
                     .ToList();
                 histories.Add(lastHistory.Id);
                 query = query.Where(e => e.Timestamp >= lastHistory.Timestamp && !histories.Contains(e.Id));
-
             }
 
             return query;
