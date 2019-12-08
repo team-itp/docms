@@ -9,6 +9,48 @@ namespace Docms.Infrastructure.Migrations
         protected override void Up(MigrationBuilder migrationBuilder)
         {
             migrationBuilder.CreateTable(
+                name: "ClientInfo",
+                columns: table => new
+                {
+                    ClientId = table.Column<string>(nullable: false),
+                    Type = table.Column<string>(nullable: true),
+                    IpAddress = table.Column<string>(nullable: true),
+                    Status = table.Column<string>(nullable: true),
+                    LastAccessedTime = table.Column<DateTime>(nullable: true),
+                    RequestId = table.Column<string>(nullable: true),
+                    RequestType = table.Column<string>(nullable: true),
+                    RequestedAt = table.Column<DateTime>(nullable: true),
+                    AcceptedRequestId = table.Column<string>(nullable: true),
+                    AcceptedRequestType = table.Column<string>(nullable: true),
+                    AcceptedAt = table.Column<DateTime>(nullable: true),
+                    LastMessage = table.Column<string>(nullable: true)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_ClientInfo", x => x.ClientId);
+                });
+
+            migrationBuilder.CreateTable(
+                name: "Clients",
+                columns: table => new
+                {
+                    Id = table.Column<int>(nullable: false)
+                        .Annotation("SqlServer:ValueGenerationStrategy", SqlServerValueGenerationStrategy.IdentityColumn),
+                    ClientId = table.Column<string>(nullable: true),
+                    Type = table.Column<string>(nullable: true),
+                    IpAddress = table.Column<string>(nullable: true),
+                    RequestId = table.Column<string>(nullable: true),
+                    RequestType = table.Column<string>(nullable: true),
+                    IsAccepted = table.Column<bool>(nullable: false),
+                    LastAccessedTime = table.Column<DateTime>(nullable: true),
+                    Status = table.Column<int>(nullable: false)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_Clients", x => x.Id);
+                });
+
+            migrationBuilder.CreateTable(
                 name: "DeviceGrants",
                 columns: table => new
                 {
@@ -111,6 +153,18 @@ namespace Docms.Infrastructure.Migrations
                 });
 
             migrationBuilder.CreateTable(
+                name: "UserRoles",
+                columns: table => new
+                {
+                    UserId = table.Column<string>(nullable: false),
+                    Role = table.Column<string>(nullable: false)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_UserRoles", x => new { x.UserId, x.Role });
+                });
+
+            migrationBuilder.CreateTable(
                 name: "Users",
                 columns: table => new
                 {
@@ -128,10 +182,25 @@ namespace Docms.Infrastructure.Migrations
                 column: "Path");
 
             migrationBuilder.CreateIndex(
+                name: "IX_DocumentHistories_Timestamp",
+                table: "DocumentHistories",
+                column: "Timestamp")
+                .Annotation("SqlServer:Clustered", true);
+
+            migrationBuilder.CreateIndex(
+                name: "IX_DocumentHistories_Path_Timestamp",
+                table: "DocumentHistories",
+                columns: new[] { "Path", "Timestamp" });
+
+            migrationBuilder.CreateIndex(
+                name: "IX_DocumentHistories_Timestamp_Id",
+                table: "DocumentHistories",
+                columns: new[] { "Timestamp", "Id" });
+
+            migrationBuilder.CreateIndex(
                 name: "IX_DocumentHistories_Timestamp_Path",
                 table: "DocumentHistories",
-                columns: new[] { "Timestamp", "Path" })
-                .Annotation("SqlServer:Clustered", true);
+                columns: new[] { "Timestamp", "Path" });
 
             migrationBuilder.CreateIndex(
                 name: "IX_Documents_Path",
@@ -147,6 +216,12 @@ namespace Docms.Infrastructure.Migrations
         protected override void Down(MigrationBuilder migrationBuilder)
         {
             migrationBuilder.DropTable(
+                name: "ClientInfo");
+
+            migrationBuilder.DropTable(
+                name: "Clients");
+
+            migrationBuilder.DropTable(
                 name: "DeviceGrants");
 
             migrationBuilder.DropTable(
@@ -160,6 +235,9 @@ namespace Docms.Infrastructure.Migrations
 
             migrationBuilder.DropTable(
                 name: "Entries");
+
+            migrationBuilder.DropTable(
+                name: "UserRoles");
 
             migrationBuilder.DropTable(
                 name: "Users");

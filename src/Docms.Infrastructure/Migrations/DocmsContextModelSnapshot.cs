@@ -271,6 +271,8 @@ namespace Docms.Infrastructure.Migrations
 
                     b.HasIndex("Path", "Timestamp");
 
+                    b.HasIndex("Timestamp", "Id");
+
                     b.HasIndex("Timestamp", "Path");
 
                     b.ToTable("DocumentHistories");

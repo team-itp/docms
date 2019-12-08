@@ -118,6 +118,8 @@ namespace Docms.Infrastructure
             modelBuilder.Entity<DocumentHistory>()
                 .HasIndex(h => new { h.Path, h.Timestamp });
             modelBuilder.Entity<DocumentHistory>()
+                .HasIndex(h => new { h.Timestamp, h.Id });
+            modelBuilder.Entity<DocumentHistory>()
                 .HasIndex(h => h.Path);
             modelBuilder.Entity<DocumentHistory>()
                 .Property(d => d.Discriminator)

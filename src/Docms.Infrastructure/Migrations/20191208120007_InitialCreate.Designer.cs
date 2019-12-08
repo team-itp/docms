@@ -10,8 +10,8 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace Docms.Infrastructure.Migrations
 {
     [DbContext(typeof(DocmsContext))]
-    [Migration("20191027042945_AddUserRole")]
-    partial class AddUserRole
+    [Migration("20191208120007_InitialCreate")]
+    partial class InitialCreate
     {
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
@@ -20,6 +20,33 @@ namespace Docms.Infrastructure.Migrations
                 .HasAnnotation("ProductVersion", "2.2.6-servicing-10079")
                 .HasAnnotation("Relational:MaxIdentifierLength", 128)
                 .HasAnnotation("SqlServer:ValueGenerationStrategy", SqlServerValueGenerationStrategy.IdentityColumn);
+
+            modelBuilder.Entity("Docms.Domain.Clients.Client", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasAnnotation("SqlServer:ValueGenerationStrategy", SqlServerValueGenerationStrategy.IdentityColumn);
+
+                    b.Property<string>("ClientId");
+
+                    b.Property<string>("IpAddress");
+
+                    b.Property<bool>("IsAccepted");
+
+                    b.Property<DateTime?>("LastAccessedTime");
+
+                    b.Property<string>("RequestId");
+
+                    b.Property<string>("RequestType");
+
+                    b.Property<int>("Status");
+
+                    b.Property<string>("Type");
+
+                    b.HasKey("Id");
+
+                    b.ToTable("Clients");
+                });
 
             modelBuilder.Entity("Docms.Domain.Documents.Document", b =>
                 {
@@ -121,6 +148,50 @@ namespace Docms.Infrastructure.Migrations
                     b.HasDiscriminator<string>("Discriminator").HasValue("BlobEntry");
                 });
 
+            modelBuilder.Entity("Docms.Queries.Clients.ClientInfo", b =>
+                {
+                    b.Property<string>("ClientId")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnName("ClientId");
+
+                    b.Property<DateTime?>("AcceptedAt")
+                        .HasColumnName("AcceptedAt");
+
+                    b.Property<string>("AcceptedRequestId")
+                        .HasColumnName("AcceptedRequestId");
+
+                    b.Property<string>("AcceptedRequestType")
+                        .HasColumnName("AcceptedRequestType");
+
+                    b.Property<string>("IpAddress")
+                        .HasColumnName("IpAddress");
+
+                    b.Property<DateTime?>("LastAccessedTime")
+                        .HasColumnName("LastAccessedTime");
+
+                    b.Property<string>("LastMessage")
+                        .HasColumnName("LastMessage");
+
+                    b.Property<string>("RequestId")
+                        .HasColumnName("RequestId");
+
+                    b.Property<string>("RequestType")
+                        .HasColumnName("RequestType");
+
+                    b.Property<DateTime?>("RequestedAt")
+                        .HasColumnName("RequestedAt");
+
+                    b.Property<string>("Status")
+                        .HasColumnName("Status");
+
+                    b.Property<string>("Type")
+                        .HasColumnName("Type");
+
+                    b.HasKey("ClientId");
+
+                    b.ToTable("ClientInfo");
+                });
+
             modelBuilder.Entity("Docms.Queries.DeviceAuthorization.DeviceGrant", b =>
                 {
                     b.Property<string>("DeviceId")
@@ -197,8 +268,14 @@ namespace Docms.Infrastructure.Migrations
 
                     b.HasIndex("Path");
 
-                    b.HasIndex("Timestamp", "Path")
+                    b.HasIndex("Timestamp")
                         .HasAnnotation("SqlServer:Clustered", true);
+
+                    b.HasIndex("Path", "Timestamp");
+
+                    b.HasIndex("Timestamp", "Id");
+
+                    b.HasIndex("Timestamp", "Path");
 
                     b.ToTable("DocumentHistories");
                 });
