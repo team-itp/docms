@@ -7,7 +7,7 @@ using System.Threading.Tasks;
 
 namespace Docms.Application.Commands
 {
-    public class DocumentCommandHandler : 
+    public class DocumentCommandHandler :
         IRequestHandler<CreateOrUpdateDocumentCommand, bool>,
         IRequestHandler<DeleteDocumentCommand, bool>,
         IRequestHandler<MoveDocumentCommand, bool>
@@ -80,22 +80,27 @@ namespace Docms.Application.Commands
                     if (request.Data.Hash == document.Hash)
                     {
                         await _dataStore.DeleteAsync(request.Data.StorageKey).ConfigureAwait(false);
-                        var oldData = await _dataStore.FindAsync(document.StorageKey);
-                        if (oldData == null)
+                        if (request.Created != document.Created
+                            || request.LastModified != document.LastModified
+                            || contentType != document.ContentType)
                         {
-                            document.Update(
-                                contentType,
-                                request.Data,
-                                request.Created ?? document.Created,
-                                request.LastModified ?? utcNow);
-                        }
-                        else
-                        {
-                            document.Update(
-                                contentType,
-                                oldData,
-                                request.Created ?? document.Created,
-                                request.LastModified ?? utcNow);
+                            var oldData = await _dataStore.FindAsync(document.StorageKey);
+                            if (oldData == null)
+                            {
+                                document.Update(
+                                    contentType,
+                                    request.Data,
+                                    request.Created ?? document.Created,
+                                    request.LastModified ?? utcNow);
+                            }
+                            else
+                            {
+                                document.Update(
+                                    contentType,
+                                    oldData,
+                                    request.Created ?? document.Created,
+                                    request.LastModified ?? utcNow);
+                            }
                         }
                     }
                     else
