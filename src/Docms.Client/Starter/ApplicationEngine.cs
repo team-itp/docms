@@ -33,12 +33,16 @@ namespace Docms.Client.Starter
                 await Task.Delay(TimeSpan.FromSeconds(10), app.ShutdownRequestedToken).ConfigureAwait(false);
 
                 logger.Info("Application main loop started.");
+                var lastExecuted = DateTime.MinValue;
                 while (!app.ShutdownRequestedToken.IsCancellationRequested)
                 {
-                    logger.Trace("SyncTask started");
-                    await ExecuteAsync(new SyncTask(context)).ConfigureAwait(false);
-                    logger.Trace("SyncTask ended");
-                    await Task.Delay(TimeSpan.FromSeconds(10), app.ShutdownRequestedToken).ConfigureAwait(false);
+                    if (DateTime.UtcNow - lastExecuted > TimeSpan.FromMinutes(10))
+                    {
+                        logger.Trace("SyncTask started");
+                        await ExecuteAsync(new SyncTask(context)).ConfigureAwait(false);
+                        logger.Trace("SyncTask ended");
+                        lastExecuted = DateTime.UtcNow;
+                    }
                 }
                 logger.Info("Application main loop ended.");
             }
