@@ -116,6 +116,8 @@ namespace Docms.Web
 
             services.AddIdentityServer()
                 .AddDeveloperSigningCredential()
+                .AddAspNetIdentity<ApplicationUser>()
+                .AddJwtBearerClientAuthentication()
                 .AddInMemoryClients(new List<IdentityServer4.Models.Client>()
                 {
                     new IdentityServer4.Models.Client()
@@ -142,8 +144,7 @@ namespace Docms.Web
                             new Secret("docmsapi-secret".Sha256())
                         }
                     }
-                })
-                .AddAspNetIdentity<ApplicationUser>();
+                });
 
             return services;
         }
