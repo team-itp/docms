@@ -108,6 +108,18 @@ namespace Docms.Client.Synchronization
             }
         }
 
+        public void UploadRequestFailed(PathString path)
+        {
+            if (_States.TryGetValue(path, out var state) && state is RequestForUploadState up)
+            {
+                _States[path] = up.Failed();
+            }
+            else
+            {
+                throw new InvalidOperationException();
+            }
+        }
+
         public void DownloadRequested(PathString path)
         {
             if (_States.TryGetValue(path, out var state) && state is RequestForDownloadState down)

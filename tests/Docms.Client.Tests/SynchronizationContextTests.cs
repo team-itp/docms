@@ -82,6 +82,22 @@ namespace Docms.Client.Tests
         }
 
         [TestMethod]
+        public void 同期コンテキストのアップロード要求待ちで5回失敗した場合はアップロード失敗の状態となる()
+        {
+            sut.LocalFileAdded(new PathString("test.txt"), "HASH", 10);
+            sut.UploadRequestFailed(new PathString("test.txt"));
+            Assert.IsTrue(sut.States.First() is RequestForUploadState);
+            sut.UploadRequestFailed(new PathString("test.txt"));
+            Assert.IsTrue(sut.States.First() is RequestForUploadState);
+            sut.UploadRequestFailed(new PathString("test.txt"));
+            Assert.IsTrue(sut.States.First() is RequestForUploadState);
+            sut.UploadRequestFailed(new PathString("test.txt"));
+            Assert.IsTrue(sut.States.First() is RequestForUploadState);
+            sut.UploadRequestFailed(new PathString("test.txt"));
+            Assert.IsTrue(sut.States.First() is UploadRequestFailedState);
+        }
+
+        [TestMethod]
         public void 同期コンテキストのアップロード完了待ちでローカルファイルが削除された場合削除要求状態になる()
         {
             sut.LocalFileAdded(new PathString("test.txt"), "HASH", 10);

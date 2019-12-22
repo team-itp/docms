@@ -36,8 +36,16 @@ namespace Docms.Client.Operations
                 return;
             }
 
-            await Api.CreateOrUpdateDocumentAsync(path.ToString(), () => file.OpenRead(), document.Created, document.LastModified).ConfigureAwait(false);
-            context.SynchronizationContext.UploadRequested(path);
+            try
+            {
+                await Api.CreateOrUpdateDocumentAsync(path.ToString(), () => file.OpenRead(), document.Created, document.LastModified).ConfigureAwait(false);
+                context.SynchronizationContext.UploadRequested(path);
+            }
+            catch
+            {
+                context.SynchronizationContext.UploadRequestFailed(path);
+                throw;
+            }
         }
     }
 }
