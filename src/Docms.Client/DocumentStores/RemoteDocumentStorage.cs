@@ -67,41 +67,50 @@ namespace Docms.Client.DocumentStores
             logger.Trace($"remote document syncing");
             using (var db = dbFactory.Create())
             {
-                var latestHistory = await db.Histories.OrderByDescending(h => h.Timestamp).FirstOrDefaultAsync().ConfigureAwait(false);
-                if (latestHistory != null)
+                var continueFlg = true;
+                while (continueFlg)
                 {
-                    logger.Trace($"latest history: {latestHistory.Path} ({latestHistory.Id}, {latestHistory.Timestamp})");
-                }
-                var histories = default(IEnumerable<History>);
-                if (latestHistory == null)
-                {
-                    histories = await api.GetHistoriesAsync("").ConfigureAwait(false);
-                }
-                else
-                {
-                    try
+                    var latestHistory = await db.Histories.OrderByDescending(h => h.Timestamp).FirstOrDefaultAsync().ConfigureAwait(false);
+                    if (latestHistory != null)
                     {
-                        histories = await api.GetHistoriesAsync("", latestHistory.Id).ConfigureAwait(false);
+                        logger.Trace($"latest history: {latestHistory.Path} ({latestHistory.Id}, {latestHistory.Timestamp})");
                     }
-                    catch (ServerException ex) when (ex.StatusCode == 400)
+                    var histories = default(IEnumerable<History>);
+                    if (latestHistory == null)
                     {
-                        throw new ApplicationNeedsReinitializeException(ex);
+                        histories = await api.GetHistoriesAsync("").ConfigureAwait(false);
                     }
-                }
-                var historiesToAdd = new List<History>();
-                foreach (var history in histories)
-                {
-                    if (!appliedHistoryIds.Contains(history.Id))
+                    else
                     {
-                        Apply(history, false);
-                        historiesToAdd.Add(history);
-                        appliedHistoryIds.Add(history.Id);
+                        try
+                        {
+                            histories = await api.GetHistoriesAsync("", latestHistory.Id).ConfigureAwait(false);
+                        }
+                        catch (ServerException ex) when (ex.StatusCode == 400)
+                        {
+                            throw new ApplicationNeedsReinitializeException(ex);
+                        }
                     }
-                }
-                if (historiesToAdd.Count > 0)
-                {
-                    db.Histories.AddRange(historiesToAdd);
-                    await db.SaveChangesAsync().ConfigureAwait(false);
+                    var historiesToAdd = new List<History>();
+                    foreach (var history in histories)
+                    {
+                        if (!appliedHistoryIds.Contains(history.Id))
+                        {
+                            Apply(history, false);
+                            historiesToAdd.Add(history);
+                            appliedHistoryIds.Add(history.Id);
+                        }
+                    }
+                    if (historiesToAdd.Count > 0)
+                    {
+                        db.Histories.AddRange(historiesToAdd);
+                        await db.SaveChangesAsync().ConfigureAwait(false);
+                        continueFlg = true;
+                    }
+                    else
+                    {
+                        continueFlg = false;
+                    }
                 }
             }
         }

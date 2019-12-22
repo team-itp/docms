@@ -491,21 +491,7 @@ namespace Docms.Client.Api
                 return request;
             }).ConfigureAwait(false);
             ThrowIfNotSuccessfulStatus(result);
-
-            var resultList = await ParseJson<List<History>>(result).ConfigureAwait(false);
-            var pagination = PaginationHeader.Parse(result.Headers.FirstOrDefault(h => string.Equals(h.Key, "Link", StringComparison.InvariantCultureIgnoreCase)).Value?.FirstOrDefault());
-            while (!string.IsNullOrEmpty(pagination?.Next))
-            {
-                result = await ExecuteAsync(() =>
-                {
-                    var request = new HttpRequestMessage(HttpMethod.Get, pagination.Next);
-                    return request;
-                }).ConfigureAwait(false);
-                ThrowIfNotSuccessfulStatus(result);
-                resultList.AddRange(await ParseJson<List<History>>(result).ConfigureAwait(false));
-                pagination = PaginationHeader.Parse(result.Headers.FirstOrDefault(h => string.Equals(h.Key, "Link", StringComparison.InvariantCultureIgnoreCase)).Value?.FirstOrDefault());
-            }
-            return resultList;
+            return await ParseJson<List<History>>(result).ConfigureAwait(false);
         }
     }
 }
