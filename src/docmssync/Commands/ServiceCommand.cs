@@ -3,7 +3,6 @@ using Docms.Client.Configuration;
 using Microsoft.Win32;
 using NLog;
 using System;
-using System.Diagnostics;
 using System.Threading;
 
 namespace Docms.Client.App.Commands
@@ -22,6 +21,7 @@ namespace Docms.Client.App.Commands
         private readonly EventWaitHandle sessionEndEvent = new EventWaitHandle(false, EventResetMode.ManualReset);
         private readonly EventWaitHandle cancelKeyEvent = new EventWaitHandle(false, EventResetMode.ManualReset);
         private Timer _timer;
+        private DateTime _lastStatusReported = DateTime.MinValue;
 
         public override void RunCommand()
         {
@@ -122,16 +122,26 @@ namespace Docms.Client.App.Commands
                 }
                 else if (info.Status != "Running" && _isRunning)
                 {
-                    _apiClient.PutStatus("Running").GetAwaiter().GetResult();
+                    RepoprtStatus("Running");
                 }
                 else if (info.Status != "Stopped" && !_isRunning)
                 {
-                    _apiClient.PutStatus("Stopped").GetAwaiter().GetResult();
+                    RepoprtStatus("Stopped");
+                }
+                if (DateTime.UtcNow - _lastStatusReported > TimeSpan.FromMinutes(10))
+                {
+                    RepoprtStatus(_isRunning ? "Running" : "Stopped");
                 }
             }
             catch
             {
             }
+        }
+
+        private void RepoprtStatus(string status)
+        {
+            _apiClient.PutStatus(status).GetAwaiter().GetResult();
+            _lastStatusReported = DateTime.UtcNow;
         }
 
         public void StartApp()
@@ -144,7 +154,7 @@ namespace Docms.Client.App.Commands
 
             try
             {
-                _apiClient.PutStatus("Starting").GetAwaiter().GetResult();
+                RepoprtStatus("Starting");
                 ProcessManager.Execute("watch");
                 AppStarted();
             }
@@ -166,7 +176,7 @@ namespace Docms.Client.App.Commands
                 {
                     try
                     {
-                        _apiClient.PutStatus("Stopping").GetAwaiter().GetResult();
+                        RepoprtStatus("Stopping");
                     }
                     catch
                     {
@@ -214,7 +224,7 @@ namespace Docms.Client.App.Commands
             try
             {
                 _isRunning = true;
-                _apiClient.PutStatus("Running").GetAwaiter().GetResult();
+                RepoprtStatus("Running");
             }
             catch
             {
@@ -226,7 +236,7 @@ namespace Docms.Client.App.Commands
             try
             {
                 _isRunning = false;
-                _apiClient.PutStatus("Stopped").GetAwaiter().GetResult();
+                RepoprtStatus("Stopped");
             }
             catch
             {
