@@ -27,13 +27,25 @@ namespace Docms.Client.Operations
             }
             catch (ServiceUnavailableException)
             {
-                // サーバーのクォータを使い切ったときに発生
+                // ログインに失敗した場合のエラー
                 _logger.Info($"failed to process: {summary}");
                 throw;
             }
             catch (InvalidLoginException)
             {
                 // サーバーへのログインがうまくいかなくなった場合に発生
+                _logger.Info($"failed to process: {summary}");
+                throw;
+            }
+            catch (ServerException ex) when (ex.StatusCode == 403)
+            {
+                // サーバーのクォータを使い切ったときに発生
+                _logger.Info($"failed to process: {summary}");
+                throw;
+            }
+            catch (ServerException ex) when (ex.StatusCode == 502)
+            {
+                // 要求がタイムアウトした場合に発生
                 _logger.Info($"failed to process: {summary}");
                 throw;
             }
