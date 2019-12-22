@@ -25,29 +25,36 @@ namespace Docms.Client.Operations
             {
                 await ExecuteApiOperationAsync(token).ConfigureAwait(false);
             }
-            catch (ServiceUnavailableException)
+            catch (ServiceUnavailableException ex)
             {
                 // ログインに失敗した場合のエラー
                 _logger.Info($"failed to process: {summary}");
+                _logger.Error(ex.Message);
+                _logger.Debug(ex);
                 throw;
             }
-            catch (InvalidLoginException)
+            catch (InvalidLoginException ex)
             {
                 // サーバーへのログインがうまくいかなくなった場合に発生
                 _logger.Info($"failed to process: {summary}");
+                _logger.Error(ex.Message);
+                _logger.Debug(ex);
                 throw;
             }
             catch (ServerException ex) when (ex.StatusCode == 403)
             {
                 // サーバーのクォータを使い切ったときに発生
                 _logger.Info($"failed to process: {summary}");
+                _logger.Error(ex.Message);
+                _logger.Debug(ex);
                 throw;
             }
             catch (ServerException ex) when (ex.StatusCode == 502)
             {
                 // 要求がタイムアウトした場合に発生
                 _logger.Info($"failed to process: {summary}");
-                throw;
+                _logger.Error(ex.Message);
+                _logger.Debug(ex);
             }
             catch (ServerException ex)
             {
@@ -55,6 +62,7 @@ namespace Docms.Client.Operations
                 _logger.Info($"failed to process: {summary}");
                 _logger.Error(ex.Message);
                 _logger.Debug(ex);
+                throw;
             }
         }
 
