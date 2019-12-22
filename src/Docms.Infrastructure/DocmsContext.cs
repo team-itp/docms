@@ -34,6 +34,7 @@ namespace Docms.Infrastructure
 
         #region "Client"
         public DbSet<Client> Clients { get; set; }
+        public DbSet<ClientInfo> ClientInfo { get; set; }
         #endregion
 
         #region "Blobs Queries"
@@ -48,10 +49,6 @@ namespace Docms.Infrastructure
 
         #region "Device Authorization Queries"
         public DbSet<DeviceGrant> DeviceGrants { get; set; }
-        #endregion
-
-        #region "Client"
-        public DbSet<ClientInfo> ClientInfo { get; set; }
         #endregion
 
         private readonly IMediator _mediator;
@@ -107,6 +104,36 @@ namespace Docms.Infrastructure
                     value => value.Kind == DateTimeKind.Unspecified
                         ? DateTime.SpecifyKind(value, DateTimeKind.Utc)
                         : value);
+
+            modelBuilder.Entity<Client>()
+                .Property(c => c.LastAccessedTime)
+                .HasConversion(
+                    value => value,
+                    value => value.HasValue && value.Value.Kind == DateTimeKind.Unspecified
+                        ? DateTime.SpecifyKind(value.Value, DateTimeKind.Utc)
+                        : value);
+            modelBuilder.Entity<ClientInfo>()
+                .Property(c => c.LastAccessedTime)
+                .HasConversion(
+                    value => value,
+                    value => value.HasValue && value.Value.Kind == DateTimeKind.Unspecified
+                        ? DateTime.SpecifyKind(value.Value, DateTimeKind.Utc)
+                        : value);
+            modelBuilder.Entity<ClientInfo>()
+                .Property(c => c.RequestedAt)
+                .HasConversion(
+                    value => value,
+                    value => value.HasValue && value.Value.Kind == DateTimeKind.Unspecified
+                        ? DateTime.SpecifyKind(value.Value, DateTimeKind.Utc)
+                        : value);
+            modelBuilder.Entity<ClientInfo>()
+                .Property(c => c.AcceptedAt)
+                .HasConversion(
+                    value => value,
+                    value => value.HasValue && value.Value.Kind == DateTimeKind.Unspecified
+                        ? DateTime.SpecifyKind(value.Value, DateTimeKind.Utc)
+                        : value);
+
             modelBuilder.Entity<DocumentHistory>()
                 .HasKey(d => d.Id)
                 .ForSqlServerIsClustered(false);

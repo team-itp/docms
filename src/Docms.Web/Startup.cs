@@ -26,6 +26,7 @@ using Microsoft.Extensions.DependencyInjection;
 using Newtonsoft.Json;
 using System;
 using System.Collections.Generic;
+using System.Globalization;
 using System.IdentityModel.Tokens.Jwt;
 using System.Reflection;
 using VisualizationSystem.Infrastructure;
@@ -80,6 +81,7 @@ namespace Docms.Web
             app.UseStatusCodePagesWithReExecute("/error/{0}");
             app.UseStaticFiles();
             app.UseIdentityServer();
+            app.UseRequestLocalization();
             app.UseMvcWithDefaultRoute();
         }
     }

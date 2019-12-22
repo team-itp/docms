@@ -49,7 +49,7 @@
                     @(clientInfo?.Device?.Family ?? "Unknown")
                 </td>
                 <td>@device.LastAccessUserName</td>
-                <td class="d-none d-sm-table-cell">@TimeZoneInfo.ConvertTime(device.LastAccessTime, TimeZoneInfo.FindSystemTimeZoneById("Tokyo Standard Time"))</td>
+                <td class="d-none d-sm-table-cell">@TimeZoneInfo.ConvertTime(device.LastAccessTime, TimeZoneInfo.Local)</td>
                 <td>
                     @if (device.IsGranted)
                     {
