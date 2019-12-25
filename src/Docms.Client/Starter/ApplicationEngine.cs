@@ -8,6 +8,8 @@ namespace Docms.Client.Starter
 {
     public class ApplicationEngine
     {
+        private static readonly TimeSpan TEN_MINUTES = TimeSpan.FromMinutes(10);
+
         private readonly ILogger logger = LogManager.GetCurrentClassLogger();
         private readonly IApplication app;
         private readonly ApplicationContext context;
@@ -30,18 +32,21 @@ namespace Docms.Client.Starter
                     initializationCompleted = await ExecuteAsync(new InitializeTask(context)).ConfigureAwait(false);
                 }
                 logger.Trace("InitializeTask ended");
-                await Task.Delay(TimeSpan.FromSeconds(10), app.ShutdownRequestedToken).ConfigureAwait(false);
-
                 logger.Info("Application main loop started.");
                 var lastExecuted = DateTime.MinValue;
                 while (!app.ShutdownRequestedToken.IsCancellationRequested)
                 {
-                    if (DateTime.UtcNow - lastExecuted > TimeSpan.FromMinutes(10))
+                    var diff = DateTime.UtcNow - lastExecuted;
+                    if (diff > TEN_MINUTES)
                     {
                         logger.Trace("SyncTask started");
                         await ExecuteAsync(new SyncTask(context)).ConfigureAwait(false);
                         logger.Trace("SyncTask ended");
                         lastExecuted = DateTime.UtcNow;
+                    }
+                    else
+                    {
+                        await Task.Delay(TEN_MINUTES - diff, app.ShutdownRequestedToken);
                     }
                 }
                 logger.Info("Application main loop ended.");
