@@ -17,3 +17,15 @@
     top: -85px;
     visibility: hidden;
 }
+
+
+@media (min-width: 576px) {
+    .modal-dialog {
+        max-width: none;
+    }
+}
+
+.modal-dialog {
+    width: 98%;
+    padding: 0;
+}
