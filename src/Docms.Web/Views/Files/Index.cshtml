@@ -81,10 +81,10 @@
         }
     </div>
 
-    <div class="modal fade" tabindex="-1" role="dialog" aria-labelledby="Image" aria-hidden="true">
+    <div class="modal modal-fullscreen fade" tabindex="-1" role="dialog" aria-labelledby="Image" aria-hidden="true">
         <div class="modal-dialog modal-lg">
             <div class="modal-content bg-dark text-light">
-                <div class="modal-header border-dark align-items-center pl-0 pt-5">
+                <div class="modal-header border-dark align-items-center pl-0 pt-5 pt-md-4 pb-1">
                     <div class="button-bar d-flex justify-content-between position-absolute w-100" style="top:0">
                         <div class="d-flex justify-content-between m-0">
                             <button type="button" class="btn btn-link text-light prev-button"><i class="fa fa-arrow-left"></i></button>
@@ -97,7 +97,7 @@
                     </a>
                 </div>
                 <div class="modal-body p-0">
-                    <div class="data-content text-center"></div>
+                    <div class="data-content text-center position-absolute w-100 pb-2" style="top:0; bottom: 0"></div>
                 </div>
             </div>
         </div>
@@ -183,14 +183,14 @@ else if (Model is Blob blob)
                 $modalContent.html('');
                 $modalContent.append(
                     $('<img />')
-                        .addClass('mw-100')
+                        .addClass('mw-100 mh-100')
                         .attr('src', src)
                         .attr('alt', name));
             }
             if ($this.is('.preview-video')) {
                 $modalContent.html('');
                 $modalContent.append(
-                    $('<div class="embed-responsive embed-responsive-16by9" />')
+                    $('<div class="embed-responsive embed-responsive-16by9 mw-100 mh-100" />')
                         .append(
                             $('<video controls="controls" class="embed-responsive-item" />')
                                 .append(
