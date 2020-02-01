@@ -61,14 +61,14 @@
                     <div class="mr-3">
                         <i class="fa fa-2x fa-file-image-o"></i>
                     </div>
-                    <a class="preview preview-image" href="@Url.DownloadFile(entry.Path)" type="@imageBlob.ContentType">@entry.Name</a>
+                    <a class="preview preview-image" href="@Url.ViewFile(entry.Path)" type="@imageBlob.ContentType" data-href="@Url.DownloadFile(entry.Path)">@entry.Name</a>
                 }
                 else if (entry is Blob videoBlob && videoBlob.ContentType.StartsWith("video"))
                 {
                     <div class="mr-3">
                         <i class="fa fa-2x fa-file-video-o"></i>
                     </div>
-                    <a class="preview preview-video" href="@Url.DownloadFile(entry.Path)" type="@videoBlob.ContentType">@entry.Name</a>
+                    <a class="preview preview-video" href="@Url.ViewFile(entry.Path)" type="@videoBlob.ContentType" data-href="@Url.DownloadFile(entry.Path)">@entry.Name</a>
                 }
                 else
                 {
@@ -85,7 +85,7 @@
         <div class="modal-dialog modal-lg modal-dialog-centered">
             <div class="modal-content bg-dark text-light">
                 <div class="modal-header border-dark">
-                    <h5 class="modal-title"></h5>
+                    <a class="view-link text-light"><h5 class="modal-title"></h5></a>
                     <button type="button" class="close text-light" data-dismiss="modal" aria-label="Close">
                         <span aria-hidden="true">&times;</span>
                     </button>
@@ -129,6 +129,7 @@ else if (Model is Blob blob)
     <script>
         var $modal = $('.modal');
         var $modalTitle = $modal.find('.modal-title');
+        var $modalViewLink = $modal.find('.view-link');
         var $modalContent = $modal.find('.data-content');
         var $modalPrevButton = $modal.find('.prev-button');
         var $modalNextButton = $modal.find('.next-button');
@@ -172,6 +173,7 @@ else if (Model is Blob blob)
 
             var $this = $(this);
             var href = $this.attr('href');
+            var src = $this.attr('data-href');
             var contentType = $this.attr('type');
             var name = $this.text();
 
@@ -180,7 +182,7 @@ else if (Model is Blob blob)
                 $modalContent.append(
                     $('<img />')
                         .addClass('mw-100')
-                        .attr('src', href)
+                        .attr('src', src)
                         .attr('alt', name));
             }
             if ($this.is('.preview-video')) {
@@ -191,10 +193,11 @@ else if (Model is Blob blob)
                             $('<video controls="controls" class="embed-responsive-item" />')
                                 .append(
                                     $('<source />')
-                                        .attr('src', href)
+                                        .attr('src', src)
                                         .attr('type', contentType))));
             }
 
+            $modalViewLink.attr('href', href);
             $modalTitle.html(name);
             $modal.modal('show');
         });

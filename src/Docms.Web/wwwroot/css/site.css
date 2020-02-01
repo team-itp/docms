@@ -18,7 +18,6 @@
     visibility: hidden;
 }
 
-
 @media (min-width: 576px) {
     .modal-dialog {
         max-width: none;
@@ -28,4 +27,11 @@
 .modal-dialog {
     width: 98%;
     padding: 0;
+}
+
+@media (min-width: 768px) {
+    .modal-dialog {
+        max-width: none;
+        width: 70%;
+    }
 }
