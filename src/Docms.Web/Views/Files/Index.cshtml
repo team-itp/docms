@@ -90,7 +90,13 @@
                         <span aria-hidden="true">&times;</span>
                     </button>
                 </div>
-                <div class="data-content"></div>
+                <div class="modal-body p-0">
+                    <div class="data-content"></div>
+                </div>
+                <div class="modal-footer border-dark justify-content-between">
+                    <button class="btn btn-link text-light prev-button"><i class="fa fa-arrow-left"></i></button>
+                    <button class="btn btn-link text-light next-button"><i class="fa fa-arrow-right"></i></button>
+                </div>
             </div>
         </div>
     </div>
@@ -124,15 +130,53 @@ else if (Model is Blob blob)
         var $modal = $('.modal');
         var $modalTitle = $modal.find('.modal-title');
         var $modalContent = $modal.find('.data-content');
+        var $modalPrevButton = $modal.find('.prev-button');
+        var $modalNextButton = $modal.find('.next-button');
+        var $previews = $('.preview');
+        var prev = null;
+        var next = null;
 
-        $('.preview').on('click', function (e) {
+        $modalPrevButton.on('click', function (e) {
+            if (prev) {
+                $(prev).click();
+            }
+        });
+
+        $modalNextButton.on('click', function (e) {
+            if (next) {
+                $(next).click();
+            }
+        });
+
+        $previews.on('click', function (e) {
             e.preventDefault();
+            var clicked = this;
+            var found = false;
+            prev = null;
+            next = null;
+            $previews.each(function (_, e) {
+                if (e === clicked) {
+                    found = true;
+                    return true;
+                } else if (!found) {
+                    prev = e;
+                    return true;
+                } else {
+                    next = e;
+                    return false;
+                }
+            });
+
+            $modalPrevButton.prop('disabled', !prev)
+            $modalNextButton.prop('disabled', !next)
+
             var $this = $(this);
             var href = $this.attr('href');
             var contentType = $this.attr('type');
             var name = $this.text();
 
             if ($this.is('.preview-image')) {
+                $modalContent.html('');
                 $modalContent.append(
                     $('<img />')
                         .addClass('mw-100')
@@ -140,6 +184,7 @@ else if (Model is Blob blob)
                         .attr('alt', name));
             }
             if ($this.is('.preview-video')) {
+                $modalContent.html('');
                 $modalContent.append(
                     $('<div class="embed-responsive embed-responsive-16by9" />')
                         .append(
