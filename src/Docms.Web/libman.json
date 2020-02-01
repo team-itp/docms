@@ -14,6 +14,12 @@
     },
     {
       "library": "font-awesome@4.7.0"
+    },
+    {
+      "library": "jquery-validate@1.19.1"
+    },
+    {
+      "library": "jquery-validation-unobtrusive@3.2.11"
     }
   ]
 }
