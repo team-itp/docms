@@ -84,17 +84,17 @@
     <div class="modal fade" tabindex="-1" role="dialog" aria-labelledby="Image" aria-hidden="true">
         <div class="modal-dialog modal-lg">
             <div class="modal-content bg-dark text-light">
-                <div class="modal-header border-dark align-items-center pl-0">
-                    <div class="d-flex justify-content-between m-0">
-                        <button class="btn btn-link text-light prev-button"><i class="fa fa-arrow-left"></i></button>
-                        <button class="btn btn-link text-light next-button"><i class="fa fa-arrow-right"></i></button>
+                <div class="modal-header border-dark align-items-center pl-0 pt-5">
+                    <div class="button-bar d-flex justify-content-between position-absolute w-100" style="top:0">
+                        <div class="d-flex justify-content-between m-0">
+                            <button type="button" class="btn btn-link text-light prev-button"><i class="fa fa-arrow-left"></i></button>
+                            <button type="button" class="btn btn-link text-light next-button"><i class="fa fa-arrow-right"></i></button>
+                        </div>
+                        <button type="button" class="btn btn-link text-light" data-dismiss="modal" aria-label="Close"><i class="fa fa-times"></i></button>
                     </div>
                     <a class="view-link text-light btn btn-link">
                         <h5 class="modal-title"></h5>
                     </a>
-                    <button type="button" class="close text-light" data-dismiss="modal" aria-label="Close">
-                        <span aria-hidden="true">&times;</span>
-                    </button>
                 </div>
                 <div class="modal-body p-0">
                     <div class="data-content"></div>

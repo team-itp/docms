@@ -40,6 +40,9 @@
     .modal {
         padding: 0 !important;
     }
+    .modal-open .modal {
+        overflow: hidden;
+    }
 
     .modal-dialog {
         width: 100%;
@@ -49,17 +52,16 @@
     }
 
     .modal-content {
-        height: auto;
+        height: 100%;
         min-height: 100%;
         border: 0 none;
         border-radius: 0;
-        overflow-y: auto;
     }
 
     .modal-body {
         height: auto;
-        min-height: 100%;
-        border: 0 none;
-        border-radius: 0;
+        max-width: 100%;
+        overflow-x: hidden;
+        overflow-y: auto;
     }
 }
