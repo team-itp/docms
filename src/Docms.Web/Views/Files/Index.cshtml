@@ -61,14 +61,14 @@
                     <div class="mr-3">
                         <i class="fa fa-2x fa-file-image-o"></i>
                     </div>
-                    <a class="preview preview-image" href="#@Uri.EscapeDataString(entry.Name)" type="@imageBlob.ContentType" data-href="@Url.DownloadFile(entry.Path)" data-detail-href="@Url.ViewFile(entry.Path)">@entry.Name</a>
+                    <a class="preview preview-image" href="#@Uri.EscapeUriString(entry.Name)" type="@imageBlob.ContentType" data-href="@Url.DownloadFile(entry.Path)" data-detail-href="@Url.ViewFile(entry.Path)">@entry.Name</a>
                 }
                 else if (entry is Blob videoBlob && videoBlob.ContentType.StartsWith("video"))
                 {
                     <div class="mr-3">
                         <i class="fa fa-2x fa-file-video-o"></i>
                     </div>
-                    <a class="preview preview-video" href="#@Uri.EscapeDataString(entry.Name)" type="@videoBlob.ContentType" data-href="@Url.DownloadFile(entry.Path)" data-detail-href="@Url.ViewFile(entry.Path)">@entry.Name</a>
+                    <a class="preview preview-video" href="#@Uri.EscapeUriString(entry.Name)" type="@videoBlob.ContentType" data-href="@Url.DownloadFile(entry.Path)" data-detail-href="@Url.ViewFile(entry.Path)">@entry.Name</a>
                 }
                 else
                 {
@@ -218,14 +218,14 @@ else if (Model is Blob blob)
 
         $(window).on('hashchange', function (e) {
             if (window.location.hash) {
-                $('a[href="' + encodeURI(window.location.hash) + '"]').click();
+                $('a[href="' + encodeURI(window.location.hash) + '"],a[href="' + window.location.hash + '"]').click();
             } else {
                 $modal.modal('hide');
             }
         })
 
         if (window.location.hash) {
-            $('a[href="' + encodeURI(window.location.hash) + '"]').click();
+            $('a[href="' + encodeURI(window.location.hash) + '"],a[href="' + window.location.hash + '"]').click();
         }
 
     </script>
