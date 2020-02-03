@@ -6,7 +6,7 @@ using System.Threading.Tasks;
 
 namespace Docms.Application.Commands
 {
-    public class DeviceCommandHandler : 
+    public class DeviceCommandHandler :
         IRequestHandler<AddNewDeviceCommand, bool>,
         IRequestHandler<GrantDeviceCommand, bool>,
         IRequestHandler<RevokeDeviceCommand, bool>
@@ -22,14 +22,16 @@ namespace Docms.Application.Commands
         public async Task<bool> Handle(AddNewDeviceCommand request, CancellationToken cancellationToken = default)
         {
             var device = await _deviceRepository.GetAsync(request.DeviceId.ToString());
-            if (device != null)
+            if (device == null)
             {
-                throw new InvalidOperationException();
+                device = new Device(request.DeviceId, request.DeviceUserAgent, request.UsedBy);
+                await _deviceRepository.AddAsync(device);
+            }
+            else
+            {
+                device.Reregister(request.UsedBy);
             }
 
-            device = new Device(request.DeviceId, request.DeviceUserAgent, request.UsedBy);
-
-            await _deviceRepository.AddAsync(device);
             await _deviceRepository.UnitOfWork.SaveEntitiesAsync();
             return true;
         }

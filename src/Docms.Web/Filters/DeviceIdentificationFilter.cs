@@ -76,7 +76,7 @@ namespace Docms.Web.Filters
                 });
 
                 var device = await _queries.FindByDeviceIdAsync(deviceId);
-                if (device == null)
+                if (device == null || device.IsDeleted)
                 {
                     await _mediator.Send(new AddNewDeviceCommand()
                     {

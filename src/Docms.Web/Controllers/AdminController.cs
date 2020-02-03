@@ -8,6 +8,7 @@ using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
+using System.Linq;
 using System.Threading.Tasks;
 
 namespace Docms.Web.Controllers
@@ -39,10 +40,14 @@ namespace Docms.Web.Controllers
         }
 
         [HttpGet("devices")]
-        public async Task<IActionResult> ListDevices([FromServices] IDeviceGrantsQueries queries)
+        public async Task<IActionResult> ListDevices([FromServices] IDeviceGrantsQueries queries, bool includeRevokedDevices = false)
         {
             ViewData["Message"] = TempData["Message"];
             var devices = queries.GetDevices();
+            if (!includeRevokedDevices)
+            {
+                devices = devices.Where(q => q.IsDeleted == includeRevokedDevices);
+            }
             return View(await devices.ToListAsync());
         }
 

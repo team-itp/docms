@@ -23,5 +23,7 @@ namespace Docms.Queries.DeviceAuthorization
         public string LastAccessUserName { get; set; }
         [Column("LastAccessTime")]
         public DateTime LastAccessTime { get; set; }
+        [Column("IsDeleted")]
+        public bool IsDeleted { get; set; }
     }
 }

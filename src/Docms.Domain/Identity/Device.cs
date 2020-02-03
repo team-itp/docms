@@ -1,5 +1,6 @@
 ﻿using Docms.Domain.Identity.Events;
 using Docms.Domain.SeedWork;
+using System;
 
 namespace Docms.Domain.Identity
 {
@@ -9,6 +10,7 @@ namespace Docms.Domain.Identity
         public string UsedBy { get; set; }
         public bool Granted { get; set; }
         public string DeviceUserAgent { get; set; }
+        public bool Deleted { get; set; }
 
         protected Device() { }
 
@@ -30,7 +32,14 @@ namespace Docms.Domain.Identity
         public void Revoke(string byUserId)
         {
             Granted = false;
+            Deleted = true;
             OnDeviceRevoked(byUserId);
+        }
+
+        public void Reregister(string usedBy)
+        {
+            Deleted = false;
+            OnDeviceReregistered(usedBy);
         }
 
         private void OnDeviceNewlyAccessed(string deviceId, string deviceUserAgent, string usedBy)
@@ -50,5 +59,11 @@ namespace Docms.Domain.Identity
             var ev = new DeviceRevokedEvent(this, DeviceId, byUserId);
             AddDomainEvent(ev);
         }
+        private void OnDeviceReregistered(string usedBy)
+        {
+            var ev = new DeviceReregisteredEvent(this, DeviceId, usedBy);
+            AddDomainEvent(ev);
+        }
+
     }
 }

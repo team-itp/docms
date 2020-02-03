@@ -31,6 +31,19 @@ namespace Docms.Application.Tests
         }
 
         [TestMethod]
+        public async Task 削除済みのデバイスにコマンドを発行して再登録されること()
+        {
+            await repository.AddAsync(new Device("123", "USERAGENT", "USER1") { Deleted = true });
+            await sut.Handle(new AddNewDeviceCommand()
+            {
+                DeviceId = "123",
+                UsedBy = "USER3"
+            });
+            Assert.AreEqual(1, repository.Entities.Count);
+            Assert.IsFalse(repository.Entities.First().Deleted);
+        }
+
+        [TestMethod]
         public async Task コマンドを発行してデバイスが許可されること()
         {
             await repository.AddAsync(new Device("123", "USERAGENT", "USER1"));
@@ -54,6 +67,7 @@ namespace Docms.Application.Tests
             });
             Assert.AreEqual(1, repository.Entities.Count);
             Assert.IsFalse(repository.Entities.First().Granted);
+            Assert.IsTrue(repository.Entities.First().Deleted);
         }
     }
 }
