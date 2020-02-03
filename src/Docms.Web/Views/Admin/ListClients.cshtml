@@ -44,7 +44,7 @@
                             <b>最終アクセス</b>
                         </div>
                         <div class="col-8">
-                            @(item.LastAccessedTime.HasValue ? TimeZoneInfo.ConvertTime(item.LastAccessedTime.Value, TimeZoneInfo.Local).ToString("yyyy/MM/dd HH:mm:ss") : "")
+                            @(item.LastAccessedTime.HasValue ? TimeZoneInfo.ConvertTime(item.LastAccessedTime.Value, TimeZoneInfo.FindSystemTimeZoneById("Tokyo Standard Time")).ToString("yyyy/MM/dd HH:mm:ss") : "")
                         </div>
                     </div>
                 </div>

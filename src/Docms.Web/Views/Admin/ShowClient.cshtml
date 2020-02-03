@@ -63,14 +63,14 @@
             最終アクセス時間
         </dt>
         <dd class="col-sm-8 col-md-9">
-            @(Model.LastAccessedTime.HasValue ? TimeZoneInfo.ConvertTime(Model.LastAccessedTime.Value, TimeZoneInfo.Local).ToString("yyyy/MM/dd HH:mm:ss") : "")
+            @(Model.LastAccessedTime.HasValue ? TimeZoneInfo.ConvertTime(Model.LastAccessedTime.Value, TimeZoneInfo.FindSystemTimeZoneById("Tokyo Standard Time")).ToString("yyyy/MM/dd HH:mm:ss") : "")
         </dd>
         <dt class="col-sm-4 col-md-3">要求</dt>
         <dd class="col-sm-8 col-md-9">
             @Model.RequestType
             @if (Model.RequestedAt.HasValue)
             {
-                <text>(@TimeZoneInfo.ConvertTime(Model.RequestedAt.Value, TimeZoneInfo.Local).ToString("yyyy/MM/dd HH:mm:ss")</text>
+                <text>(@TimeZoneInfo.ConvertTime(Model.RequestedAt.Value, TimeZoneInfo.FindSystemTimeZoneById("Tokyo Standard Time")).ToString("yyyy/MM/dd HH:mm:ss")</text>
             }
             else
             {
@@ -82,7 +82,7 @@
             @Model.AcceptedRequestType
             @if (Model.AcceptedAt.HasValue)
             {
-                <text>(@TimeZoneInfo.ConvertTime(Model.AcceptedAt.Value, TimeZoneInfo.Local).ToString("yyyy/MM/dd HH:mm:ss")</text>
+                <text>(@TimeZoneInfo.ConvertTime(Model.AcceptedAt.Value, TimeZoneInfo.FindSystemTimeZoneById("Tokyo Standard Time")).ToString("yyyy/MM/dd HH:mm:ss")</text>
             }
             else
             {

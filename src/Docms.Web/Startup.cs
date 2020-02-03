@@ -20,6 +20,7 @@ using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Identity;
+using Microsoft.AspNetCore.Localization;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
@@ -77,12 +78,29 @@ namespace Docms.Web
                 app.UseExceptionHandler("/error");
             }
 
+            var supportedCultures = new[]
+            {
+                new CultureInfo("ja"),
+                new CultureInfo("en-US"),
+            };
+            app.UseRequestLocalization(options =>
+            {
+                options.DefaultRequestCulture = new RequestCulture("ja");
+                options.SupportedCultures = supportedCultures;
+                options.SupportedUICultures = supportedCultures;
+            });
+            app.UseHttpsRedirection();
             app.UseCustomDbContext();
             app.UseStatusCodePagesWithReExecute("/error/{0}");
             app.UseStaticFiles();
             app.UseIdentityServer();
-            app.UseRequestLocalization();
-            app.UseMvcWithDefaultRoute();
+
+            app.UseMvc(routes =>
+            {
+                routes.MapRoute(
+                    name: "default",
+                    template: "{controller=Home}/{action=Index}/{id?}");
+            });
         }
     }
 
