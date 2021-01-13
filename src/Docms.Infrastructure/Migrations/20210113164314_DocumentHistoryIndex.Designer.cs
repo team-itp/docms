@@ -4,14 +4,16 @@ using Docms.Infrastructure;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 
 namespace Docms.Infrastructure.Migrations
 {
     [DbContext(typeof(DocmsContext))]
-    partial class DocmsContextModelSnapshot : ModelSnapshot
+    [Migration("20210113164314_DocumentHistoryIndex")]
+    partial class DocumentHistoryIndex
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -65,8 +67,7 @@ namespace Docms.Infrastructure.Migrations
                     b.Property<string>("Path")
                         .HasMaxLength(800);
 
-                    b.Property<string>("StorageKey")
-                        .HasMaxLength(800);
+                    b.Property<string>("StorageKey");
 
                     b.HasKey("Id");
 
@@ -262,8 +263,7 @@ namespace Docms.Infrastructure.Migrations
                         .HasMaxLength(800);
 
                     b.Property<string>("StorageKey")
-                        .HasColumnName("StorageKey")
-                        .HasMaxLength(800);
+                        .HasColumnName("StorageKey");
 
                     b.Property<DateTime>("Timestamp")
                         .HasColumnName("Timestamp");
@@ -274,8 +274,6 @@ namespace Docms.Infrastructure.Migrations
                     b.HasIndex("DocumentId");
 
                     b.HasIndex("Path");
-
-                    b.HasIndex("StorageKey");
 
                     b.HasIndex("Timestamp")
                         .HasAnnotation("SqlServer:Clustered", true);
@@ -312,8 +310,7 @@ namespace Docms.Infrastructure.Migrations
                         .HasColumnName("LastModified");
 
                     b.Property<string>("StorageKey")
-                        .HasColumnName("StorageKey")
-                        .HasMaxLength(800);
+                        .HasColumnName("StorageKey");
 
                     b.HasDiscriminator().HasValue("Blob");
                 });

@@ -4,14 +4,16 @@ using Docms.Infrastructure;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 
 namespace Docms.Infrastructure.Migrations
 {
     [DbContext(typeof(DocmsContext))]
-    partial class DocmsContextModelSnapshot : ModelSnapshot
+    [Migration("20210113165729_StorageKeyLength")]
+    partial class StorageKeyLength
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -274,8 +276,6 @@ namespace Docms.Infrastructure.Migrations
                     b.HasIndex("DocumentId");
 
                     b.HasIndex("Path");
-
-                    b.HasIndex("StorageKey");
 
                     b.HasIndex("Timestamp")
                         .HasAnnotation("SqlServer:Clustered", true);

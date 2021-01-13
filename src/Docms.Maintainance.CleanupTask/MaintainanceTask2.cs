@@ -35,6 +35,29 @@ namespace Docms.Maintainance.CleanupTask
 
             using (var context = CreateContext(configuration))
             {
+                var delHistories = context
+                    .DocumentHistories
+                    .OrderBy(h => h.Timestamp)
+                    .Where(h => h.Discriminator == DocumentHistoryDiscriminator.DocumentDeleted && h.Timestamp < DateTime.Now.AddMonths(-1))
+                    .Take(100)
+                    .ToList();
+                while (delHistories.Any())
+                {
+                    foreach (var h in delHistories)
+                    {
+                        await DeleteDocuments(h.DocumentId);
+                    }
+                    delHistories = context
+                        .DocumentHistories
+                        .OrderBy(h => h.Timestamp)
+                        .Where(h => h.Discriminator == DocumentHistoryDiscriminator.DocumentDeleted && h.Timestamp < DateTime.Now.AddMonths(-1))
+                        .Take(100)
+                        .ToList();
+                }
+            }
+
+            using (var context = CreateContext(configuration))
+            {
                 foreach (var container in context.BlobContainers)
                 {
                     var blobsInContainer = await context.Blobs.Where(b => b.ParentPath == container.Path).ToListAsync();
@@ -53,6 +76,53 @@ namespace Docms.Maintainance.CleanupTask
                             logger.LogError(ex, "error while processing {0}", blob.Path);
                         }
                     }
+                }
+            }
+        }
+
+        private async Task DeleteDocuments(int documentId)
+        {
+            using (var context = CreateContext(configuration))
+            {
+                var document = context.Documents.Find(documentId);
+                if (document == null)
+                {
+                    logger.LogWarning("document not exists.");
+                    return;
+                }
+                if (!string.IsNullOrEmpty(document.Path))
+                {
+                    logger.LogWarning("document not deleted.");
+                    return;
+                }
+                var historiesForDocument = await context.DocumentHistories.Where(h => h.DocumentId == document.Id).ToListAsync();
+                if (historiesForDocument.OrderByDescending(h => h.Timestamp).First().Discriminator != DocumentHistoryDiscriminator.DocumentDeleted)
+                {
+                    logger.LogWarning("document history is broken.");
+                    return;
+                }
+                if (historiesForDocument.Count(h => h.Discriminator == DocumentHistoryDiscriminator.DocumentDeleted) != 1)
+                {
+                    logger.LogWarning("document history is broken.");
+                    return;
+                }
+                var storageKeyList = new List<string>();
+                foreach (var storageKey in historiesForDocument.Select(h => h.StorageKey).Distinct().Where(h => !string.IsNullOrEmpty(h)))
+                {
+                    if (context.DocumentHistories.Any(h => h.DocumentId != document.Id && h.StorageKey == storageKey))
+                    {
+                        continue;
+                    }
+                    storageKeyList.Add(storageKey);
+                }
+                logger.LogInformation("deleting document: {0}", document.Id);
+                context.Documents.Remove(document);
+                context.DocumentHistories.RemoveRange(historiesForDocument);
+                await context.SaveChangesAsync();
+                foreach (var storageKey in storageKeyList)
+                {
+                    logger.LogInformation("deleting blob: {0}", storageKey);
+                    await dataStore.DeleteAsync(storageKey);
                 }
             }
         }
@@ -91,7 +161,6 @@ namespace Docms.Maintainance.CleanupTask
                 return;
             }
 
-            logger.LogInformation("fixing history");
             await FixHistory(context, document, blob.Path, historiesInContainer[blob.Path].ToList());
 
             if (document.Path != blob.Path)
@@ -129,6 +198,7 @@ namespace Docms.Maintainance.CleanupTask
             var historiesToDelete = histories.Where(h => h.DocumentId < 0).ToList();
             if (historiesToDelete.Count > 0)
             {
+                logger.LogInformation("fixing history");
                 context.DocumentHistories.RemoveRange(historiesToDelete);
                 await context.SaveChangesAsync();
             }
@@ -285,6 +355,7 @@ namespace Docms.Maintainance.CleanupTask
 
             if (!histories.Select(h => h.Id).SequenceEqual(fixedHistory.Select(h => h.Id)))
             {
+                logger.LogInformation("fixing history");
                 context.DocumentHistories.RemoveRange(histories);
                 await context.SaveChangesAsync();
                 context.DocumentHistories.AddRange(fixedHistory);

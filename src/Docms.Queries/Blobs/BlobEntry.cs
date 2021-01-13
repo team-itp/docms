@@ -29,6 +29,7 @@ namespace Docms.Queries.Blobs
         [Column("DocumentId")]
         public int DocumentId { get; set; }
         [Column("StorageKey")]
+        [MaxLength(800)]
         public string StorageKey { get; set; }
         [Column("ContentType")]
         public string ContentType { get; set; }

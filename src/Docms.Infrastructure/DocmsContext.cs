@@ -149,6 +149,10 @@ namespace Docms.Infrastructure
             modelBuilder.Entity<DocumentHistory>()
                 .HasIndex(h => h.Path);
             modelBuilder.Entity<DocumentHistory>()
+                .HasIndex(h => h.DocumentId);
+            modelBuilder.Entity<DocumentHistory>()
+                .HasIndex(h => h.StorageKey);
+            modelBuilder.Entity<DocumentHistory>()
                 .Property(d => d.Discriminator)
                 .HasConversion(
                     value => Enum.GetName(typeof(DocumentHistoryDiscriminator), value),
@@ -190,7 +194,6 @@ namespace Docms.Infrastructure
                      value => value.Kind == DateTimeKind.Unspecified
                          ? DateTime.SpecifyKind(value, DateTimeKind.Utc)
                          : value);
-
         }
     }
 

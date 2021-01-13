@@ -28,6 +28,7 @@ namespace Docms.Queries.DocumentHistories
         [MaxLength(800)]
         public string Path { get; set; }
         [Column("StorageKey")]
+        [MaxLength(800)]
         public string StorageKey { get; set; }
         [Column("ContentType")]
         public string ContentType { get; set; }
