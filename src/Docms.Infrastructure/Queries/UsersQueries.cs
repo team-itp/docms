@@ -20,7 +20,7 @@ namespace Docms.Infrastructure.Queries
             Id = "admin",
             Name = "管理者",
             AccountName = "admin",
-            Password = "05Jgx6Uh",
+            Password = "FJnJ7YY2",
             DepartmentName = null,
             TeamName = null,
             Roles = new List<string>() { "Administrator" }
