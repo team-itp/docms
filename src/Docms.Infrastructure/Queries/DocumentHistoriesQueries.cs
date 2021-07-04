@@ -2,6 +2,7 @@
 using Microsoft.EntityFrameworkCore;
 using System;
 using System.Linq;
+using System.Threading.Tasks;
 
 namespace Docms.Infrastructure.Queries
 {
@@ -12,6 +13,11 @@ namespace Docms.Infrastructure.Queries
         public DocumentHistoriesQueries(DocmsContext ctx)
         {
             this.ctx = ctx;
+        }
+
+        public Task<DocumentHistory> FindByIdAsync(Guid id)
+        {
+            return ctx.DocumentHistories.FirstOrDefaultAsync(e => e.Id == id);
         }
 
         public IQueryable<DocumentHistory> GetHistories(string path, DateTime? since = default, Guid? lastHistoryId = default)

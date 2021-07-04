@@ -22,9 +22,9 @@ namespace Docms.Infrastructure.Repositories
             return client;
         }
 
-        public Task AddAsync(Client client)
+        public async Task AddAsync(Client client)
         {
-            return _context.Clients.AddAsync(client);
+            await _context.Clients.AddAsync(client);
         }
 
         public Task UpdateAsync(Client client)

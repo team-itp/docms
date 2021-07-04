@@ -1,8 +1,8 @@
+using Docms.Application.Commands;
 using Docms.Domain.Documents;
 using Docms.Infrastructure.Files;
 using Docms.Queries.Blobs;
 using Docms.Queries.DocumentHistories;
-using Docms.Application.Commands;
 using Docms.Web.Extensions;
 using Docms.Web.Filters;
 using Docms.Web.Models;
@@ -123,6 +123,26 @@ namespace Docms.Web.Controllers
 
             Response.Headers.Add("Cache-Control", "max-age=15");
             return File(await data.OpenStreamAsync().ConfigureAwait(false), entry.ContentType, entry.Name, new DateTimeOffset(entry.LastModified), new EntityTagHeaderValue("\"" + entry.Hash + "\""), true);
+        }
+
+
+        [HttpGet("downloadByKey")]
+        public async Task<IActionResult> DownloadByKey([FromQuery] Guid historyId)
+        {
+            var entry = await _histories.FindByIdAsync(historyId);
+            if (!(await _blobs.GetEntryAsync(entry.Path).ConfigureAwait(false) is Blob currentEntry))
+            {
+                return NotFound();
+            }
+
+            var data = await _storage.FindAsync(entry.StorageKey ?? entry.Path).ConfigureAwait(false);
+            if (data == null)
+            {
+                return new StatusCodeResult((int)HttpStatusCode.InternalServerError);
+            }
+
+            Response.Headers.Add("Cache-Control", "max-age=15");
+            return File(await data.OpenStreamAsync().ConfigureAwait(false), entry.ContentType, currentEntry.Name, new DateTimeOffset(entry.LastModified.Value), new EntityTagHeaderValue("\"" + entry.Hash + "\""), true);
         }
 
         [HttpGet("upload/{*dirPath=}")]

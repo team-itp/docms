@@ -1,16 +1,12 @@
 ﻿using Docms.Domain.Documents;
 using Docms.Infrastructure;
 using Docms.Infrastructure.Storage.AzureBlobStorage;
-using Docms.Queries.Blobs;
-using Docms.Queries.DocumentHistories;
 using MediatR;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using System;
-using System.Collections.Generic;
-using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 

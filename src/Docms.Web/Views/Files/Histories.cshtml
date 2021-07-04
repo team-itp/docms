@@ -30,26 +30,38 @@
 <div class="list-group">
     @foreach (var history in Model.List)
     {
-        <a href="@Url.ShowFileInContainer(history.Path)" class="list-group-item list-group-item-action">
-            <div class="d-flex w-100 justify-content-between">
-                <h5 class="mb-1">
-                    @history.Path.Split("/").Last()
-                    @if (history.Discriminator == DocumentHistoryDiscriminator.DocumentDeleted)
-                    {
-                        <text> が削除されました。</text>
-                    }
-                    else
-                    {
+        <div class="list-group-item list-group-item-action">
+            <a href="@Url.ShowFileInContainer(history.Path)" class="text-dark" style="text-decoration:none">
+                <div class="d-flex w-100 justify-content-between">
+                    <h5 class="mb-1">
+                        @history.Path.Split("/").Last()
+                        @if (history.Discriminator == DocumentHistoryDiscriminator.DocumentDeleted)
+                        {
+                            <text> が削除されました。</text>
+                        }
+                        else
+                        {
 
-                        <text> がアップロードされました。</text>
-                    }
-                </h5>
-                <small class="text-nowrap">@history.Timestamp.ToRelativeString()</small>
+                            <text> がアップロードされました。</text>
+                        }
+                    </h5>
+                    <small class="text-nowrap">@history.Timestamp.ToRelativeString()</small>
+                </div>
+            </a>
+            <div class="d-flex justify-content-between">
+                <a href="@Url.ShowFileInContainer(history.Path)" class="text-dark" style="text-decoration:none">
+                    <p class="mt-0 mb-1">
+                        <small>@(history.Path)</small>
+                    </p>
+                </a>
+
+                <div>
+                    <a href="@Url.Action("DownloadByKey", new { historyId = history.Id })" class="btn btn-sm btn-secondary" download="@(System.IO.Path.GetFileName(history.Path))">
+                        <i class="fa fa-download"></i>
+                    </a>
+                </div>
             </div>
-            <p class="mt-0 mb-1">
-                <small>@(history.Path)</small>
-            </p>
-        </a>
+        </div>
     }
 </div>
 

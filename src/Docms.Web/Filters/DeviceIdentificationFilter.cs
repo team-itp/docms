@@ -41,7 +41,7 @@ namespace Docms.Web.Filters
             {
                 if (string.IsNullOrWhiteSpace(context.HttpContext.User?.Identity?.Name))
                 {
-                    context.HttpContext.Response.Redirect("/account/login?returnUrl=" + Uri.EscapeUriString(context.HttpContext.Request.Path));
+                    context.HttpContext.Response.Redirect("/account/login?returnUrl=" + Uri.EscapeDataString(context.HttpContext.Request.Path));
                     return;
                 }
 
@@ -54,7 +54,7 @@ namespace Docms.Web.Filters
                 var appUser = await _userManager.FindByNameAsync(context.HttpContext.User.Identity.Name);
                 if (appUser == null)
                 {
-                    context.HttpContext.Response.Redirect("/account/accessdenied?returnUrl=" + Uri.EscapeUriString(context.HttpContext.Request.Path));
+                    context.HttpContext.Response.Redirect("/account/accessdenied?returnUrl=" + Uri.EscapeDataString(context.HttpContext.Request.Path));
                     return;
                 }
 
@@ -102,7 +102,7 @@ namespace Docms.Web.Filters
                     }
                 }
 
-                context.HttpContext.Response.Redirect("/account/accessdenied?returnUrl=" + Uri.EscapeUriString(context.HttpContext.Request.Path));
+                context.HttpContext.Response.Redirect("/account/accessdenied?returnUrl=" + Uri.EscapeDataString(context.HttpContext.Request.Path));
             }
         }
     }

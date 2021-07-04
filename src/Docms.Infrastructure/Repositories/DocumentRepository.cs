@@ -31,9 +31,9 @@ namespace Docms.Infrastructure.Repositories
                 .SingleOrDefaultAsync(e => e.Path == documentPath);
         }
 
-        public Task AddAsync(Document document)
+        public async Task AddAsync(Document document)
         {
-            return _context.Documents.AddAsync(document);
+            await _context.Documents.AddAsync(document);
         }
 
         public Task UpdateAsync(Document document)
