@@ -24,6 +24,7 @@ using Microsoft.AspNetCore.Localization;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Hosting;
 using Newtonsoft.Json;
 using System;
 using System.Collections.Generic;
@@ -52,8 +53,9 @@ namespace Docms.Web
             {
                 options.AddPolicy("RequireAdministratorRole", policy => policy.RequireRole("Administrator"));
             });
-            services.AddMvc()
-                .AddJsonOptions(options =>
+            services.AddControllersWithViews()
+                .AddRazorRuntimeCompilation()
+                .AddNewtonsoftJson(options =>
                 {
                     options.SerializerSettings.TypeNameHandling = TypeNameHandling.Objects;
                     options.SerializerSettings.SerializationBinder = new DocmsJsonTypeBinder();
@@ -66,12 +68,11 @@ namespace Docms.Web
             services.RegisterMediators(Configuration);
         }
 
-        public void Configure(IApplicationBuilder app, IHostingEnvironment env)
+        public void Configure(IApplicationBuilder app, IWebHostEnvironment env)
         {
             if (env.IsDevelopment())
             {
                 app.UseDeveloperExceptionPage();
-                app.UseDatabaseErrorPage();
             }
             else
             {
@@ -90,16 +91,17 @@ namespace Docms.Web
                 options.SupportedUICultures = supportedCultures;
             });
             app.UseHttpsRedirection();
+            app.UseIdentityServer();
             app.UseCustomDbContext();
             app.UseStatusCodePagesWithReExecute("/error/{0}");
             app.UseStaticFiles();
-            app.UseIdentityServer();
+            app.UseRouting();
+            app.UseAuthentication();
+            app.UseAuthorization();
 
-            app.UseMvc(routes =>
+            app.UseEndpoints(endpoints =>
             {
-                routes.MapRoute(
-                    name: "default",
-                    template: "{controller=Home}/{action=Index}/{id?}");
+                endpoints.MapControllers();
             });
         }
     }
@@ -153,15 +155,6 @@ namespace Docms.Web
                 .AddInMemoryApiResources(new List<ApiResource>()
                 {
                     new ApiResource("docmsapi", "文書管理システム API")
-                    {
-                        Scopes = new List<Scope>() {
-                            new Scope("docmsapi", "文書管理システム API")
-                        },
-                        ApiSecrets = new List<Secret>()
-                        {
-                            new Secret("docmsapi-secret".Sha256())
-                        }
-                    }
                 });
 
             return services;

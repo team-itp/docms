@@ -167,7 +167,9 @@ namespace Docms.Web.Api.V1
             var hasMediaTypeHeader = MediaTypeHeaderValue.TryParse(section.ContentType, out var mediaType);
             // UTF-7 is insecure and should not be honored. UTF-8 will succeed in 
             // most cases.
+#pragma warning disable SYSLIB0001 // Œ^‚Ü‚½‚Íƒƒ“ƒo[‚ª‹ŒŒ^®‚Å‚·
             if (!hasMediaTypeHeader || Encoding.UTF7.Equals(mediaType.Encoding))
+#pragma warning restore SYSLIB0001 // Œ^‚Ü‚½‚Íƒƒ“ƒo[‚ª‹ŒŒ^®‚Å‚·
             {
                 return Encoding.UTF8;
             }

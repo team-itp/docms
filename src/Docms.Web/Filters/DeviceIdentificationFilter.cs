@@ -41,7 +41,7 @@ namespace Docms.Web.Filters
             {
                 if (string.IsNullOrWhiteSpace(context.HttpContext.User?.Identity?.Name))
                 {
-                    context.HttpContext.Response.Redirect("/account/login?returnUrl=" + Uri.EscapeUriString(context.HttpContext.Request.Path));
+                    context.HttpContext.Response.Redirect("/account/login?returnUrl=" + Uri.EscapeDataString(context.HttpContext.Request.Path));
                     return;
                 }
 

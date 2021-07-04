@@ -136,10 +136,10 @@ namespace Docms.Infrastructure
 
             modelBuilder.Entity<DocumentHistory>()
                 .HasKey(d => d.Id)
-                .ForSqlServerIsClustered(false);
+                .IsClustered(false);
             modelBuilder.Entity<DocumentHistory>()
                 .HasIndex(d => d.Timestamp)
-                .ForSqlServerIsClustered(true);
+                .IsClustered(true);
             modelBuilder.Entity<DocumentHistory>()
                 .HasIndex(h => new { h.Timestamp, h.Path });
             modelBuilder.Entity<DocumentHistory>()
@@ -222,6 +222,11 @@ namespace Docms.Infrastructure
             public Task<TResponse> Send<TResponse>(IRequest<TResponse> request, CancellationToken cancellationToken = default)
             {
                 return Task.FromResult(default(TResponse));
+            }
+
+            public Task<object> Send(object request, CancellationToken cancellationToken = default)
+            {
+                return Task.FromResult(default(object));
             }
         }
     }

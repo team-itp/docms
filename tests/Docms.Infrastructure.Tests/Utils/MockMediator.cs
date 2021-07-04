@@ -8,7 +8,7 @@ namespace Docms.Infrastructure.Tests.Utils
     class MockMediator : IMediator
     {
         public List<INotification> Notifications { get; } = new List<INotification>();
-        public List<IBaseRequest> Requests { get; } = new List<IBaseRequest>();
+        public List<object> Requests { get; } = new List<object>();
 
         public Task Publish(object notification, CancellationToken cancellationToken = default)
         {
@@ -26,6 +26,12 @@ namespace Docms.Infrastructure.Tests.Utils
         {
             Requests.Add(request);
             return Task.FromResult(default(TResponse));
+        }
+
+        public Task<object> Send(object request, CancellationToken cancellationToken = default)
+        {
+            Requests.Add(request);
+            return Task.FromResult<object>(default);
         }
     }
 }

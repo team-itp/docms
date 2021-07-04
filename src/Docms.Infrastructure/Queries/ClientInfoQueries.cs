@@ -13,9 +13,9 @@ namespace Docms.Infrastructure.Queries
             _context = context;
         }
 
-        public Task<ClientInfo> FindByIdAsync(string id)
+        public async Task<ClientInfo> FindByIdAsync(string id)
         {
-            return _context.ClientInfo.FindAsync(id);
+            return await _context.ClientInfo.FindAsync(id);
         }
 
         public IQueryable<ClientInfo> GetClients()

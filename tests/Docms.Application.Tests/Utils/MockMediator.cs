@@ -20,5 +20,10 @@ namespace Docms.Application.Tests.Utils
         {
             return Task.FromResult(default(TResponse));
         }
+
+        public Task<object> Send(object request, CancellationToken cancellationToken = default)
+        {
+            return Task.FromResult<object>(default);
+        }
     }
 }

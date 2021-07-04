@@ -59,7 +59,7 @@ namespace Docms.Infrastructure.Queries
                 return await GetAdminUserAsync();
             }
 
-            var user = await _vsDb.Users.FirstOrDefaultAsync(u => u.AccountName.ToUpperInvariant() == normalizedUserName);
+            var user = await _vsDb.Users.FirstOrDefaultAsync(u => u.AccountName.ToUpper() == normalizedUserName);
             if (user == null)
             {
                 return null;

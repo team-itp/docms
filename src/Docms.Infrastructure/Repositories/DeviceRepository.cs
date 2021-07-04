@@ -22,9 +22,9 @@ namespace Docms.Infrastructure.Repositories
             return device;
         }
 
-        public Task AddAsync(Device device)
+        public async Task AddAsync(Device device)
         {
-            return _context.Devices.AddAsync(device);
+            await _context.Devices.AddAsync(device);
         }
 
         public Task UpdateAsync(Device device)

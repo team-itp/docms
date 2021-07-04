@@ -22,6 +22,7 @@ namespace Docms.Infrastructure.Queries
                     Path = "",
                     Entries = _db.Entries
                         .Where(e => string.IsNullOrEmpty(e.ParentPath))
+                        .AsEnumerable()
                         .OrderBy(e => e is BlobContainer ? 1 : 2)
                         .ThenBy(e => e.Name.ToUpperInvariant())
                         .ToList()
